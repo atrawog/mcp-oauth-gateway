@@ -1,0 +1,30 @@
+# Sacred Jupyter Book Configuration
+title: MCP OAuth Gateway
+author: The Righteous Developer
+logo: logo.png
+
+# Force-exclude patterns during the build
+exclude_patterns:
+  - _build
+  - Thumbs.db
+  - .DS_Store
+  - "**.ipynb_checkpoints"
+
+# Execution settings
+execute:
+  execute_notebooks: off
+
+# Define the name of the latex output file for PDF builds
+latex:
+  latex_documents:
+    targetname: mcp-oauth-gateway.tex
+
+# Information about where the book exists on the web
+repository:
+  url: https://github.com/yourusername/mcp-oauth-gateway
+  branch: main
+
+# HTML-specific settings
+html:
+  use_issues_button: true
+  use_repository_button: true

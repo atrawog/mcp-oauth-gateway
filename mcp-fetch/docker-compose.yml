@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  mcp-fetch:
+    build: .
+    container_name: mcp-fetch
+    restart: unless-stopped
+    networks:
+      - public
+    labels:
+      - "traefik.enable=true"
+      # MCP route with auth - Priority 2
+      - "traefik.http.routers.mcp-fetch.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch.priority=2"
+      - "traefik.http.routers.mcp-fetch.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@docker"
+      - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
+      
+      # Catch-all route - Priority 1 (LOWEST)
+      - "traefik.http.routers.mcp-fetch-catchall.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-catchall.priority=1"
+      - "traefik.http.routers.mcp-fetch-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-catchall.middlewares=mcp-auth@docker"
+    healthcheck:
+      test: |
+        python3 -c "
+        import httpx, sys
+        try:
+            # Check internal health
+            r1 = httpx.get('http://localhost:3000/health', timeout=5.0)
+            # Check mcp-proxy is running
+            r2 = httpx.post('http://localhost:3000/mcp', 
+                           json={'jsonrpc':'2.0','method':'ping','id':1},
+                           timeout=5.0)
+            sys.exit(0 if r1.status_code==200 else 1)
+        except: sys.exit(1)
+        "
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  public:
+    external: true

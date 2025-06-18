@@ -1,0 +1,49 @@
+version: '3.8'
+
+# Sacred Coverage Overlay - Production coverage without contamination!
+# This overlay adds coverage tracking to production containers
+
+services:
+  auth:
+    environment:
+      - PYTHONPATH=/coverage-spy:${PYTHONPATH:-}
+      - COVERAGE_PROCESS_START=/coverage-config/.coveragerc
+    volumes:
+      - ./coverage-spy:/coverage-spy:ro
+      - ./coverage-spy/.coveragerc:/coverage-config/.coveragerc:ro
+      - coverage-data:/coverage-data:rw
+
+  # Coverage harvester - collects and combines coverage data
+  coverage-harvester:
+    image: python:3.11-slim
+    container_name: coverage-harvester
+    networks:
+      - public
+    volumes:
+      - ./auth:/app:ro  # CRITICAL: Mount source for path alignment!
+      - coverage-data:/coverage-data:rw
+      - ./htmlcov:/htmlcov:rw
+      - ./coverage-spy/.coveragerc:/.coveragerc:ro
+    working_dir: /
+    environment:
+      - COVERAGE_FILE=/coverage-data/.coverage
+    command: |
+      bash -c "
+        pip install coverage
+        echo 'Waiting for coverage data...'
+        sleep 5
+        coverage combine /coverage-data/.coverage.*
+        coverage html -d /htmlcov
+        coverage report
+        echo 'Coverage report generated in ./htmlcov/'
+      "
+    depends_on:
+      - auth
+
+volumes:
+  coverage-data:
+    external: true
+
+networks:
+  public:
+    external: true

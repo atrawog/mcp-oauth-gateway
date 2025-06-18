@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  auth:
+    build: .
+    container_name: auth
+    restart: unless-stopped
+    networks:
+      - public
+    environment:
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - BASE_DOMAIN=${BASE_DOMAIN}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - ACCESS_TOKEN_LIFETIME=${ACCESS_TOKEN_LIFETIME:-86400}
+      - REFRESH_TOKEN_LIFETIME=${REFRESH_TOKEN_LIFETIME:-2592000}
+      - SESSION_TIMEOUT=${SESSION_TIMEOUT:-3600}
+      - ALLOWED_GITHUB_USERS=${ALLOWED_GITHUB_USERS:-}
+      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-03-26}
+    depends_on:
+      redis:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      # OAuth routes - Priority 4 (HIGHEST)
+      - "traefik.http.routers.auth-oauth.rule=Host(`auth.${BASE_DOMAIN}`) && (PathPrefix(`/register`) || PathPrefix(`/authorize`) || PathPrefix(`/token`) || PathPrefix(`/callback`) || PathPrefix(`/.well-known`))"
+      - "traefik.http.routers.auth-oauth.priority=4"
+      - "traefik.http.routers.auth-oauth.entrypoints=websecure"
+      - "traefik.http.routers.auth-oauth.tls.certresolver=letsencrypt"
+      - "traefik.http.services.auth-oauth.loadbalancer.server.port=8000"
+      
+      # Verify endpoint for ForwardAuth - Priority 3
+      - "traefik.http.routers.auth-verify.rule=Host(`auth.${BASE_DOMAIN}`) && Path(`/verify`)"
+      - "traefik.http.routers.auth-verify.priority=3"
+      - "traefik.http.routers.auth-verify.entrypoints=websecure"
+      - "traefik.http.routers.auth-verify.tls.certresolver=letsencrypt"
+      - "traefik.http.services.auth-verify.loadbalancer.server.port=8000"
+      
+      # ForwardAuth middleware definition
+      - "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"
+      - "traefik.http.middlewares.mcp-auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name,X-Auth-Token"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    networks:
+      - public
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  public:
+    external: true
+
+volumes:
+  redis-data:
+    external: true

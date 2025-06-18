@@ -1,0 +1,22 @@
+version: '3.8'
+
+# The root orchestrator that unites the three divine realms
+# Each service maintains its own docker-compose.yml for sacred isolation
+
+include:
+  - traefik/docker-compose.yml
+  - auth/docker-compose.yml
+  - mcp-fetch/docker-compose.yml
+
+networks:
+  public:
+    external: true
+    name: public
+
+volumes:
+  traefik-certificates:
+    external: true
+  redis-data:
+    external: true
+  coverage-data:
+    external: true

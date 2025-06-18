@@ -1,0 +1,21 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: index
+chapters:
+  - file: architecture/index
+    sections:
+      - file: architecture/oauth-flow
+      - file: architecture/mcp-protocol
+  - file: api/index
+    sections:
+      - file: api/oauth-endpoints
+      - file: api/mcp-endpoints
+  - file: deployment/index
+    sections:
+      - file: deployment/configuration
+      - file: deployment/troubleshooting
+  - file: claude-ai/index
+    sections:
+      - file: claude-ai/testing

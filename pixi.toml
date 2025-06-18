@@ -1,0 +1,72 @@
+[project]
+name = "mcp-oauth-gateway"
+version = "0.1.0"
+description = "Sacred MCP OAuth2 Gateway following the divine commandments"
+authors = ["The Righteous Developer"]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+[tasks]
+# Testing tasks - NO MOCKING ALLOWED!
+test = "pytest tests/ -v"
+test-all = "pytest tests/ -v --tb=short"
+test-verbose = "pytest tests/ -v -s"
+test-coverage = "pytest tests/ -v --cov=auth --cov-report=html --cov-report=term"
+
+# Linting tasks
+lint = "ruff check ."
+format = "ruff format ."
+
+# Documentation tasks
+docs-build = "jupyter-book build docs/"
+docs-clean = "jupyter-book clean docs/"
+
+# Development server (for testing auth service locally)
+dev-auth = "cd auth && uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+
+[dependencies]
+# Testing framework - pytest is blessed!
+pytest = ">=7.4.0,<8"
+pytest-asyncio = ">=0.21.0,<1"
+pytest-cov = ">=4.1.0,<5"
+
+# Web frameworks and tools
+fastapi = ">=0.109.0,<1"
+uvicorn = ">=0.25.0,<1"
+httpx = ">=0.25.0,<1"
+redis-py = ">=5.0.0,<6"
+
+# Authentication and security
+python-jose = ">=3.3.0,<4"
+cryptography = ">=41.0.0,<42"
+python-multipart = ">=0.0.6,<1"
+
+# Configuration and typing
+pydantic = ">=2.5.0,<3"
+pydantic-settings = ">=2.1.0,<3"
+
+# Linting and formatting
+ruff = ">=0.1.0,<1"
+
+# Documentation - Jupyter Book is blessed!
+jupyter-book = ">=1.0.0,<2"
+myst-parser = ">=2.0.0,<3"
+sphinx = ">=7.0.0,<8"
+
+# Utilities
+python-dotenv = ">=1.0.0,<2"
+pyyaml = ">=6.0,<7"
+
+[feature.docs.dependencies]
+# Additional dependencies for documentation
+sphinx-autobuild = ">=2021.3.14"
+sphinx-book-theme = ">=1.0.0"
+sphinx-copybutton = ">=0.5.0"
+sphinx-design = ">=0.5.0"
+
+[environments]
+# Default environment includes everything
+default = { solve-group = "default" }
+
+# Documentation environment
+docs = { features = ["docs"], solve-group = "default" }
