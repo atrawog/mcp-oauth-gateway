@@ -27,9 +27,30 @@ test-verbose:
 
 # Run tests with sidecar coverage pattern
 test-sidecar-coverage:
-    @docker compose -f docker compose.yml -f docker compose.coverage.yml up -d
+    @docker compose down --remove-orphans
+    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d
+    @echo "Waiting for services to be ready..."
+    @sleep 15
     @pixi run pytest tests/ -v
-    @docker compose down
+    @echo "Triggering graceful shutdown to collect coverage data..."
+    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml stop auth
+    @echo "Waiting for coverage harvester to complete..."
+    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml logs -f coverage-harvester &
+    @docker wait coverage-harvester || true
+    @echo "Coverage collection complete"
+    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml down
+
+# Debug coverage setup
+debug-coverage:
+    @docker compose down --remove-orphans
+    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d
+    @echo "Waiting for services..."
+    @sleep 10
+    @echo "=== Debugging coverage setup in auth container ==="
+    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml exec auth python /scripts/debug_coverage.py || echo "Debug script failed"
+    @echo "=== Auth container environment ==="
+    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml exec auth env | grep -E "PYTHON|COVERAGE" || echo "No coverage env vars"
+    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml down
 
 # Build documentation with Jupyter Book
 docs-build:

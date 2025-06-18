@@ -7,14 +7,19 @@ import httpx
 import json
 import asyncio
 from typing import Optional
-from conftest import MCP_FETCH_URL, AUTH_BASE_URL
+import os
+
+# Load from environment
+BASE_DOMAIN = os.getenv("BASE_DOMAIN", "localhost")
+AUTH_BASE_URL = f"https://auth.{BASE_DOMAIN}"
+MCP_FETCH_URL = f"https://mcp-fetch.{BASE_DOMAIN}"
 
 
 class TestMCPProtocol:
     """Test MCP Protocol 2025-03-26 compliance"""
     
     @pytest.mark.asyncio
-    async def test_mcp_endpoint_requires_auth(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_mcp_endpoint_requires_auth(self, http_client, wait_for_services):
         """Test that MCP endpoint requires authentication"""
         # Try to access without auth
         response = await http_client.post(
@@ -31,7 +36,7 @@ class TestMCPProtocol:
         assert response.headers.get("WWW-Authenticate") == "Bearer"
     
     @pytest.mark.asyncio
-    async def test_mcp_json_rpc_format(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_mcp_json_rpc_format(self, http_client, wait_for_services):
         """Test JSON-RPC 2.0 message format requirements"""
         # Invalid JSON-RPC (missing required fields)
         test_cases = [
@@ -61,7 +66,7 @@ class TestMCPProtocol:
                 assert response.status_code == 400
     
     @pytest.mark.asyncio
-    async def test_mcp_streamable_http_headers(self, http_client: httpx.AsyncClient):
+    async def test_mcp_streamable_http_headers(self, http_client):
         """Test required headers for Streamable HTTP transport"""
         mock_token = "test_token"
         
@@ -86,7 +91,7 @@ class TestMCPProtocol:
         assert "text/event-stream" in response.request.headers["Accept"]
     
     @pytest.mark.asyncio
-    async def test_mcp_session_management(self, http_client: httpx.AsyncClient):
+    async def test_mcp_session_management(self, http_client):
         """Test MCP session ID handling"""
         mock_token = "test_token"
         session_id = "test-session-123"
@@ -113,7 +118,7 @@ class TestMCPProtocol:
         assert "Mcp-Session-Id" in response.request.headers
     
     @pytest.mark.asyncio
-    async def test_mcp_protocol_version(self, http_client: httpx.AsyncClient):
+    async def test_mcp_protocol_version(self, http_client):
         """Test MCP protocol version negotiation"""
         mock_token = "test_token"
         
@@ -141,7 +146,7 @@ class TestMCPProtocol:
         assert response.request.headers.get("MCP-Protocol-Version") == "2025-03-26"
     
     @pytest.mark.asyncio
-    async def test_mcp_error_response_format(self, http_client: httpx.AsyncClient):
+    async def test_mcp_error_response_format(self, http_client):
         """Test that MCP errors follow JSON-RPC 2.0 error format"""
         # This will fail auth, but we can check the error format
         response = await http_client.post(
@@ -161,7 +166,7 @@ class TestMCPProtocol:
             assert "error" in error_data or "detail" in error_data
     
     @pytest.mark.asyncio 
-    async def test_mcp_batch_request_support(self, http_client: httpx.AsyncClient):
+    async def test_mcp_batch_request_support(self, http_client):
         """Test that MCP supports receiving JSON-RPC batches"""
         mock_token = "test_token"
         
@@ -183,7 +188,7 @@ class TestMCPProtocol:
         assert response.status_code in [200, 401, 404]  # Not 400 Bad Request
     
     @pytest.mark.asyncio
-    async def test_mcp_http_methods(self, http_client: httpx.AsyncClient):
+    async def test_mcp_http_methods(self, http_client):
         """Test that MCP endpoint supports both POST and GET methods"""
         mock_token = "test_token"
         headers = {"Authorization": f"Bearer {mock_token}"}

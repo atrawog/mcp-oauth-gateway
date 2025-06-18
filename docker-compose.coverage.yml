@@ -3,13 +3,18 @@
 
 services:
   auth:
+    # Run as root for coverage data writing
+    user: root
     environment:
       - PYTHONPATH=/coverage-spy:${PYTHONPATH:-}
       - COVERAGE_PROCESS_START=/coverage-config/.coveragerc
+      - COVERAGE_FILE=/coverage-data/.coverage
     volumes:
       - ./coverage-spy:/coverage-spy:ro
       - ./coverage-spy/.coveragerc:/coverage-config/.coveragerc:ro
       - coverage-data:/coverage-data:rw
+    # Ensure graceful shutdown for coverage collection
+    stop_grace_period: 10s
 
   # Coverage harvester - collects and combines coverage data
   coverage-harvester:
@@ -22,19 +27,28 @@ services:
       - coverage-data:/coverage-data:rw
       - ./htmlcov:/htmlcov:rw
       - ./coverage-spy/.coveragerc:/.coveragerc:ro
+      - ./scripts:/scripts:ro
     working_dir: /
     environment:
       - COVERAGE_FILE=/coverage-data/.coverage
-    command: |
-      bash -c "
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
         pip install coverage
-        echo 'Waiting for coverage data...'
+        echo 'Coverage harvester started'
+        
+        # Wait for coverage data to be written
+        python /scripts/wait_for_coverage.py
+        
+        # Combine and generate reports
+        cd /coverage-data
+        coverage combine || echo 'No data to combine'
+        coverage report --rcfile=/.coveragerc || echo 'No data to report'
+        coverage html --rcfile=/.coveragerc -d /htmlcov || echo 'No HTML report generated'
+        
+        echo 'Coverage harvester completed'
+        # Keep container alive briefly to allow log collection
         sleep 5
-        coverage combine /coverage-data/.coverage.*
-        coverage html -d /htmlcov
-        coverage report
-        echo 'Coverage report generated in ./htmlcov/'
-      "
     depends_on:
       - auth
 
