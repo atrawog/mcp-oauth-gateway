@@ -1,4 +1,8 @@
 set dotenv-load := true  # FIRST LINE - ALWAYS!
+set export := true       # Export all variables to recipes
+
+# Enable Compose Bake for better performance
+export COMPOSE_BAKE := "true"
 
 # The Sacred justfile for MCP OAuth Gateway
 # Following the divine commandments of CLAUDE.md
@@ -19,9 +23,9 @@ test-verbose:
 
 # Run tests with sidecar coverage pattern
 test-sidecar-coverage:
-    @docker-compose -f docker-compose.yml -f docker-compose.coverage.yml up -d
+    @docker compose -f docker compose.yml -f docker compose.coverage.yml up -d
     @pixi run pytest tests/ -v
-    @docker-compose down
+    @docker compose down
 
 # Build documentation with Jupyter Book
 docs-build:
@@ -52,20 +56,20 @@ volumes-create:
 
 # Start all services
 up: network-create volumes-create
-    @docker-compose up -d
+    @docker compose up -d
 
 # Stop all services
 down:
-    @docker-compose down
+    @docker compose down
 
 # Rebuild specific service
 rebuild service:
-    @docker-compose -f {{service}}/docker-compose.yml build --no-cache
-    @docker-compose up -d {{service}}
+    @docker compose -f {{service}}/docker-compose.yml build --no-cache
+    @docker compose up -d {{service}}
 
 # View service logs
 logs:
-    @docker-compose logs -f
+    @docker compose logs -f
 
 # Project-specific commands
 
@@ -89,15 +93,15 @@ test-claude-integration:
 
 # Service-specific rebuilds
 rebuild-auth:
-    @docker-compose -f auth/docker-compose.yml build --no-cache
-    @docker-compose up -d auth
+    @docker compose -f auth/docker-compose.yml build --no-cache
+    @docker compose up -d auth
 
 rebuild-mcp-fetch:
-    @docker-compose -f mcp-fetch/docker-compose.yml build --no-cache
-    @docker-compose up -d mcp-fetch
+    @docker compose -f mcp-fetch/docker-compose.yml build --no-cache
+    @docker compose up -d mcp-fetch
 
 rebuild-traefik:
-    @docker-compose -f traefik/docker-compose.yml up -d traefik
+    @docker compose -f traefik/docker-compose.yml up -d traefik
 
 # Analysis commands
 analyze-oauth-logs:

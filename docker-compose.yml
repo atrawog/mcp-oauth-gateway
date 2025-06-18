@@ -1,5 +1,3 @@
-version: '3.8'
-
 # The root orchestrator that unites the three divine realms
 # Each service maintains its own docker-compose.yml for sacred isolation
 
@@ -11,7 +9,6 @@ include:
 networks:
   public:
     external: true
-    name: public
 
 volumes:
   traefik-certificates:

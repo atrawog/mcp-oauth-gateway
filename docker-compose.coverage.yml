@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Sacred Coverage Overlay - Production coverage without contamination!
 # This overlay adds coverage tracking to production containers
 

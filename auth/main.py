@@ -38,7 +38,6 @@ class Settings(BaseSettings):
     
     # Redis Configuration
     redis_url: str
-    redis_password: str
     
     # Token Lifetimes
     access_token_lifetime: int = 86400  # 24 hours

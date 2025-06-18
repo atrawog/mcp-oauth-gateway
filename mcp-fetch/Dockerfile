@@ -1,19 +1,9 @@
-FROM node:20-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies including curl for healthchecks and python for healthcheck
-RUN apt-get update && apt-get install -y \
-    curl \
-    python3 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install MCP tools
-RUN npm install -g @modelcontextprotocol/server-fetch mcp-proxy
-
-# Create non-root user
-RUN useradd -m -u 1000 mcpuser && chown -R mcpuser:mcpuser /app
-USER mcpuser
+# Install mcp AND mcp-proxy!
+RUN pip install mcp mcp-proxy
 
 # The MCP service port
 EXPOSE 3000
