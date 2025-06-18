@@ -13,4 +13,5 @@ EXPOSE 3000
 
 # Run mcp-proxy to bridge HTTP to stdio for mcp-server-fetch
 # This service knows NOTHING about OAuth!
-CMD ["mcp-proxy", "--transport", "streamablehttp", "--port", "3000", "--host", "0.0.0.0", "--", "/usr/local/bin/mcp-server-fetch"]
+# Note: When running as server, mcp-proxy only supports SSE transport
+CMD ["mcp-proxy", "--port", "3000", "--host", "0.0.0.0", "--", "/usr/local/bin/mcp-server-fetch"]
