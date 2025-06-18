@@ -1,0 +1,81 @@
+"""
+Sacred Test Constants - Following Commandment 4: Configure Only Through .env Files
+NO HARDCODED VALUES! NO DEFAULTS! ALL configuration MUST come from environment variables.
+
+According to CLAUDE.md: "No defaults in code - Every value must be explicitly blessed!"
+Tests should use the SAME .env file as the application!
+"""
+import os
+
+
+def _get_env_or_fail(key: str) -> str:
+    """Get environment variable or fail with clear error message"""
+    value = os.getenv(key)
+    if value is None:
+        raise ValueError(
+            f"SACRED VIOLATION! Environment variable {key} is not set. "
+            f"All configuration MUST come from .env files. "
+            f"No hardcoded defaults allowed! Add {key} to your .env file."
+        )
+    return value
+
+
+def _get_env_int_or_fail(key: str) -> int:
+    """Get environment variable as integer or fail"""
+    value = _get_env_or_fail(key)
+    try:
+        return int(value)
+    except ValueError:
+        raise ValueError(f"Environment variable {key} must be an integer, got: {value}")
+
+
+def _get_env_float_or_fail(key: str) -> float:
+    """Get environment variable as float or fail"""
+    value = _get_env_or_fail(key)
+    try:
+        return float(value)
+    except ValueError:
+        raise ValueError(f"Environment variable {key} must be a float, got: {value}")
+
+
+# Domain Configuration - From main .env
+BASE_DOMAIN = _get_env_or_fail("BASE_DOMAIN")
+AUTH_BASE_URL = f"https://auth.{BASE_DOMAIN}"
+MCP_FETCH_URL = f"https://mcp-fetch.{BASE_DOMAIN}"
+
+# Redis Configuration - From main .env 
+REDIS_PASSWORD = _get_env_or_fail("REDIS_PASSWORD")
+# For tests, we connect to localhost Redis (not the Docker service name)
+REDIS_URL = f"redis://:{REDIS_PASSWORD}@localhost:6379/0"
+
+# GitHub OAuth Configuration - From main .env
+GITHUB_CLIENT_ID = _get_env_or_fail("GITHUB_CLIENT_ID")
+GITHUB_CLIENT_SECRET = _get_env_or_fail("GITHUB_CLIENT_SECRET")
+
+# JWT Configuration - From main .env
+JWT_SECRET = _get_env_or_fail("JWT_SECRET")
+
+# Token Lifetimes - From main .env
+ACCESS_TOKEN_LIFETIME = _get_env_int_or_fail("ACCESS_TOKEN_LIFETIME")
+REFRESH_TOKEN_LIFETIME = _get_env_int_or_fail("REFRESH_TOKEN_LIFETIME")
+SESSION_TIMEOUT = _get_env_int_or_fail("SESSION_TIMEOUT")
+
+# MCP Protocol Configuration - From main .env
+MCP_PROTOCOL_VERSION = _get_env_or_fail("MCP_PROTOCOL_VERSION")
+
+# GitHub Personal Access Token (if needed for tests) - From main .env
+GITHUB_PAT = os.getenv("GITHUB_PAT")  # Optional, some tests might not need it
+
+# Test Configuration - From main .env
+TEST_HTTP_TIMEOUT = _get_env_float_or_fail("TEST_HTTP_TIMEOUT")
+TEST_MAX_RETRIES = _get_env_int_or_fail("TEST_MAX_RETRIES")  
+TEST_RETRY_DELAY = _get_env_float_or_fail("TEST_RETRY_DELAY")
+TEST_CALLBACK_URL = _get_env_or_fail("TEST_CALLBACK_URL")
+TEST_CLIENT_NAME = _get_env_or_fail("TEST_CLIENT_NAME")
+TEST_CLIENT_SCOPE = _get_env_or_fail("TEST_CLIENT_SCOPE")
+TEST_REDIRECT_URI = _get_env_or_fail("TEST_REDIRECT_URI")
+TEST_INVALID_REDIRECT_URI = _get_env_or_fail("TEST_INVALID_REDIRECT_URI")
+
+# Health Check Configuration - From main .env
+HEALTH_CHECK_TIMEOUT = _get_env_int_or_fail("HEALTH_CHECK_TIMEOUT")
+HEALTH_CHECK_INTERVAL = _get_env_int_or_fail("HEALTH_CHECK_INTERVAL")

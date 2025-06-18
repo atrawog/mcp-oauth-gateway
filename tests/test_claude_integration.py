@@ -9,12 +9,7 @@ import hashlib
 import base64
 import json
 from urllib.parse import urlparse, parse_qs
-import os
-
-# Load from environment
-BASE_DOMAIN = os.getenv("BASE_DOMAIN", "localhost")
-AUTH_BASE_URL = f"https://auth.{BASE_DOMAIN}"
-MCP_FETCH_URL = f"https://mcp-fetch.{BASE_DOMAIN}"
+from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, TEST_CLIENT_NAME, TEST_CLIENT_SCOPE, MCP_PROTOCOL_VERSION
 
 
 class TestClaudeIntegration:
@@ -31,7 +26,7 @@ class TestClaudeIntegration:
                 "jsonrpc": "2.0",
                 "method": "initialize",
                 "params": {
-                    "protocolVersion": "2025-03-26",
+                    "protocolVersion": MCP_PROTOCOL_VERSION,
                     "clientCapabilities": {}
                 },
                 "id": 1
@@ -161,11 +156,11 @@ class TestClaudeIntegration:
         # Verify token endpoint accepts proper grant types
         token_request = {
             "grant_type": "authorization_code",
-            "code": "test_code",  # Would be real in production
+            "code": "invalid_authorization_code",  # Testing invalid code
             "redirect_uri": registered_client["redirect_uris"][0],
             "client_id": registered_client["client_id"],
             "client_secret": registered_client["client_secret"],
-            "code_verifier": "test_verifier"  # PKCE verifier
+            "code_verifier": base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8').rstrip('=')  # PKCE verifier
         }
         
         # Test that endpoint exists and validates input
@@ -180,22 +175,21 @@ class TestClaudeIntegration:
         assert error["detail"]["error"] == "invalid_grant"  # Correct error for bad code
     
     @pytest.mark.asyncio
-    async def test_claude_mcp_streaming(self, http_client):
+    async def test_claude_mcp_streaming(self, http_client, wait_for_services):
         """Test MCP streaming capabilities for Claude.ai"""
         
-        # Test that MCP endpoint supports streaming
+        # Test that MCP endpoint supports streaming headers
         headers = {
-            "Accept": "text/event-stream",
-            "Authorization": "Bearer test_token"
+            "Accept": "text/event-stream"
         }
         
-        # POST with potential for streaming response
+        # POST with potential for streaming response (no auth)
         response = await http_client.post(
             f"{MCP_FETCH_URL}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
-                "params": {"protocolVersion": "2025-03-26"},
+                "params": {"protocolVersion": MCP_PROTOCOL_VERSION},
                 "id": 1
             },
             headers=headers,
@@ -243,13 +237,13 @@ class TestClaudeIntegration:
         assert response.status_code in [302, 307]
     
     @pytest.mark.asyncio
-    async def test_claude_session_management(self, http_client):
+    async def test_claude_session_management(self, http_client, wait_for_services):
         """Test MCP session handling for Claude.ai"""
         
         # Test session creation and management
         session_id = f"claude-session-{secrets.token_urlsafe(16)}"
         
-        # Send request with session ID
+        # Send request with session ID (no auth)
         response = await http_client.post(
             f"{MCP_FETCH_URL}/mcp",
             json={
@@ -258,11 +252,11 @@ class TestClaudeIntegration:
                 "id": 1
             },
             headers={
-                "Authorization": "Bearer test_token",
                 "Mcp-Session-Id": session_id
             }
         )
         
-        # Verify session header is accepted
+        # Should get 401 but session header is accepted
+        assert response.status_code == 401
         assert "Mcp-Session-Id" in response.request.headers
         assert response.request.headers["Mcp-Session-Id"] == session_id

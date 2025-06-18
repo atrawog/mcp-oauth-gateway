@@ -9,11 +9,7 @@ import hashlib
 import base64
 import json
 from urllib.parse import urlparse, parse_qs
-import os
-
-# Load from environment
-BASE_DOMAIN = os.getenv("BASE_DOMAIN", "localhost")
-AUTH_BASE_URL = f"https://auth.{BASE_DOMAIN}"
+from .test_constants import AUTH_BASE_URL, TEST_CALLBACK_URL, TEST_CLIENT_NAME, TEST_CLIENT_SCOPE, TEST_INVALID_REDIRECT_URI
 
 
 class TestOAuthFlow:
@@ -87,7 +83,7 @@ class TestOAuthFlow:
             f"{AUTH_BASE_URL}/authorize",
             params={
                 "client_id": "invalid_client",
-                "redirect_uri": "http://localhost:8080/callback",
+                "redirect_uri": TEST_CALLBACK_URL,
                 "response_type": "code",
                 "state": "test_state"
             },
@@ -103,7 +99,7 @@ class TestOAuthFlow:
             f"{AUTH_BASE_URL}/authorize",
             params={
                 "client_id": registered_client["client_id"],
-                "redirect_uri": "http://evil.com/callback",
+                "redirect_uri": TEST_INVALID_REDIRECT_URI,
                 "response_type": "code",
                 "state": "test_state"
             },

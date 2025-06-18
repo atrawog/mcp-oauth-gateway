@@ -1,11 +1,7 @@
 """Basic health test to verify connectivity"""
 import pytest
 import httpx
-import os
-
-# Load from environment
-BASE_DOMAIN = os.getenv("BASE_DOMAIN", "atradev.org")
-AUTH_BASE_URL = f"https://auth.{BASE_DOMAIN}"
+from .test_constants import AUTH_BASE_URL
 
 
 @pytest.mark.asyncio 
