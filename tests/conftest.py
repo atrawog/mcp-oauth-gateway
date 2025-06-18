@@ -8,6 +8,12 @@ import httpx
 import asyncio
 import os
 from typing import AsyncGenerator
+from dotenv import load_dotenv
+
+# SACRED LAW: Load .env file BEFORE importing test_constants
+# This ensures all environment variables are available!
+load_dotenv()
+
 # Import all configuration from test_constants
 from .test_constants import (
     AUTH_BASE_URL, 

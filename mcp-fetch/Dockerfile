@@ -3,15 +3,19 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install curl for healthchecks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install mcp AND mcp-proxy AND mcp-server-fetch!
-RUN pip install mcp mcp-proxy mcp-server-fetch
+# Install the BLESSED FastMCP framework!
+RUN pip install fastmcp httpx
+
+# Copy our MCP server implementation
+COPY mcp_fetch_server.py /app/
 
 # The MCP service port
 EXPOSE 3000
 
-# Run mcp-proxy to bridge HTTP to stdio for mcp-server-fetch
+# Run the native streamable HTTP server - NO PROXIES!
 # This service knows NOTHING about OAuth!
-# Note: When running as server, mcp-proxy only supports SSE transport
-CMD ["mcp-proxy", "--port", "3000", "--host", "0.0.0.0", "--", "/usr/local/bin/mcp-server-fetch"]
+CMD ["python", "mcp_fetch_server.py"]
