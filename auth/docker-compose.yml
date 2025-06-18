@@ -26,14 +26,22 @@ services:
       - "traefik.http.routers.auth-oauth.priority=4"
       - "traefik.http.routers.auth-oauth.entrypoints=websecure"
       - "traefik.http.routers.auth-oauth.tls.certresolver=letsencrypt"
-      - "traefik.http.services.auth-oauth.loadbalancer.server.port=8000"
+      - "traefik.http.routers.auth-oauth.service=auth"
+      - "traefik.http.services.auth.loadbalancer.server.port=8000"
       
       # Verify endpoint for ForwardAuth - Priority 3
       - "traefik.http.routers.auth-verify.rule=Host(`auth.${BASE_DOMAIN}`) && Path(`/verify`)"
       - "traefik.http.routers.auth-verify.priority=3"
       - "traefik.http.routers.auth-verify.entrypoints=websecure"
       - "traefik.http.routers.auth-verify.tls.certresolver=letsencrypt"
-      - "traefik.http.services.auth-verify.loadbalancer.server.port=8000"
+      - "traefik.http.routers.auth-verify.service=auth"
+      
+      # Health check endpoint - Priority 2
+      - "traefik.http.routers.auth-health.rule=Host(`auth.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.auth-health.priority=2"
+      - "traefik.http.routers.auth-health.entrypoints=websecure"
+      - "traefik.http.routers.auth-health.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.auth-health.service=auth"
       
       # ForwardAuth middleware definition
       - "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"

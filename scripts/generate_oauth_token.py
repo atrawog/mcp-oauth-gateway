@@ -74,7 +74,11 @@ async def check_existing_token(token: str) -> bool:
 
 async def register_oauth_client(base_url: str) -> Dict[str, str]:
     """Register OAuth client with the gateway"""
-    async with httpx.AsyncClient() as client:
+    # For development/testing, we may need to skip SSL verification
+    # In production, ensure proper SSL certificates are installed
+    verify_ssl = not base_url.startswith("https://localhost") and not "127.0.0.1" in base_url
+    
+    async with httpx.AsyncClient(verify=verify_ssl) as client:
         response = await client.post(
             f"{base_url}/register",
             json={

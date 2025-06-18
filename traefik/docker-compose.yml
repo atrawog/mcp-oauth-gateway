@@ -23,6 +23,7 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json"
       - "--log.level=INFO"
+      - "--ping=true"
     labels:
       - "traefik.enable=true"
       # HTTP to HTTPS redirect

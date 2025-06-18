@@ -7,6 +7,10 @@ export COMPOSE_BAKE := "true"
 # The Sacred justfile for MCP OAuth Gateway
 # Following the divine commandments of CLAUDE.md
 
+# Show all available commands (default)
+default:
+    @just --list
+
 # Universal commands mandated by the commandments
 
 # Run tests with pytest (no mocking allowed!)
@@ -114,6 +118,18 @@ check-health:
     @curl -f http://localhost/health || echo "Traefik not healthy"
     @curl -f http://auth.localhost:8000/health || echo "Auth service not healthy"
     @curl -f http://mcp-fetch.localhost:3000/health || echo "MCP-fetch not healthy"
+
+# Check SSL certificates
+check-ssl:
+    @echo "Checking SSL certificates..."
+    @echo "Auth service:"
+    @curl -I https://auth.${BASE_DOMAIN}/health 2>&1 | grep -E "HTTP|SSL|certificate" || echo "Auth SSL check failed"
+    @echo ""
+    @echo "MCP-fetch service:"
+    @curl -I https://mcp-fetch.${BASE_DOMAIN}/sse 2>&1 | grep -E "HTTP|SSL|certificate" || echo "MCP-fetch SSL check failed"
+    @echo ""
+    @echo "Certificates in ACME storage:"
+    @docker exec traefik cat /certificates/acme.json | jq -r '.letsencrypt.Certificates[].domain' || echo "No certificates found"
 
 # Setup commands
 setup: network-create volumes-create
