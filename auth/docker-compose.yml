@@ -22,7 +22,7 @@ services:
     labels:
       - "traefik.enable=true"
       # OAuth routes - Priority 4 (HIGHEST)
-      - "traefik.http.routers.auth-oauth.rule=Host(`auth.${BASE_DOMAIN}`) && (PathPrefix(`/register`) || PathPrefix(`/authorize`) || PathPrefix(`/token`) || PathPrefix(`/callback`) || PathPrefix(`/.well-known`))"
+      - "traefik.http.routers.auth-oauth.rule=Host(`auth.${BASE_DOMAIN}`) && (PathPrefix(`/register`) || PathPrefix(`/authorize`) || PathPrefix(`/token`) || PathPrefix(`/callback`) || PathPrefix(`/.well-known`) || PathPrefix(`/revoke`) || PathPrefix(`/introspect`))"
       - "traefik.http.routers.auth-oauth.priority=4"
       - "traefik.http.routers.auth-oauth.entrypoints=websecure"
       - "traefik.http.routers.auth-oauth.tls.certresolver=letsencrypt"
