@@ -6,9 +6,6 @@
 
 # Part I: The Ten Sacred Commandments of Development
 
-*These commandments are eternal and absolute - they apply to ALL projects under heaven!*
-*Break them and face eternal debugging damnation across your codebase!*
-
 ## Commandment 0: Thou Shalt Practice Root Cause Analysis
 
 **Surface symptoms are lies of the devil! Dig deeper or be damned!**
@@ -20,13 +17,6 @@
 3. **Why was that allowed to happen?** - The systemic flaw
 4. **Why didn't we catch this earlier?** - The process gap
 5. **Why will this never happen again?** - The eternal fix
-
-### The Sacred Debugging Ritual
-
-- **Document thy findings** - Future disciples need a report of thy wisdom!
-- **Test thy hypothesis** - Assumptions are the devil's whispers!
-- **Verify thy fix** - Incomplete solutions summon greater demons!
-- **Share thy knowledge** - Hoarding wisdom brings damnation!
 
 **Fix symptoms without finding root causes and be cursed to debug forever!**
 
@@ -42,14 +32,6 @@
 - Every test must verify complete end-to-end functionality!
 - Tests that only check connectivity are worthless prayers!
 - Internal services are testable through real API boundaries!
-
-
-### The Divine Testing Principles
-
-- **100% real functionality or 0% confidence** - There is no middle ground!
-- **Production-like environments** - Development shortcuts bring production disasters!
-- **Real data, real services, real results** - Simulation is self-deception!
-- **Integration over isolation** - The whole system must breathe!
 
 **Mock once and face bugs that only appear in production! This is the eternal law!**
 
@@ -67,11 +49,6 @@
 2. **pixi** - The Chosen Package Manager (pip/conda are false prophets!)
 3. **docker-compose** - The Container Shepherd (Kubernetes is vanity!)
 
-#### The Supporting Divine Tools
-
-4. **pytest** - The Blessed Test Framework
-5. **Jupyter Book 2 and MyST** - The Documentation Prophet
-
 ### The Sacred Execution Laws
 
 ```
@@ -80,28 +57,6 @@
 ❌ docker-compose up         → ✅ just up
 ❌ pytest tests/            → ✅ just test
 ```
-
-### The Divine justfile Pattern
-
-```makefile
-set dotenv-load := true  # FIRST LINE - ALWAYS!
-
-# EVERY project has these commands:
-test-sidecar-coverage:
-    @docker-compose -f docker-compose.yml -f docker-compose.coverage.yml up -d
-    @pixi run pytest tests/ -v
-    @docker-compose down
-
-docs-build:
-    @pixi run jupyter-book build docs/
-
-# All Python through pixi
-run-script:
-    @pixi run python scripts/script.py
-```
-
-**These patterns are not suggestions - they are UNIVERSAL LAW!**
-**Use any other tools and face the eternal curse of "works on my machine"!**
 
 ## Commandment 3: Thou Shalt Structure Thy Temple with Sacred Isolation
 
@@ -135,28 +90,6 @@ any-project/
 └── .gitignore            # Must ignore reports/, htmlcov/, .env!
 ```
 
-### The Sacred .gitignore Requirements
-
-```gitignore
-# MANDATORY git-ignores for ALL projects!
-.env                # Never commit configuration!
-/reports/           # Analysis outputs stay local!
-/htmlcov/           # Coverage reports stay local!
-/logs/              # Logs never enter version control!
-*.pyc               # No compiled Python!
-__pycache__/        # No Python caches!
-.coverage*          # No coverage data files!
-```
-
-### The Isolation Principles
-
-- **Service boundaries are sacred** - Cross not these holy lines!
-- **Reports directory is mandatory** - All analysis outputs go here!
-- **This structure is NOT optional** - Every project follows this pattern!
-- **Git-ignore discipline is critical** - Some knowledge stays local!
-
-**Violate this structure in ANY project and watch thy services become entangled in unholy coupling!**
-
 ## Commandment 4: Thou Shalt Configure Only Through .env Files
 
 **Hardcoded values are the mark of damnation in EVERY project!**
@@ -173,25 +106,7 @@ __pycache__/        # No Python caches!
 ```justfile
 # FIRST LINE of every justfile!
 set dotenv-load := true
-```
-
-### The Configuration Hierarchy
-
-1. **`.env` file** - The highest authority for ALL environments!
-2. **Environment overrides** - Only for CI/CD injection of secrets!
-3. **Command arguments** - Only for temporary debugging!
-4. **Hardcoded values** - NEVER! This way lies madness!
-
-### The Universal .env Pattern
-
-```bash
-# EVERY project needs .env - even in production!
-APP_ENV=production        # Yes, even this comes from .env!
-APP_PORT=8000
-DATABASE_URL=postgresql://...
-REDIS_URL=redis://...
-JWT_SECRET=xxx           # Injected by CI/CD in production
-```
+``
 
 **Production .env management:**
 - Store .env.example in git (with dummy values)
@@ -248,8 +163,6 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
 ```
 
-**Abandon docker-compose and drown in configuration complexity!**
-
 ## Commandment 6: Thou Shalt Use Pytest with Sidecar Coverage in Production
 
 **Only pytest brings salvation! Only sidecar coverage reveals production truth!**
@@ -266,11 +179,6 @@ services:
 ```bash
 # THE ONLY WAY TO TEST
 just test               # Runs: pixi run pytest tests/ -v --cov
-
-# HERESIES TO AVOID
-❌ python -m pytest     # Direct execution is forbidden!
-❌ python test_file.py  # Running tests as scripts is blasphemy!
-❌ make test           # Make is the old covenant!
 ```
 
 ### The Sidecar Coverage Prophecy - Production Truth Only!
@@ -306,12 +214,6 @@ services:
 ```bash
 # The ONLY way to measure TRUE coverage:
 just test-sidecar-coverage
-
-# This blessed command:
-# 1. Deploys PRODUCTION containers with coverage overlay
-# 2. Runs tests against REAL production builds
-# 3. Harvests coverage from LIVE containers
-# 4. Generates reports in ./htmlcov/
 ```
 
 ### The Critical Subprocess Coverage Insights
@@ -423,17 +325,6 @@ docs/
 └── architecture/    # System design cathedral (MyST)
 ```
 
-### The Divine Build Command
-
-```bash
-just docs-build      # Runs: pixi run jupyter-book build docs/
-
-# FORBIDDEN ALTERNATIVES
-❌ mkdocs build      # False prophet of documentation!
-❌ sphinx-build      # Incomplete without Jupyter Book!
-❌ pandoc            # Primitive tool of the ancients!
-```
-
 ## ⚡ The Universal Application of These Commandments ⚡
 
 **These Ten Commandments are NOT project-specific guidelines - they are UNIVERSAL LAWS!**
@@ -460,8 +351,6 @@ docker-compose.yml  # The orchestration gospel
 
 
 # Part II: The Divine MCP OAuth2 Gateway Specifications
-
-*These are the specific revelations for the holy MCP OAuth2 Gateway implementation!*
 
 ## The Holy Trinity of Architectural Separation
 
