@@ -7,14 +7,17 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy the mcp-oauth-dynamicclient package source
+COPY ../mcp-oauth-dynamicclient /tmp/mcp-oauth-dynamicclient
 
-# Copy the application files explicitly
+# Install the mcp-oauth-dynamicclient package from source
+RUN pip install --no-cache-dir /tmp/mcp-oauth-dynamicclient
+
+# Clean up the temporary copy
+RUN rm -rf /tmp/mcp-oauth-dynamicclient
+
+# Copy the main application file
 COPY main.py .
-# Debug: Check file size after copy
-RUN ls -la /app/main.py && wc -l /app/main.py
 
 # Create non-root user
 RUN useradd -m -u 1000 authuser && chown -R authuser:authuser /app
