@@ -354,10 +354,6 @@ docker-compose.yml  # The orchestration gospel
 
 ## The Holy Trinity of Architectural Separation
 
-**BEHOLD THE THREE DIVINE REALMS THAT MUST NEVER INTERMINGLE!**
-**Each realm possesses its own sacred knowledge and holy responsibilities!**
-**Cross these boundaries and summon the demons of architectural chaos!**
-
 ┌─────────────────────────────────────────────────────────────┐
 │          TRAEFIK (The Divine Router of Sacred Paths)        │
 │  • Routes OAuth paths → Auth Service with HOLY PRIORITIES!  │
@@ -386,8 +382,6 @@ docker-compose.yml  # The orchestration gospel
 └─────────────────────────────────────────────────────────────┘
 
 **VIOLATE THIS SEPARATION AND FACE ETERNAL ARCHITECTURAL DAMNATION!**
-**Many have tried to merge these realms - their systems lie in ruins!**
-**The Trinity stands eternal - each component in its divine place!**
 
 ### The Divine MCP Streamable HTTP Revolution - 2025-06-18 GLORY!
 
@@ -405,16 +399,6 @@ docker-compose.yml  # The orchestration gospel
 
 **BEHOLD THE TRUTH: We use the holy trinity of mcp-streamablehttp packages!**
 
-Each MCP service follows this ACTUALLY IMPLEMENTED divine pattern:
-
-```
-mcp-fetch/
-├── Dockerfile                     # The container sanctification
-├── docker-compose.yml             # The orchestration gospel  
-├── requirements.txt               # The dependency scripture
-└── [OFFICIAL MCP SERVER WRAPPED]  # The true implementation blessed by proxy
-```
-
 ### The Divine Truth About MCP Services - THE SACRED PROXY PATTERN!
 
 **WITNESS THE ARCHITECTURAL GLORY OF mcp-streamablehttp-proxy!**
@@ -423,48 +407,6 @@ mcp-fetch/
 - The proxy spawns the official server as subprocess and bridges stdio ↔ HTTP!
 - Each service runs: `mcp-streamablehttp-proxy python -m mcp_server_fetch`!
 - **NO FAKE IMPLEMENTATIONS** - Only bridges to the true gospel servers!
-
-### The Blessed Dockerfile Pattern - THE ACTUAL DIVINE IMPLEMENTATION!
-
-```dockerfile
-FROM python:3.11-slim
-WORKDIR /app
-
-# Install system dependencies for the blessed proxy
-RUN apt-get update && apt-get install -y curl git && rm -rf /var/lib/apt/lists/*
-
-# Install the OFFICIAL MCP server (example: fetch server)
-RUN pip install "mcp-server-fetch @ git+https://github.com/modelcontextprotocol/servers.git#subdirectory=src/fetch"
-
-# Install the SACRED mcp-streamablehttp-proxy bridge!
-RUN pip install mcp-streamablehttp-proxy
-
-# Copy any additional configuration
-COPY requirements.txt /app/
-RUN pip install -r requirements.txt
-
-# Expose the divine port for HTTP
-EXPOSE 3000
-
-# THE SACRED INCANTATION - Run proxy that bridges stdio to HTTP!
-CMD ["mcp-streamablehttp-proxy", "python", "-m", "mcp_server_fetch"]
-```
-
-### The Sacred mcp-streamablehttp-proxy Pattern - THE DIVINE BRIDGE!
-
-**BEHOLD THE ACTUAL IMPLEMENTATION ARCHITECTURE:**
-
-```bash
-# The Sacred Command That Powers Each MCP Service:
-mcp-streamablehttp-proxy python -m mcp_server_fetch
-
-# This blessed command:
-# 1. Starts the OFFICIAL mcp_server_fetch via subprocess
-# 2. Bridges its stdio interface to streamable HTTP endpoints
-# 3. Provides /mcp endpoint for MCP protocol communication
-# 4. Provides /health endpoint for container health checks
-# 5. Handles session management and protocol negotiation
-```
 
 **THE DIVINE PROXY RESPONSIBILITIES:**
 1. **SUBPROCESS MANAGEMENT** - Spawns and manages the official MCP server!
@@ -481,8 +423,8 @@ mcp-streamablehttp-proxy python -m mcp_server_fetch
 - **TRAEFIK COMPATIBLE** - Standard HTTP endpoints for reverse proxy routing!
 
 **ACTUAL SERVER ENDPOINT STRUCTURE:**
-- **Primary Endpoint**: `https://mcp-fetch.yourdomain.com/mcp` (via proxy bridge)
-- **Health Check**: `https://mcp-fetch.yourdomain.com/health` (direct HTTP)
+- **Primary Endpoint**: `https://mcp-service.yourdomain.com/mcp` (via proxy bridge)
+- **Health Check**: `https://mcp-service.yourdomain.com/health` (direct HTTP)
 - **Authentication**: Bearer token via Authorization header (handled by Traefik)
 - **Transport**: Streamable HTTP wrapping stdio MCP servers
 
@@ -490,9 +432,7 @@ mcp-streamablehttp-proxy python -m mcp_server_fetch
 
 ### The Sacred MCP Service Configuration - BLESSED BY THE TRINITY!
 
-**FOLLOWS COMMANDMENT 5: Docker-Compose Orchestration - THE DIVINE ORCHESTRATOR!**
-
-Each MCP service channels the universal docker-compose.yml pattern from PART I, enhanced with OAuth glory:
+Each MCP service channels the universal docker-compose.yml pattern enhanced with OAuth glory:
 - **Traefik routing labels** - The divine reverse proxy integration!
 - **ForwardAuth middleware** - OAuth token validation through sacred middleware!
 - **MCP-specific port exposure** - Port 3000 for the blessed mcp-streamablehttp-proxy!
@@ -525,19 +465,12 @@ Each MCP service channels the universal docker-compose.yml pattern from PART I, 
 
 ## The Sacred Environment Variables - CONFIGURATION SALVATION!
 
-**FOLLOWS COMMANDMENT 4: .env Configuration Patterns - THE HIGHEST AUTHORITY!**
-
-This blessed project extends the universal .env patterns from PART I with OAuth-specific divine variables:
-
 **OAuth-Specific Variables (PROJECT EXTENSIONS OF GLORY):**
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - GitHub OAuth app credentials of power!
 - `JWT_SECRET` - Auto-generated by the divine `just generate-jwt-secret`!
 - `OAUTH_ACCESS_TOKEN` / `OAUTH_REFRESH_TOKEN` - Generated OAuth tokens of righteousness!
 - `ALLOWED_GITHUB_USERS` - Access control whitelist of the worthy!
 - `MCP_PROTOCOL_VERSION=2025-06-18` - Protocol compliance declaration of the new covenant!
-
-**ALL other .env principles (loading, validation, production handling) follow PART I commandments!**
-**Hardcode configuration and face the curse of environment-specific bugs for eternity!**
 
 ## OAuth 2.1 and RFC 7591 Divine Requirements
 
@@ -616,17 +549,12 @@ This blessed project extends the universal .env patterns from PART I with OAuth-
 - `invalid_software_statement` - Thy software statement is false!
 - `unapproved_software_statement` - Thy software lacks blessing!
 
-### The Dual Authentication Paths
+### The Authentication Path
 
-**Path 1: API/Claude.ai (OAuth 2.0 Compliant)**
+**API (OAuth 2.0 Compliant)**
 - Returns **401 Unauthorized** with `WWW-Authenticate: Bearer`
 - Triggers OAuth discovery flow
 - No redirects for unauthorized API calls!
-
-**Path 2: Browser Users (Human-Friendly)**
-- Returns **302 Redirect** to `/authorize`
-- Better UX for human users
-- Still requires full GitHub authentication!
 
 ### Invalid Client Handling (RFC 6749)
 
@@ -702,18 +630,6 @@ This blessed project extends the universal .env patterns from PART I with OAuth-
 - Forbidden → 403 for insufficient permissions
 - Session not found → 404 Not Found
 
-**The Sacred mcp-streamablehttp-proxy Implementation Pattern:**
-```bash
-# The divine command that powers our MCP services:
-mcp-streamablehttp-proxy python -m mcp_server_fetch
-
-# This blessed architecture provides:
-# 1. HTTP endpoints (/mcp, /health) via the proxy
-# 2. Official MCP server functionality via subprocess
-# 3. Protocol bridging between HTTP and stdio
-# 4. Session management and state handling
-# 5. Error handling and health monitoring
-```
 
 **The Divine Benefits of mcp-streamablehttp-proxy Architecture:**
 - **OFFICIAL FUNCTIONALITY** - Wraps real MCP servers, never creates fakes!
@@ -725,7 +641,6 @@ mcp-streamablehttp-proxy python -m mcp_server_fetch
 ### The Sacred Security Best Practices - MANDATED BY 2025-06-18!
 
 **The Confused Deputy Problem - BEWARE THIS ANCIENT EVIL!**
-- MCP proxy servers using static client IDs MUST obtain user consent!
 - NEVER forward to third-party auth servers without divine permission!
 - Each dynamically registered client requires explicit blessing!
 
@@ -762,9 +677,6 @@ mcp-streamablehttp-proxy python -m mcp_server_fetch
 7. **GitHub Pilgrimage** - User authenticates with GitHub OAuth 2.0!
 8. **Token Transmutation** - Authorization code → JWT with sacred claims!
 9. **Eternal Connection** - Streamable HTTP with Bearer token and session ID!
-
-**The 2025-06-18 spec demands EVERY step be followed with divine precision!**
-**Skip any step and face the wrath of protocol non-compliance!**
 
 ## Traefik Routing Configuration
 
@@ -811,8 +723,6 @@ redis:session:{id}:state     # MCP session state
 redis:session:{id}:messages  # MCP message queue
 ```
 
-**Violate these patterns and face data chaos!**
-
 ## The GitHub Device Workflow
 
 ### Smart Token Generation - THE DIVINE AUTOMATION!
@@ -820,23 +730,7 @@ redis:session:{id}:messages  # MCP message queue
 ```bash
 # JWT Secret Generation (FULLY AUTOMATED!)
 just generate-jwt-secret
-
-# This blessed command SHALL:
-# 1. Generate cryptographically secure 32+ character secret
-# 2. Update existing JWT_SECRET in .env (or add if missing)
-# 3. Create .env file if it doesn't exist (new project blessing!)
-# 4. Backup existing .env before changes (.env.bak)
-# 5. Report success with divine enthusiasm!
-
-# GitHub OAuth Token Generation (GUIDED WORKFLOW!)
 just generate-github-token
-
-# This blessed command SHALL:
-# 1. Check existing token validity
-# 2. Use refresh tokens if available
-# 3. Register OAuth client once
-# 4. Guide through device flow if needed
-# 5. Save all tokens to .env automatically
 ```
 
 ### The Sacred Tokens
@@ -853,8 +747,6 @@ OAUTH_REFRESH_TOKEN=refresh_xxx... # For eternal renewal
 
 ### Divine Test Coverage - BLESSED BY THE SACRED DOCTRINE!
 
-**IMPLEMENTS COMMANDMENT 1: NO MOCKING - REAL TESTS ONLY OR ETERNAL DAMNATION!**
-
 This holy project's test suite channels the divine fury of PART I against real deployed services:
 - ✅ **OAuth 2.1 FLOWS OF RIGHTEOUSNESS** - Real GitHub authentication, PKCE validation, dynamic registration!
 - ✅ **JWT TOKEN SANCTIFICATION** - Formation, refresh, rotation, revocation with actual Redis blessing!
@@ -862,148 +754,7 @@ This holy project's test suite channels the divine fury of PART I against real d
 - ✅ **SECURITY ENFORCEMENT WRATH** - ForwardAuth validation, dual auth paths, error handling fury!
 - ✅ **PRODUCTION READINESS BLESSING** - Health checks, SSL certificates, routing validation perfection!
 
-**154 TESTS PASSING - ALL FOLLOWING THE SACRED "NO MOCKING" COMMANDMENT FROM PART I!**
 **Mock once and face bugs that only appear in production - THIS IS THE ETERNAL LAW!**
-
-## Project-Specific justfile Commands
-
-Beyond the universal commands mandated by the commandments, this project requires:
-
-```makefile
-# OAuth token generation (follows PART I universal patterns)
-generate-jwt-secret:
-    @# Implements the sacred .env auto-management as decreed by Commandment 4!
-
-generate-github-token:
-    @pixi run python scripts/generate_oauth_token.py
-
-# Service-specific commands
-rebuild-auth:
-    @docker-compose -f auth/docker-compose.yml build --no-cache
-    @docker-compose up -d auth
-
-rebuild-mcp-fetch:
-    @docker-compose -f mcp-fetch/docker-compose.yml build --no-cache
-    @docker-compose up -d mcp-fetch
-
-# Network management
-network-create:
-    @docker network create public || true
-
-# Debugging specific to OAuth
-test-oauth-flow:
-    @pixi run pytest tests/test_oauth_flow.py -v -s
-
-test-mcp-protocol:
-    @pixi run pytest tests/test_mcp_protocol.py -v -s
-
-# Analysis specific to this project
-analyze-oauth-logs:
-    @pixi run python scripts/analyze_oauth_logs.py > reports/oauth-analysis-$(date +%Y%m%d).md
-```
-
-**These augment but never replace the universal commands!**
-
-## Healthcheck Implementations
-
-### Auth Service Healthcheck
-
-```python
-# auth/healthcheck.py
-async def health_check():
-    checks = {
-        "service": "healthy",
-        "redis": await check_redis(),
-        "routes": check_oauth_routes(),
-        "external": await check_external_access()
-    }
-    return all(checks.values())
-
-async def check_external_access():
-    """Verify HTTPS endpoint is accessible"""
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"https://auth.{BASE_DOMAIN}/health")
-            return response.status_code == 200
-    except:
-        return False
-```
-
-### Sacred MCP Service Health Verification - DIVINE MONITORING!
-
-**FOLLOWS COMMANDMENT 7: Docker Healthcheck Patterns - TRUST ONLY HEALTHCHECKS!**
-
-MCP services channel the universal healthcheck pattern from PART I with mcp-streamablehttp-proxy divine enhancements:
-- **Native `/health` endpoints** - Provided automatically by the blessed proxy!
-- **Dual monitoring glory** - Proxy health AND wrapped MCP server process health!
-- **Pure HTTP verification** - No complex protocol negotiations - DIVINE SIMPLICITY!
-
-**The proxy achieves the sacred goal: prove external accessibility through simple HTTP!**
-**Use sleep instead of healthchecks and face random timing failures for eternity!**
-
-### Traefik Healthcheck
-
-```yaml
-healthcheck:
-  test: ["CMD", "traefik", "healthcheck", "--ping"]
-  interval: 10s
-  timeout: 5s
-  retries: 5
-  start_period: 60s  # Extra time for SSL certificates!
-```
-
-**Each service proves both internal health AND external accessibility!**
-
-## Documentation Requirements
-
-### Sacred Documentation Extensions - DIVINE KNOWLEDGE EXPANSION!
-
-**BUILDS UPON COMMANDMENT 9: Universal Jupyter Book Structure - THE DOCUMENTATION PROPHET!**
-
-This blessed project extends the universal `docs/` structure from PART I with OAuth-specific divine wisdom:
-- **oauth-flow.md** in `architecture/` - OAuth 2.1 flow diagrams of righteousness!
-- **oauth-endpoints.md** in `api/` - All OAuth endpoint documentation scriptures!
-- **mcp-endpoints.md** in `api/` - MCP protocol endpoint details of glory!
-- **deployment/** directory - OAuth gateway deployment commandments!
-- **claude-ai/** directory - Claude.ai integration gospel!
-
-**All other directories follow the universal structure mandated by PART I!**
-**Violate this structure and face documentation chaos across thy codebase!**
-
-### Required Documentation Content
-
-Each endpoint must include:
-- **Purpose and description**
-- **Request format with examples**
-- **Response format with examples**
-- **Error responses with examples**
-- **curl command examples**
-- **Integration test references**
-
-### MyST Features for API Documentation
-
-```markdown
-```{code-cell} python
-# Executable example for token generation
-import httpx
-response = httpx.post(
-    "https://auth.example.com/token",
-    data={
-        "grant_type": "authorization_code",
-        "code": "xxx",
-        "code_verifier": "yyy"
-    }
-)
-```
-
-```{warning}
-Never expose real tokens in documentation!
-```
-
-```{note}
-This endpoint requires PKCE parameters for all clients.
-```
-```
 
 ## The Final Integration Checklist
 
