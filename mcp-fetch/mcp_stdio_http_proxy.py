@@ -4,7 +4,7 @@ Generic MCP stdio-to-streamable-http Proxy
 Following CLAUDE.md - Universal Proxy for Any MCP Server!
 
 This proxy runs the OFFICIAL MCP server as a subprocess and bridges
-stdio communication to HTTP endpoints using FastMCP.
+stdio communication to HTTP endpoints.
 """
 import sys
 import asyncio
@@ -12,7 +12,9 @@ import json
 import logging
 from typing import Dict, Any, Optional, List
 import subprocess
-from fastmcp import FastMCP
+from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi.responses import JSONResponse, StreamingResponse
+import uvicorn
 from uuid import uuid4
 
 # Set up logging
@@ -176,43 +178,17 @@ class MCPStdioProxy:
         self.available_tools = result.get("tools", [])
         logger.info(f"Available tools: {[t.get('name') for t in self.available_tools]}")
         
-    async def call_tool(self, name: str, arguments: Dict[str, Any]) -> Any:
-        """Call a tool on the underlying server"""
+    async def handle_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle an incoming MCP request"""
         if not self.session_initialized:
             raise RuntimeError("Session not initialized")
             
-        self.request_id_counter += 1
-        
-        request = {
-            "jsonrpc": "2.0",
-            "method": "tools/call",
-            "params": {
-                "name": name,
-                "arguments": arguments
-            },
-            "id": self.request_id_counter
-        }
-        
-        response = await self._send_request(request)
-        
-        if "error" in response:
-            error = response["error"]
-            raise RuntimeError(f"Tool call failed: {error.get('message', str(error))}")
+        # Forward the request to the server
+        if "id" not in request_data:
+            self.request_id_counter += 1
+            request_data["id"] = self.request_id_counter
             
-        result = response.get("result", {})
-        
-        # Extract content from the result
-        if isinstance(result, dict) and "content" in result:
-            content = result["content"]
-            if isinstance(content, list) and len(content) > 0:
-                # Join all text content
-                texts = []
-                for item in content:
-                    if isinstance(item, dict) and item.get("type") == "text":
-                        texts.append(item.get("text", ""))
-                return "\n".join(texts)
-                
-        return str(result)
+        return await self._send_request(request_data)
         
     async def close(self):
         """Close the server process"""
@@ -225,48 +201,60 @@ class MCPStdioProxy:
             self.process = None
 
 
+# Create FastAPI app
+app = FastAPI()
+
 # Global proxy instance
 proxy: Optional[MCPStdioProxy] = None
 
-# Create FastMCP server
-mcp = FastMCP("MCP Fetch Server (via stdio proxy)")
-
-async def ensure_proxy():
-    """Ensure the proxy is started"""
+@app.on_event("startup")
+async def startup_event():
+    """Initialize the proxy on startup"""
     global proxy
-    if proxy is None:
-        if len(sys.argv) < 2:
-            raise RuntimeError("No MCP server command provided")
-        server_command = sys.argv[1:]
-        proxy = MCPStdioProxy()
-        await proxy.start_server(server_command)
-    return proxy
+    if len(sys.argv) < 2:
+        raise RuntimeError("No MCP server command provided")
+    server_command = sys.argv[1:]
+    proxy = MCPStdioProxy()
+    await proxy.start_server(server_command)
 
-@mcp.tool()
-async def fetch(url: str, max_size: Optional[int] = None, user_agent: Optional[str] = None) -> str:
-    """
-    Fetch a URL and optionally extract its contents as markdown.
-    
-    This is the OFFICIAL fetch tool from modelcontextprotocol/servers.
-    
-    Args:
-        url: The URL to fetch
-        max_size: Maximum download size in bytes (default 5MB)
-        user_agent: Custom user agent string
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean up on shutdown"""
+    global proxy
+    if proxy:
+        await proxy.close()
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    if proxy and proxy.session_initialized:
+        return {"status": "healthy", "server_info": proxy.server_info}
+    return JSONResponse(
+        status_code=503,
+        content={"status": "unhealthy", "error": "Proxy not initialized"}
+    )
+
+@app.post("/mcp")
+async def handle_mcp(request: Request):
+    """Handle MCP requests without trailing slash redirect"""
+    if not proxy:
+        raise HTTPException(status_code=503, detail="Proxy not initialized")
         
-    Returns:
-        The fetched content as text or markdown
-    """
-    proxy_instance = await ensure_proxy()
-    
-    # Build arguments for the official server
-    args = {"url": url}
-    if max_size is not None:
-        args["max_size"] = max_size
-    if user_agent is not None:
-        args["user_agent"] = user_agent
-        
-    return await proxy_instance.call_tool("fetch", args)
+    try:
+        request_data = await request.json()
+        response = await proxy.handle_request(request_data)
+        return response
+    except Exception as e:
+        logger.error(f"Error handling request: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"jsonrpc": "2.0", "error": {"code": -32603, "message": str(e)}, "id": None}
+        )
+
+@app.post("/mcp/")
+async def handle_mcp_trailing(request: Request):
+    """Handle MCP requests with trailing slash"""
+    return await handle_mcp(request)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -276,15 +264,5 @@ if __name__ == "__main__":
     
     logger.info(f"Starting MCP stdio-to-HTTP proxy for: {' '.join(sys.argv[1:])}")
     
-    # Run as streamable HTTP server
-    try:
-        mcp.run(
-            transport="streamable-http",
-            host="0.0.0.0", 
-            port=3000,
-            path="/mcp"
-        )
-    finally:
-        # Cleanup
-        if proxy:
-            asyncio.run(proxy.close())
+    # Run server without automatic trailing slash redirects
+    uvicorn.run(app, host="0.0.0.0", port=3000, log_level="info")

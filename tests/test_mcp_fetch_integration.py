@@ -29,35 +29,33 @@ class TestMCPFetchIntegration:
     async def test_fetch_requires_real_oauth_token(self, http_client, wait_for_services):
         """Test that MCP fetch REQUIRES real OAuth tokens - no fakes allowed!"""
         
-        # Step 1: Register an OAuth client
-        registration_data = {
-            "redirect_uris": [TEST_REDIRECT_URI],
-            "client_name": f"{TEST_CLIENT_NAME} - MCP Fetch Test",
-            "scope": TEST_CLIENT_SCOPE
-        }
+        import os
         
-        reg_response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json=registration_data
+        # Get REAL OAuth token from environment
+        oauth_token = os.getenv("OAUTH_ACCESS_TOKEN")
+        if not oauth_token:
+            pytest.skip("No OAUTH_ACCESS_TOKEN available - run: just generate-github-token")
+        
+        # Test 1: Verify unauthenticated requests are rejected
+        response = await http_client.post(
+            f"{MCP_FETCH_URL}/mcp",
+            json={"jsonrpc": "2.0", "method": "ping", "id": 1}
         )
         
-        assert reg_response.status_code == 201
-        client = reg_response.json()
+        assert response.status_code == 401, "MCP should reject unauthenticated requests"
+        assert "WWW-Authenticate" in response.headers
         
-        # Step 2: SACRED VIOLATION - Creating fake JWT tokens!
-        # This test MUST FAIL to demonstrate that fake tokens don't work!
-        pytest.fail(
-            "\n"
-            "════════════════════════════════════════════════════════════════\n"
-            "SACRED VIOLATION! This test creates FAKE JWT tokens!\n"
-            "\n"
-            "According to CLAUDE.md Commandment 1:\n"
-            "'NO MOCKS! NO STUBS! NO FAKES!'\n"
-            "\n"
-            "This test MUST be rewritten to use REAL OAuth tokens!\n"
-            "Run: just generate-github-token\n"
-            "════════════════════════════════════════════════════════════════\n"
+        # Test 2: Verify authenticated requests work
+        response = await http_client.post(
+            f"{MCP_FETCH_URL}/mcp",
+            json={"jsonrpc": "2.0", "method": "ping", "id": 2},
+            headers={"Authorization": f"Bearer {oauth_token}"}
         )
+        
+        # Should either work (200) or give MCP protocol error (not auth error)
+        assert response.status_code != 401, "Valid token should not get 401"
+        
+        print("✅ MCP fetch correctly enforces OAuth authentication!")
     
     @pytest.mark.asyncio
     async def test_mcp_fetch_security_validation(self, http_client, wait_for_services, registered_client):
