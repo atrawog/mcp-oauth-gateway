@@ -245,7 +245,7 @@ async def ensure_proxy():
         await proxy.start_server()
     return proxy
 
-@mcp.tool
+@mcp.tool()
 async def proxy_call(tool_name: str, **arguments) -> str:
     """
     Dynamically call any tool from the underlying MCP server.
@@ -287,7 +287,7 @@ async def create_dynamic_tools():
         tool_func.__doc__ = tool_info.get("description", f"Proxied tool: {tool_name}")
         
         # Register with FastMCP
-        mcp.tool(tool_func)
+        mcp.tool()(tool_func)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

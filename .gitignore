@@ -87,5 +87,8 @@ dump.rdb
 *_token.json
 *_secret.txt
 
+# MCP configuration (contains bearer tokens)
+mcp-config.json
+
 # Session files
 sessions/

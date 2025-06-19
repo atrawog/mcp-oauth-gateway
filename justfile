@@ -15,14 +15,17 @@ default:
 
 # Run tests with pytest (no mocking allowed!)
 test:
+    @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v
 
 # Run all tests including integration
 test-all:
+    @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v --tb=short
 
 # Run tests with verbose output
 test-verbose:
+    @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v -s
 
 # Run tests with sidecar coverage pattern
@@ -105,6 +108,29 @@ generate-jwt-secret:
 # Generate GitHub OAuth token
 generate-github-token:
     @pixi run python scripts/generate_oauth_token.py
+
+# Create MCP configuration for Claude Code with bearer token
+create-mcp-config:
+    @pixi run python scripts/create_mcp_config.py
+
+# Add MCP servers to Claude Code using claude mcp add
+mcp-add:
+    @echo "Adding MCP servers to Claude Code..."
+    @if [ -z "${OAUTH_ACCESS_TOKEN:-}" ]; then \
+        echo "❌ OAUTH_ACCESS_TOKEN not found in .env file"; \
+        echo "Please run 'just generate-github-token' first"; \
+        exit 1; \
+    fi
+    @claude mcp add mcp-fetch https://mcp-fetch.${BASE_DOMAIN}/mcp \
+        --transport http \
+        --header "Authorization: Bearer ${OAUTH_ACCESS_TOKEN}" \
+        || echo "Failed to add mcp-fetch server"
+    @echo "✅ MCP servers added to Claude Code!"
+
+# Complete setup: generate token and create config
+setup-claude-code: generate-github-token create-mcp-config
+    @echo "✅ Claude Code setup complete!"
+    @echo "📝 MCP config saved to ~/.config/claude/mcp-config.json"
 
 # OAuth-specific testing
 test-oauth-flow:

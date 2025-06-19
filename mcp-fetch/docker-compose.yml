@@ -7,20 +7,29 @@ services:
       - public
     labels:
       - "traefik.enable=true"
+      # Health check route - Priority 3 (HIGHEST for specific path)
+      - "traefik.http.routers.mcp-fetch-health.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetch-health.priority=3"
+      - "traefik.http.routers.mcp-fetch-health.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-health.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-health.service=mcp-fetch"
+      - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
+      
       # MCP route with auth - Priority 2
-      - "traefik.http.routers.mcp-fetch.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.mcp-fetch.priority=2"
       - "traefik.http.routers.mcp-fetch.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch.tls.certresolver=letsencrypt"
       - "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@docker"
-      - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
+      - "traefik.http.routers.mcp-fetch.service=mcp-fetch"
       
-      # Catch-all route - Priority 1 (LOWEST)
+      # Catch-all route with auth - Priority 1 (LOWEST)
       - "traefik.http.routers.mcp-fetch-catchall.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-fetch-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-catchall.tls.certresolver=letsencrypt"
       - "traefik.http.routers.mcp-fetch-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-catchall.service=mcp-fetch"
     healthcheck:
       test: ["CMD", "curl", "-f", "-X", "POST", "http://localhost:3000/mcp", "-H", "Content-Type: application/json", "-d", '{"jsonrpc":"2.0","method":"ping","id":1}']
       interval: 10s
