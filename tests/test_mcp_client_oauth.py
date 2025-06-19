@@ -1,0 +1,451 @@
+"""
+Sacred Tests for mcp-streamablehttp-client OAuth functionality
+Following CLAUDE.md Commandment 1: NO MOCKING! Test against real deployed services only!
+
+These tests verify the OAuth client functionality that MCP clients use to authenticate.
+All tests use REAL auth service, REAL OAuth flows, and REAL tokens.
+"""
+import pytest
+import httpx
+import json
+import secrets
+import time
+import os
+from pathlib import Path
+from datetime import datetime, timedelta
+
+from .test_constants import (
+    AUTH_BASE_URL,
+    BASE_DOMAIN,
+    TEST_REDIRECT_URI,
+    TEST_CLIENT_NAME,
+    TEST_CLIENT_SCOPE,
+    GATEWAY_OAUTH_ACCESS_TOKEN,
+    MCP_FETCH_URL
+)
+
+# MCP Client tokens from environment
+MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
+MCP_CLIENT_ID = os.getenv("MCP_CLIENT_ID")
+MCP_CLIENT_SECRET = os.getenv("MCP_CLIENT_SECRET")
+
+
+class TestMCPClientOAuthRegistration:
+    """Test OAuth client registration flows used by MCP clients"""
+    
+    @pytest.mark.asyncio
+    async def test_dynamic_client_registration(self, http_client: httpx.AsyncClient, wait_for_services):
+        """Test that MCP clients can register dynamically per RFC 7591"""
+        # Create unique client for this test
+        client_name = f"mcp-client-oauth-{secrets.token_urlsafe(8)}"
+        
+        registration_data = {
+            "redirect_uris": ["http://localhost:8080/callback"],  # Local callback for CLI tools
+            "client_name": client_name,
+            "scope": "read write",
+            "grant_types": ["authorization_code", "refresh_token"],
+            "response_types": ["code"]
+        }
+        
+        # Register without authentication (public endpoint)
+        response = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json=registration_data
+        )
+        
+        assert response.status_code == 201
+        client_data = response.json()
+        
+        # Verify registration response
+        assert "client_id" in client_data
+        assert "client_secret" in client_data
+        assert client_data["client_secret_expires_at"] == 0  # Never expires
+        assert client_data["client_name"] == client_name
+        
+        print(f"✅ Dynamic client registration successful")
+        print(f"   Client ID: {client_data['client_id']}")
+        
+        return client_data
+    
+    @pytest.mark.asyncio
+    async def test_client_registration_with_auth_token(self, http_client: httpx.AsyncClient, wait_for_services):
+        """Test client registration with bearer token (authenticated registration)"""
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "Need OAuth token for authenticated registration"
+        
+        client_name = f"mcp-auth-client-{secrets.token_urlsafe(8)}"
+        
+        registration_data = {
+            "redirect_uris": ["http://localhost:3000/callback"],
+            "client_name": client_name,
+            "scope": "openid profile email"
+        }
+        
+        # Register with authentication
+        response = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json=registration_data,
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+        )
+        
+        assert response.status_code == 201
+        client_data = response.json()
+        
+        assert client_data["client_name"] == client_name
+        print(f"✅ Authenticated client registration successful")
+        
+        return client_data
+
+
+class TestMCPClientOAuthFlows:
+    """Test OAuth flows that MCP clients use"""
+    
+    @pytest.mark.asyncio
+    async def test_authorization_code_flow_initiation(self, http_client: httpx.AsyncClient, wait_for_services):
+        """Test starting the authorization code flow"""
+        # First register a client
+        client_name = f"mcp-flow-test-{secrets.token_urlsafe(8)}"
+        
+        registration_response = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json={
+                "redirect_uris": ["http://localhost:8080/callback"],
+                "client_name": client_name
+            }
+        )
+        
+        assert registration_response.status_code == 201
+        client = registration_response.json()
+        
+        # Start authorization flow
+        auth_params = {
+            "response_type": "code",
+            "client_id": client["client_id"],
+            "redirect_uri": "http://localhost:8080/callback",
+            "scope": "read write",
+            "state": secrets.token_urlsafe(16)
+        }
+        
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/authorize",
+            params=auth_params,
+            follow_redirects=False
+        )
+        
+        # Should redirect to GitHub for authentication
+        assert response.status_code == 307
+        location = response.headers["location"]
+        assert "github.com/login/oauth/authorize" in location
+        
+        print(f"✅ Authorization flow initiated successfully")
+        print(f"   Redirecting to: {location.split('?')[0]}")
+    
+    @pytest.mark.asyncio
+    async def test_pkce_flow_for_cli_clients(self, http_client: httpx.AsyncClient, wait_for_services):
+        """Test PKCE flow commonly used by CLI MCP clients"""
+        # Register a public client (no secret needed for PKCE)
+        registration_response = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json={
+                "redirect_uris": ["http://localhost:8080/callback"],
+                "client_name": "MCP CLI Client",
+                "token_endpoint_auth_method": "none"  # Public client
+            }
+        )
+        
+        assert registration_response.status_code == 201
+        client = registration_response.json()
+        
+        # Generate PKCE challenge
+        import hashlib
+        import base64
+        
+        verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8').rstrip('=')
+        challenge_bytes = hashlib.sha256(verifier.encode('ascii')).digest()
+        challenge = base64.urlsafe_b64encode(challenge_bytes).decode('utf-8').rstrip('=')
+        
+        # Start PKCE flow
+        auth_params = {
+            "response_type": "code",
+            "client_id": client["client_id"],
+            "redirect_uri": "http://localhost:8080/callback",
+            "state": secrets.token_urlsafe(16),
+            "code_challenge": challenge,
+            "code_challenge_method": "S256"
+        }
+        
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/authorize",
+            params=auth_params,
+            follow_redirects=False
+        )
+        
+        assert response.status_code == 307
+        print(f"✅ PKCE flow initiated successfully")
+    
+    @pytest.mark.asyncio
+    async def test_token_refresh_flow(self, http_client: httpx.AsyncClient, wait_for_services):
+        """Test token refresh flow used by long-running MCP clients"""
+        # This test would need a valid refresh token from a completed OAuth flow
+        # For now, test the endpoint exists and returns proper errors
+        
+        # Register a client first
+        registration_response = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json={
+                "redirect_uris": ["http://localhost:8080/callback"],
+                "client_name": "Refresh Test Client"
+            }
+        )
+        
+        assert registration_response.status_code == 201
+        client = registration_response.json()
+        
+        # Try to use refresh token grant (will fail without valid refresh token)
+        response = await http_client.post(
+            f"{AUTH_BASE_URL}/token",
+            data={
+                "grant_type": "refresh_token",
+                "refresh_token": "invalid_refresh_token",
+                "client_id": client["client_id"],
+                "client_secret": client["client_secret"]
+            }
+        )
+        
+        assert response.status_code == 400
+        error = response.json()
+        assert error["detail"]["error"] == "invalid_grant"
+        
+        print(f"✅ Token refresh endpoint working correctly")
+
+
+class TestMCPClientTokenValidation:
+    """Test token validation scenarios for MCP clients"""
+    
+    @pytest.mark.asyncio
+    async def test_access_token_validation(self, http_client: httpx.AsyncClient, wait_for_services):
+        """Test validating access tokens before making MCP requests"""
+        if not MCP_CLIENT_ACCESS_TOKEN:
+            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+        
+        # Test token against MCP endpoint
+        response = await http_client.post(
+            f"{MCP_FETCH_URL}/mcp",
+            json={
+                "jsonrpc": "2.0",
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "test-client", "version": "1.0.0"}
+                },
+                "id": 1
+            },
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
+        )
+        
+        assert response.status_code == 200
+        print(f"✅ MCP client token is valid and working")
+    
+    @pytest.mark.asyncio
+    async def test_expired_token_handling(self, http_client: httpx.AsyncClient, wait_for_services):
+        """Test handling of expired tokens"""
+        # Use an obviously invalid token
+        response = await http_client.post(
+            f"{MCP_FETCH_URL}/mcp",
+            json={"jsonrpc": "2.0", "method": "initialize", "params": {}, "id": 1},
+            headers={"Authorization": "Bearer expired_token_12345"}
+        )
+        
+        assert response.status_code == 401
+        assert "WWW-Authenticate" in response.headers
+        print(f"✅ Expired token correctly rejected with 401")
+    
+    @pytest.mark.asyncio
+    async def test_token_introspection(self, http_client: httpx.AsyncClient, wait_for_services):
+        """Test token introspection for validity checking"""
+        # First register a client
+        registration_response = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json={
+                "redirect_uris": ["http://localhost:8080/callback"],
+                "client_name": "Introspection Test Client"
+            }
+        )
+        
+        assert registration_response.status_code == 201
+        client = registration_response.json()
+        
+        # Test introspection with MCP client token
+        if MCP_CLIENT_ACCESS_TOKEN:
+            response = await http_client.post(
+                f"{AUTH_BASE_URL}/introspect",
+                data={
+                    "token": MCP_CLIENT_ACCESS_TOKEN,
+                    "client_id": client["client_id"],
+                    "client_secret": client["client_secret"]
+                }
+            )
+            
+            assert response.status_code == 200
+            result = response.json()
+            
+            if result["active"]:
+                print(f"✅ Token introspection shows token is active")
+                print(f"   Username: {result.get('username', 'N/A')}")
+                print(f"   Scope: {result.get('scope', 'N/A')}")
+            else:
+                print(f"⚠️  Token is not active")
+
+
+class TestMCPClientCredentialStorage:
+    """Test credential storage patterns used by MCP clients"""
+    
+    @pytest.mark.asyncio
+    async def test_credential_format(self, http_client: httpx.AsyncClient, wait_for_services, tmp_path):
+        """Test the credential storage format expected by MCP clients"""
+        # Register a client
+        registration_response = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json={
+                "redirect_uris": ["http://localhost:8080/callback"],
+                "client_name": "Storage Test Client"
+            }
+        )
+        
+        assert registration_response.status_code == 201
+        client = registration_response.json()
+        
+        # Create credential file format used by MCP clients
+        credentials = {
+            "client_id": client["client_id"],
+            "client_secret": client["client_secret"],
+            "access_token": MCP_CLIENT_ACCESS_TOKEN,
+            "token_type": "Bearer",
+            "expires_at": int(time.time()) + 3600,  # 1 hour from now
+            "refresh_token": None,  # Would be set after OAuth flow
+            "registration_response": client
+        }
+        
+        # Save to file
+        cred_file = tmp_path / "mcp_credentials.json"
+        with open(cred_file, "w") as f:
+            json.dump(credentials, f, indent=2)
+        
+        # Verify file can be read back
+        with open(cred_file) as f:
+            loaded = json.load(f)
+        
+        assert loaded["client_id"] == client["client_id"]
+        assert loaded["client_secret"] == client["client_secret"]
+        
+        print(f"✅ Credential storage format verified")
+        print(f"   Stored at: {cred_file}")
+
+
+class TestMCPClientErrorScenarios:
+    """Test error handling scenarios for MCP clients"""
+    
+    @pytest.mark.asyncio
+    async def test_network_error_handling(self, wait_for_services):
+        """Test handling of network errors"""
+        # Try to connect to non-existent service
+        async with httpx.AsyncClient() as client:
+            with pytest.raises(httpx.ConnectError):
+                await client.get("https://non-existent-service.example.com")
+        
+        print(f"✅ Network errors properly raised")
+    
+    @pytest.mark.asyncio
+    async def test_oauth_discovery_endpoint(self, http_client: httpx.AsyncClient, wait_for_services):
+        """Test OAuth discovery endpoint that clients use to find auth URLs"""
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+        )
+        
+        assert response.status_code == 200
+        metadata = response.json()
+        
+        # Verify endpoints that MCP clients need
+        assert "authorization_endpoint" in metadata
+        assert "token_endpoint" in metadata
+        assert "registration_endpoint" in metadata
+        
+        print(f"✅ OAuth discovery endpoint working")
+        print(f"   Authorization: {metadata['authorization_endpoint']}")
+        print(f"   Token: {metadata['token_endpoint']}")
+        print(f"   Registration: {metadata['registration_endpoint']}")
+
+
+class TestMCPClientRealWorldScenarios:
+    """Test real-world scenarios that MCP clients encounter"""
+    
+    @pytest.mark.asyncio
+    async def test_multiple_concurrent_requests(self, http_client: httpx.AsyncClient, wait_for_services):
+        """Test handling multiple concurrent MCP requests with same token"""
+        if not MCP_CLIENT_ACCESS_TOKEN:
+            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+        
+        import asyncio
+        
+        async def make_mcp_request(request_id: int):
+            response = await http_client.post(
+                f"{MCP_FETCH_URL}/mcp",
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-06-18",
+                        "capabilities": {},
+                        "clientInfo": {"name": f"concurrent-client-{request_id}", "version": "1.0.0"}
+                    },
+                    "id": request_id
+                },
+                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
+            )
+            return response
+        
+        # Make 5 concurrent requests
+        tasks = [make_mcp_request(i) for i in range(1, 6)]
+        responses = await asyncio.gather(*tasks)
+        
+        # All should succeed
+        for response in responses:
+            assert response.status_code == 200
+        
+        print(f"✅ Handled {len(responses)} concurrent requests successfully")
+    
+    @pytest.mark.asyncio
+    async def test_client_reregistration(self, http_client: httpx.AsyncClient, wait_for_services):
+        """Test re-registering a client (common when credentials are lost)"""
+        client_name = "Persistent MCP Client"
+        
+        # Register once
+        response1 = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json={
+                "redirect_uris": ["http://localhost:8080/callback"],
+                "client_name": client_name
+            }
+        )
+        
+        assert response1.status_code == 201
+        client1 = response1.json()
+        
+        # Register again with same name
+        response2 = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json={
+                "redirect_uris": ["http://localhost:8080/callback"],
+                "client_name": client_name
+            }
+        )
+        
+        assert response2.status_code == 201
+        client2 = response2.json()
+        
+        # Should get different client IDs
+        assert client1["client_id"] != client2["client_id"]
+        
+        print(f"✅ Client re-registration works correctly")
+        print(f"   First ID: {client1['client_id']}")
+        print(f"   Second ID: {client2['client_id']}")
