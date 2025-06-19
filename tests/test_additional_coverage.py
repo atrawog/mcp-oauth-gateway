@@ -17,7 +17,8 @@ from .test_constants import (
     TEST_REDIRECT_URI,
     TEST_CLIENT_NAME,
     TEST_CLIENT_SCOPE,
-    ACCESS_TOKEN_LIFETIME
+    ACCESS_TOKEN_LIFETIME,
+    GATEWAY_OAUTH_ACCESS_TOKEN
 )
 
 class TestAdditionalCoverage:
@@ -140,6 +141,9 @@ class TestAdditionalCoverage:
     async def test_registration_with_minimal_data(self, http_client, wait_for_services):
         """Test client registration with only required fields"""
         
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        
         # Register with absolute minimum data
         registration_data = {
             "redirect_uris": [TEST_REDIRECT_URI]
@@ -147,7 +151,8 @@ class TestAdditionalCoverage:
         
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json=registration_data
+            json=registration_data,
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
         assert response.status_code == 201

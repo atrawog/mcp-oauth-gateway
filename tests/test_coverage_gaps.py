@@ -12,7 +12,7 @@ import asyncio
 import time
 from urllib.parse import urlparse, parse_qs, urlencode
 
-from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, GATEWAY_JWT_SECRET, BASE_DOMAIN
+from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, GATEWAY_JWT_SECRET, BASE_DOMAIN, GATEWAY_OAUTH_ACCESS_TOKEN
 from .jwt_test_helper import encode as jwt_encode
 
 # JWT Algorithm is a protocol constant, not configuration
@@ -35,6 +35,10 @@ class TestCoverageGaps:
     @pytest.mark.asyncio
     async def test_client_registration_missing_redirect_uris(self, http_client, wait_for_services):
         """Test client registration without redirect_uris (line 172)"""
+        
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        
         registration_data = {
             "client_name": "Test Client Without URIs",
             "scope": "openid profile email"
@@ -43,7 +47,8 @@ class TestCoverageGaps:
         
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json=registration_data
+            json=registration_data,
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
         assert response.status_code == 422  # FastAPI returns 422 for validation errors

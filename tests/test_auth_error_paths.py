@@ -9,7 +9,7 @@ import json
 import time
 
 import asyncio
-from .test_constants import AUTH_BASE_URL, GATEWAY_JWT_SECRET, GATEWAY_OAUTH_CLIENT_ID, GATEWAY_OAUTH_CLIENT_SECRET
+from .test_constants import AUTH_BASE_URL, GATEWAY_JWT_SECRET, GATEWAY_OAUTH_CLIENT_ID, GATEWAY_OAUTH_CLIENT_SECRET, GATEWAY_OAUTH_ACCESS_TOKEN
 from .jwt_test_helper import encode as jwt_encode
 
 class TestHealthCheckErrors:
@@ -79,6 +79,10 @@ class TestClientRegistrationErrors:
     @pytest.mark.asyncio
     async def test_registration_empty_redirect_uris(self, http_client):
         """Test registration with empty redirect_uris - covers line 172"""
+        
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        
         registration_data = {
             "redirect_uris": [],  # Empty list should fail
             "client_name": "Test Client"
@@ -86,7 +90,8 @@ class TestClientRegistrationErrors:
         
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json=registration_data
+            json=registration_data,
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
         assert response.status_code == 400

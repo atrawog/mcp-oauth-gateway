@@ -19,7 +19,8 @@ from .test_constants import (
     TEST_CLIENT_SCOPE,
     ACCESS_TOKEN_LIFETIME,
     REDIS_URL,
-    BASE_DOMAIN
+    BASE_DOMAIN,
+    GATEWAY_OAUTH_ACCESS_TOKEN
 )
 
 class TestHealthCheckErrors:
@@ -69,6 +70,9 @@ class TestClientRegistrationErrors:
     async def test_registration_with_invalid_data(self, http_client, wait_for_services):
         """Test various registration error conditions"""
         
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        
         # The auth service may be more permissive than expected
         # Let's test with actually invalid data that would cause errors
         
@@ -78,13 +82,14 @@ class TestClientRegistrationErrors:
             json={
                 "client_name": TEST_CLIENT_NAME
                 # Missing redirect_uris
-            }
+            },
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
         # Should be 422 for missing required field
         assert response.status_code == 422
         
-        # Test with malformed JSON
+        # Test with malformed JSON (no auth header needed for malformed requests)
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             data="invalid json content",

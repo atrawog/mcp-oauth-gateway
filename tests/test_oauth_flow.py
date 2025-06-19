@@ -36,9 +36,8 @@ class TestOAuthFlow:
     @pytest.mark.asyncio
     async def test_client_registration_rfc7591(self, http_client, wait_for_services):
         """Test dynamic client registration per RFC 7591"""
-        # Skip test if no OAuth access token available
-        if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.skip("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token")
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
         
         # Test successful registration
         registration_data = {

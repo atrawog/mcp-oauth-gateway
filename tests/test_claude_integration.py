@@ -9,7 +9,7 @@ import hashlib
 import base64
 import json
 from urllib.parse import urlparse, parse_qs
-from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, TEST_CLIENT_NAME, TEST_CLIENT_SCOPE, MCP_PROTOCOL_VERSION
+from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, TEST_CLIENT_NAME, TEST_CLIENT_SCOPE, MCP_PROTOCOL_VERSION, GATEWAY_OAUTH_ACCESS_TOKEN
 
 class TestClaudeIntegration:
     """Test the complete Claude.ai integration flow"""
@@ -17,6 +17,9 @@ class TestClaudeIntegration:
     @pytest.mark.asyncio
     async def test_claude_nine_sacred_steps(self, http_client, wait_for_services):
         """Test the Nine Sacred Steps of Claude.ai Connection"""
+        
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
         
         # Step 1: First Contact - Claude.ai attempts /mcp
         response = await http_client.post(
@@ -62,7 +65,8 @@ class TestClaudeIntegration:
         
         reg_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json=registration_data
+            json=registration_data,
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
         # Step 5: Client Blessing - Receives credentials

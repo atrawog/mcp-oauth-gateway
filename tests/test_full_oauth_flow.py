@@ -9,11 +9,7 @@ import secrets
 import hashlib
 import base64
 from urllib.parse import urlparse, parse_qs
-from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, MCP_PROTOCOL_VERSION, TEST_REDIRECT_URI
-
-# OAuth client credentials from .env - optional for these tests
-GATEWAY_OAUTH_CLIENT_ID = os.getenv("GATEWAY_GATEWAY_OAUTH_CLIENT_ID")
-GATEWAY_OAUTH_CLIENT_SECRET = os.getenv("GATEWAY_GATEWAY_OAUTH_CLIENT_SECRET")
+from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, MCP_PROTOCOL_VERSION, TEST_REDIRECT_URI, GATEWAY_OAUTH_CLIENT_ID, GATEWAY_OAUTH_CLIENT_SECRET, GATEWAY_OAUTH_ACCESS_TOKEN
 
 class TestFullOAuthFlow:
     """Test complete OAuth flow with real authentication"""
@@ -23,8 +19,9 @@ class TestFullOAuthFlow:
         """Test accessing MCP endpoint with valid OAuth token"""
         
         # First, verify we have the required credentials
-        assert GATEWAY_OAUTH_CLIENT_ID, "GATEWAY_GATEWAY_OAUTH_CLIENT_ID not found in .env"
-        assert GATEWAY_OAUTH_CLIENT_SECRET, "GATEWAY_GATEWAY_OAUTH_CLIENT_SECRET not found in .env"
+        assert GATEWAY_OAUTH_CLIENT_ID, "GATEWAY_OAUTH_CLIENT_ID not found in .env"
+        assert GATEWAY_OAUTH_CLIENT_SECRET, "GATEWAY_OAUTH_CLIENT_SECRET not found in .env"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not found in .env"
         
         async with httpx.AsyncClient() as client:
             # Step 1: Try to access MCP endpoint without auth

@@ -85,9 +85,8 @@ class TestRegisterEndpointSecurity:
     async def test_register_accepts_valid_api_key(self, http_client, wait_for_services):
         """Test that /register endpoint accepts valid OAuth access token"""
         
-        # Skip test if no OAuth access token available
-        if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.skip("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token")
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
         
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
@@ -167,9 +166,8 @@ class TestRegisterEndpointBootstrap:
     async def test_admin_can_register_multiple_clients(self, http_client, wait_for_services):
         """Test that authorized user can register multiple OAuth clients"""
         
-        # Skip test if no OAuth access token available
-        if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.skip("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token")
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
         
         # Register first client
         response1 = await http_client.post(
