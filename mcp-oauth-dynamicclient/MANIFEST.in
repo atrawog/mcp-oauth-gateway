@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+include pyproject.toml
+include src/mcp_oauth_dynamicclient/py.typed
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]

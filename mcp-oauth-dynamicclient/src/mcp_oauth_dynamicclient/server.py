@@ -1,0 +1,60 @@
+"""
+Main server module for MCP OAuth Dynamic Client
+"""
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+
+from .config import Settings
+from .redis_client import RedisManager
+from .auth import AuthManager
+from .routes import create_oauth_router
+
+
+def create_app(settings: Settings = None) -> FastAPI:
+    """Create and configure the FastAPI application"""
+    
+    if settings is None:
+        settings = Settings()
+    
+    # Initialize managers
+    redis_manager = RedisManager(settings)
+    auth_manager = AuthManager(settings)
+    
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        """Manage application lifecycle"""
+        # Startup
+        await redis_manager.initialize()
+        yield
+        # Shutdown
+        await redis_manager.close()
+    
+    # Create FastAPI app
+    app = FastAPI(
+        title="MCP OAuth Gateway - Auth Service",
+        description="Sacred Auth Service following OAuth 2.1 and RFC 7591 divine specifications",
+        version="0.1.0",
+        lifespan=lifespan
+    )
+    
+    # Health check endpoint
+    @app.get("/health")
+    async def health_check():
+        """Divine health check - verifies all systems are blessed"""
+        try:
+            # Check Redis
+            await redis_manager.client.ping()
+            return {"status": "healthy", "service": "auth"}
+        except Exception as e:
+            return JSONResponse(
+                status_code=503,
+                content={"status": "unhealthy", "error": str(e)}
+            )
+    
+    # Include OAuth routes
+    oauth_router = create_oauth_router(settings, redis_manager, auth_manager)
+    app.include_router(oauth_router)
+    
+    return app
