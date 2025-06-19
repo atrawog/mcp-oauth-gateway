@@ -95,9 +95,12 @@ class TestMCPFetchSimple:
                 # If we can list tools, let's try fetching example.com
                 fetch_request = {
                     "jsonrpc": "2.0",
-                    "method": "fetch/fetch",
+                    "method": "tools/call",
                     "params": {
-                        "url": "https://example.com"
+                        "name": "fetch",
+                        "arguments": {
+                            "url": "https://example.com"
+                        }
                     },
                     "id": 2
                 }

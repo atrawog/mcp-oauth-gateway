@@ -43,6 +43,13 @@ services:
       - "traefik.http.routers.auth-health.tls.certresolver=letsencrypt"
       - "traefik.http.routers.auth-health.service=auth"
       
+      # HTTP to HTTPS redirect for auth service - Priority 1 (lowest)
+      - "traefik.http.routers.auth-redirect.rule=Host(`auth.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.auth-redirect.entrypoints=web"
+      - "traefik.http.routers.auth-redirect.middlewares=redirect-to-https"
+      - "traefik.http.routers.auth-redirect.priority=1"
+      - "traefik.http.routers.auth-redirect.service=auth"
+      
       # ForwardAuth middleware definition
       - "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"
       - "traefik.http.middlewares.mcp-auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name,X-Auth-Token"

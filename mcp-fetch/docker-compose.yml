@@ -24,13 +24,20 @@ services:
       - "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@docker"
       - "traefik.http.routers.mcp-fetch.service=mcp-fetch"
       
-      # Catch-all route with auth - Priority 1 (LOWEST)
+      # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
       - "traefik.http.routers.mcp-fetch-catchall.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-fetch-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-catchall.tls.certresolver=letsencrypt"
       - "traefik.http.routers.mcp-fetch-catchall.middlewares=mcp-auth@docker"
       - "traefik.http.routers.mcp-fetch-catchall.service=mcp-fetch"
+      
+      # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)
+      - "traefik.http.routers.mcp-fetch-redirect.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-redirect.entrypoints=web"
+      - "traefik.http.routers.mcp-fetch-redirect.middlewares=redirect-to-https"
+      - "traefik.http.routers.mcp-fetch-redirect.priority=1"
+      - "traefik.http.routers.mcp-fetch-redirect.service=mcp-fetch"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 10s

@@ -65,9 +65,12 @@ class TestMCPFetchComplete:
         # Step 3: Make the MCP request to fetch actual content
         mcp_request = {
             "jsonrpc": "2.0",
-            "method": "fetch/fetch",
+            "method": "tools/call",
             "params": {
-                "url": "https://example.com"  # A reliable test URL
+                "name": "fetch",
+                "arguments": {
+                    "url": "https://example.com"  # A reliable test URL
+                }
             },
             "id": "complete-test-1"
         }
@@ -125,15 +128,9 @@ class TestMCPFetchComplete:
             assert "jsonrpc" in result, "Missing jsonrpc field in response!"
             assert result["jsonrpc"] == "2.0", f"Wrong JSON-RPC version: {result['jsonrpc']}"
             
-            # Check for errors
+            # Check for errors - ALL errors should cause test failure per CLAUDE.md Commandment 1
             if "error" in result:
-                print(f"MCP returned an error: {result['error']}")
-                # For now, accept certain errors as the service may not be fully configured
-                if result['error'].get('code') == -32602:  # Invalid params
-                    print("⚠️  MCP service returned 'Invalid request parameters' - may need different format")
-                    return
-                else:
-                    pytest.fail(f"MCP returned unexpected error: {result['error']}")
+                pytest.fail(f"MCP returned an error: {result['error']}. Tests MUST verify actual functionality!")
             
             if "result" in result:
                 # Step 8: Verify the fetched content
@@ -169,8 +166,11 @@ class TestMCPFetchComplete:
         # Test with missing URL parameter
         mcp_request = {
             "jsonrpc": "2.0",
-            "method": "fetch/fetch",
-            "params": {},  # Missing url!
+            "method": "tools/call",
+            "params": {
+                "name": "fetch",
+                "arguments": {}  # Missing url!
+            },
             "id": "validation-test-1"
         }
         
@@ -186,8 +186,16 @@ class TestMCPFetchComplete:
         # Should either return 400 or JSON-RPC error
         if response.status_code == 200:
             result = response.json()
-            assert "error" in result, "Should return error for missing URL!"
-            assert result["error"]["code"] < 0, "Error code should be negative!"
+            # MCP server returns validation errors in result.isError
+            if "result" in result and isinstance(result["result"], dict):
+                mcp_result = result["result"]
+                if mcp_result.get("isError") == True:
+                    # This is expected for missing URL - validation error
+                    print(f"✓ Got expected validation error: {mcp_result}")
+                    return
+            # If no error at all, that's wrong
+            assert "error" in result or (result.get("result", {}).get("isError") == True), \
+                "Should return error for missing URL!"
         elif response.status_code == 307:
             # Handle Traefik redirect
             print(f"Got redirect to: {response.headers.get('Location')}")
@@ -214,8 +222,11 @@ class TestMCPFetchComplete:
         for invalid_url in invalid_urls:
             mcp_request = {
                 "jsonrpc": "2.0",
-                "method": "fetch/fetch",
-                "params": {"url": invalid_url},
+                "method": "tools/call",
+                "params": {
+                    "name": "fetch",
+                    "arguments": {"url": invalid_url}
+                },
                 "id": f"invalid-url-{invalid_url[:10]}"
             }
             
@@ -235,7 +246,16 @@ class TestMCPFetchComplete:
             
             if response.status_code == 200:
                 result = response.json()
-                assert "error" in result, f"Should return error for invalid URL: {invalid_url}"
+                # MCP server returns validation errors in result.isError
+                if "result" in result and isinstance(result["result"], dict):
+                    mcp_result = result["result"]
+                    if mcp_result.get("isError") == True:
+                        # This is expected for invalid URL - validation error
+                        print(f"✓ Got expected validation error for {invalid_url}: {mcp_result}")
+                        continue
+                # If no error at all, that's wrong
+                assert "error" in result or (result.get("result", {}).get("isError") == True), \
+                    f"Should return error for invalid URL: {invalid_url}"
     
     @pytest.mark.asyncio
     async def test_mcp_fetch_respects_max_size(self, http_client, wait_for_services):
@@ -248,10 +268,13 @@ class TestMCPFetchComplete:
         # Request with small max_size
         mcp_request = {
             "jsonrpc": "2.0",
-            "method": "fetch/fetch",
+            "method": "tools/call",
             "params": {
-                "url": "https://example.com",
-                "max_size": 100  # Very small limit
+                "name": "fetch",
+                "arguments": {
+                    "url": "https://example.com",
+                    "max_length": 100  # Very small limit - using correct parameter name
+                }
             },
             "id": "size-test-1"
         }
@@ -295,8 +318,11 @@ class TestMCPFetchComplete:
         
         mcp_request = {
             "jsonrpc": "2.0",
-            "method": "fetch/fetch",
-            "params": {"url": "https://example.com"},
+            "method": "tools/call",
+            "params": {
+                "name": "fetch",
+                "arguments": {"url": "https://example.com"}
+            },
             "id": "auth-test-1"
         }
         

@@ -67,11 +67,13 @@ class TestMCPFetchIntegration:
         # Create an MCP request
         mcp_request = {
             "jsonrpc": "2.0",
-            "method": "fetch/fetch",
+            "method": "tools/call",
             "params": {
-                "url": "https://example.com",
-                "max_size": 1000000,
-                "headers": {}
+                "name": "fetch",
+                "arguments": {
+                    "url": "https://example.com",
+                    "max_length": 1000000
+                }
             },
             "id": "fetch-test-1"
         }
@@ -123,28 +125,40 @@ class TestMCPFetchIntegration:
         invalid_requests = [
             # Missing jsonrpc version
             {
-                "method": "fetch/fetch",
-                "params": {"url": "https://example.com"},
+                "method": "tools/call",
+                "params": {
+                    "name": "fetch",
+                    "arguments": {"url": "https://example.com"}
+                },
                 "id": 1
             },
             # Invalid jsonrpc version
             {
                 "jsonrpc": "1.0",
-                "method": "fetch/fetch",
-                "params": {"url": "https://example.com"},
+                "method": "tools/call",
+                "params": {
+                    "name": "fetch",
+                    "arguments": {"url": "https://example.com"}
+                },
                 "id": 1
             },
             # Missing method
             {
                 "jsonrpc": "2.0",
-                "params": {"url": "https://example.com"},
+                "params": {
+                    "name": "fetch",
+                    "arguments": {"url": "https://example.com"}
+                },
                 "id": 1
             },
             # Invalid method format
             {
                 "jsonrpc": "2.0",
                 "method": "invalid_method_name",
-                "params": {"url": "https://example.com"},
+                "params": {
+                    "name": "fetch",
+                    "arguments": {"url": "https://example.com"}
+                },
                 "id": 1
             }
         ]

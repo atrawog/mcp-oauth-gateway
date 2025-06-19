@@ -162,5 +162,66 @@ class TestTraefikRouting:
     @pytest.mark.asyncio
     async def test_http_to_https_redirect(self, http_client):
         """Test that HTTP requests are redirected to HTTPS"""
-        # This test is optional as many deployments are HTTPS-only
-        pytest.skip("HTTP redirect test skipped - deployment may be HTTPS-only")
+        # Test HTTP to HTTPS redirect for auth service
+        http_auth_url = f"http://auth.{BASE_DOMAIN}/health"
+        
+        response = await http_client.get(
+            http_auth_url,
+            follow_redirects=False  # Don't follow redirects so we can check them
+        )
+        
+        # Should get a redirect response (301 or 302)
+        assert response.status_code in [301, 302, 307, 308], (
+            f"Expected redirect status code, got {response.status_code}. "
+            f"Response: {response.text[:200]}"
+        )
+        
+        # Check that Location header points to HTTPS
+        assert "Location" in response.headers, "Missing Location header in redirect response"
+        location = response.headers["Location"]
+        assert location.startswith("https://"), (
+            f"Redirect should point to HTTPS, got: {location}"
+        )
+        assert f"auth.{BASE_DOMAIN}" in location, (
+            f"Redirect should preserve hostname, got: {location}"
+        )
+        
+        # Test HTTP to HTTPS redirect for MCP service
+        http_mcp_url = f"http://mcp-fetch.{BASE_DOMAIN}/health"
+        
+        response = await http_client.get(
+            http_mcp_url,
+            follow_redirects=False
+        )
+        
+        # Should get a redirect response
+        assert response.status_code in [301, 302, 307, 308], (
+            f"Expected redirect status code for MCP service, got {response.status_code}. "
+            f"Response: {response.text[:200]}"
+        )
+        
+        # Check that Location header points to HTTPS
+        assert "Location" in response.headers, "Missing Location header in MCP redirect response"
+        location = response.headers["Location"]
+        assert location.startswith("https://"), (
+            f"MCP redirect should point to HTTPS, got: {location}"
+        )
+        assert f"mcp-fetch.{BASE_DOMAIN}" in location, (
+            f"MCP redirect should preserve hostname, got: {location}"
+        )
+        
+        # Test that following the redirect works
+        https_response = await http_client.get(
+            http_auth_url,
+            follow_redirects=True  # Follow redirects this time
+        )
+        
+        # Should get successful response after redirect
+        assert https_response.status_code == 200, (
+            f"Failed to access service after HTTP->HTTPS redirect: {https_response.status_code}"
+        )
+        
+        # Verify we actually got the health response
+        health_data = https_response.json()
+        assert "status" in health_data, f"Invalid health response: {health_data}"
+        assert health_data["status"] == "healthy", f"Service not healthy: {health_data}"
