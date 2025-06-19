@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
-Sacred GitHub Token Generation Script
-Smart token generation with device flow support
+Sacred GitHub Token Generation Script - REAL OAuth Flow ONLY!
+Following CLAUDE.md Commandment 1: NO MOCKING, NO SIMULATION, REAL TESTS ONLY!
+
+This script generates ALL required OAuth tokens by completing REAL OAuth flows.
+Uses REAL GitHub OAuth, REAL callback URLs, and REAL token exchanges.
 """
 import os
 import sys
@@ -9,10 +12,14 @@ import json
 import time
 import httpx
 import asyncio
+import secrets
+import hashlib
+import base64
+import webbrowser
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, Dict
-from urllib.parse import urlencode
+from typing import Optional, Dict, Tuple
+from urllib.parse import urlencode, urlparse, parse_qs
 
 
 # Load environment variables
@@ -73,18 +80,26 @@ async def check_existing_token(token: str) -> bool:
 
 
 async def register_oauth_client(base_url: str) -> Dict[str, str]:
-    """Register OAuth client with the gateway"""
-    # For development/testing, we may need to skip SSL verification
-    # In production, ensure proper SSL certificates are installed
+    """Register OAuth client with the gateway using REAL FQDN callback URLs"""
+    # Get REAL callback URLs from environment - must be REAL FQDNs
+    test_callback_url = os.getenv("TEST_CALLBACK_URL")
+    test_redirect_uri = os.getenv("TEST_REDIRECT_URI")
+    
+    if not test_callback_url or not test_redirect_uri:
+        raise Exception("TEST_CALLBACK_URL and TEST_REDIRECT_URI must be set in .env with REAL FQDNs")
+    
     verify_ssl = not base_url.startswith("https://localhost") and not "127.0.0.1" in base_url
     
     async with httpx.AsyncClient(verify=verify_ssl) as client:
         response = await client.post(
             f"{base_url}/register",
             json={
-                "redirect_uris": ["http://localhost:8080/callback"],
+                "redirect_uris": [
+                    test_callback_url,
+                    test_redirect_uri
+                ],
                 "client_name": "MCP OAuth Token Generator",
-                "scope": "mcp:access"
+                "scope": "openid profile email"
             }
         )
         
@@ -95,16 +110,20 @@ async def register_oauth_client(base_url: str) -> Dict[str, str]:
 
 
 async def github_device_flow() -> str:
-    """Perform GitHub device flow authentication"""
-    print("\n🔐 Starting GitHub Device Flow Authentication...")
+    """Perform REAL GitHub device flow authentication"""
+    print("\n🔐 Starting REAL GitHub Device Flow Authentication...")
     
-    # Get device code
+    github_client_id = os.getenv("GITHUB_CLIENT_ID")
+    if not github_client_id:
+        raise Exception("GITHUB_CLIENT_ID not set in .env")
+    
     async with httpx.AsyncClient() as client:
+        # Step 1: Get device code from GitHub
         response = await client.post(
             "https://github.com/login/device/code",
             headers={"Accept": "application/json"},
             data={
-                "client_id": os.getenv("GITHUB_CLIENT_ID"),
+                "client_id": github_client_id,
                 "scope": "user:email"
             }
         )
@@ -118,7 +137,14 @@ async def github_device_flow() -> str:
         print(f"📝 Enter code: {device_data['user_code']}")
         print("\n⏳ Waiting for authentication...")
         
-        # Poll for token
+        # Automatically open browser
+        try:
+            webbrowser.open(device_data['verification_uri'])
+            print("🌐 Opened browser automatically")
+        except:
+            print("⚠️  Could not open browser automatically")
+        
+        # Step 2: Poll for token
         interval = device_data.get("interval", 5)
         
         while True:
@@ -128,7 +154,7 @@ async def github_device_flow() -> str:
                 "https://github.com/login/oauth/access_token",
                 headers={"Accept": "application/json"},
                 data={
-                    "client_id": os.getenv("GITHUB_CLIENT_ID"),
+                    "client_id": github_client_id,
                     "device_code": device_data["device_code"],
                     "grant_type": "urn:ietf:params:oauth:grant-type:device_code"
                 }
@@ -137,20 +163,99 @@ async def github_device_flow() -> str:
             poll_data = poll_response.json()
             
             if "access_token" in poll_data:
-                print("✅ Authentication successful!")
+                print("✅ GitHub authentication successful!")
                 return poll_data["access_token"]
             elif poll_data.get("error") == "authorization_pending":
+                print("⏳ Still waiting for authorization...")
                 continue
             elif poll_data.get("error") == "slow_down":
                 interval = poll_data.get("interval", interval + 5)
+                print(f"⏸️  Slowing down polling to {interval}s")
             else:
                 raise Exception(f"Device flow failed: {poll_data}")
 
 
+async def complete_real_oauth_flow(auth_base_url: str, client_id: str, client_secret: str) -> Tuple[str, str]:
+    """Complete REAL OAuth flow using the actual authorization endpoint"""
+    print("\n🔐 Starting REAL OAuth Flow...")
+    
+    # Step 1: Generate REAL PKCE challenge
+    code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=")
+    code_challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(code_verifier.encode()).digest()
+    ).decode().rstrip("=")
+    
+    state = secrets.token_urlsafe(16)
+    
+    # Step 2: Construct REAL authorization URL using REAL FQDN
+    callback_url = os.getenv("TEST_CALLBACK_URL")
+    if not callback_url:
+        raise Exception("TEST_CALLBACK_URL must be set in .env with REAL FQDN")
+    
+    auth_params = {
+        "client_id": client_id,
+        "redirect_uri": callback_url,
+        "response_type": "code",
+        "scope": "openid profile email",
+        "state": state,
+        "code_challenge": code_challenge,
+        "code_challenge_method": "S256"
+    }
+    
+    auth_url = f"{auth_base_url}/authorize?{urlencode(auth_params)}"
+    
+    print(f"\n🌐 Please complete REAL OAuth flow:")
+    print(f"1. Visit: {auth_url}")
+    print("2. Complete GitHub authentication")
+    print(f"3. You'll be redirected to {callback_url}")
+    print("4. Copy the 'code' parameter from the redirect URL")
+    
+    # Automatically open browser
+    try:
+        webbrowser.open(auth_url)
+        print("🌐 Opened browser automatically")
+    except:
+        print("⚠️  Could not open browser automatically")
+    
+    # Wait for user to complete OAuth flow and provide authorization code
+    print("\n📝 After completing OAuth, copy the authorization code from the success page:")
+    auth_code = input("Authorization code: ").strip()
+    
+    if not auth_code:
+        raise Exception("No authorization code provided")
+    
+    # Step 3: Exchange code for tokens
+    verify_ssl = not auth_base_url.startswith("https://localhost") and not "127.0.0.1" in auth_base_url
+    
+    async with httpx.AsyncClient(verify=verify_ssl) as client:
+        token_response = await client.post(
+            f"{auth_base_url}/token",
+            data={
+                "grant_type": "authorization_code",
+                "code": auth_code,
+                "redirect_uri": callback_url,
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "code_verifier": code_verifier
+            }
+        )
+        
+        if token_response.status_code != 200:
+            raise Exception(f"Token exchange failed ({token_response.status_code}): {token_response.text}")
+        
+        tokens = token_response.json()
+        
+        if "access_token" not in tokens:
+            raise Exception(f"No access token in response: {tokens}")
+        
+        print("✅ OAuth flow completed successfully!")
+        return tokens["access_token"], tokens.get("refresh_token", "")
+
+
 async def main():
-    """Main token generation flow"""
-    print("🚀 Sacred GitHub Token Generator")
-    print("================================")
+    """Main token generation flow - REAL OAuth only!"""
+    print("🚀 Sacred GitHub Token Generator - REAL OAuth Only!")
+    print("==================================================")
     
     # Load environment
     env_vars = load_env()
@@ -162,7 +267,11 @@ async def main():
         print("Please configure your GitHub OAuth app first.")
         sys.exit(1)
     
-    base_domain = os.getenv("BASE_DOMAIN", "localhost")
+    base_domain = os.getenv("BASE_DOMAIN")
+    if not base_domain:
+        print("❌ Missing BASE_DOMAIN in .env")
+        sys.exit(1)
+    
     auth_base_url = f"https://auth.{base_domain}"
     
     # Step 1: Check existing GitHub PAT
@@ -183,12 +292,12 @@ async def main():
     else:
         github_pat = existing_pat
     
-    # Step 3: Check for existing OAuth client
+    # Step 3: Register OAuth client with REAL callback URLs
     client_id = os.getenv("OAUTH_CLIENT_ID")
     client_secret = os.getenv("OAUTH_CLIENT_SECRET")
     
     if not client_id or not client_secret:
-        print("\n📝 Registering OAuth client with gateway...")
+        print("\n📝 Registering OAuth client with REAL callback URLs...")
         try:
             client_data = await register_oauth_client(auth_base_url)
             client_id = client_data["client_id"]
@@ -197,32 +306,51 @@ async def main():
             save_env_var("OAUTH_CLIENT_ID", client_id)
             save_env_var("OAUTH_CLIENT_SECRET", client_secret)
             print("✅ OAuth client registered successfully!")
+            print(f"   Client ID: {client_id}")
+            print(f"   Callback URLs: {client_data.get('redirect_uris', [])}")
         except Exception as e:
             print(f"❌ Failed to register OAuth client: {e}")
-            print("Make sure the gateway is running!")
+            print("Make sure the gateway is running with: just up")
             sys.exit(1)
     else:
-        print("✅ Using existing OAuth client")
+        print(f"✅ Using existing OAuth client: {client_id}")
     
-    # Step 4: Check for refresh token
-    refresh_token = os.getenv("OAUTH_REFRESH_TOKEN")
-    jwt_token = os.getenv("OAUTH_JWT_TOKEN")
-    
-    if refresh_token:
-        print("\n🔄 Attempting to refresh JWT token...")
-        # TODO: Implement refresh token flow
-        print("⚠️  Refresh token flow not yet implemented")
+    # Step 4: Complete REAL OAuth flow to get access tokens
+    existing_access_token = os.getenv("OAUTH_ACCESS_TOKEN")
+    if existing_access_token:
+        print("✅ OAUTH_ACCESS_TOKEN already exists")
+    else:
+        print("\n🔐 Completing REAL OAuth flow to generate access tokens...")
+        try:
+            access_token, refresh_token = await complete_real_oauth_flow(
+                auth_base_url, client_id, client_secret
+            )
+            
+            save_env_var("OAUTH_ACCESS_TOKEN", access_token)
+            if refresh_token:
+                save_env_var("OAUTH_REFRESH_TOKEN", refresh_token)
+            
+            print("✅ OAuth access tokens generated successfully!")
+            print("💾 Saved tokens to .env")
+            
+        except Exception as e:
+            print(f"❌ OAuth flow failed: {e}")
+            print("You may need to complete this manually or check your configuration.")
+            sys.exit(1)
     
     print("\n✨ Token generation complete!")
-    print("\nThe following tokens have been saved to .env:")
-    print("  - GITHUB_PAT: GitHub Personal Access Token")
-    print("  - OAUTH_CLIENT_ID: OAuth client ID") 
-    print("  - OAUTH_CLIENT_SECRET: OAuth client secret")
+    print("\nThe following tokens are now available in .env:")
+    print("  ✅ GITHUB_PAT: GitHub Personal Access Token")
+    print("  ✅ OAUTH_CLIENT_ID: OAuth client ID") 
+    print("  ✅ OAUTH_CLIENT_SECRET: OAuth client secret")
     
-    print("\n📋 Next steps:")
-    print("1. Start the gateway: just up")
-    print("2. Navigate to the authorization URL in your browser")
-    print("3. Complete the OAuth flow to get JWT tokens")
+    if os.getenv("OAUTH_ACCESS_TOKEN"):
+        print("  ✅ OAUTH_ACCESS_TOKEN: OAuth access token")
+    if os.getenv("OAUTH_REFRESH_TOKEN"):
+        print("  ✅ OAUTH_REFRESH_TOKEN: OAuth refresh token")
+    
+    print("\n🎉 All tests should now pass!")
+    print("Run: just test")
 
 
 if __name__ == "__main__":

@@ -11,8 +11,10 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application
-COPY . .
+# Copy the application files explicitly
+COPY main.py .
+# Debug: Check file size after copy
+RUN ls -la /app/main.py && wc -l /app/main.py
 
 # Create non-root user
 RUN useradd -m -u 1000 authuser && chown -R authuser:authuser /app

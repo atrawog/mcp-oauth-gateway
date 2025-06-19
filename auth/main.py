@@ -769,6 +769,66 @@ async def introspect_token(
     return {"active": False}
 
 
+# OAuth success page for token generation
+@app.get("/success")
+async def oauth_success(
+    code: Optional[str] = Query(None),
+    state: Optional[str] = Query(None),
+    error: Optional[str] = Query(None),
+    error_description: Optional[str] = Query(None)
+):
+    """OAuth success page for displaying authorization codes"""
+    if error:
+        return HTMLResponse(
+            content=f"""
+            <!DOCTYPE html>
+            <html>
+            <head><title>OAuth Error</title></head>
+            <body style="font-family: Arial; padding: 20px; text-align: center;">
+                <h1>❌ OAuth Error</h1>
+                <p><strong>Error:</strong> {error}</p>
+                <p><strong>Description:</strong> {error_description or 'No description provided'}</p>
+                <p>You can close this window.</p>
+            </body>
+            </html>
+            """
+        )
+    
+    if code:
+        return HTMLResponse(
+            content=f"""
+            <!DOCTYPE html>
+            <html>
+            <head><title>OAuth Success</title></head>
+            <body style="font-family: Arial; padding: 20px; text-align: center;">
+                <h1>✅ OAuth Success!</h1>
+                <p>Authorization code received successfully.</p>
+                <div style="background: #f5f5f5; padding: 10px; margin: 20px; border-radius: 5px; font-family: monospace;">
+                    <strong>Authorization Code:</strong><br>
+                    {code}
+                </div>
+                <p><em>Copy the code above for token generation.</em></p>
+                <p>You can close this window.</p>
+            </body>
+            </html>
+            """
+        )
+    
+    return HTMLResponse(
+        content="""
+        <!DOCTYPE html>
+        <html>
+        <head><title>OAuth Flow</title></head>
+        <body style="font-family: Arial; padding: 20px; text-align: center;">
+            <h1>⏳ OAuth Flow</h1>
+            <p>No authorization code received yet.</p>
+            <p>You can close this window.</p>
+        </body>
+        </html>
+        """
+    )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

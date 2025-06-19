@@ -11,7 +11,7 @@ import json
 import os
 from jose import jwt, JWTError
 import time
-from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, JWT_SECRET, GITHUB_PAT, BASE_DOMAIN
+from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, JWT_SECRET, GITHUB_PAT, BASE_DOMAIN, TEST_REDIRECT_URI
 
 # Use the existing OAuth credentials from .env - these are optional
 OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
@@ -25,9 +25,9 @@ class TestExistingOAuthCredentials:
     async def test_token_endpoint_with_existing_client(self, http_client, wait_for_services):
         """Test token endpoint using existing client credentials"""
         
-        # Skip if credentials not available
+        # Fail with clear error if credentials not available
         if not OAUTH_CLIENT_ID or not OAUTH_CLIENT_SECRET:
-            pytest.skip("OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET not set in .env")
+            pytest.fail("ERROR: OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials from a previous registration.")
         
         # Test 1: Invalid grant with correct client credentials
         response = await http_client.post(
@@ -44,11 +44,11 @@ class TestExistingOAuthCredentials:
         print(f"Response status: {response.status_code}")
         print(f"Response body: {response.text}")
         
-        # If client doesn't exist, skip the test
+        # If client doesn't exist, fail with clear error
         if response.status_code == 401:
             error = response.json()
             if error.get("detail", {}).get("error") == "invalid_client":
-                pytest.skip("Client not registered in the system")
+                pytest.fail(f"ERROR: OAuth client {OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials.")
         
         assert response.status_code == 400  # Should be invalid_grant
         error = response.json()
@@ -156,7 +156,7 @@ class TestExistingOAuthCredentials:
                 assert "login" in user_info
             else:
                 # PAT might be expired or invalid
-                pytest.skip("GitHub PAT is not valid")
+                pytest.fail(f"ERROR: GitHub PAT is not valid (status: {user_response.status_code}). Please update GITHUB_PAT in .env with a valid token.")
 
 
 class TestCompleteFlowWithExistingClient:
@@ -166,14 +166,14 @@ class TestCompleteFlowWithExistingClient:
     async def test_authorization_to_token_flow(self, http_client, wait_for_services):
         """Test the authorization flow with existing client"""
         
-        # Skip if credentials not available
+        # Fail with clear error if credentials not available
         if not OAUTH_CLIENT_ID or not OAUTH_CLIENT_SECRET:
-            pytest.skip("OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET not set in .env")
+            pytest.fail("ERROR: OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET must be set in .env for this test.")
         
         # Start authorization with existing client
         auth_params = {
             "client_id": OAUTH_CLIENT_ID,
-            "redirect_uri": "https://example.com/callback",
+            "redirect_uri": TEST_REDIRECT_URI,  # Use TEST_REDIRECT_URI from constants
             "response_type": "code",
             "scope": "openid profile email",
             "state": secrets.token_urlsafe(16),
@@ -187,11 +187,11 @@ class TestCompleteFlowWithExistingClient:
             follow_redirects=False
         )
         
-        # If client doesn't exist, skip the test
+        # If client doesn't exist, fail with clear error
         if response.status_code == 400:
             error = response.json()
             if error.get("detail", {}).get("error") == "invalid_client":
-                pytest.skip("Client not registered in the system")
+                pytest.fail(f"ERROR: OAuth client {OAUTH_CLIENT_ID} is not registered in the system. Run client registration first.")
         
         # Should redirect to GitHub
         assert response.status_code == 307

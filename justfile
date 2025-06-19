@@ -118,12 +118,12 @@ test-claude-integration:
 
 # Service-specific rebuilds
 rebuild-auth:
-    @docker compose -f auth/docker-compose.yml build --no-cache
-    @docker compose up -d auth
+    @docker compose build auth
+    @docker compose up -d auth --force-recreate
 
 rebuild-mcp-fetch:
-    @docker compose -f mcp-fetch/docker-compose.yml build --no-cache
-    @docker compose up -d mcp-fetch
+    @docker compose build mcp-fetch
+    @docker compose up -d mcp-fetch --force-recreate
 
 rebuild-traefik:
     @docker compose -f traefik/docker-compose.yml up -d traefik

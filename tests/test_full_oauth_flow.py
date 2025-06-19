@@ -9,7 +9,7 @@ import secrets
 import hashlib
 import base64
 from urllib.parse import urlparse, parse_qs
-from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, MCP_PROTOCOL_VERSION
+from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, MCP_PROTOCOL_VERSION, TEST_REDIRECT_URI
 
 # OAuth client credentials from .env - optional for these tests
 OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
@@ -61,9 +61,9 @@ class TestFullOAuthFlow:
     async def test_client_credentials_validity(self):
         """Test that our registered client credentials are valid"""
         
-        # Skip if credentials not available
+        # Fail with clear error if credentials not available
         if not OAUTH_CLIENT_ID or not OAUTH_CLIENT_SECRET:
-            pytest.skip("OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET not set in .env")
+            pytest.fail("ERROR: OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials.")
         
         async with httpx.AsyncClient() as client:
             # Test that client exists by attempting to start auth flow
@@ -77,7 +77,7 @@ class TestFullOAuthFlow:
                 f"{AUTH_BASE_URL}/authorize",
                 params={
                     "client_id": OAUTH_CLIENT_ID,
-                    "redirect_uri": "http://localhost:8080/callback",
+                    "redirect_uri": TEST_REDIRECT_URI,  # Use REAL registered redirect URI
                     "response_type": "code",
                     "state": "test_state",
                     "code_challenge": code_challenge,
@@ -86,11 +86,11 @@ class TestFullOAuthFlow:
                 follow_redirects=False
             )
             
-            # If client doesn't exist, skip the test
+            # If client doesn't exist, fail with clear error
             if response.status_code == 400:
                 error = response.json()
                 if error.get("detail", {}).get("error") == "invalid_client":
-                    pytest.skip("Client not registered in the system")
+                    pytest.fail(f"ERROR: OAuth client {OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials.")
             
             # Should redirect to GitHub OAuth (means client is valid)
             assert response.status_code in [302, 307]
@@ -101,9 +101,9 @@ class TestFullOAuthFlow:
     async def test_token_endpoint_with_client_auth(self):
         """Test token endpoint accepts our client credentials"""
         
-        # Skip if credentials not available
+        # Fail with clear error if credentials not available
         if not OAUTH_CLIENT_ID or not OAUTH_CLIENT_SECRET:
-            pytest.skip("OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET not set in .env")
+            pytest.fail("ERROR: OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials.")
         
         async with httpx.AsyncClient() as client:
             # Test that token endpoint validates client credentials properly
@@ -114,15 +114,15 @@ class TestFullOAuthFlow:
                     "code": "invalid_authorization_code",  # Will fail, but tests client auth
                     "client_id": OAUTH_CLIENT_ID,
                     "client_secret": OAUTH_CLIENT_SECRET,
-                    "redirect_uri": "http://localhost:8080/callback"
+                    "redirect_uri": TEST_REDIRECT_URI  # Use REAL registered redirect URI
                 }
             )
             
-            # If client doesn't exist, skip the test
+            # If client doesn't exist, fail with clear error
             if response.status_code == 401:
                 error = response.json()
                 if error.get("detail", {}).get("error") == "invalid_client":
-                    pytest.skip("Client not registered in the system")
+                    pytest.fail(f"ERROR: OAuth client {OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials.")
             
             # Should get 400 Bad Request (invalid_grant) not 401 (invalid_client)
             # This proves our client credentials are valid

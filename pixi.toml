@@ -56,6 +56,7 @@ sphinx = ">=7.0.0,<8"
 # Utilities
 python-dotenv = ">=1.0.0,<2"
 pyyaml = ">=6.0,<7"
+aiohttp = ">=3.12.13,<4"
 
 [feature.docs.dependencies]
 # Additional dependencies for documentation
