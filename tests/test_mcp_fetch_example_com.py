@@ -71,6 +71,9 @@ class TestMCPFetchExampleCom:
             # Note: The stdio proxy maintains a persistent session, so no session initialization needed
             print("Using stdio proxy with persistent MCP session")
             
+            # Initialize session (if needed) to get session ID
+            session_id = None
+            
             # Step 2: List available tools first
             list_request = {
                 "jsonrpc": "2.0",
@@ -87,6 +90,11 @@ class TestMCPFetchExampleCom:
                     "Accept": "application/json, text/event-stream"
                 }
             )
+            
+            # Capture session ID from response headers
+            if "mcp-session-id" in list_response.headers:
+                session_id = list_response.headers["mcp-session-id"]
+                print(f"Got session ID: {session_id}")
             
             if list_response.status_code == 200:
                 tools = list_response.json()
@@ -141,15 +149,19 @@ class TestMCPFetchExampleCom:
                         fetch_request["method"] = "fetch"
                         fetch_request["params"] = {"url": "https://example.com"}
                         
+                        retry_headers = {
+                            "Authorization": f"Bearer {access_token}",
+                            "Content-Type": "application/json",
+                            "Accept": "application/json, text/event-stream"
+                        }
+                        # Only add session ID if we have one
+                        if session_id:
+                            retry_headers["Mcp-Session-Id"] = session_id
+                            
                         retry_response = await http_client.post(
                             f"{MCP_FETCH_URL}/mcp",
                             json=fetch_request,
-                            headers={
-                                "Authorization": f"Bearer {access_token}",
-                                "Content-Type": "application/json",
-                                "Accept": "application/json, text/event-stream",
-                                "Mcp-Session-Id": session_id
-                            }
+                            headers=retry_headers
                         )
                         
                         if retry_response.status_code == 200:

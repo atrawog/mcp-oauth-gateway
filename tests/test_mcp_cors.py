@@ -30,12 +30,15 @@ class TestMCPCORS:
         """Test that MCP endpoints respond correctly to CORS preflight requests"""
         mcp_url = f"https://mcp-fetch.{self.base_domain}/mcp"
         
+        # If CORS is set to wildcard, test with a sample origin
+        if self.cors_origins == ["*"]:
+            test_origins = ["https://example.com"]
+        else:
+            test_origins = self.cors_origins
+        
         # Test OPTIONS request (CORS preflight) for each configured origin
         with httpx.Client(verify=False, timeout=10.0) as client:
-            for origin in self.cors_origins:
-                # Use the origin exactly as configured - no wildcard conversion
-                test_origin = origin
-                    
+            for test_origin in test_origins:
                 response = client.options(
                     mcp_url,
                     headers={
@@ -50,7 +53,12 @@ class TestMCPCORS:
                 
                 # Check CORS headers
                 assert "access-control-allow-origin" in response.headers, f"Missing Access-Control-Allow-Origin header for {test_origin}"
-                assert response.headers["access-control-allow-origin"] == test_origin, f"CORS origin mismatch for {test_origin}"
+                
+                # When wildcard is configured, FastAPI returns the specific origin, not "*"
+                if self.cors_origins == ["*"]:
+                    assert response.headers["access-control-allow-origin"] == test_origin, f"CORS origin mismatch for {test_origin}"
+                else:
+                    assert response.headers["access-control-allow-origin"] == test_origin, f"CORS origin mismatch for {test_origin}"
                 
                 assert "access-control-allow-methods" in response.headers, "Missing Access-Control-Allow-Methods header"
                 allowed_methods = response.headers["access-control-allow-methods"].upper()
@@ -69,7 +77,11 @@ class TestMCPCORS:
         if not self.cors_origins:
             pytest.skip("No CORS origins configured")
             
-        test_origin = self.cors_origins[0]
+        # If CORS is set to wildcard, use a test origin
+        if self.cors_origins == ["*"]:
+            test_origin = "https://example.com"
+        else:
+            test_origin = self.cors_origins[0]
         
         with httpx.Client(verify=False, timeout=10.0) as client:
             # Test with authentication - use OAuth token from environment
@@ -97,7 +109,13 @@ class TestMCPCORS:
             
             # Check CORS headers in response
             assert "access-control-allow-origin" in response.headers, "Missing Access-Control-Allow-Origin in response"
-            assert response.headers["access-control-allow-origin"] == test_origin, "CORS origin mismatch in response"
+            
+            # When wildcard is configured, the response may be "*" instead of the specific origin
+            allowed_origin = response.headers["access-control-allow-origin"]
+            if self.cors_origins == ["*"]:
+                assert allowed_origin in ["*", test_origin], f"CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"
+            else:
+                assert allowed_origin == test_origin, f"CORS origin mismatch, expected '{test_origin}', got '{allowed_origin}'"
             
             # Check exposed headers
             if "access-control-expose-headers" in response.headers:
@@ -112,7 +130,11 @@ class TestMCPCORS:
         if not self.cors_origins:
             pytest.skip("No CORS origins configured")
             
-        test_origin = self.cors_origins[0]
+        # If CORS is set to wildcard, use a test origin
+        if self.cors_origins == ["*"]:
+            test_origin = "https://example.com"
+        else:
+            test_origin = self.cors_origins[0]
         
         with httpx.Client(verify=False, timeout=10.0) as client:
             response = client.get(
@@ -124,6 +146,11 @@ class TestMCPCORS:
             
             # Health endpoint should also have CORS headers
             assert "access-control-allow-origin" in response.headers, "Health endpoint missing CORS headers"
+            
+            # When wildcard is configured, the response may be "*" instead of the specific origin
+            allowed_origin = response.headers["access-control-allow-origin"]
+            if self.cors_origins == ["*"]:
+                assert allowed_origin in ["*", test_origin], f"CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"
             
     def test_cors_headers_without_origin(self):
         """Test that requests without Origin header still work"""
@@ -153,6 +180,10 @@ class TestMCPCORS:
             
     def test_cors_blocks_unauthorized_origins(self):
         """Test that CORS blocks requests from unauthorized origins"""
+        # Skip this test if CORS is set to wildcard
+        if "*" in self.cors_origins:
+            pytest.skip("CORS wildcard (*) allows all origins")
+            
         mcp_url = f"https://mcp-fetch.{self.base_domain}/mcp"
         
         # Create an origin that is NOT in the configured list
@@ -176,7 +207,9 @@ class TestMCPCORS:
             
             # Should either not have CORS headers or have different origin
             if "access-control-allow-origin" in response.headers:
-                assert response.headers["access-control-allow-origin"] != test_unauthorized_origin, "CORS allowed unauthorized origin!"
+                # When wildcard is used, the header will be the actual origin or "*"
+                allowed_origin = response.headers["access-control-allow-origin"]
+                assert allowed_origin != test_unauthorized_origin, "CORS allowed unauthorized origin!"
                 
     def test_all_mcp_services_have_cors(self):
         """Test that all MCP services have CORS configured"""
@@ -191,7 +224,11 @@ class TestMCPCORS:
         if not self.cors_origins:
             pytest.skip("No CORS origins configured")
             
-        test_origin = self.cors_origins[0]
+        # If CORS is set to wildcard, use a test origin
+        if self.cors_origins == ["*"]:
+            test_origin = "https://example.com"
+        else:
+            test_origin = self.cors_origins[0]
         
         with httpx.Client(verify=False, timeout=10.0) as client:
             for service in mcp_services:
@@ -203,5 +240,12 @@ class TestMCPCORS:
                 
                 assert response.status_code == 200, f"Service {service} health check failed"
                 assert "access-control-allow-origin" in response.headers, f"Service {service} missing CORS headers"
+                
+                # When wildcard is configured, verify CORS works
+                allowed_origin = response.headers["access-control-allow-origin"]
+                if self.cors_origins == ["*"]:
+                    assert allowed_origin in ["*", test_origin], f"Service {service}: CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"
+                else:
+                    assert allowed_origin == test_origin, f"Service {service}: expected '{test_origin}', got '{allowed_origin}'"
                 
                 print(f"✓ Service {service} has CORS properly configured")
