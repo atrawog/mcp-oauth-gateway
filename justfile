@@ -128,9 +128,31 @@ logs:
 
 # Project-specific commands
 
-# Generate JWT secret
+# Generate JWT secret and save to .env
 generate-jwt-secret:
-    @python -c "import secrets; print(secrets.token_urlsafe(32))"
+    #!/usr/bin/env bash
+    NEW_JWT_SECRET=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
+    echo "🔐 Generated new JWT secret: ${NEW_JWT_SECRET}"
+    
+    # Check if .env exists
+    if [ ! -f .env ]; then
+        echo "❌ .env file not found! Creating one..."
+        echo "JWT_SECRET=${NEW_JWT_SECRET}" > .env
+        echo "✅ Created .env with JWT_SECRET"
+    else
+        # Check if JWT_SECRET already exists in .env
+        if grep -q "^JWT_SECRET=" .env; then
+            # Update existing JWT_SECRET
+            sed -i.bak "s/^JWT_SECRET=.*/JWT_SECRET=${NEW_JWT_SECRET}/" .env
+            echo "✅ Updated JWT_SECRET in .env file"
+        else
+            # Add JWT_SECRET to .env
+            echo "JWT_SECRET=${NEW_JWT_SECRET}" >> .env
+            echo "✅ Added JWT_SECRET to .env file"
+        fi
+    fi
+    
+    echo "🔥 SACRED JWT SECRET HAS BEEN BLESSED AND WRITTEN TO .ENV!"
 
 # Generate GitHub OAuth token
 generate-github-token:
