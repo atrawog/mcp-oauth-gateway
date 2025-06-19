@@ -1,7 +1,8 @@
 """
 Security tests for OAuth client registration endpoint
 Following CLAUDE.md - NO MOCKING, real services only!
-Tests that /register endpoint properly protects against unauthorized access
+Tests OAuth 2.0 security model where registration is public (RFC 7591)
+and security is enforced at authorization/token issuance stage
 """
 import pytest
 import httpx
@@ -14,8 +15,8 @@ class TestRegisterEndpointSecurity:
     """Test OAuth client registration endpoint security"""
     
     @pytest.mark.asyncio
-    async def test_register_requires_authorization_header(self, http_client, wait_for_services):
-        """Test that /register endpoint requires Authorization header"""
+    async def test_register_is_public_endpoint(self, http_client, wait_for_services):
+        """Test that /register endpoint is public per RFC 7591"""
         
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
@@ -23,175 +24,208 @@ class TestRegisterEndpointSecurity:
             "scope": "openid profile email"
         }
         
-        # Test without Authorization header
+        # Test without Authorization header - should succeed per RFC 7591
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json=registration_data
         )
         
-        assert response.status_code == 401
-        assert "WWW-Authenticate" in response.headers
-        assert response.headers["WWW-Authenticate"] == "Bearer"
+        # Registration should succeed without authentication
+        assert response.status_code == 201
+        client_data = response.json()
+        assert "client_id" in client_data
+        assert "client_secret" in client_data
+        assert client_data["client_name"] == "Test Client"
         
-        error = response.json()
-        assert error["detail"]["error"] == "authorization_required"
-        assert "GitHub authentication required" in error["detail"]["error_description"]
+        # Security is enforced at authorization/token stage, not registration
     
     @pytest.mark.asyncio
-    async def test_register_requires_bearer_token(self, http_client, wait_for_services):
-        """Test that /register endpoint requires Bearer token format"""
+    async def test_register_ignores_authorization_headers(self, http_client, wait_for_services):
+        """Test that /register endpoint ignores auth headers per RFC 7591"""
         
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
-            "client_name": "Test Client",
+            "client_name": "Test Client with Auth Header",
             "scope": "openid profile email"
         }
         
-        # Test with wrong authorization scheme
+        # Test with various authorization schemes - all should succeed
+        # because registration is public per RFC 7591
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json=registration_data,
             headers={"Authorization": "Basic invalid_scheme"}
         )
         
-        assert response.status_code == 401
-        error = response.json()
-        assert error["detail"]["error"] == "authorization_required"
-        assert "GitHub authentication required" in error["detail"]["error_description"]
+        # Should succeed regardless of auth header
+        assert response.status_code == 201
+        client_data = response.json()
+        assert "client_id" in client_data
+        assert client_data["client_name"] == "Test Client with Auth Header"
     
     @pytest.mark.asyncio
-    async def test_register_rejects_invalid_api_key(self, http_client, wait_for_services):
-        """Test that /register endpoint rejects invalid JWT tokens"""
+    async def test_security_enforced_at_authorization_stage(self, http_client, wait_for_services):
+        """Test that security is enforced at authorization, not registration"""
         
-        registration_data = {
-            "redirect_uris": ["https://example.com/callback"],
-            "client_name": "Test Client",
-            "scope": "openid profile email"
-        }
-        
-        # Test with invalid JWT token
-        response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json=registration_data,
-            headers={"Authorization": "Bearer invalid_jwt_token_should_be_rejected"}
-        )
-        
-        assert response.status_code == 401
-        error = response.json()
-        assert error["detail"]["error"] == "invalid_token"
-        assert "Invalid or expired token" in error["detail"]["error_description"]
-    
-    @pytest.mark.asyncio
-    async def test_register_accepts_valid_api_key(self, http_client, wait_for_services):
-        """Test that /register endpoint accepts valid OAuth access token"""
-        
-        # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
-        
+        # First, register a client publicly (no auth required)
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
             "client_name": "Security Test Client",
             "scope": "openid profile email"
         }
         
-        # Test with valid OAuth access token
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json=registration_data,
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            json=registration_data
         )
         
         assert response.status_code == 201
         client_data = response.json()
-        assert "client_id" in client_data
-        assert "client_secret" in client_data
-        assert client_data["client_name"] == "Security Test Client"
+        client_id = client_data["client_id"]
+        
+        # Now try to use the client for authorization - THIS requires user auth
+        auth_response = await http_client.get(
+            f"{AUTH_BASE_URL}/authorize",
+            params={
+                "client_id": client_id,
+                "redirect_uri": "https://example.com/callback",
+                "response_type": "code",
+                "state": "test_state"
+            },
+            follow_redirects=False
+        )
+        
+        # Should redirect to GitHub for user authentication
+        # Both 302 and 307 are valid redirect status codes
+        assert auth_response.status_code in [302, 307]
+        assert "github.com/login/oauth/authorize" in auth_response.headers["location"]
     
     @pytest.mark.asyncio
-    async def test_register_empty_bearer_token(self, http_client, wait_for_services):
-        """Test that /register endpoint rejects empty Bearer token"""
+    async def test_register_with_valid_token_still_succeeds(self, http_client, wait_for_services):
+        """Test that /register endpoint succeeds even with valid token (public endpoint)"""
         
+        # Even if we have a valid token, registration should still work
+        # because it's a public endpoint per RFC 7591
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
-            "client_name": "Test Client",
+            "client_name": "Client With Valid Token",
             "scope": "openid profile email"
         }
         
-        # Test with just "Bearer" (no space or token)
+        # Test with valid OAuth access token (if available)
+        headers = {}
+        if GATEWAY_OAUTH_ACCESS_TOKEN:
+            headers["Authorization"] = f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"
+        
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json=registration_data,
-            headers={"Authorization": "Bearer"}
+            headers=headers
         )
         
-        assert response.status_code == 401
-        error = response.json()
-        assert error["detail"]["error"] == "authorization_required"
-        assert "GitHub authentication required" in error["detail"]["error_description"]
+        # Should succeed regardless of token presence
+        assert response.status_code == 201
+        client_data = response.json()
+        assert "client_id" in client_data
+        assert "client_secret" in client_data
+        assert client_data["client_name"] == "Client With Valid Token"
     
     @pytest.mark.asyncio
-    async def test_register_timing_attack_protection(self, http_client, wait_for_services):
-        """Test that /register endpoint uses constant-time comparison for JWT tokens"""
+    async def test_token_endpoint_requires_authentication(self, http_client, wait_for_services):
+        """Test that token endpoint requires proper client authentication"""
         
-        registration_data = {
-            "redirect_uris": ["https://example.com/callback"],
-            "client_name": "Test Client",
-            "scope": "openid profile email"
-        }
+        # First register a client (public, no auth)
+        reg_response = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json={
+                "redirect_uris": ["https://example.com/callback"],
+                "client_name": "Token Security Test Client"
+            }
+        )
         
-        # Test with different length invalid JWT tokens - should all return same error
-        invalid_tokens = [
-            "short",
-            "medium_length_token",
-            "very_long_invalid_jwt_token_that_should_also_be_rejected_with_same_timing"
-        ]
+        assert reg_response.status_code == 201
+        client = reg_response.json()
         
-        for invalid_token in invalid_tokens:
+        # Now try to get tokens without proper client authentication
+        token_response = await http_client.post(
+            f"{AUTH_BASE_URL}/token",
+            data={
+                "grant_type": "authorization_code",
+                "code": "fake_code",
+                "redirect_uri": "https://example.com/callback",
+                "client_id": client["client_id"],
+                "client_secret": "wrong_secret"  # Wrong secret
+            }
+        )
+        
+        # Should fail due to invalid client authentication
+        assert token_response.status_code == 401
+        error = token_response.json()
+        assert error["detail"]["error"] == "invalid_client"
+    
+    @pytest.mark.asyncio
+    async def test_multiple_clients_can_register_publicly(self, http_client, wait_for_services):
+        """Test that multiple clients can register without authentication"""
+        
+        # Register multiple clients to verify public registration works
+        clients = []
+        
+        for i in range(3):
+            registration_data = {
+                "redirect_uris": [f"https://client{i}.example.com/callback"],
+                "client_name": f"Public Test Client {i}",
+                "scope": "openid profile email"
+            }
+            
             response = await http_client.post(
                 f"{AUTH_BASE_URL}/register",
-                json=registration_data,
-                headers={"Authorization": f"Bearer {invalid_token}"}
+                json=registration_data
             )
             
-            assert response.status_code == 401
-            error = response.json()
-            assert error["detail"]["error"] == "invalid_token"
-            assert "Invalid or expired token" in error["detail"]["error_description"]
+            # All registrations should succeed
+            assert response.status_code == 201
+            client_data = response.json()
+            assert "client_id" in client_data
+            assert "client_secret" in client_data
+            assert client_data["client_name"] == f"Public Test Client {i}"
+            clients.append(client_data)
+        
+        # Ensure all clients have unique IDs
+        client_ids = [c["client_id"] for c in clients]
+        assert len(set(client_ids)) == 3
 
 
 class TestRegisterEndpointBootstrap:
     """Test bootstrap scenarios for OAuth client registration"""
     
     @pytest.mark.asyncio
-    async def test_admin_can_register_multiple_clients(self, http_client, wait_for_services):
-        """Test that authorized user can register multiple OAuth clients"""
+    async def test_anyone_can_register_multiple_clients(self, http_client, wait_for_services):
+        """Test that anyone can register multiple OAuth clients (public endpoint)"""
         
-        # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        # RFC 7591: Dynamic client registration is a public endpoint
+        # No authentication required for registration
         
-        # Register first client
+        # Register first client without any authentication
         response1 = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["https://app1.example.com/callback"],
-                "client_name": "Test App 1",
+                "client_name": "Bootstrap Test App 1",
                 "scope": "openid profile email"
-            },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            }
         )
         
         assert response1.status_code == 201
         client1 = response1.json()
         
-        # Register second client  
+        # Register second client also without authentication
         response2 = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["https://app2.example.com/callback"],
-                "client_name": "Test App 2",
+                "client_name": "Bootstrap Test App 2",
                 "scope": "openid profile"
-            },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            }
         )
         
         assert response2.status_code == 201
@@ -200,3 +234,6 @@ class TestRegisterEndpointBootstrap:
         # Ensure clients have different IDs
         assert client1["client_id"] != client2["client_id"]
         assert client1["client_secret"] != client2["client_secret"]
+        
+        # Security note: While registration is public, using these clients
+        # for authorization requires user authentication via GitHub OAuth

@@ -267,6 +267,13 @@ mcp-client-token:
         pixi run python -m mcp_streamablehttp_client.cli \
         --token --server-url "$MCP_SERVER_URL"
 
+# Alternative: Complete MCP client token flow with provided auth code
+mcp-client-token-with-code auth_code:
+    @echo "🔐 Completing MCP client token flow with provided authorization code..."
+    @export MCP_SERVER_URL="https://mcp-fetch.${BASE_DOMAIN}/mcp" && \
+    export MCP_AUTH_CODE="{{ auth_code }}" && \
+    pixi run python scripts/complete_mcp_oauth.py
+
 # Setup commands
 setup: network-create volumes-create
     @echo "Setting up MCP OAuth Gateway..."

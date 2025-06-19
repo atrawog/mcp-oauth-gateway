@@ -80,8 +80,8 @@ class TestClientRegistrationErrors:
     async def test_registration_empty_redirect_uris(self, http_client):
         """Test registration with empty redirect_uris - covers line 172"""
         
-        # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        # RFC 7591: Registration is public, no auth required
+        # But empty redirect_uris should still fail validation
         
         registration_data = {
             "redirect_uris": [],  # Empty list should fail
@@ -90,8 +90,7 @@ class TestClientRegistrationErrors:
         
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json=registration_data,
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            json=registration_data
         )
         
         assert response.status_code == 400
@@ -282,18 +281,42 @@ class TestJWTTokenCreation:
     
     @pytest.mark.asyncio
     async def test_create_token_with_user_tracking(self, http_client):
-        """Test client registration requires authentication - covers lines 660-664"""
-        # Try to register a client without authentication
+        """Test that registration is public but tokens require authentication - covers lines 660-664"""
+        # RFC 7591: Client registration is public (no auth required)
         registration = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json={"redirect_uris": ["https://test.example.com/callback"]}
+            json={
+                "redirect_uris": ["https://test.example.com/callback"],
+                "client_name": "User Tracking Test Client"
+            }
         )
-        client_data = registration.json()
         
-        # Should require authentication for client registration
-        assert registration.status_code == 401
-        assert "authorization_required" in client_data.get("detail", {}).get("error", "")
-        assert "GitHub authentication required" in client_data.get("detail", {}).get("error_description", "")
+        # Registration should succeed without authentication
+        assert registration.status_code == 201
+        client_data = registration.json()
+        assert "client_id" in client_data
+        assert "client_secret" in client_data
+        
+        # However, using the client to get tokens requires proper authentication
+        # Try to exchange a fake authorization code for tokens
+        token_response = await http_client.post(
+            f"{AUTH_BASE_URL}/token",
+            data={
+                "grant_type": "authorization_code",
+                "code": "fake_authorization_code",
+                "redirect_uri": "https://test.example.com/callback",
+                "client_id": client_data["client_id"],
+                "client_secret": client_data["client_secret"]
+            }
+        )
+        
+        # Should fail because the authorization code is invalid
+        assert token_response.status_code == 400
+        error = token_response.json()
+        assert error["detail"]["error"] == "invalid_grant"
+        
+        # This demonstrates that while registration is public,
+        # the security is enforced at token issuance stage
 
 class TestAuthorizationEndpointErrors:
     """Test authorization endpoint error handling"""

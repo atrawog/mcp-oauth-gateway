@@ -152,7 +152,7 @@ class OAuthClient:
         }
         
         try:
-            # Perform client registration
+            # Perform client registration - should be public per RFC 7591
             response = await self.http_client.post(
                 self.settings.oauth_registration_url,
                 json=registration_data,
@@ -172,6 +172,7 @@ class OAuthClient:
         except httpx.HTTPError as e:
             logger.error(f"Client registration failed: {e}")
             raise RuntimeError(f"Failed to register OAuth client: {e}")
+    
     
     async def device_flow_auth(self) -> None:
         """Perform OAuth device flow authentication using Authlib."""
@@ -284,6 +285,7 @@ class OAuthClient:
         # Generate authorization URL with PKCE
         auth_url, state = self.oauth_client.create_authorization_url(
             self.settings.oauth_authorization_url,
+            redirect_uri="urn:ietf:wg:oauth:2.0:oob",
             scope="read write",
             code_verifier=code_verifier
         )

@@ -55,25 +55,43 @@ def main():
     import os
     env = os.environ.copy()
     
-    # Run the command and capture output
-    result = subprocess.run(
-        sys.argv[1:],
-        capture_output=True,
+    # Run the command WITHOUT capturing output to allow interactive prompts
+    # We'll capture the final output by tee-ing to a temp file
+    import tempfile
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tmp_file:
+        tmp_filename = tmp_file.name
+    
+    # Run command with tee to capture output while still showing it
+    cmd = sys.argv[1:]
+    
+    # For interactive OAuth flow, we need to run directly without capture
+    process = subprocess.Popen(
+        cmd,
+        env=env,
+        stdin=sys.stdin,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         text=True,
-        env=env
+        bufsize=1,
+        universal_newlines=True
     )
     
-    # Print output so user can see it
-    if result.stdout:
-        print(result.stdout)
-    if result.stderr:
-        print(result.stderr, file=sys.stderr)
+    # Collect output while displaying it
+    output_lines = []
+    for line in process.stdout:
+        print(line, end='')  # Display to user
+        output_lines.append(line)  # Collect for parsing
     
-    if result.returncode != 0:
-        sys.exit(result.returncode)
+    process.wait()
+    
+    if process.returncode != 0:
+        sys.exit(process.returncode)
+    
+    # Join all output for parsing
+    output = ''.join(output_lines)
     
     # Extract and save environment variables
-    env_vars = extract_env_vars(result.stdout)
+    env_vars = extract_env_vars(output)
     
     if env_vars:
         print(f"\n📝 Saving {len(env_vars)} MCP client variables to .env...")

@@ -104,14 +104,13 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "introspection_endpoint": f"{base_url}/introspect"
         }
     
-    # Dynamic Client Registration endpoint (RFC 7591) - GITHUB USER PROTECTED
+    # Dynamic Client Registration endpoint (RFC 7591) - PUBLIC ACCESS
     @router.post("/register", status_code=201)
     async def register_client(
         registration: ClientRegistration,
-        redis_client: redis.Redis = Depends(get_redis),
-        github_username: str = Depends(verify_github_user_auth)
+        redis_client: redis.Redis = Depends(get_redis)
     ):
-        """The Divine Registration Portal - RFC 7591 compliant - GITHUB USER PROTECTED"""
+        """The Divine Registration Portal - RFC 7591 compliant - PUBLIC ACCESS"""
         
         # Validate redirect URIs
         if not registration.redirect_uris:
@@ -305,7 +304,14 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # Clean up state
         await redis_client.delete(f"oauth:state:{state}")
         
-        # Redirect back to client
+        # Handle out-of-band redirect URI specially
+        if auth_data['redirect_uri'] == "urn:ietf:wg:oauth:2.0:oob":
+            # For out-of-band, redirect to success page that displays the code
+            return RedirectResponse(
+                url=f"https://auth.{settings.base_domain}/success?code={auth_code}&state={auth_data['state']}"
+            )
+        
+        # Normal redirect for other URIs
         redirect_params = {
             "code": auth_code,
             "state": auth_data["state"]
