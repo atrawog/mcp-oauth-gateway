@@ -32,7 +32,7 @@ services:
       - "traefik.http.routers.mcp-fetch-catchall.middlewares=mcp-auth@docker"
       - "traefik.http.routers.mcp-fetch-catchall.service=mcp-fetch"
     healthcheck:
-      test: ["CMD", "curl", "-f", "-X", "POST", "http://localhost:3000/mcp", "-H", "Content-Type: application/json", "-d", '{"jsonrpc":"2.0","method":"ping","id":1}']
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
