@@ -61,11 +61,21 @@ Examples:
         help="Logging level (default: info)"
     )
     
-    args = parser.parse_args()
+    # Use parse_known_args to handle server commands with options like -m
+    args, unknown = parser.parse_known_args()
+    
+    # Combine the server_command with any unknown args (like -m)
+    full_server_command = args.server_command
+    if unknown:
+        # Insert unknown args after the first command (e.g., python)
+        if len(full_server_command) > 0:
+            full_server_command = [full_server_command[0]] + unknown + full_server_command[1:]
+        else:
+            full_server_command = unknown
     
     try:
         run_server(
-            server_command=args.server_command,
+            server_command=full_server_command,
             host=args.host,
             port=args.port,
             session_timeout=args.timeout,

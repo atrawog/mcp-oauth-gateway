@@ -21,4 +21,5 @@ RUN rm -rf /tmp/mcp-stdio-http
 EXPOSE 3000
 
 # Run using the installed mcp-stdio-http command
-CMD ["mcp-stdio-http", "python", "-m", "mcp_server_fetch"]
+# Using shell form to handle the command properly
+CMD mcp-stdio-http python -m mcp_server_fetch
