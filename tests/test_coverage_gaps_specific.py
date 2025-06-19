@@ -230,7 +230,7 @@ class TestVerifyEndpointErrors:
         
         assert response.status_code == 401
         error = response.json()
-        assert "Signature verification failed" in error["detail"]["error_description"]
+        assert "Token invalid, expired, or revoked" in error["detail"]["error_description"]
         
         # Test with expired token
         expired_token = jwt_encode(

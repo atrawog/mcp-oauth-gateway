@@ -137,7 +137,7 @@ class TestCoverageGaps:
         assert response.status_code == 400
         error = response.json()
         assert error.get("detail", {}).get("error") == "unsupported_grant_type"
-        assert "Grant type 'password' not supported" in error.get("detail", {}).get("error_description", "")
+        assert "Grant type 'password' is not supported" in error.get("detail", {}).get("error_description", "")
     
     @pytest.mark.asyncio
     async def test_refresh_token_grant_type(self, http_client, wait_for_services, registered_client):
@@ -208,7 +208,7 @@ class TestCoverageGaps:
         assert response.headers.get("WWW-Authenticate") == "Bearer"
         error = response.json()
         assert error.get("detail", {}).get("error") == "invalid_token"
-        assert "Token revoked or not found" in error.get("detail", {}).get("error_description", "")
+        assert "Token invalid, expired, or revoked" in error.get("detail", {}).get("error_description", "")
     
     @pytest.mark.asyncio
     async def test_revoke_endpoint_invalid_client(self, http_client, wait_for_services):

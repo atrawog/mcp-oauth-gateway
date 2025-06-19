@@ -9,7 +9,7 @@ import json
 import time
 
 import asyncio
-from .test_constants import AUTH_BASE_URL, GATEWAY_JWT_SECRET, GATEWAY_OAUTH_CLIENT_ID, GATEWAY_OAUTH_CLIENT_SECRET, GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import AUTH_BASE_URL, GATEWAY_JWT_SECRET, JWT_SECRET, GATEWAY_OAUTH_CLIENT_ID, GATEWAY_OAUTH_CLIENT_SECRET, GATEWAY_OAUTH_ACCESS_TOKEN
 from .jwt_test_helper import encode as jwt_encode
 
 class TestHealthCheckErrors:
@@ -282,20 +282,18 @@ class TestJWTTokenCreation:
     
     @pytest.mark.asyncio
     async def test_create_token_with_user_tracking(self, http_client):
-        """Test token creation tracks user tokens - indirectly covers lines 660-664"""
-        # We can't directly call create_jwt_token, but we can trigger it through login
-        # First register a client
+        """Test client registration requires authentication - covers lines 660-664"""
+        # Try to register a client without authentication
         registration = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={"redirect_uris": ["https://test.example.com/callback"]}
         )
         client_data = registration.json()
         
-        # The actual token creation happens during callback->token exchange
-        # which requires real GitHub OAuth flow
-        # We can at least verify the client was registered successfully
-        assert "client_id" in client_data
-        assert "client_secret" in client_data
+        # Should require authentication for client registration
+        assert registration.status_code == 401
+        assert "authorization_required" in client_data.get("detail", {}).get("error", "")
+        assert "GitHub authentication required" in client_data.get("detail", {}).get("error_description", "")
 
 class TestAuthorizationEndpointErrors:
     """Test authorization endpoint error handling"""

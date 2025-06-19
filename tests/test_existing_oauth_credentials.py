@@ -264,8 +264,8 @@ class TestJWTOperations:
             headers={"Authorization": f"Bearer {no_jti_token}"}
         )
         
-        # Should succeed even without jti (the code has a conditional check)
-        assert response.status_code == 200
+        # Should fail without jti (jti is marked as essential in auth service)
+        assert response.status_code == 401
     
     @pytest.mark.asyncio
     async def test_introspect_expired_token(self, http_client, wait_for_services):
