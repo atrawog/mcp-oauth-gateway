@@ -27,6 +27,11 @@ test-all: ensure-services-ready validate-tokens
     @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v --tb=short
 
+# Run a single test file
+test-file file: ensure-services-ready validate-tokens
+    @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
+    @pixi run pytest {{ file }} -v
+
 # Run tests with verbose output
 test-verbose: ensure-services-ready validate-tokens
     @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)

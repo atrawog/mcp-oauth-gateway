@@ -43,7 +43,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "scopes_supported": ["openid", "profile", "email"],
             "token_endpoint_auth_methods_supported": ["client_secret_post", "client_secret_basic"],
             "claims_supported": ["sub", "name", "email", "preferred_username"],
-            "code_challenge_methods_supported": ["S256", "plain"],
+            "code_challenge_methods_supported": ["S256"],
             "grant_types_supported": ["authorization_code", "refresh_token"],
             "revocation_endpoint": f"{base_url}/revoke",
             "introspection_endpoint": f"{base_url}/introspect"
@@ -146,6 +146,17 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         if response_type != "code":
             return RedirectResponse(
                 url=f"{redirect_uri}?error=unsupported_response_type&state={state}"
+            )
+        
+        # Validate PKCE method - only S256 is blessed by CLAUDE.md
+        if code_challenge and code_challenge_method != "S256":
+            # Plain method is FORBIDDEN per sacred commandments!
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "invalid_request",
+                    "error_description": "Only S256 PKCE method is supported. Plain method is deprecated per CLAUDE.md sacred laws!"
+                }
             )
         
         # Store authorization request state

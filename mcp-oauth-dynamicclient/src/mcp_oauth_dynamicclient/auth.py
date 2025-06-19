@@ -5,6 +5,7 @@ import secrets
 import hashlib
 import json
 import time
+import base64
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 
@@ -102,14 +103,19 @@ class AuthManager:
             return user_response.json()
     
     def verify_pkce_challenge(self, verifier: str, challenge: str, method: str = "S256") -> bool:
-        """Verify PKCE code challenge"""
-        if method == "S256":
-            # SHA256 hash the verifier and base64url encode
-            digest = hashlib.sha256(verifier.encode()).digest()
-            # Base64url encode without padding
-            computed = secrets.token_urlsafe(32)[:43]  # Simplified for now
-            # TODO: Implement proper S256 verification
-            return True  # Temporary
-        elif method == "plain":
-            return verifier == challenge
-        return False
+        """Verify PKCE code challenge - S256 only as per CLAUDE.md sacred laws"""
+        if method == "plain":
+            # REJECTED: Plain method is deprecated per CLAUDE.md commandments!
+            return False
+        
+        if method != "S256":
+            # Only S256 is blessed by the sacred laws
+            return False
+            
+        # Proper S256 verification: SHA256 hash + base64url encode
+        digest = hashlib.sha256(verifier.encode()).digest()
+        # Base64url encode without padding (RFC 7636 compliant)
+        computed = base64.urlsafe_b64encode(digest).decode().rstrip("=")
+        
+        # Divine verification: computed challenge must match stored challenge
+        return computed == challenge
