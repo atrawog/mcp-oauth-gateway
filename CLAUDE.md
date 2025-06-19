@@ -354,33 +354,40 @@ docker-compose.yml  # The orchestration gospel
 
 ## The Holy Trinity of Architectural Separation
 
-**Behold the three divine realms that must never intermingle!**
+**BEHOLD THE THREE DIVINE REALMS THAT MUST NEVER INTERMINGLE!**
+**Each realm possesses its own sacred knowledge and holy responsibilities!**
+**Cross these boundaries and summon the demons of architectural chaos!**
 
 ┌─────────────────────────────────────────────────────────────┐
-│                     TRAEFIK (The Divine Router)             │
-│  • Routes OAuth paths → Auth Service                        │
-│  • Routes MCP paths → MCP Services (after auth check)       │
-│  • Enforces authentication via ForwardAuth middleware       │
-│  • THE ONLY COMPONENT THAT KNOWS ABOUT ROUTING RULES!       │
+│          TRAEFIK (The Divine Router of Sacred Paths)        │
+│  • Routes OAuth paths → Auth Service with HOLY PRIORITIES!  │
+│  • Routes MCP paths → MCP Services (after auth blessing!)   │
+│  • Enforces authentication via ForwardAuth DIVINE WRATH!    │
+│  • Provides HTTPS with Let's Encrypt CERTIFICATE MIRACLES!  │
+│  • THE ONLY COMPONENT THAT KNOWS ROUTING COMMANDMENTS!      │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                  AUTH SERVICE (The OAuth Oracle)            │
+│      AUTH SERVICE (The OAuth Oracle of Divine Tokens)       │
 │  • Handles ALL OAuth endpoints (/register, /token, etc.)    │
-│  • Validates tokens via /verify for ForwardAuth             │
-│  • Returns 401 with WWW-Authenticate when needed            │
-│  • THE ONLY COMPONENT THAT KNOWS ABOUT OAUTH!               │
+│  • Validates tokens via /verify for ForwardAuth JUDGMENT!   │
+│  • Integrates with GitHub OAuth for USER SANCTIFICATION!    │
+│  • Uses mcp-oauth-dynamicclient for SACRED RFC COMPLIANCE!  │
+│  • THE ONLY COMPONENT THAT KNOWS OAUTH DARK ARTS!           │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│              MCP SERVICES (The Pure Protocol Servants)      │
-│  • Run @pyroprompts/mcp-stdio-to-streamable-http-adapter    │
-│  • Bridge stdio servers to streamable HTTP endpoints        │
-│  • Receive pre-authenticated requests only                  │
-│  • KNOW NOTHING ABOUT OAUTH OR AUTHENTICATION!              │
+│    MCP SERVICES (The Pure Protocol Servants of Glory)       │
+│  • Run mcp-streamablehttp-proxy wrapping OFFICIAL servers!  │
+│  • Bridge stdio MCP servers to HTTP endpoints with GLORY!   │
+│  • Expose /mcp and /health through BLESSED TRANSCENDENCE!   │
+│  • Receive pre-authenticated requests ONLY - NO EXCEPTIONS! │
+│  • KNOW NOTHING OF OAUTH - PURE PROTOCOL INNOCENCE!         │
 └─────────────────────────────────────────────────────────────┘
 
-**Violate this separation and face eternal architectural damnation!**
+**VIOLATE THIS SEPARATION AND FACE ETERNAL ARCHITECTURAL DAMNATION!**
+**Many have tried to merge these realms - their systems lie in ruins!**
+**The Trinity stands eternal - each component in its divine place!**
 
 ### The Divine MCP Streamable HTTP Revolution - 2025-06-18 GLORY!
 
@@ -494,22 +501,27 @@ Each MCP service channels the universal docker-compose.yml pattern from PART I, 
 **The service MUST NOT know about authentication - that's Traefik's holy job per the Trinity separation!**
 **Violate this separation and face eternal architectural damnation!**
 
-**Beware! Many have fallen by confusing these realms!**
+**Beware! Many have fallen by confusing these dual authentication realms!**
 
-### 1. The Claude.ai Realm - Where the AI Oracle Proves Its Worth
-   - Uses dynamic client registration (self-service!)
-   - Stores tokens persistently in its own memory
-   - One-time authentication blessing lasts forever!
-   - Claude.ai is the client in this realm!
+### 1. The MCP Gateway Client Realm - Where External Systems Seek Divine Access!
+   - MCP clients (Claude.ai, IDEs, etc.) prove their worthiness here!
+   - Dynamic client registration through SACRED RFC 7591 rituals!
+   - OAuth tokens granted become ETERNAL BEARER CREDENTIALS!
+   - One-time authentication blessing lasts until revoked by divine decree!
+   - External MCP clients are the supplicants in this holy realm!
 
-### 2. The MCP Server Realm - Where GitHub Judges the Faithful
-   - GitHub OAuth 2.0 authentication for users
-   - JWT tokens sealed with GitHub user's soul
-   - Per-subdomain authentication required
-   - Your users are the supplicants here!
+### 2. The User Authentication Realm - Where GitHub OAuth Judges Human Souls!
+   - Human users authenticate through GitHub's DIVINE JUDGMENT!
+   - JWT tokens sealed with the user's GitHub identity and blessed scope!
+   - Per-subdomain authentication enforces USER-LEVEL ACCESS CONTROL!
+   - Your human users must prove their worth to GitHub's OAuth oracle!
+   - Separate from client authentication - DUAL REALM ARCHITECTURE!
 
-### The Critical Truth
-These realms are separate! Claude.ai authenticates to access your gateway, then your users authenticate through GitHub!
+### The Critical Divine Truth of Dual Authentication!
+**TWO SEPARATE REALMS OF AUTHENTICATION GLORY!**
+- **MCP Gateway Client Realm**: MCP clients authenticate to access the gateway infrastructure!
+- **User Authentication Realm**: Human users authenticate to access their protected resources!
+- **NEVER CONFUSE THESE REALMS OR FACE SECURITY DAMNATION!**
 
 ## The Sacred Environment Variables - CONFIGURATION SALVATION!
 
