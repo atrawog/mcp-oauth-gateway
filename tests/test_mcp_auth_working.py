@@ -75,21 +75,38 @@ class TestMCPAuthWorking:
         
         print("✅ MCP correctly rejects all invalid auth formats")
         
-        # Test 4: Verify CORS headers if present
+        # Test 4: Verify CORS headers are properly configured (REQUIRED!)
+        import os
+        cors_origins = os.getenv("MCP_CORS_ORIGINS", "").split(",")
+        cors_origins = [origin.strip() for origin in cors_origins if origin.strip()]
+        
+        assert cors_origins, "❌ MCP_CORS_ORIGINS environment variable MUST be configured!"
+        
+        # Test with the first configured origin
+        test_origin = cors_origins[0]
+        if "*" in test_origin:
+            # Convert wildcard to a test origin
+            domain_parts = test_origin.split("*.")
+            if len(domain_parts) > 1:
+                test_origin = f"https://app.{domain_parts[1]}"
+        
         response = await http_client.options(
             f"{MCP_FETCH_URL}/mcp",
             headers={
-                "Origin": "https://claude.ai",
+                "Origin": test_origin,
                 "Access-Control-Request-Method": "POST",
                 "Access-Control-Request-Headers": "authorization,content-type"
             }
         )
         
-        # CORS might not be configured, which is fine
-        if response.status_code == 200:
-            print("✅ MCP supports CORS preflight requests")
-        else:
-            print("ℹ️  MCP doesn't support CORS (which is OK)")
+        # CORS MUST be configured for web clients
+        assert response.status_code == 200, "❌ MCP MUST support CORS preflight requests!"
+        assert "access-control-allow-origin" in response.headers, "❌ Missing CORS headers!"
+        assert response.headers["access-control-allow-origin"] == test_origin, f"❌ CORS origin mismatch! Expected {test_origin}"
+        assert "access-control-allow-methods" in response.headers, "❌ Missing allowed methods!"
+        assert "access-control-allow-credentials" in response.headers, "❌ Missing credentials header!"
+        
+        print(f"✅ MCP CORS is properly configured for {test_origin}")
         
         print("\n🎉 MCP OAuth authentication is working correctly!")
         print("The service properly enforces authentication requirements.")

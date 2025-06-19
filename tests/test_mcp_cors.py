@@ -1,0 +1,207 @@
+"""
+Test MCP CORS configuration
+
+CRITICAL: MCP services MUST have proper CORS headers for web clients!
+"""
+import os
+import pytest
+import httpx
+
+
+class TestMCPCORS:
+    """Test that MCP services have proper CORS configuration"""
+    
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        """Setup test environment"""
+        self.base_domain = os.getenv("BASE_DOMAIN")
+        if not self.base_domain:
+            pytest.fail("BASE_DOMAIN environment variable not set")
+            
+        self.cors_origins = os.getenv("MCP_CORS_ORIGINS", "").split(",")
+        self.cors_origins = [origin.strip() for origin in self.cors_origins if origin.strip()]
+        
+    def test_cors_origins_configured(self):
+        """Test that MCP_CORS_ORIGINS is configured"""
+        assert os.getenv("MCP_CORS_ORIGINS"), "MCP_CORS_ORIGINS MUST be configured!"
+        assert len(self.cors_origins) > 0, "MCP_CORS_ORIGINS must contain at least one origin"
+        
+    def test_mcp_preflight_cors_headers(self):
+        """Test that MCP endpoints respond correctly to CORS preflight requests"""
+        mcp_url = f"https://mcp-fetch.{self.base_domain}/mcp"
+        
+        # Test OPTIONS request (CORS preflight) for each configured origin
+        with httpx.Client(verify=False, timeout=10.0) as client:
+            for origin in self.cors_origins:
+                # Use the origin exactly as configured - no wildcard conversion
+                test_origin = origin
+                    
+                response = client.options(
+                    mcp_url,
+                    headers={
+                        "Origin": test_origin,
+                        "Access-Control-Request-Method": "POST",
+                        "Access-Control-Request-Headers": "content-type,authorization,mcp-session-id"
+                    }
+                )
+                
+                # CORS preflight should return 200 OK
+                assert response.status_code == 200, f"CORS preflight failed for origin {test_origin}"
+                
+                # Check CORS headers
+                assert "access-control-allow-origin" in response.headers, f"Missing Access-Control-Allow-Origin header for {test_origin}"
+                assert response.headers["access-control-allow-origin"] == test_origin, f"CORS origin mismatch for {test_origin}"
+                
+                assert "access-control-allow-methods" in response.headers, "Missing Access-Control-Allow-Methods header"
+                allowed_methods = response.headers["access-control-allow-methods"].upper()
+                assert "POST" in allowed_methods, "POST method not allowed in CORS"
+                assert "OPTIONS" in allowed_methods, "OPTIONS method not allowed in CORS"
+                
+                assert "access-control-allow-headers" in response.headers, "Missing Access-Control-Allow-Headers header"
+                assert "access-control-allow-credentials" in response.headers, "Missing Access-Control-Allow-Credentials header"
+                assert response.headers["access-control-allow-credentials"].lower() == "true", "CORS credentials not allowed"
+                
+    def test_mcp_actual_request_cors_headers(self):
+        """Test that actual MCP requests include proper CORS headers"""
+        mcp_url = f"https://mcp-fetch.{self.base_domain}/mcp"
+        
+        # Use the first configured origin for testing
+        if not self.cors_origins:
+            pytest.skip("No CORS origins configured")
+            
+        test_origin = self.cors_origins[0]
+        
+        with httpx.Client(verify=False, timeout=10.0) as client:
+            # Test with authentication - use OAuth token from environment
+            oauth_token = os.getenv("OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+            headers = {
+                "Origin": test_origin,
+                "Content-Type": "application/json"
+            }
+            if oauth_token:
+                headers["Authorization"] = f"Bearer {oauth_token}"
+            
+            response = client.post(
+                mcp_url,
+                headers=headers,
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "initialize",
+                    "params": {"protocolVersion": "2025-06-18"},
+                    "id": 1
+                }
+            )
+            
+            # Should get a response (even if unauthorized)
+            assert response.status_code in [200, 401], f"Unexpected status code: {response.status_code}"
+            
+            # Check CORS headers in response
+            assert "access-control-allow-origin" in response.headers, "Missing Access-Control-Allow-Origin in response"
+            assert response.headers["access-control-allow-origin"] == test_origin, "CORS origin mismatch in response"
+            
+            # Check exposed headers
+            if "access-control-expose-headers" in response.headers:
+                exposed_headers = response.headers["access-control-expose-headers"].lower()
+                assert "mcp-session-id" in exposed_headers, "Mcp-Session-Id not exposed in CORS"
+                
+    def test_mcp_health_endpoint_cors(self):
+        """Test that health endpoint also has CORS headers"""
+        health_url = f"https://mcp-fetch.{self.base_domain}/health"
+        
+        # Use the first configured origin
+        if not self.cors_origins:
+            pytest.skip("No CORS origins configured")
+            
+        test_origin = self.cors_origins[0]
+        
+        with httpx.Client(verify=False, timeout=10.0) as client:
+            response = client.get(
+                health_url,
+                headers={"Origin": test_origin}
+            )
+            
+            assert response.status_code == 200, "Health check failed"
+            
+            # Health endpoint should also have CORS headers
+            assert "access-control-allow-origin" in response.headers, "Health endpoint missing CORS headers"
+            
+    def test_cors_headers_without_origin(self):
+        """Test that requests without Origin header still work"""
+        mcp_url = f"https://mcp-fetch.{self.base_domain}/mcp"
+        
+        with httpx.Client(verify=False, timeout=10.0) as client:
+            # Use OAuth token from environment if available
+            oauth_token = os.getenv("OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+            headers = {
+                "Content-Type": "application/json"
+            }
+            if oauth_token:
+                headers["Authorization"] = f"Bearer {oauth_token}"
+            
+            response = client.post(
+                mcp_url,
+                headers=headers,
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "test",
+                    "id": 1
+                }
+            )
+            
+            # Should still work without Origin header
+            assert response.status_code in [200, 401], f"Request failed without Origin header: {response.status_code}"
+            
+    def test_cors_blocks_unauthorized_origins(self):
+        """Test that CORS blocks requests from unauthorized origins"""
+        mcp_url = f"https://mcp-fetch.{self.base_domain}/mcp"
+        
+        # Create an origin that is NOT in the configured list
+        # Use a completely different domain that's unlikely to be configured
+        test_unauthorized_origin = "https://definitely-not-authorized-origin-12345.com"
+        
+        # Make sure it's not accidentally in the allowed list
+        if test_unauthorized_origin in self.cors_origins:
+            pytest.skip("Test origin is actually authorized")
+        
+        with httpx.Client(verify=False, timeout=10.0) as client:
+            # Preflight should not include this origin in the response
+            response = client.options(
+                mcp_url,
+                headers={
+                    "Origin": test_unauthorized_origin,
+                    "Access-Control-Request-Method": "POST",
+                    "Access-Control-Request-Headers": "content-type"
+                }
+            )
+            
+            # Should either not have CORS headers or have different origin
+            if "access-control-allow-origin" in response.headers:
+                assert response.headers["access-control-allow-origin"] != test_unauthorized_origin, "CORS allowed unauthorized origin!"
+                
+    def test_all_mcp_services_have_cors(self):
+        """Test that all MCP services have CORS configured"""
+        # List all MCP services from environment or configuration
+        # For now, we know about mcp-fetch
+        mcp_services = [
+            f"mcp-fetch.{self.base_domain}",
+            # Add other MCP services dynamically as they are configured
+        ]
+        
+        # Use the first configured origin for testing
+        if not self.cors_origins:
+            pytest.skip("No CORS origins configured")
+            
+        test_origin = self.cors_origins[0]
+        
+        with httpx.Client(verify=False, timeout=10.0) as client:
+            for service in mcp_services:
+                health_url = f"https://{service}/health"
+                response = client.get(
+                    health_url,
+                    headers={"Origin": test_origin}
+                )
+                
+                assert response.status_code == 200, f"Service {service} health check failed"
+                assert "access-control-allow-origin" in response.headers, f"Service {service} missing CORS headers"
+                
+                print(f"✓ Service {service} has CORS properly configured")

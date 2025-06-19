@@ -307,11 +307,30 @@ class MCPSessionManager:
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+import os
 
 
 def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI:
     """Create FastAPI app with MCP proxy endpoints."""
     app = FastAPI()
+    
+    # Configure CORS
+    cors_origins = os.getenv("MCP_CORS_ORIGINS", "").split(",")
+    cors_origins = [origin.strip() for origin in cors_origins if origin.strip()]
+    
+    if cors_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=cors_origins,
+            allow_credentials=True,
+            allow_methods=["GET", "POST", "OPTIONS"],
+            allow_headers=["*"],
+            expose_headers=["Mcp-Session-Id", "MCP-Protocol-Version"]
+        )
+        logger.info(f"CORS enabled for origins: {cors_origins}")
+    else:
+        logger.warning("CORS not configured! Set MCP_CORS_ORIGINS environment variable")
     
     # Create session manager
     session_manager = MCPSessionManager(server_command, session_timeout)
@@ -334,6 +353,13 @@ def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI
             "active_sessions": len(session_manager.sessions),
             "server_command": " ".join(session_manager.server_command)
         }
+    
+    @app.options("/mcp")
+    async def handle_mcp_options():
+        """Handle CORS preflight for MCP endpoint."""
+        # The CORS middleware will handle the actual response headers
+        # We just need to return 200 OK to indicate the endpoint accepts OPTIONS
+        return {"status": "ok"}
     
     @app.post("/mcp")
     async def handle_mcp(request: Request):

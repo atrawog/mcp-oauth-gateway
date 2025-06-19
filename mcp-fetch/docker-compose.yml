@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     networks:
       - public
+    environment:
+      - MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}
     labels:
       - "traefik.enable=true"
       # Health check route - Priority 3 (HIGHEST for specific path)
@@ -16,6 +18,14 @@ services:
       - "traefik.http.routers.mcp-fetch-health.tls.certresolver=letsencrypt"
       - "traefik.http.routers.mcp-fetch-health.service=mcp-fetch"
       - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
+      
+      # CORS preflight route (OPTIONS) - Priority 4 (HIGHEST for OPTIONS)
+      - "traefik.http.routers.mcp-fetch-cors.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.mcp-fetch-cors.priority=4"
+      - "traefik.http.routers.mcp-fetch-cors.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-cors.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-cors.service=mcp-fetch"
+      # No auth middleware for CORS preflight!
       
       # MCP route with auth - Priority 2
       # Use PathPrefix to handle both /mcp and /mcp/

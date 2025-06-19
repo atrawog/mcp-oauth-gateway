@@ -1,6 +1,8 @@
 services:
   auth:
-    build: .
+    build:
+      context: ..
+      dockerfile: auth/Dockerfile
     container_name: auth
     restart: unless-stopped
     networks:

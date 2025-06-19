@@ -13,42 +13,46 @@ default:
 
 # Universal commands mandated by the commandments
 
+# Ensure all services are ready before tests
+ensure-services-ready:
+    @pixi run python scripts/check_services_ready.py || (echo "❌ Services not ready! See above for details." && exit 1)
+
 # Run tests with pytest (no mocking allowed!)
-test:
+test: ensure-services-ready
     @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v
 
 # Run all tests including integration
-test-all:
+test-all: ensure-services-ready
     @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v --tb=short
 
 # Run tests with verbose output
-test-verbose:
+test-verbose: ensure-services-ready
     @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v -s
 
 # Run tests with sidecar coverage pattern
-test-sidecar-coverage:
+test-sidecar-coverage: ensure-services-ready
     @docker compose down --remove-orphans
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d
     @echo "Waiting for services to be ready..."
-    @sleep 15
+    @pixi run python scripts/check_services_ready.py || (echo "❌ Services not ready!" && exit 1)
     @pixi run pytest tests/ -v
     @echo "Triggering graceful shutdown to collect coverage data..."
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml stop auth
     @echo "Waiting for coverage harvester to complete..."
-    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml logs -f coverage-harvester &
-    @docker wait coverage-harvester || true
+    @sleep 5
+    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml logs coverage-harvester
     @echo "Coverage collection complete"
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml down
 
 # Debug coverage setup
-debug-coverage:
+debug-coverage: ensure-services-ready
     @docker compose down --remove-orphans
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d
     @echo "Waiting for services..."
-    @sleep 10
+    @pixi run python scripts/check_services_ready.py || (echo "❌ Services not ready!" && exit 1)
     @echo "=== Debugging coverage setup in auth container ==="
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml exec auth python /scripts/debug_coverage.py || echo "Debug script failed"
     @echo "=== Auth container environment ==="
@@ -82,9 +86,23 @@ volumes-create:
     @docker volume create redis-data || true
     @docker volume create coverage-data || true
 
+# Build all services
+build-all: network-create volumes-create
+    @echo "Building all services..."
+    @docker compose build
+    @echo "✅ All services built successfully"
+
 # Start all services
 up: network-create volumes-create
     @docker compose up -d
+    @echo "Waiting for services to be healthy..."
+    @pixi run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
+
+# Start all services with fresh build
+up-fresh: network-create volumes-create build-all
+    @docker compose up -d --force-recreate
+    @echo "Waiting for services to be healthy..."
+    @pixi run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
 
 # Stop all services
 down:
@@ -133,13 +151,13 @@ setup-claude-code: generate-github-token create-mcp-config
     @echo "📝 MCP config saved to ~/.config/claude/mcp-config.json"
 
 # OAuth-specific testing
-test-oauth-flow:
+test-oauth-flow: ensure-services-ready
     @pixi run pytest tests/test_oauth_flow.py -v -s
 
-test-mcp-protocol:
+test-mcp-protocol: ensure-services-ready
     @pixi run pytest tests/test_mcp_protocol.py -v -s
 
-test-claude-integration:
+test-claude-integration: ensure-services-ready
     @pixi run pytest tests/test_claude_integration.py -v -s
 
 # Service-specific rebuilds
@@ -161,10 +179,13 @@ analyze-oauth-logs:
 
 # Health check commands
 check-health:
+    @pixi run python scripts/check_services_ready.py
+
+# Quick health check (simple version)
+health-quick:
     @echo "Checking service health..."
-    @curl -f http://localhost/health || echo "Traefik not healthy"
-    @curl -f http://auth.localhost:8000/health || echo "Auth service not healthy"
-    @curl -f http://mcp-fetch.localhost:3000/health || echo "MCP-fetch not healthy"
+    @curl -f https://auth.${BASE_DOMAIN}/health || echo "Auth service not healthy"
+    @curl -f https://mcp-fetch.${BASE_DOMAIN}/health || echo "MCP-fetch not healthy"
 
 # Check SSL certificates
 check-ssl:
