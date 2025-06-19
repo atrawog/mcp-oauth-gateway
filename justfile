@@ -258,21 +258,17 @@ check-ssl:
 # Generate MCP client token using mcp-streamablehttp-client
 mcp-client-token:
     @echo "🔐 Generating MCP client token using mcp-streamablehttp-client..."
-    @# First ensure mcp-streamablehttp-client is installed
-    @pixi run install-mcp-client || echo "Warning: Failed to install mcp-streamablehttp-client"
-    @# Run the token command and capture output to save env vars
-    @echo "Running OAuth flow..."
-    @export MCP_SERVER_URL="https://mcp-fetch.${BASE_DOMAIN}/mcp" && \
-    pixi run python scripts/capture_mcp_env.py \
-        pixi run python -m mcp_streamablehttp_client.cli \
-        --token --server-url "$MCP_SERVER_URL"
+    @pixi run install-mcp-client || true
+    export MCP_SERVER_URL="https://mcp-fetch.${BASE_DOMAIN}/mcp" && \
+    pixi run python -m mcp_streamablehttp_client.cli --token --server-url "$MCP_SERVER_URL"
 
-# Alternative: Complete MCP client token flow with provided auth code
-mcp-client-token-with-code auth_code:
-    @echo "🔐 Completing MCP client token flow with provided authorization code..."
+# Complete MCP client token flow with auth code
+mcp-client-token-complete auth_code:
+    @echo "🔐 Completing MCP client token flow with authorization code..."
     @export MCP_SERVER_URL="https://mcp-fetch.${BASE_DOMAIN}/mcp" && \
     export MCP_AUTH_CODE="{{ auth_code }}" && \
     pixi run python scripts/complete_mcp_oauth.py
+
 
 # Setup commands
 setup: network-create volumes-create

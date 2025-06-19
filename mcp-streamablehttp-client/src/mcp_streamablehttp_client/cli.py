@@ -377,6 +377,47 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
     
     console.print("\n[green]🎉 All token checks passed![/green]")
     
+    # Save credentials to .env file
+    from pathlib import Path
+    env_file = Path(".env")
+    
+    def save_env_var(key: str, value: str):
+        """Save or update an environment variable in .env file"""
+        lines = []
+        found = False
+        
+        if env_file.exists():
+            with open(env_file) as f:
+                for line in f:
+                    if line.strip().startswith(f"{key}="):
+                        lines.append(f"{key}={value}\n")
+                        found = True
+                    else:
+                        lines.append(line)
+        
+        if not found:
+            lines.append(f"\n{key}={value}\n")
+        
+        with open(env_file, "w") as f:
+            f.writelines(lines)
+    
+    # Save to .env
+    console.print("\n[cyan]💾 Saving credentials to .env...[/cyan]")
+    save_env_var("MCP_CLIENT_ACCESS_TOKEN", settings.oauth_access_token)
+    console.print("   ✅ Saved MCP_CLIENT_ACCESS_TOKEN")
+    
+    if settings.oauth_refresh_token and settings.oauth_refresh_token != "None":
+        save_env_var("MCP_CLIENT_REFRESH_TOKEN", settings.oauth_refresh_token)
+        console.print("   ✅ Saved MCP_CLIENT_REFRESH_TOKEN")
+    
+    if settings.oauth_client_id:
+        save_env_var("MCP_CLIENT_ID", settings.oauth_client_id)
+        console.print("   ✅ Saved MCP_CLIENT_ID")
+    
+    if settings.oauth_client_secret:
+        save_env_var("MCP_CLIENT_SECRET", settings.oauth_client_secret)
+        console.print("   ✅ Saved MCP_CLIENT_SECRET")
+    
     # Print MCP client environment variables in a format that can be captured
     # Only output credentials, not endpoints (which are auto-discovered)
     print("\n# MCP Client Environment Variables")
@@ -389,7 +430,7 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
         print(f"export MCP_CLIENT_SECRET={settings.oauth_client_secret}")
     
     # Print success message
-    console.print(f"\n[dim]MCP client credentials ready for export[/dim]")
+    console.print(f"\n[green]✅ MCP client credentials saved to .env![/green]")
 
 
 async def execute_mcp_command(settings: Settings, command: str) -> None:

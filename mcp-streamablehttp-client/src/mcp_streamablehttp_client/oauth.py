@@ -1,6 +1,7 @@
 """OAuth client implementation using Authlib."""
 import asyncio
 import logging
+import os
 import secrets
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
@@ -299,16 +300,28 @@ class OAuthClient:
         
         # Wait for user to paste authorization code
         console.print("\n")
-        auth_code = console.input("[bold cyan]Enter authorization code:[/bold cyan] ")
+        console.print("[bold cyan]Enter authorization code:[/bold cyan] ", end="")
+        auth_code = input().strip()
         
-        # Exchange code for token using Authlib
-        token = await self.oauth_client.fetch_token(
+        # Exchange code for token - do it manually to avoid Authlib issues
+        response = await self.http_client.post(
             self.settings.oauth_token_url,
-            code=auth_code,
-            code_verifier=code_verifier
+            data={
+                "grant_type": "authorization_code",
+                "code": auth_code,
+                "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
+                "client_id": self.settings.oauth_client_id,
+                "client_secret": self.settings.oauth_client_secret,
+                "code_verifier": code_verifier
+            }
         )
         
-        self._update_token(token)
+        if response.status_code != 200:
+            logger.error(f"Token exchange failed: {response.status_code} - {response.text}")
+            raise RuntimeError(f"Token exchange failed: {response.text}")
+        
+        token_data = response.json()
+        self._update_token(token_data)
         console.print("[green]✓[/green] Token exchange successful!")
     
     async def refresh_token(self) -> None:
