@@ -68,59 +68,8 @@ class TestMCPFetchExampleCom:
             # Add to user's tokens
             await redis_client.sadd(f"oauth:user_tokens:{token_claims['username']}", jti)
             
-            # Step 1: Initialize MCP session
-            init_request = {
-                "jsonrpc": "2.0",
-                "method": "initialize",
-                "params": {
-                    "protocolVersion": "2025-06-18",
-                    "capabilities": {
-                        "tools": {}
-                    },
-                    "clientInfo": {
-                        "name": "test-client",
-                        "version": "1.0.0"
-                    }
-                },
-                "id": "init-1"
-            }
-            
-            # Make initial request without session ID
-            init_response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp",
-                json=init_request,
-                headers={
-                    "Authorization": f"Bearer {access_token}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream"
-                }
-            )
-            
-            print(f"Init response status: {init_response.status_code}")
-            print(f"Init response headers: {dict(init_response.headers)}")
-            
-            # Get session ID from response
-            session_id = init_response.headers.get("mcp-session-id")
-            if not session_id:
-                # If we get a 400, it might provide session ID anyway
-                if init_response.status_code == 400:
-                    error_data = init_response.json()
-                    print(f"Init error: {error_data}")
-                    # Try again with empty params
-                    init_request["params"] = {}
-                    init_response = await http_client.post(
-                        f"{MCP_FETCH_URL}/mcp",
-                        json=init_request,
-                        headers={
-                            "Authorization": f"Bearer {access_token}",
-                            "Content-Type": "application/json",
-                            "Accept": "application/json, text/event-stream"
-                        }
-                    )
-                    session_id = init_response.headers.get("mcp-session-id")
-            
-            assert session_id, "Failed to get MCP session ID"
-            print(f"Got session ID: {session_id}")
+            # Note: The stdio proxy maintains a persistent session, so no session initialization needed
+            print("Using stdio proxy with persistent MCP session")
             
             # Step 2: List available tools first
             list_request = {
@@ -135,8 +84,7 @@ class TestMCPFetchExampleCom:
                 headers={
                     "Authorization": f"Bearer {access_token}",
                     "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                    "Mcp-Session-Id": session_id
+                    "Accept": "application/json, text/event-stream"
                 }
             )
             
@@ -163,8 +111,7 @@ class TestMCPFetchExampleCom:
                 headers={
                     "Authorization": f"Bearer {access_token}",
                     "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                    "Mcp-Session-Id": session_id
+                    "Accept": "application/json, text/event-stream"
                 }
             )
             

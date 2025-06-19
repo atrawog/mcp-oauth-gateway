@@ -27,81 +27,23 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     print("\n=== TESTING FULL MCP FETCH WORKFLOW ===")
     print(f"Using OAuth token: {oauth_token[:20]}...")
     
-    # Step 1: Initialize MCP session
-    init_request = {
-        "jsonrpc": "2.0",
-        "method": "initialize",
-        "params": {
-            "protocolVersion": "2025-06-18",
-            "capabilities": {
-                "tools": {}
-            },
-            "clientInfo": {
-                "name": "test-client",
-                "version": "1.0.0"
-            }
-        },
-        "id": "init-1"
-    }
-    
-    print("\nStep 1: Initializing MCP session...")
-    init_response = await http_client.post(
-        f"{MCP_FETCH_URL}/mcp",
-        json=init_request,
-        headers={
-            "Authorization": f"Bearer {oauth_token}",
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/event-stream"
-        },
-        follow_redirects=True
-    )
-    
-    print(f"Init response status: {init_response.status_code}")
-    print(f"Init response headers: {dict(init_response.headers)}")
-    
-    if init_response.status_code != 200:
-        print(f"Init failed! Response: {init_response.text}")
-        pytest.fail(f"Failed to initialize MCP session: {init_response.status_code}")
-    
-    # Parse SSE response
-    response_text = init_response.text
-    print(f"Init response (first 500 chars): {response_text[:500]}")
-    
-    # Extract session ID if provided
-    session_id = init_response.headers.get('mcp-session-id')
-    if session_id:
-        print(f"Got session ID: {session_id}")
-    
-    # Step 2: Send initialized notification
-    initialized_notification = {
-        "jsonrpc": "2.0",
-        "method": "notifications/initialized"
-    }
+    # Note: The stdio proxy maintains a persistent session, so no initialization needed
+    print("\nUsing stdio proxy with persistent MCP session")
     
     headers = {
         "Authorization": f"Bearer {oauth_token}",
         "Content-Type": "application/json",
         "Accept": "application/json, text/event-stream"
     }
-    if session_id:
-        headers["Mcp-Session-Id"] = session_id
     
-    print("\nStep 2: Sending initialized notification...")
-    await http_client.post(
-        f"{MCP_FETCH_URL}/mcp",
-        json=initialized_notification,
-        headers=headers,
-        follow_redirects=True
-    )
-    
-    # Step 3: List available tools
+    # Step 1: List available tools
     list_tools_request = {
         "jsonrpc": "2.0",
         "method": "tools/list",
         "id": "list-tools-1"
     }
     
-    print("\nStep 3: Listing available tools...")
+    print("\nStep 1: Listing available tools...")
     tools_response = await http_client.post(
         f"{MCP_FETCH_URL}/mcp",
         json=list_tools_request,
@@ -112,7 +54,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     if tools_response.status_code == 200:
         print(f"Tools response: {tools_response.text[:500]}")
     
-    # Step 4: Call the fetch tool
+    # Step 2: Call the fetch tool
     fetch_request = {
         "jsonrpc": "2.0",
         "method": "tools/call",
@@ -125,7 +67,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
         "id": "fetch-1"
     }
     
-    print("\nStep 4: Calling fetch tool to get https://example.com...")
+    print("\nStep 2: Calling fetch tool to get https://example.com...")
     fetch_response = await http_client.post(
         f"{MCP_FETCH_URL}/mcp",
         json=fetch_request,

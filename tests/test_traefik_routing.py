@@ -84,12 +84,12 @@ class TestTraefikRouting:
         assert response.status_code == 401
     
     @pytest.mark.asyncio
-    async def test_mcp_health_endpoint_not_available(self, http_client, wait_for_services):
-        """Test that /health endpoint is not available (stdio proxy doesn't provide it)"""
+    async def test_mcp_health_endpoint_available(self, http_client, wait_for_services):
+        """Test that /health endpoint is available (FastAPI implementation provides it)"""
         response = await http_client.get(f"{MCP_FETCH_URL}/health")
-        # The stdio proxy doesn't provide a health endpoint
+        # The FastAPI implementation provides a health endpoint
         # The specific route for /health takes priority over catch-all
-        assert response.status_code == 404
+        assert response.status_code == 200
     
     @pytest.mark.asyncio 
     async def test_all_mcp_paths_require_auth(self, http_client, wait_for_services):

@@ -390,8 +390,11 @@ async def test_complete_oauth_flow_integration(http_client, wait_for_services):
         f"{MCP_FETCH_URL}/mcp",
         json={
             "jsonrpc": "2.0",
-            "method": "fetch/fetch",
-            "params": {"url": "https://httpbin.org/json"},
+            "method": "tools/call",
+            "params": {
+                "name": "fetch",
+                "arguments": {"url": "https://httpbin.org/json"}
+            },
             "id": "integration-1"
         },
         headers={
@@ -410,13 +413,24 @@ async def test_complete_oauth_flow_integration(http_client, wait_for_services):
     result = fetch_response.json()
     assert "result" in result, f"No result in response: {result}"
     
-    content = result["result"]
-    if isinstance(content, dict):
-        content = content.get("content") or json.dumps(content)
+    mcp_result = result["result"]
+    
+    # Extract text content from MCP response format
+    content_text = ""
+    if isinstance(mcp_result, dict) and "content" in mcp_result:
+        content_items = mcp_result["content"]
+        if isinstance(content_items, list):
+            for item in content_items:
+                if isinstance(item, dict) and item.get("type") == "text":
+                    content_text += item.get("text", "")
+        else:
+            content_text = str(content_items)
+    else:
+        content_text = json.dumps(mcp_result)
     
     # httpbin.org/json returns JSON with a slideshow
-    assert "slideshow" in content or "json" in content.lower(), (
-        f"Didn't get expected content from httpbin! Got: {content[:200]}"
+    assert "slideshow" in content_text or "json" in content_text.lower(), (
+        f"Didn't get expected content from httpbin! Got: {content_text[:200]}"
     )
     
     print("✅ COMPLETE INTEGRATION TEST PASSED!")

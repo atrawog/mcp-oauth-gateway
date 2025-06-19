@@ -107,7 +107,7 @@ class TestClaudeAIRoutingScenario:
             },
             {
                 "path": "/health",
-                "expected": 404,  # No health endpoint in stdio proxy
+                "expected": 200,  # FastAPI implementation provides health endpoint
                 "description": "Health endpoint"
             },
             {
