@@ -23,9 +23,7 @@ async def test_debug_mcp_fetch_with_real_oauth(http_client, wait_for_services):
     # Try different endpoints
     endpoints = [
         "/mcp",
-        "/mcp/", 
-        "/",
-        "/sse"
+        "/"
     ]
     
     for endpoint in endpoints:

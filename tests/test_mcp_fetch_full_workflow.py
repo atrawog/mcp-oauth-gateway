@@ -46,7 +46,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     
     print("\nStep 1: Initializing MCP session...")
     init_response = await http_client.post(
-        f"{MCP_FETCH_URL}/mcp/",
+        f"{MCP_FETCH_URL}/mcp",
         json=init_request,
         headers={
             "Authorization": f"Bearer {oauth_token}",
@@ -88,7 +88,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     
     print("\nStep 2: Sending initialized notification...")
     await http_client.post(
-        f"{MCP_FETCH_URL}/mcp/",
+        f"{MCP_FETCH_URL}/mcp",
         json=initialized_notification,
         headers=headers,
         follow_redirects=True
@@ -103,7 +103,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     
     print("\nStep 3: Listing available tools...")
     tools_response = await http_client.post(
-        f"{MCP_FETCH_URL}/mcp/",
+        f"{MCP_FETCH_URL}/mcp",
         json=list_tools_request,
         headers=headers,
         follow_redirects=True
@@ -127,7 +127,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     
     print("\nStep 4: Calling fetch tool to get https://example.com...")
     fetch_response = await http_client.post(
-        f"{MCP_FETCH_URL}/mcp/",
+        f"{MCP_FETCH_URL}/mcp",
         json=fetch_request,
         headers=headers,
         follow_redirects=True
@@ -179,7 +179,7 @@ async def test_mcp_fetch_unauthorized_fails(http_client, wait_for_services):
     
     # Try to access without token
     response = await http_client.post(
-        f"{MCP_FETCH_URL}/mcp/",
+        f"{MCP_FETCH_URL}/mcp",
         json={"jsonrpc": "2.0", "method": "test", "id": 1}
     )
     

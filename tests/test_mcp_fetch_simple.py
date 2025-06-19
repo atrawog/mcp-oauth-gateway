@@ -72,9 +72,9 @@ class TestMCPFetchSimple:
                 "id": 1
             }
             
-            # Test authentication works - MCP requires /mcp/ with trailing slash
+            # Test authentication works
             response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp/",  # Note the trailing slash!
+                f"{MCP_FETCH_URL}/mcp",
                 json=mcp_request,
                 headers={
                     "Authorization": f"Bearer {access_token}",

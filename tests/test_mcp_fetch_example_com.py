@@ -73,7 +73,7 @@ class TestMCPFetchExampleCom:
                 "jsonrpc": "2.0",
                 "method": "initialize",
                 "params": {
-                    "protocolVersion": "2025-03-26",
+                    "protocolVersion": "2025-06-18",
                     "capabilities": {
                         "tools": {}
                     },
@@ -87,7 +87,7 @@ class TestMCPFetchExampleCom:
             
             # Make initial request without session ID
             init_response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp/",
+                f"{MCP_FETCH_URL}/mcp",
                 json=init_request,
                 headers={
                     "Authorization": f"Bearer {access_token}",
@@ -109,7 +109,7 @@ class TestMCPFetchExampleCom:
                     # Try again with empty params
                     init_request["params"] = {}
                     init_response = await http_client.post(
-                        f"{MCP_FETCH_URL}/mcp/",
+                        f"{MCP_FETCH_URL}/mcp",
                         json=init_request,
                         headers={
                             "Authorization": f"Bearer {access_token}",
@@ -130,7 +130,7 @@ class TestMCPFetchExampleCom:
             }
             
             list_response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp/",
+                f"{MCP_FETCH_URL}/mcp",
                 json=list_request,
                 headers={
                     "Authorization": f"Bearer {access_token}",
@@ -158,7 +158,7 @@ class TestMCPFetchExampleCom:
             }
             
             fetch_response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp/",
+                f"{MCP_FETCH_URL}/mcp",
                 json=fetch_request,
                 headers={
                     "Authorization": f"Bearer {access_token}",
@@ -195,7 +195,7 @@ class TestMCPFetchExampleCom:
                         fetch_request["params"] = {"url": "https://example.com"}
                         
                         retry_response = await http_client.post(
-                            f"{MCP_FETCH_URL}/mcp/",
+                            f"{MCP_FETCH_URL}/mcp",
                             json=fetch_request,
                             headers={
                                 "Authorization": f"Bearer {access_token}",

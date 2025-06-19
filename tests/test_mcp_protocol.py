@@ -1,6 +1,6 @@
 """
 Sacred MCP Protocol Tests - Testing real MCP servers with JSON-RPC 2.0
-Following MCP Protocol 2025-03-26 specifications
+Following MCP Protocol 2025-06-18 specifications
 """
 import pytest
 import httpx

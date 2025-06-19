@@ -16,7 +16,7 @@ class TestMCPAuthWorking:
         
         # Test 1: Request without auth should fail
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp/",
+            f"{MCP_FETCH_URL}/mcp",
             json={"jsonrpc": "2.0", "method": "test", "id": 1},
             headers={
                 "Content-Type": "application/json",
@@ -36,7 +36,7 @@ class TestMCPAuthWorking:
         
         # Test 2: Request with invalid token should fail
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp/",
+            f"{MCP_FETCH_URL}/mcp",
             json={"jsonrpc": "2.0", "method": "test", "id": 1},
             headers={
                 "Authorization": "Bearer invalid_token_12345",
@@ -61,7 +61,7 @@ class TestMCPAuthWorking:
         
         for auth_header in invalid_auth_headers:
             response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp/",
+                f"{MCP_FETCH_URL}/mcp",
                 json={"jsonrpc": "2.0", "method": "test", "id": 1},
                 headers={
                     "Authorization": auth_header,
@@ -77,7 +77,7 @@ class TestMCPAuthWorking:
         
         # Test 4: Verify CORS headers if present
         response = await http_client.options(
-            f"{MCP_FETCH_URL}/mcp/",
+            f"{MCP_FETCH_URL}/mcp",
             headers={
                 "Origin": "https://claude.ai",
                 "Access-Control-Request-Method": "POST",

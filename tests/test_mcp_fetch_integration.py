@@ -111,7 +111,7 @@ class TestMCPFetchIntegration:
             json=mcp_request,
             headers={
                 "Authorization": "Bearer invalid_but_well_formed_jwt",
-                "MCP-Protocol-Version": "2025-03-26"
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
