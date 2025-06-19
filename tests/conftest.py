@@ -28,6 +28,11 @@ from .test_constants import (
     GATEWAY_OAUTH_ACCESS_TOKEN
 )
 
+# MCP Client tokens for external client testing
+MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
+MCP_CLIENT_ID = os.getenv("MCP_CLIENT_ID")
+MCP_CLIENT_SECRET = os.getenv("MCP_CLIENT_SECRET")
+
 # pytest-asyncio handles event loop automatically with asyncio_mode = auto
 
 @pytest.fixture
@@ -82,3 +87,28 @@ async def registered_client(http_client: httpx.AsyncClient, wait_for_services) -
     
     assert response.status_code == 201, f"Client registration failed: {response.text}"
     return response.json()
+
+@pytest.fixture
+def mcp_client_token():
+    """Provides MCP client access token for external client testing"""
+    if not MCP_CLIENT_ACCESS_TOKEN:
+        pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+    return MCP_CLIENT_ACCESS_TOKEN
+
+@pytest.fixture
+def mcp_client_credentials():
+    """Provides MCP client credentials for external client testing"""
+    if not MCP_CLIENT_ID or not MCP_CLIENT_SECRET:
+        pytest.fail("No MCP client credentials available - token refresh should have set these!")
+    return {
+        "client_id": MCP_CLIENT_ID,
+        "client_secret": MCP_CLIENT_SECRET,
+        "access_token": MCP_CLIENT_ACCESS_TOKEN
+    }
+
+@pytest.fixture
+async def mcp_authenticated_client(http_client: httpx.AsyncClient, mcp_client_token: str) -> httpx.AsyncClient:
+    """Provides an HTTP client with MCP authentication headers pre-configured"""
+    # Create a new client with auth headers
+    http_client.headers["Authorization"] = f"Bearer {mcp_client_token}"
+    return http_client

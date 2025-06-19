@@ -36,7 +36,8 @@ class TestGitHubCredentialsValid:
             if response.status_code == 401:
                 pytest.fail(
                     "GITHUB_PAT is invalid or expired! "
-                    "Run 'just generate-github-token' to get a new one."
+                    "Token refresh should have handled this. "
+                    "Run 'just generate-github-token' manually if needed."
                 )
             elif response.status_code == 403:
                 # Check if it's rate limited

@@ -137,6 +137,9 @@ class TestExistingOAuthCredentials:
     async def test_github_pat_usage(self, http_client, wait_for_services):
         """Test using GitHub PAT to verify user info"""
         
+        if not GITHUB_PAT:
+            pytest.skip("GITHUB_PAT not set - skipping GitHub API test")
+        
         # We can use the GitHub PAT to get user info directly
         async with httpx.AsyncClient() as github_client:
             user_response = await github_client.get(
@@ -156,7 +159,7 @@ class TestExistingOAuthCredentials:
                 assert "login" in user_info
             else:
                 # PAT might be expired or invalid
-                pytest.fail(f"ERROR: GitHub PAT is not valid (status: {user_response.status_code}). Please update GITHUB_PAT in .env with a valid token.")
+                pytest.fail(f"GitHub PAT is not valid (status: {user_response.status_code}). Token refresh should have handled this.")
 
 class TestCompleteFlowWithExistingClient:
     """Test a more complete flow using existing credentials"""

@@ -184,8 +184,12 @@ class MCPSession:
         method = request_data.get("method")
         if method == "initialize":
             if not self.session_initialized:
+                # Log the incoming request for debugging
+                logger.info(f"Session {self.session_id}: Initialize request: {json.dumps(request_data, indent=2)}")
+                
                 # Forward the initialize request to the underlying server
                 response = await self._send_request(request_data)
+                logger.info(f"Session {self.session_id}: Initialize response from server: {json.dumps(response, indent=2)}")
                 
                 # If successful, complete the initialization process
                 if "result" in response:
@@ -342,8 +346,34 @@ class MCPSessionManager:
             
             return response, new_session_id
             
-        # For other requests, use existing session or create new one
-        session = await self.get_or_create_session(session_id)
+        # For other requests, require a valid session ID
+        if not session_id:
+            # No session ID provided - this is an error for non-initialize requests
+            response = {
+                "jsonrpc": "2.0",
+                "id": request_data.get("id"),
+                "error": {
+                    "code": -32002,
+                    "message": "Session ID required. Please include Mcp-Session-Id header from initialize response."
+                }
+            }
+            return response, ""
+            
+        # Check if session exists
+        if session_id not in self.sessions:
+            response = {
+                "jsonrpc": "2.0",
+                "id": request_data.get("id"),
+                "error": {
+                    "code": -32002,
+                    "message": f"Invalid session ID: {session_id}. Session may have expired or does not exist."
+                }
+            }
+            return response, ""
+            
+        # Use existing session
+        session = self.sessions[session_id]
+        session.last_activity = time.time()
         response = await session.handle_request(request_data)
         return response, session.session_id
         
@@ -439,15 +469,24 @@ def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI
         
         try:
             request_data = await request.json()
+            method = request_data.get("method", "unknown")
             
             # Extract session ID from headers if present
             session_id = request.headers.get("Mcp-Session-Id")
+            
+            # Log session tracking info
+            if method == "initialize":
+                logger.info(f"Initialize request received. Creating new session...")
+            else:
+                logger.info(f"Request for method '{method}' with session ID: {session_id or 'MISSING'}")
             
             response, returned_session_id = await session_manager.handle_request(request_data, session_id)
             
             # Create response with session ID header
             json_response = JSONResponse(content=response)
-            json_response.headers["Mcp-Session-Id"] = returned_session_id
+            if returned_session_id:
+                json_response.headers["Mcp-Session-Id"] = returned_session_id
+                logger.info(f"Response includes session ID: {returned_session_id}")
             
             return json_response
             

@@ -18,27 +18,27 @@ ensure-services-ready:
     @pixi run python scripts/check_services_ready.py || (echo "❌ Services not ready! See above for details." && exit 1)
 
 # Run tests with pytest (no mocking allowed!)
-test: ensure-services-ready validate-tokens
+test: ensure-services-ready refresh-tokens validate-tokens
     @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v
 
 # Run all tests including integration
-test-all: ensure-services-ready validate-tokens
+test-all: ensure-services-ready refresh-tokens validate-tokens
     @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v --tb=short
 
 # Run a single test file
-test-file file: ensure-services-ready validate-tokens
+test-file file: ensure-services-ready refresh-tokens validate-tokens
     @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest {{ file }} -v
 
 # Run tests with verbose output
-test-verbose: ensure-services-ready validate-tokens
+test-verbose: ensure-services-ready refresh-tokens validate-tokens
     @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v -s
 
 # Run tests with sidecar coverage pattern
-test-sidecar-coverage: ensure-services-ready validate-tokens
+test-sidecar-coverage: ensure-services-ready refresh-tokens validate-tokens
     @docker compose down --remove-orphans
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d
     @echo "Waiting for services to be ready..."
@@ -165,6 +165,11 @@ generate-jwt-secret:
 generate-github-token:
     @pixi run python scripts/generate_oauth_token.py
 
+# Refresh OAuth tokens before tests
+refresh-tokens:
+    @echo "🔄 Refreshing OAuth tokens..."
+    @pixi run python scripts/refresh_tokens.py
+
 # Validate all OAuth tokens
 validate-tokens:
     @echo "🔍 Validating OAuth tokens..."
@@ -174,11 +179,6 @@ validate-tokens:
 check-token-expiry:
     @echo "⏰ Checking token expiration..."
     @pixi run python scripts/check_token_expiry.py
-
-# Refresh OAuth tokens if expired
-refresh-tokens:
-    @echo "🔄 Refreshing OAuth tokens..."
-    @pixi run python scripts/refresh_oauth_tokens.py
 
 # Diagnose test failures and find root causes
 diagnose-tests:
