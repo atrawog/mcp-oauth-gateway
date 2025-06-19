@@ -8,7 +8,8 @@ import sys
 import json
 import time
 from datetime import datetime
-from jose import jwt, JWTError
+from authlib.jose import jwt
+from authlib.jose.errors import JoseError
 import httpx
 import asyncio
 
@@ -25,9 +26,20 @@ def check_env_var(name: str) -> str:
 def decode_jwt_token(token: str) -> dict:
     """Decode JWT token without signature verification"""
     try:
-        payload = jwt.decode(token, key="", options={'verify_signature': False})
-        return payload
-    except JWTError as e:
+        # Decode without verification for inspection only
+        import json
+        import base64
+        # JWT format: header.payload.signature
+        parts = token.split('.')
+        if len(parts) != 3:
+            raise ValueError("Invalid JWT format")
+        
+        # Decode payload (add padding if needed)
+        payload_part = parts[1]
+        payload_part += '=' * (4 - len(payload_part) % 4)  # Add padding
+        payload_json = base64.urlsafe_b64decode(payload_part)
+        return json.loads(payload_json)
+    except Exception as e:
         print(f"❌ Failed to decode JWT token: {e}")
         return None
 

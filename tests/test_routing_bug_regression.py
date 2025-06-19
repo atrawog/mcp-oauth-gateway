@@ -9,7 +9,6 @@ import pytest
 import httpx
 from .test_constants import MCP_FETCH_URL, BASE_DOMAIN
 
-
 class TestRoutingBugRegression:
     """Regression test for the routing configuration bug"""
     

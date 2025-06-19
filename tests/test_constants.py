@@ -7,7 +7,6 @@ Tests should use the SAME .env file as the application!
 """
 import os
 
-
 def _get_env_or_fail(key: str) -> str:
     """Get environment variable or fail with clear error message"""
     value = os.getenv(key)
@@ -19,7 +18,6 @@ def _get_env_or_fail(key: str) -> str:
         )
     return value
 
-
 def _get_env_int_or_fail(key: str) -> int:
     """Get environment variable as integer or fail"""
     value = _get_env_or_fail(key)
@@ -28,7 +26,6 @@ def _get_env_int_or_fail(key: str) -> int:
     except ValueError:
         raise ValueError(f"Environment variable {key} must be an integer, got: {value}")
 
-
 def _get_env_float_or_fail(key: str) -> float:
     """Get environment variable as float or fail"""
     value = _get_env_or_fail(key)
@@ -36,7 +33,6 @@ def _get_env_float_or_fail(key: str) -> float:
         return float(value)
     except ValueError:
         raise ValueError(f"Environment variable {key} must be a float, got: {value}")
-
 
 # Domain Configuration - From main .env
 BASE_DOMAIN = _get_env_or_fail("BASE_DOMAIN")

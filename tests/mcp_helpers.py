@@ -5,7 +5,6 @@ import json
 import httpx
 from typing import Optional, Dict, Any, Tuple
 
-
 async def initialize_mcp_session(
     http_client: httpx.AsyncClient,
     mcp_url: str,
@@ -77,7 +76,6 @@ async def initialize_mcp_session(
     
     return session_id, init_result["result"]
 
-
 async def call_mcp_tool(
     http_client: httpx.AsyncClient,
     mcp_url: str,
@@ -114,7 +112,6 @@ async def call_mcp_tool(
         raise RuntimeError(f"Tool call failed: {response.status_code} - {response.text}")
     
     return response.json()
-
 
 async def list_mcp_tools(
     http_client: httpx.AsyncClient,

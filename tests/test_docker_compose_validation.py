@@ -6,7 +6,6 @@ import pytest
 import yaml
 import os
 
-
 class TestDockerComposeValidation:
     """Validate Docker Compose configurations are complete and correct"""
     

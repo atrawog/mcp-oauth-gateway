@@ -9,7 +9,8 @@ import json
 import secrets
 import time
 import redis.asyncio as redis
-from jose import jwt
+
+from .jwt_test_helper import encode as jwt_encode
 from .test_constants import (
     AUTH_BASE_URL,
     JWT_SECRET,
@@ -20,7 +21,6 @@ from .test_constants import (
     REDIS_URL,
     BASE_DOMAIN
 )
-
 
 class TestHealthCheckErrors:
     """Test health check error scenarios - Lines 131-132"""
@@ -37,7 +37,6 @@ class TestHealthCheckErrors:
         data = response.json()
         assert data["status"] == "healthy"
         assert data["service"] == "auth"
-
 
 class TestWellKnownMetadata:
     """Test .well-known endpoint - Line 172"""
@@ -62,7 +61,6 @@ class TestWellKnownMetadata:
         assert metadata["token_endpoint"] == f"{AUTH_BASE_URL}/token"
         assert "code" in metadata["response_types_supported"]
         assert "authorization_code" in metadata["grant_types_supported"]
-
 
 class TestClientRegistrationErrors:
     """Test client registration error scenarios - Line 327"""
@@ -94,7 +92,6 @@ class TestClientRegistrationErrors:
         )
         
         assert response.status_code == 422
-
 
 class TestAuthorizationErrors:
     """Test authorization endpoint errors - Lines 342-384"""
@@ -137,7 +134,6 @@ class TestAuthorizationErrors:
         error = response.json()
         # Check for the actual error returned
         assert error["detail"]["error"] in ["invalid_request", "invalid_redirect_uri"]
-
 
 class TestTokenEndpointErrors:
     """Test token endpoint error scenarios - Lines 447-506"""
@@ -193,7 +189,6 @@ class TestTokenEndpointErrors:
         error = response.json()
         assert error["detail"]["error"] == "unsupported_grant_type"
 
-
 class TestVerifyEndpointErrors:
     """Test verify endpoint edge cases - Lines 534-547"""
     
@@ -213,7 +208,7 @@ class TestVerifyEndpointErrors:
         assert "token" in error["detail"]["error_description"].lower() or "invalid" in error["detail"]["error_description"].lower()
         
         # Test with JWT signed with wrong key
-        wrong_token = jwt.encode(
+        wrong_token = jwt_encode(
             {
                 "sub": "test_user",
                 "exp": int(time.time()) + 3600,
@@ -233,7 +228,7 @@ class TestVerifyEndpointErrors:
         assert "Signature verification failed" in error["detail"]["error_description"]
         
         # Test with expired token
-        expired_token = jwt.encode(
+        expired_token = jwt_encode(
             {
                 "sub": "test_user",
                 "exp": int(time.time()) - 3600,  # Expired 1 hour ago
@@ -251,7 +246,6 @@ class TestVerifyEndpointErrors:
         assert response.status_code == 401
         error = response.json()
         assert "expired" in error["detail"]["error_description"].lower()
-
 
 class TestRevokeEndpointEdgeCases:
     """Test revoke endpoint scenarios - Lines 634-665"""
@@ -299,7 +293,6 @@ class TestRevokeEndpointEdgeCases:
         
         assert response.status_code == 422  # Missing required field
 
-
 class TestIntrospectEdgeCases:
     """Test introspect endpoint edge cases - Lines 686, 698-711, 703-711"""
     
@@ -322,7 +315,7 @@ class TestIntrospectEdgeCases:
         assert result["active"] is False
         
         # Test with token not in Redis (valid JWT but not stored)
-        valid_jwt = jwt.encode(
+        valid_jwt = jwt_encode(
             {
                 "sub": "test_user",
                 "jti": "not_in_redis",
@@ -364,7 +357,6 @@ class TestIntrospectEdgeCases:
         elif response.status_code == 200:
             result = response.json()
             assert result["active"] is False
-
 
 class TestCallbackEdgeCases:
     """Test callback endpoint edge cases - Lines 745, 760-761, 773-774"""
@@ -421,7 +413,6 @@ class TestCallbackEdgeCases:
         # Should return 422 for missing required parameters
         assert response.status_code == 422
 
-
 class TestComplexTokenScenarios:
     """Test complex token scenarios to cover remaining edge cases"""
     
@@ -450,7 +441,7 @@ class TestComplexTokenScenarios:
                 "iss": f"https://auth.{BASE_DOMAIN}"
             }
             
-            test_token = jwt.encode(token_claims, JWT_SECRET, algorithm="HS256")
+            test_token = jwt_encode(token_claims, JWT_SECRET, algorithm="HS256")
             
             # Store in Redis
             await redis_client.setex(

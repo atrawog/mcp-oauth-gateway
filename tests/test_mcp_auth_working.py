@@ -6,7 +6,6 @@ import pytest
 import httpx
 from .test_constants import MCP_FETCH_URL
 
-
 class TestMCPAuthWorking:
     """Verify MCP OAuth authentication is properly enforced"""
     

@@ -9,7 +9,7 @@ import hashlib
 import base64
 import json
 import time
-from jose import jwt
+
 import redis.asyncio as redis
 from .test_constants import (
     AUTH_BASE_URL,
@@ -22,7 +22,6 @@ from .test_constants import (
     BASE_DOMAIN,
     REDIS_URL
 )
-
 
 class TestMCPFetchRealContent:
     """Test fetching real content through MCP with proper authentication"""

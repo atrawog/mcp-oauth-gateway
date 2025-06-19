@@ -9,7 +9,6 @@ import json
 from .test_constants import MCP_FETCH_URL, AUTH_BASE_URL, MCP_PROTOCOL_VERSIONS_SUPPORTED
 from .mcp_helpers import initialize_mcp_session, call_mcp_tool, list_mcp_tools
 
-
 @pytest.mark.asyncio
 async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_services):
     """
@@ -98,7 +97,6 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     # If we got here, we didn't find the expected content
     pytest.fail("Failed to find fetched content in response!")
 
-
 @pytest.mark.asyncio
 async def test_mcp_fetch_unauthorized_fails(http_client, wait_for_services):
     """Verify that MCP fetch REQUIRES proper authentication"""
@@ -112,7 +110,6 @@ async def test_mcp_fetch_unauthorized_fails(http_client, wait_for_services):
     assert response.status_code == 401, f"Expected 401, got {response.status_code}"
     assert "WWW-Authenticate" in response.headers
     print("✅ MCP fetch correctly rejects unauthorized requests")
-
 
 @pytest.mark.asyncio
 async def test_oauth_token_validation(http_client, wait_for_services):

@@ -9,7 +9,7 @@ import hashlib
 import base64
 import json
 import time
-from jose import jwt
+
 from .test_constants import (
     AUTH_BASE_URL,
     MCP_FETCH_URL,
@@ -20,7 +20,6 @@ from .test_constants import (
     ACCESS_TOKEN_LIFETIME,
     BASE_DOMAIN
 )
-
 
 class TestMCPFetchIntegration:
     """Test real MCP fetch functionality with proper OAuth authentication"""

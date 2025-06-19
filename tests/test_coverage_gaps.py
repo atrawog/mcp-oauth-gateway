@@ -11,12 +11,12 @@ import json
 import asyncio
 import time
 from urllib.parse import urlparse, parse_qs, urlencode
-from jose import jwt
+
 from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, JWT_SECRET, BASE_DOMAIN
+from .jwt_test_helper import encode as jwt_encode
 
 # JWT Algorithm is a protocol constant, not configuration
 JWT_ALGORITHM = "HS256"
-
 
 class TestCoverageGaps:
     """Test all the coverage gaps identified in the analysis"""
@@ -191,7 +191,7 @@ class TestCoverageGaps:
             "iss": AUTH_BASE_URL
         }
         
-        token = jwt.encode(claims, JWT_SECRET, algorithm=JWT_ALGORITHM)
+        token = jwt_encode(claims, JWT_SECRET, algorithm=JWT_ALGORITHM)
         
         # Try to verify the token
         response = await http_client.get(
@@ -252,7 +252,7 @@ class TestCoverageGaps:
             "iss": AUTH_BASE_URL
         }
         
-        token = jwt.encode(claims, JWT_SECRET, algorithm=JWT_ALGORITHM)
+        token = jwt_encode(claims, JWT_SECRET, algorithm=JWT_ALGORITHM)
         
         # Revoke the token
         response = await http_client.post(
@@ -312,7 +312,7 @@ class TestCoverageGaps:
             "exp": now + 3600
         }
         
-        token = jwt.encode(claims, JWT_SECRET, algorithm=JWT_ALGORITHM)
+        token = jwt_encode(claims, JWT_SECRET, algorithm=JWT_ALGORITHM)
         
         response = await http_client.post(
             f"{AUTH_BASE_URL}/introspect",
@@ -347,7 +347,6 @@ class TestCoverageGaps:
         data = response.json()
         # Since this refresh token doesn't exist in Redis, it should be inactive
         assert data["active"] is False
-
 
 class TestCallbackEndpoint:
     """Test the GitHub OAuth callback flow (lines 302-384)"""
@@ -421,7 +420,6 @@ class TestCallbackEndpoint:
             callback_location = callback_response.headers["location"]
             assert "error=server_error" in callback_location
             assert f"state={params['state']}" in callback_location
-
 
 class TestPKCEVerification:
     """Test PKCE S256 verification logic (lines 447-475)"""

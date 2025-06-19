@@ -7,8 +7,9 @@ import httpx
 import secrets
 import json
 import time
-from jose import jwt
+
 import redis.asyncio as redis
+from .jwt_test_helper import encode as jwt_encode
 from .test_constants import (
     AUTH_BASE_URL,
     MCP_FETCH_URL,
@@ -20,7 +21,6 @@ from .test_constants import (
     MCP_PROTOCOL_VERSIONS_SUPPORTED
 )
 from .mcp_helpers import initialize_mcp_session, call_mcp_tool
-
 
 class TestMCPFetchExampleCom:
     """Test fetching example.com content with proper MCP protocol"""
@@ -51,7 +51,7 @@ class TestMCPFetchExampleCom:
             }
             
             # Create JWT
-            access_token = jwt.encode(token_claims, JWT_SECRET, algorithm="HS256")
+            access_token = jwt_encode(token_claims, JWT_SECRET, algorithm="HS256")
             
             # Store in Redis
             await redis_client.setex(

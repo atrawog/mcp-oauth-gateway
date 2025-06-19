@@ -7,7 +7,6 @@ import os
 import json
 from .test_constants import MCP_FETCH_URL
 
-
 @pytest.mark.asyncio
 async def test_debug_mcp_fetch_with_real_oauth(http_client, wait_for_services):
     """Debug test to see what's happening with real OAuth token"""

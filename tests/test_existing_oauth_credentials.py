@@ -9,14 +9,14 @@ import hashlib
 import base64
 import json
 import os
-from jose import jwt, JWTError
+
 import time
 from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, JWT_SECRET, GITHUB_PAT, BASE_DOMAIN, TEST_REDIRECT_URI
+from .jwt_test_helper import encode as jwt_encode
 
 # Use the existing OAuth credentials from .env - these are optional
 OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
 OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET")
-
 
 class TestExistingOAuthCredentials:
     """Test using the pre-registered OAuth client from .env"""
@@ -89,7 +89,7 @@ class TestExistingOAuthCredentials:
             "iss": AUTH_BASE_URL
         }
         
-        test_token = jwt.encode(test_claims, JWT_SECRET, algorithm="HS256")
+        test_token = jwt_encode(test_claims, JWT_SECRET, algorithm="HS256")
         
         # Introspect the token (it won't be active because it's not in Redis)
         response = await http_client.post(
@@ -110,7 +110,7 @@ class TestExistingOAuthCredentials:
         """Test revocation with existing client credentials"""
         
         # Create a test token
-        test_token = jwt.encode(
+        test_token = jwt_encode(
             {
                 "sub": "12345",
                 "jti": secrets.token_urlsafe(16),
@@ -157,7 +157,6 @@ class TestExistingOAuthCredentials:
             else:
                 # PAT might be expired or invalid
                 pytest.fail(f"ERROR: GitHub PAT is not valid (status: {user_response.status_code}). Please update GITHUB_PAT in .env with a valid token.")
-
 
 class TestCompleteFlowWithExistingClient:
     """Test a more complete flow using existing credentials"""
@@ -220,7 +219,6 @@ class TestCompleteFlowWithExistingClient:
         # Will fail at GitHub token exchange
         assert callback_response.status_code in [307, 500]
 
-
 class TestJWTOperations:
     """Test JWT-specific operations to increase coverage"""
     
@@ -237,7 +235,7 @@ class TestJWTOperations:
         assert response.status_code == 401
         
         # Test 2: JWT with wrong signature
-        wrong_secret_token = jwt.encode(
+        wrong_secret_token = jwt_encode(
             {"sub": "12345", "exp": int(time.time()) + 3600},
             "wrong_secret",
             algorithm="HS256"
@@ -251,7 +249,7 @@ class TestJWTOperations:
         assert response.status_code == 401
         
         # Test 3: Valid JWT but missing jti (will pass decode but fail Redis check)
-        no_jti_token = jwt.encode(
+        no_jti_token = jwt_encode(
             {
                 "sub": "12345",
                 "username": "testuser",
@@ -274,7 +272,7 @@ class TestJWTOperations:
         """Test introspecting an expired token"""
         
         # Create an expired token
-        expired_token = jwt.encode(
+        expired_token = jwt_encode(
             {
                 "sub": "12345",
                 "jti": "expired_jti",

@@ -10,7 +10,6 @@ import asyncio
 from typing import Optional
 from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, MCP_PROTOCOL_VERSION
 
-
 class TestMCPProtocol:
     """Test MCP Protocol compliance - version MUST match .env!"""
     

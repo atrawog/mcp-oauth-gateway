@@ -11,7 +11,6 @@ import asyncio
 from urllib.parse import urlparse, parse_qs
 from .test_constants import AUTH_BASE_URL, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET
 
-
 class TestGitHubCallbackErrors:
     """Test GitHub OAuth callback error scenarios"""
     
@@ -33,7 +32,6 @@ class TestGitHubCallbackErrors:
         error = response.json()
         assert error["detail"]["error"] == "invalid_request"
         assert "Invalid or expired state" in error["detail"]["error_description"]
-
 
 class TestRealOAuthFlowErrors:
     """Test real OAuth flow error scenarios"""
@@ -87,7 +85,6 @@ class TestRealOAuthFlowErrors:
         assert error["detail"]["error"] == "invalid_grant"
         assert "Invalid or expired authorization code" in error["detail"]["error_description"]
 
-
 class TestPKCEWithRealFlow:
     """Test PKCE verification with more realistic scenarios"""
     
@@ -110,7 +107,6 @@ class TestPKCEWithRealFlow:
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
-
 
 class TestRefreshTokenErrors:
     """Test refresh token error scenarios"""

@@ -12,7 +12,6 @@ from datetime import datetime
 from pathlib import Path
 from .test_constants import AUTH_BASE_URL, REDIS_URL, BASE_DOMAIN
 
-
 class TestSacredSealsCompliance:
     """Test all 25 Sacred Seals for 100% divine compliance"""
     

@@ -7,9 +7,10 @@ import httpx
 import secrets
 import json
 import time
-from jose import jwt
+
 import asyncio
 from .test_constants import AUTH_BASE_URL, JWT_SECRET, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET
+from .jwt_test_helper import encode as jwt_encode
 
 class TestHealthCheckErrors:
     """Test health check error scenarios"""
@@ -26,7 +27,6 @@ class TestHealthCheckErrors:
         data = response.json()
         assert "status" in data
         assert data["status"] == "healthy"
-
 
 class TestSuccessEndpoint:
     """Test the /success endpoint - covers lines 773-834"""
@@ -73,7 +73,6 @@ class TestSuccessEndpoint:
         assert "⏳ OAuth Flow" in response.text
         assert "No authorization code received yet" in response.text
 
-
 class TestClientRegistrationErrors:
     """Test client registration error paths"""
     
@@ -94,7 +93,6 @@ class TestClientRegistrationErrors:
         error = response.json()
         assert error["detail"]["error"] == "invalid_client_metadata"
         assert "redirect_uris is required" in error["detail"]["error_description"]
-
 
 class TestTokenEndpointEdgeCases:
     """Test token endpoint edge cases"""
@@ -155,7 +153,6 @@ class TestTokenEndpointEdgeCases:
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
 
-
 class TestPKCEVerification:
     """Test PKCE verification logic"""
     
@@ -181,7 +178,6 @@ class TestPKCEVerification:
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
 
-
 class TestTokenRevocationEdgeCases:
     """Test token revocation edge cases"""
     
@@ -189,7 +185,7 @@ class TestTokenRevocationEdgeCases:
     async def test_revoke_with_wrong_client_secret(self, http_client):
         """Test revocation with wrong client secret - covers line 686"""
         # Create a valid JWT token
-        test_token = jwt.encode(
+        test_token = jwt_encode(
             {
                 "sub": "12345",
                 "jti": "test_jti_revoke",
@@ -227,7 +223,6 @@ class TestTokenRevocationEdgeCases:
         # Always returns 200
         assert response.status_code == 200
 
-
 class TestTokenIntrospectionEdgeCases:
     """Test token introspection edge cases"""
     
@@ -235,7 +230,7 @@ class TestTokenIntrospectionEdgeCases:
     async def test_introspect_token_not_in_redis(self, http_client):
         """Test introspection of valid JWT not in Redis - covers lines 740-743"""
         # Create a valid JWT but don't store it in Redis
-        test_token = jwt.encode(
+        test_token = jwt_encode(
             {
                 "sub": "12345",
                 "jti": "not_in_redis_jti",
@@ -277,7 +272,6 @@ class TestTokenIntrospectionEdgeCases:
         data = response.json()
         assert data["active"] is False  # Not in Redis
 
-
 class TestJWTTokenCreation:
     """Test JWT token creation helper function"""
     
@@ -297,7 +291,6 @@ class TestJWTTokenCreation:
         # We can at least verify the client was registered successfully
         assert "client_id" in client_data
         assert "client_secret" in client_data
-
 
 class TestAuthorizationEndpointErrors:
     """Test authorization endpoint error handling"""
@@ -340,7 +333,6 @@ class TestAuthorizationEndpointErrors:
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_redirect_uri"
-
 
 class TestShutdownHandler:
     """Test shutdown event handler"""

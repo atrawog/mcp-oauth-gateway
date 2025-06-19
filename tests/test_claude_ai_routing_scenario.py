@@ -13,7 +13,6 @@ from .test_constants import (
     BASE_DOMAIN
 )
 
-
 class TestClaudeAIRoutingScenario:
     """Test the exact scenario that Claude.ai uses for MCP connections"""
     

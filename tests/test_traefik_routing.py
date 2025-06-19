@@ -14,7 +14,6 @@ from .test_constants import (
     BASE_DOMAIN
 )
 
-
 class TestTraefikRouting:
     """Test Traefik routing configuration for all services"""
     

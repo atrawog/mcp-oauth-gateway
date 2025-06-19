@@ -8,8 +8,9 @@ import json
 import secrets
 import hashlib
 import base64
-from jose import jwt
+
 import time
+from .jwt_test_helper import encode as jwt_encode
 from .test_constants import (
     AUTH_BASE_URL,
     JWT_SECRET,
@@ -18,7 +19,6 @@ from .test_constants import (
     TEST_CLIENT_SCOPE,
     ACCESS_TOKEN_LIFETIME
 )
-
 
 class TestAdditionalCoverage:
     """Test additional edge cases to improve coverage"""
@@ -175,7 +175,7 @@ class TestAdditionalCoverage:
         }
         
         # Sign with wrong secret
-        invalid_token = jwt.encode(token_data, wrong_secret, algorithm="HS256")
+        invalid_token = jwt_encode(token_data, wrong_secret, algorithm="HS256")
         
         # Try to verify
         response = await http_client.get(

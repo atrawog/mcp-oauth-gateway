@@ -3,7 +3,6 @@ import pytest
 import httpx
 from .test_constants import MCP_FETCH_URL
 
-
 @pytest.mark.asyncio
 async def test_mcp_fetch_uses_package():
     """Verify mcp-fetch is running with the mcp-stdio-http package."""

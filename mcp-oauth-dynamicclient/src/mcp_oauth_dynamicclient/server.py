@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import Settings
 from .redis_client import RedisManager
-from .auth import AuthManager
+from .auth_authlib import AuthManager
 from .routes import create_oauth_router
 
 

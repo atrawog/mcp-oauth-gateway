@@ -27,9 +27,7 @@ from .test_constants import (
     TEST_CLIENT_SCOPE
 )
 
-
 # pytest-asyncio handles event loop automatically with asyncio_mode = auto
-
 
 @pytest.fixture
 async def http_client() -> AsyncGenerator[httpx.AsyncClient, None]:
@@ -37,7 +35,6 @@ async def http_client() -> AsyncGenerator[httpx.AsyncClient, None]:
     # Use timeout from test_constants - already validated!
     async with httpx.AsyncClient(timeout=TEST_HTTP_TIMEOUT) as client:
         yield client
-
 
 @pytest.fixture
 async def wait_for_services(http_client: httpx.AsyncClient):
@@ -61,7 +58,6 @@ async def wait_for_services(http_client: httpx.AsyncClient):
                 if attempt == TEST_MAX_RETRIES - 1:
                     pytest.fail(f"Service {base_url} failed to become healthy: {e}")
                 await asyncio.sleep(TEST_RETRY_DELAY)
-
 
 @pytest.fixture
 async def registered_client(http_client: httpx.AsyncClient, wait_for_services) -> dict:

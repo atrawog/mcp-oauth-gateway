@@ -9,7 +9,6 @@ import httpx
 from urllib.parse import urlencode
 from .test_constants import AUTH_BASE_URL, TEST_CALLBACK_URL
 
-
 class TestPKCES256Enforcement:
     """Test PKCE S256 enforcement per CLAUDE.md sacred commandments"""
     

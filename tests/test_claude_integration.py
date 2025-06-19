@@ -11,7 +11,6 @@ import json
 from urllib.parse import urlparse, parse_qs
 from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, TEST_CLIENT_NAME, TEST_CLIENT_SCOPE, MCP_PROTOCOL_VERSION
 
-
 class TestClaudeIntegration:
     """Test the complete Claude.ai integration flow"""
     

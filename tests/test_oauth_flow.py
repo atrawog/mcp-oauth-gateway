@@ -11,7 +11,6 @@ import json
 from urllib.parse import urlparse, parse_qs
 from .test_constants import AUTH_BASE_URL, TEST_CALLBACK_URL, TEST_CLIENT_NAME, TEST_CLIENT_SCOPE, TEST_INVALID_REDIRECT_URI
 
-
 class TestOAuthFlow:
     """Test the complete OAuth 2.1 flow"""
     

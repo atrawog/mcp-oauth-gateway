@@ -10,11 +10,11 @@ from urllib.parse import urlencode
 from fastapi import APIRouter, Request, HTTPException, Form, Query, Response, Depends
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 import redis.asyncio as redis
-from jose import JWTError, jwt
+from authlib.jose.errors import JoseError
 
 from .config import Settings
 from .models import ClientRegistration, TokenResponse, ErrorResponse
-from .auth import AuthManager
+from .auth_authlib import AuthManager, OAuth2Client
 
 
 def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthManager) -> APIRouter:
@@ -67,23 +67,26 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 }
             )
         
-        # Generate client credentials
-        client_id = f"client_{secrets.token_urlsafe(16)}"
-        client_secret = secrets.token_urlsafe(32)
+        # Generate client credentials using Authlib patterns
+        credentials = auth_manager.generate_client_credentials()
+        client_id = credentials["client_id"]
+        client_secret = credentials["client_secret"]
         
         # Store client in Redis (eternal storage)
         client_data = {
             "client_id": client_id,
             "client_secret": client_secret,
-            "client_secret_expires_at": 0,  # Never expires
+            "client_secret_expires_at": credentials["client_secret_expires_at"],
             "redirect_uris": json.dumps(registration.redirect_uris),
             "client_name": registration.client_name or "Unnamed Client",
             "scope": registration.scope or "openid profile email",
-            "created_at": int(time.time())
+            "created_at": int(time.time()),
+            "response_types": json.dumps(["code"]),
+            "grant_types": json.dumps(["authorization_code", "refresh_token"])
         }
         
         # Store with sacred key pattern
-        await redis_client.hset(f"oauth:client:{client_id}", mapping=client_data)
+        await redis_client.set(f"oauth:client:{client_id}", json.dumps(client_data))
         
         # Return registration response
         response = {
@@ -118,9 +121,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
     ):
         """Portal to authentication realm - initiates GitHub OAuth flow"""
         
-        # Validate client_id
-        client_data = await redis_client.hgetall(f"oauth:client:{client_id}")
-        if not client_data:
+        # Validate client using Authlib OAuth2Client
+        client = await auth_manager.get_client(client_id, redis_client)
+        if not client:
             # RFC 6749 - MUST NOT redirect on invalid client_id
             raise HTTPException(
                 status_code=400,
@@ -130,9 +133,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 }
             )
         
-        # Validate redirect_uri
-        allowed_uris = json.loads(client_data.get("redirect_uris", "[]"))
-        if redirect_uri not in allowed_uris:
+        # Validate redirect_uri using Authlib client
+        if not client.check_redirect_uri(redirect_uri):
             # RFC 6749 - MUST NOT redirect on invalid redirect_uri
             raise HTTPException(
                 status_code=400,
@@ -142,8 +144,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 }
             )
         
-        # Validate response_type
-        if response_type != "code":
+        # Validate response_type using Authlib client
+        if not client.check_response_type(response_type):
             return RedirectResponse(
                 url=f"{redirect_uri}?error=unsupported_response_type&state={state}"
             )
@@ -210,14 +212,10 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         
         auth_data = json.loads(auth_data_str)
         
-        try:
-            # Exchange GitHub code for token
-            github_token = await auth_manager.exchange_github_code(code)
-            
-            # Get user info from GitHub
-            user_info = await auth_manager.get_github_user(github_token['access_token'])
-            
-        except Exception as e:
+        # Exchange GitHub code using Authlib
+        user_info = await auth_manager.exchange_github_code(code)
+        
+        if not user_info:
             return RedirectResponse(
                 url=f"{auth_data['redirect_uri']}?error=server_error&state={auth_data['state']}"
             )
@@ -275,9 +273,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
     ):
         """The transmutation chamber - exchanges codes for tokens"""
         
-        # Validate client
-        client_data = await redis_client.hgetall(f"oauth:client:{client_id}")
-        if not client_data:
+        # Validate client using Authlib OAuth2Client
+        client = await auth_manager.get_client(client_id, redis_client)
+        if not client:
             raise HTTPException(
                 status_code=401,
                 detail={
@@ -287,8 +285,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 headers={"WWW-Authenticate": "Basic"}
             )
         
-        # Validate client secret (if provided)
-        if client_secret and client_secret != client_data.get("client_secret"):
+        # Validate client secret using Authlib
+        if client_secret and not client.check_client_secret(client_secret):
             raise HTTPException(
                 status_code=401,
                 detail={
@@ -296,6 +294,16 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     "error_description": "Invalid client credentials"
                 },
                 headers={"WWW-Authenticate": "Basic"}
+            )
+        
+        # Validate grant type using Authlib
+        if not client.check_grant_type(grant_type):
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "unsupported_grant_type",
+                    "error_description": f"Grant type '{grant_type}' is not supported"
+                }
             )
         
         if grant_type == "authorization_code":
@@ -369,18 +377,15 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 redis_client
             )
             
-            refresh_token_value = secrets.token_urlsafe(32)
-            
-            # Store refresh token
-            await redis_client.setex(
-                f"oauth:refresh:{refresh_token_value}",
-                settings.refresh_token_lifetime,
-                json.dumps({
+            # Create refresh token using Authlib
+            refresh_token_value = await auth_manager.create_refresh_token(
+                {
                     "user_id": code_data["user_id"],
                     "username": code_data["username"],
                     "client_id": client_id,
                     "scope": code_data["scope"]
-                })
+                },
+                redis_client
             )
             
             # Delete used authorization code
@@ -465,35 +470,39 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         
         token = auth_header[7:]  # Remove "Bearer " prefix
         
-        try:
-            # Decode and verify JWT
-            payload = auth_manager.verify_jwt_token(token)
-            
-            # Check if token is revoked
-            jti = payload.get("jti")
-            if jti:
-                token_data = await redis_client.get(f"oauth:token:{jti}")
-                if not token_data:
-                    raise HTTPException(
-                        status_code=401,
-                        detail={
-                            "error": "invalid_token",
-                            "error_description": "Token revoked or not found"
-                        },
-                        headers={"WWW-Authenticate": "Bearer"}
-                    )
-            
-            # Return success with user info headers
-            return Response(
-                status_code=200,
-                headers={
-                    "X-User-Id": str(payload.get("sub", "")),
-                    "X-User-Name": payload.get("username", ""),
-                    "X-Auth-Token": token
-                }
+        # Verify token using Authlib
+        payload = await auth_manager.verify_jwt_token(token, redis_client)
+        
+        if not payload:
+            raise HTTPException(
+                status_code=401,
+                detail={
+                    "error": "invalid_token",
+                    "error_description": "Token invalid, expired, or revoked"
+                },
+                headers={"WWW-Authenticate": "Bearer"}
             )
-            
-        except JWTError as e:
+        
+        # Return success with user info headers
+        return Response(
+            status_code=200,
+            headers={
+                "X-User-Id": str(payload.get("sub", "")),
+                "X-User-Name": payload.get("username", ""),
+                "X-Auth-Token": token
+            }
+        )
+        
+    # Revocation endpoint (RFC 7009)
+    @router.post("/revoke")
+    async def revoke_token(
+        token: str = Form(...),
+        token_type_hint: Optional[str] = Form(None),
+        redis_client: redis.Redis = Depends(get_redis)
+    ):
+        """Token banishment altar - implements RFC 7009 token revocation"""
+        
+        try:
             raise HTTPException(
                 status_code=401,
                 detail={
@@ -512,38 +521,19 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         client_secret: Optional[str] = Form(None),
         redis_client: redis.Redis = Depends(get_redis)
     ):
-        """Token banishment altar - revokes tokens"""
+        """Token banishment altar - revokes tokens using Authlib"""
         
-        # Validate client
-        client_data = await redis_client.hgetall(f"oauth:client:{client_id}")
-        if not client_data:
+        # Validate client using Authlib OAuth2Client
+        client = await auth_manager.get_client(client_id, redis_client)
+        if not client:
             # RFC 7009 - invalid client should still return 200
             return Response(status_code=200)
         
-        if client_secret and client_secret != client_data.get("client_secret"):
+        if client_secret and not client.check_client_secret(client_secret):
             return Response(status_code=200)
         
-        # Try to decode as JWT first
-        try:
-            payload = jwt.decode(
-                token,
-                settings.jwt_secret,
-                algorithms=[settings.jwt_algorithm],
-                options={"verify_exp": False}  # Allow expired tokens to be revoked
-            )
-            
-            jti = payload.get("jti")
-            if jti:
-                await redis_client.delete(f"oauth:token:{jti}")
-                
-                # Remove from user's token set
-                username = payload.get("username")
-                if username:
-                    await redis_client.srem(f"oauth:user_tokens:{username}", jti)
-        
-        except JWTError:
-            # Might be a refresh token
-            await redis_client.delete(f"oauth:refresh:{token}")
+        # Revoke token using Authlib
+        await auth_manager.revoke_token(token, redis_client)
         
         # Always return 200 (RFC 7009)
         return Response(status_code=200)
@@ -557,49 +547,17 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         client_secret: Optional[str] = Form(None),
         redis_client: redis.Redis = Depends(get_redis)
     ):
-        """Token examination oracle - reveals token properties"""
+        """Token examination oracle - uses Authlib for RFC 7662 compliance"""
         
-        # Validate client
-        client_data = await redis_client.hgetall(f"oauth:client:{client_id}")
-        if not client_data or (client_secret and client_secret != client_data.get("client_secret")):
+        # Validate client using Authlib OAuth2Client
+        client = await auth_manager.get_client(client_id, redis_client)
+        if not client or (client_secret and not client.check_client_secret(client_secret)):
             return {"active": False}
         
-        try:
-            # Try to decode as JWT
-            payload = auth_manager.verify_jwt_token(token)
-            
-            # Check if token exists in Redis
-            jti = payload.get("jti")
-            if jti:
-                token_exists = await redis_client.exists(f"oauth:token:{jti}")
-                if not token_exists:
-                    return {"active": False}
-            
-            return {
-                "active": True,
-                "scope": payload.get("scope", ""),
-                "client_id": payload.get("client_id"),
-                "username": payload.get("username"),
-                "exp": payload.get("exp"),
-                "iat": payload.get("iat"),
-                "sub": payload.get("sub"),
-                "jti": jti
-            }
-            
-        except JWTError:
-            # Might be a refresh token
-            refresh_data_str = await redis_client.get(f"oauth:refresh:{token}")
-            if refresh_data_str:
-                refresh_data = json.loads(refresh_data_str)
-                return {
-                    "active": True,
-                    "scope": refresh_data.get("scope", ""),
-                    "client_id": refresh_data.get("client_id"),
-                    "username": refresh_data.get("username"),
-                    "token_type": "refresh_token"
-                }
+        # Introspect token using Authlib
+        introspection_result = await auth_manager.introspect_token(token, redis_client)
         
-        return {"active": False}
+        return introspection_result
     
     # OAuth success page for token generation
     @router.get("/success")

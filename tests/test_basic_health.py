@@ -3,7 +3,6 @@ import pytest
 import httpx
 from .test_constants import AUTH_BASE_URL
 
-
 @pytest.mark.asyncio 
 async def test_auth_health_basic():
     """Test auth health endpoint directly"""

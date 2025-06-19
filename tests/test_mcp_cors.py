@@ -9,7 +9,6 @@ import httpx
 from .mcp_helpers import initialize_mcp_session
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 
-
 class TestMCPCORS:
     """Test that MCP services have proper CORS configuration"""
     

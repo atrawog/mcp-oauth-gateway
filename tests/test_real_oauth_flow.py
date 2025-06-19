@@ -15,9 +15,9 @@ import json
 import time
 from urllib.parse import urlparse, parse_qs, urlencode
 import os
-from jose import jwt
 
 # Import all configuration from test_constants - NO HARDCODED VALUES!
+from .jwt_test_helper import encode as jwt_encode
 from .test_constants import (
     AUTH_BASE_URL,
     MCP_FETCH_URL,
@@ -34,7 +34,6 @@ OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
 OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET")
 OAUTH_ACCESS_TOKEN = os.getenv("OAUTH_ACCESS_TOKEN")
 OAUTH_REFRESH_TOKEN = os.getenv("OAUTH_REFRESH_TOKEN")
-
 
 class TestRealOAuthFlow:
     """Test REAL OAuth flow with REAL GitHub authentication - NO SIMULATION!"""
@@ -184,7 +183,6 @@ class TestRealOAuthFlow:
         else:
             print("No refresh token available - run: just generate-github-token")
 
-
 class TestRealPKCEFlow:
     """Test REAL PKCE flow with REAL OAuth client"""
     
@@ -245,7 +243,6 @@ class TestRealPKCEFlow:
         assert oauth_state is not None
         print(f"✓ PKCE flow initialized with state: {oauth_state}")
 
-
 class TestRealJWTTokens:
     """Test REAL JWT token operations with REAL credentials"""
     
@@ -277,7 +274,7 @@ class TestRealJWTTokens:
         }
         
         # Sign with REAL JWT secret from .env
-        real_token = jwt.encode(real_claims, JWT_SECRET, algorithm="HS256")
+        real_token = jwt_encode(real_claims, JWT_SECRET, algorithm="HS256")
         
         # Test 1: Introspect the REAL token (won't be active because not in Redis)
         introspect_response = await http_client.post(
@@ -301,7 +298,7 @@ class TestRealJWTTokens:
             "jti": secrets.token_urlsafe(16)  # Different JTI
         }
         
-        expired_token = jwt.encode(expired_claims, JWT_SECRET, algorithm="HS256")
+        expired_token = jwt_encode(expired_claims, JWT_SECRET, algorithm="HS256")
         
         verify_response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",

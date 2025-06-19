@@ -15,7 +15,6 @@ from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, MCP_PROTOCOL_VERSION, 
 OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
 OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET")
 
-
 class TestFullOAuthFlow:
     """Test complete OAuth flow with real authentication"""
     

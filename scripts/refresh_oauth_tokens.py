@@ -9,7 +9,7 @@ import json
 import time
 import httpx
 import asyncio
-from jose import jwt
+from authlib.jose import jwt, JsonWebToken
 
 
 def get_env_var(name: str, required: bool = True) -> str:
@@ -100,7 +100,16 @@ async def refresh_token() -> bool:
             new_token = token_data.get('access_token')
             if new_token:
                 try:
-                    payload = jwt.decode(new_token, key="", options={'verify_signature': False})
+                    # Decode without verification for inspection only
+                    import base64
+                    parts = new_token.split('.')
+                    if len(parts) == 3:
+                        payload_part = parts[1]
+                        payload_part += '=' * (4 - len(payload_part) % 4)
+                        payload_json = base64.urlsafe_b64decode(payload_part)
+                        payload = json.loads(payload_json)
+                    else:
+                        raise ValueError("Invalid JWT format")
                     exp = payload.get('exp', 0)
                     now = int(time.time())
                     
@@ -143,7 +152,16 @@ async def main():
     oauth_token = os.getenv("OAUTH_ACCESS_TOKEN")
     if oauth_token:
         try:
-            payload = jwt.decode(oauth_token, key="", options={'verify_signature': False})
+            # Decode without verification for inspection only
+            import base64
+            parts = oauth_token.split('.')
+            if len(parts) == 3:
+                payload_part = parts[1]
+                payload_part += '=' * (4 - len(payload_part) % 4)
+                payload_json = base64.urlsafe_b64decode(payload_part)
+                payload = json.loads(payload_json)
+            else:
+                raise ValueError("Invalid JWT format")
             exp = payload.get('exp', 0)
             now = int(time.time())
             

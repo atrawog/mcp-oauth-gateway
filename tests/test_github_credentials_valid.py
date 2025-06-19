@@ -12,7 +12,6 @@ from .test_constants import (
     AUTH_BASE_URL
 )
 
-
 class TestGitHubCredentialsValid:
     """Verify GitHub OAuth credentials are still valid"""
     

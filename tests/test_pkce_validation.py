@@ -11,7 +11,6 @@ import json
 from urllib.parse import urlparse, parse_qs
 from .test_constants import AUTH_BASE_URL, TEST_CALLBACK_URL
 
-
 class TestPKCEValidation:
     """Test PKCE S256 enforcement per CLAUDE.md requirements"""
     

@@ -7,8 +7,9 @@ import httpx
 import json
 import secrets
 import time
-from jose import jwt
+
 import redis.asyncio as redis
+from .jwt_test_helper import encode as jwt_encode
 from .test_constants import (
     MCP_FETCH_URL,
     MCP_PROTOCOL_VERSION,
@@ -18,7 +19,6 @@ from .test_constants import (
     BASE_DOMAIN,
     REDIS_URL
 )
-
 
 class TestMCPProtocolVersionStrict:
     """Strict MCP Protocol Version validation - MUST match .env exactly!"""
@@ -48,7 +48,7 @@ class TestMCPProtocolVersionStrict:
             }
             
             # Create JWT
-            access_token = jwt.encode(token_claims, JWT_SECRET, algorithm="HS256")
+            access_token = jwt_encode(token_claims, JWT_SECRET, algorithm="HS256")
             
             # Store in Redis
             await redis_client.setex(
@@ -252,7 +252,7 @@ class TestMCPProtocolVersionStrict:
             }
             
             # Create JWT
-            access_token = jwt.encode(token_claims, JWT_SECRET, algorithm="HS256")
+            access_token = jwt_encode(token_claims, JWT_SECRET, algorithm="HS256")
             
             # Store in Redis
             await redis_client.setex(

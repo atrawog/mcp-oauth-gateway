@@ -18,7 +18,6 @@ from .test_constants import (
 )
 from .mcp_helpers import initialize_mcp_session, call_mcp_tool
 
-
 class TestMCPFetchComplete:
     """Test actual MCP fetch functionality - no shortcuts allowed!"""
     
@@ -379,7 +378,6 @@ class TestMCPFetchComplete:
             f"SECURITY VIOLATION! Got {response.status_code} with Basic auth! "
             "MCP fetch MUST only accept Bearer tokens!"
         )
-
 
 @pytest.mark.asyncio
 async def test_complete_oauth_flow_integration(http_client, wait_for_services):
