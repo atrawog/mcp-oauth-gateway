@@ -24,7 +24,8 @@ from .test_constants import (
     TEST_RETRY_DELAY,
     TEST_CALLBACK_URL,
     TEST_CLIENT_NAME,
-    TEST_CLIENT_SCOPE
+    TEST_CLIENT_SCOPE,
+    GATEWAY_OAUTH_ACCESS_TOKEN
 )
 
 # pytest-asyncio handles event loop automatically with asyncio_mode = auto
@@ -62,6 +63,9 @@ async def wait_for_services(http_client: httpx.AsyncClient):
 @pytest.fixture
 async def registered_client(http_client: httpx.AsyncClient, wait_for_services) -> dict:
     """Register a test OAuth client dynamically - no hardcoded values!"""
+    # MUST have OAuth access token - test FAILS if not available
+    assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+    
     # Use test configuration from test_constants - already validated!
     
     registration_data = {
@@ -72,7 +76,8 @@ async def registered_client(http_client: httpx.AsyncClient, wait_for_services) -
     
     response = await http_client.post(
         f"{AUTH_BASE_URL}/register",
-        json=registration_data
+        json=registration_data,
+        headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
     )
     
     assert response.status_code == 201, f"Client registration failed: {response.text}"

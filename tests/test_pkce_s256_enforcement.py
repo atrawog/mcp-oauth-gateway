@@ -7,7 +7,7 @@ import secrets
 import pytest
 import httpx
 from urllib.parse import urlencode
-from .test_constants import AUTH_BASE_URL, TEST_CALLBACK_URL
+from .test_constants import AUTH_BASE_URL, TEST_CALLBACK_URL, GATEWAY_OAUTH_ACCESS_TOKEN
 
 class TestPKCES256Enforcement:
     """Test PKCE S256 enforcement per CLAUDE.md sacred commandments"""
@@ -15,6 +15,10 @@ class TestPKCES256Enforcement:
     @pytest.mark.asyncio
     async def test_pkce_plain_method_rejected(self, http_client, wait_for_services):
         """Verify that plain PKCE method is rejected per CLAUDE.md commandments"""
+        
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        
         # Register a client
         register_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
@@ -22,7 +26,8 @@ class TestPKCES256Enforcement:
                 "redirect_uris": [TEST_CALLBACK_URL],
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"]
-            }
+            },
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         assert register_response.status_code == 201
         client_data = register_response.json()
@@ -55,6 +60,10 @@ class TestPKCES256Enforcement:
     @pytest.mark.asyncio
     async def test_pkce_s256_proper_validation(self, http_client, wait_for_services):
         """Verify S256 PKCE validation actually works correctly"""
+        
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        
         # Register a client
         register_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
@@ -62,7 +71,8 @@ class TestPKCES256Enforcement:
                 "redirect_uris": [TEST_CALLBACK_URL],
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"]
-            }
+            },
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         assert register_response.status_code == 201
         client_data = register_response.json()

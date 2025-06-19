@@ -14,7 +14,8 @@ from .test_constants import (
     TEST_CLIENT_NAME,
     TEST_CLIENT_SCOPE,
     BASE_DOMAIN,
-    MCP_PROTOCOL_VERSIONS_SUPPORTED
+    MCP_PROTOCOL_VERSIONS_SUPPORTED,
+    GATEWAY_OAUTH_ACCESS_TOKEN
 )
 from .mcp_helpers import initialize_mcp_session, call_mcp_tool
 
@@ -31,6 +32,9 @@ class TestMCPFetchComplete:
         4. FAIL if any step doesn't work 100%
         """
         
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        
         # Step 1: Register an OAuth client
         registration_data = {
             "redirect_uris": [TEST_REDIRECT_URI],
@@ -40,7 +44,8 @@ class TestMCPFetchComplete:
         
         reg_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json=registration_data
+            json=registration_data,
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
         # MUST succeed or test fails

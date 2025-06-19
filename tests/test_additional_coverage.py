@@ -60,6 +60,9 @@ class TestAdditionalCoverage:
     async def test_token_endpoint_missing_client_credentials(self, http_client, wait_for_services):
         """Test token endpoint with missing client credentials"""
         
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        
         # First register a client
         registration_data = {
             "redirect_uris": [TEST_REDIRECT_URI],
@@ -69,7 +72,8 @@ class TestAdditionalCoverage:
         
         reg_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json=registration_data
+            json=registration_data,
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
         assert reg_response.status_code == 201

@@ -10,7 +10,7 @@ import json
 import asyncio
 from datetime import datetime
 from pathlib import Path
-from .test_constants import AUTH_BASE_URL, REDIS_URL, BASE_DOMAIN
+from .test_constants import AUTH_BASE_URL, REDIS_URL, BASE_DOMAIN, GATEWAY_OAUTH_ACCESS_TOKEN
 
 class TestSacredSealsCompliance:
     """Test all 25 Sacred Seals for 100% divine compliance"""
@@ -18,6 +18,10 @@ class TestSacredSealsCompliance:
     @pytest.mark.asyncio
     async def test_redis_key_patterns_and_ttls(self, http_client, wait_for_services):
         """Test SEAL OF REDIS PATTERNS - Sacred key hierarchies preserve all state"""
+        
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        
         # Connect to Redis
         redis_client = await redis.from_url(REDIS_URL)
         
@@ -29,7 +33,8 @@ class TestSacredSealsCompliance:
                     "redirect_uris": ["https://example.com/callback"],
                     "grant_types": ["authorization_code"],
                     "response_types": ["code"]
-                }
+                },
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
             )
             assert register_response.status_code == 201
             client_data = register_response.json()
@@ -110,6 +115,10 @@ class TestSacredSealsCompliance:
     @pytest.mark.asyncio
     async def test_dual_realms_architecture(self, http_client, wait_for_services):
         """Test SEAL OF DUAL REALMS - Client auth and user auth never intermingle"""
+        
+        # MUST have OAuth access token - test FAILS if not available
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        
         # Test 1: MCP Gateway Client Realm - External systems authenticate
         client_register = await http_client.post(
             f"{AUTH_BASE_URL}/register",
@@ -118,7 +127,8 @@ class TestSacredSealsCompliance:
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"],
                 "client_name": "Claude.ai MCP Client"
-            }
+            },
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         assert client_register.status_code == 201
         client_data = client_register.json()
