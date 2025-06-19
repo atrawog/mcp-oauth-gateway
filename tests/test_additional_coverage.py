@@ -13,7 +13,7 @@ import time
 from .jwt_test_helper import encode as jwt_encode
 from .test_constants import (
     AUTH_BASE_URL,
-    JWT_SECRET,
+    GATEWAY_JWT_SECRET,
     TEST_REDIRECT_URI,
     TEST_CLIENT_NAME,
     TEST_CLIENT_SCOPE,
@@ -185,7 +185,7 @@ class TestAdditionalCoverage:
         
         assert response.status_code == 401
         error = response.json()
-        assert "Signature verification failed" in error["detail"]["error_description"]
+        assert "Token invalid, expired, or revoked" in error["detail"]["error_description"]
     
     @pytest.mark.asyncio 
     async def test_authorize_endpoint_missing_parameters(self, http_client, wait_for_services, registered_client):

@@ -12,8 +12,8 @@ from urllib.parse import urlparse, parse_qs
 from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, MCP_PROTOCOL_VERSION, TEST_REDIRECT_URI
 
 # OAuth client credentials from .env - optional for these tests
-OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
-OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET")
+GATEWAY_OAUTH_CLIENT_ID = os.getenv("GATEWAY_GATEWAY_OAUTH_CLIENT_ID")
+GATEWAY_OAUTH_CLIENT_SECRET = os.getenv("GATEWAY_GATEWAY_OAUTH_CLIENT_SECRET")
 
 class TestFullOAuthFlow:
     """Test complete OAuth flow with real authentication"""
@@ -23,8 +23,8 @@ class TestFullOAuthFlow:
         """Test accessing MCP endpoint with valid OAuth token"""
         
         # First, verify we have the required credentials
-        assert OAUTH_CLIENT_ID, "OAUTH_CLIENT_ID not found in .env"
-        assert OAUTH_CLIENT_SECRET, "OAUTH_CLIENT_SECRET not found in .env"
+        assert GATEWAY_OAUTH_CLIENT_ID, "GATEWAY_GATEWAY_OAUTH_CLIENT_ID not found in .env"
+        assert GATEWAY_OAUTH_CLIENT_SECRET, "GATEWAY_GATEWAY_OAUTH_CLIENT_SECRET not found in .env"
         
         async with httpx.AsyncClient() as client:
             # Step 1: Try to access MCP endpoint without auth
@@ -61,8 +61,8 @@ class TestFullOAuthFlow:
         """Test that our registered client credentials are valid"""
         
         # Fail with clear error if credentials not available
-        if not OAUTH_CLIENT_ID or not OAUTH_CLIENT_SECRET:
-            pytest.fail("ERROR: OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials.")
+        if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
+            pytest.fail("ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials.")
         
         async with httpx.AsyncClient() as client:
             # Test that client exists by attempting to start auth flow
@@ -75,7 +75,7 @@ class TestFullOAuthFlow:
             response = await client.get(
                 f"{AUTH_BASE_URL}/authorize",
                 params={
-                    "client_id": OAUTH_CLIENT_ID,
+                    "client_id": GATEWAY_OAUTH_CLIENT_ID,
                     "redirect_uri": TEST_REDIRECT_URI,  # Use REAL registered redirect URI
                     "response_type": "code",
                     "state": "test_state",
@@ -89,7 +89,7 @@ class TestFullOAuthFlow:
             if response.status_code == 400:
                 error = response.json()
                 if error.get("detail", {}).get("error") == "invalid_client":
-                    pytest.fail(f"ERROR: OAuth client {OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials.")
+                    pytest.fail(f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials.")
             
             # Should redirect to GitHub OAuth (means client is valid)
             assert response.status_code in [302, 307]
@@ -101,8 +101,8 @@ class TestFullOAuthFlow:
         """Test token endpoint accepts our client credentials"""
         
         # Fail with clear error if credentials not available
-        if not OAUTH_CLIENT_ID or not OAUTH_CLIENT_SECRET:
-            pytest.fail("ERROR: OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials.")
+        if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
+            pytest.fail("ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials.")
         
         async with httpx.AsyncClient() as client:
             # Test that token endpoint validates client credentials properly
@@ -111,8 +111,8 @@ class TestFullOAuthFlow:
                 data={
                     "grant_type": "authorization_code",
                     "code": "invalid_authorization_code",  # Will fail, but tests client auth
-                    "client_id": OAUTH_CLIENT_ID,
-                    "client_secret": OAUTH_CLIENT_SECRET,
+                    "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                    "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
                     "redirect_uri": TEST_REDIRECT_URI  # Use REAL registered redirect URI
                 }
             )
@@ -121,7 +121,7 @@ class TestFullOAuthFlow:
             if response.status_code == 401:
                 error = response.json()
                 if error.get("detail", {}).get("error") == "invalid_client":
-                    pytest.fail(f"ERROR: OAuth client {OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials.")
+                    pytest.fail(f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials.")
             
             # Should get 400 Bad Request (invalid_grant) not 401 (invalid_client)
             # This proves our client credentials are valid

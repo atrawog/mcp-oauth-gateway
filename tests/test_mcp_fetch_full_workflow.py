@@ -20,7 +20,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     """
     
     # Get REAL OAuth token
-    oauth_token = os.getenv("OAUTH_ACCESS_TOKEN")
+    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if not oauth_token:
         pytest.fail("This test REQUIRES a REAL OAuth token! Run: just generate-github-token")
     
@@ -115,7 +115,7 @@ async def test_mcp_fetch_unauthorized_fails(http_client, wait_for_services):
 async def test_oauth_token_validation(http_client, wait_for_services):
     """Verify the OAuth token is properly validated by the auth service"""
     
-    oauth_token = os.getenv("OAUTH_ACCESS_TOKEN")
+    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if not oauth_token:
         pytest.skip("No OAuth token available")
     

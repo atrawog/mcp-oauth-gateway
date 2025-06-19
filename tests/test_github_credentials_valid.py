@@ -52,12 +52,12 @@ class TestGitHubCredentialsValid:
     
     @pytest.mark.asyncio
     async def test_oauth_client_credentials_valid(self):
-        """Test if OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET are still valid"""
-        oauth_client_id = os.getenv("OAUTH_CLIENT_ID")
-        oauth_client_secret = os.getenv("OAUTH_CLIENT_SECRET")
+        """Test if GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET are still valid"""
+        oauth_client_id = os.getenv("GATEWAY_OAUTH_CLIENT_ID")
+        oauth_client_secret = os.getenv("GATEWAY_OAUTH_CLIENT_SECRET")
         
         if not oauth_client_id or not oauth_client_secret:
-            pytest.skip("OAUTH_CLIENT_ID or OAUTH_CLIENT_SECRET not set - skipping OAuth validation")
+            pytest.skip("GATEWAY_OAUTH_CLIENT_ID or GATEWAY_OAUTH_CLIENT_SECRET not set - skipping OAuth validation")
         
         # These are our dynamically registered credentials - verify they work
         # We can't directly verify them without a full OAuth flow, but we can
@@ -73,12 +73,12 @@ class TestGitHubCredentialsValid:
         # Client secret should be a reasonable length
         if len(oauth_client_secret) < 20:
             pytest.fail(
-                f"OAUTH_CLIENT_SECRET seems too short ({len(oauth_client_secret)} chars). "
+                f"GATEWAY_OAUTH_CLIENT_SECRET seems too short ({len(oauth_client_secret)} chars). "
                 "Run 'just generate-github-token' to register a new client."
             )
         
-        print(f"✅ OAUTH_CLIENT_ID format valid: {oauth_client_id}")
-        print(f"✅ OAUTH_CLIENT_SECRET format valid: {len(oauth_client_secret)} chars")
+        print(f"✅ GATEWAY_OAUTH_CLIENT_ID format valid: {oauth_client_id}")
+        print(f"✅ GATEWAY_OAUTH_CLIENT_SECRET format valid: {len(oauth_client_secret)} chars")
     
     @pytest.mark.asyncio
     async def test_github_oauth_app_valid(self, wait_for_services):

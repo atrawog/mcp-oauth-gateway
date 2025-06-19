@@ -5,9 +5,9 @@ import os
 import sys
 
 # Get OAuth token from environment
-oauth_token = os.getenv("OAUTH_ACCESS_TOKEN")
+oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
 if not oauth_token:
-    print("ERROR: No OAUTH_ACCESS_TOKEN found in environment")
+    print("ERROR: No GATEWAY_OAUTH_ACCESS_TOKEN found in environment")
     sys.exit(1)
 
 base_url = "https://mcp-fetch.atradev.org"

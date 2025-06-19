@@ -16,7 +16,7 @@ from .test_constants import (
     TEST_REDIRECT_URI,
     TEST_CLIENT_NAME,
     TEST_CLIENT_SCOPE,
-    JWT_SECRET,
+    GATEWAY_JWT_SECRET,
     ACCESS_TOKEN_LIFETIME,
     BASE_DOMAIN
 )
@@ -31,9 +31,9 @@ class TestMCPFetchIntegration:
         import os
         
         # Get REAL OAuth token from environment
-        oauth_token = os.getenv("OAUTH_ACCESS_TOKEN")
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
         if not oauth_token:
-            pytest.skip("No OAUTH_ACCESS_TOKEN available - run: just generate-github-token")
+            pytest.skip("No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token")
         
         # Test 1: Verify unauthenticated requests are rejected
         response = await http_client.post(

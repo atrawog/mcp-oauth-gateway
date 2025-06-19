@@ -9,7 +9,7 @@ import hashlib
 import base64
 import json
 from urllib.parse import urlparse, parse_qs
-from .test_constants import AUTH_BASE_URL, TEST_CALLBACK_URL, TEST_CLIENT_NAME, TEST_CLIENT_SCOPE, TEST_INVALID_REDIRECT_URI
+from .test_constants import AUTH_BASE_URL, TEST_CALLBACK_URL, TEST_CLIENT_NAME, TEST_CLIENT_SCOPE, TEST_INVALID_REDIRECT_URI, GATEWAY_OAUTH_ACCESS_TOKEN
 
 class TestOAuthFlow:
     """Test the complete OAuth 2.1 flow"""
@@ -36,6 +36,10 @@ class TestOAuthFlow:
     @pytest.mark.asyncio
     async def test_client_registration_rfc7591(self, http_client, wait_for_services):
         """Test dynamic client registration per RFC 7591"""
+        # Skip test if no OAuth access token available
+        if not GATEWAY_OAUTH_ACCESS_TOKEN:
+            pytest.skip("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token")
+        
         # Test successful registration
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
@@ -47,7 +51,8 @@ class TestOAuthFlow:
         
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json=registration_data
+            json=registration_data,
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
         assert response.status_code == 201  # MUST return 201 Created
@@ -63,14 +68,15 @@ class TestOAuthFlow:
         assert client["client_name"] == registration_data["client_name"]
         assert client["client_uri"] == registration_data["client_uri"]
         
-        # Test missing redirect_uris
+        # Test missing redirect_uris (with proper authentication)
         invalid_data = {"client_name": "Invalid Client"}
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json=invalid_data
+            json=invalid_data,
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
-        assert response.status_code == 422  # FastAPI returns 422 for validation errors
+        assert response.status_code == 422  # FastAPI validation error for missing required fields
         error = response.json()
         assert "detail" in error  # FastAPI error format
     

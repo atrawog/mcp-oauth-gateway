@@ -215,8 +215,7 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
     console.print("\n[cyan]OAuth Token Status Check[/cyan]")
     console.print("=" * 40)
     
-    # Load existing credentials
-    settings.load_credentials()
+    # NO CREDENTIAL FILES! Everything comes from .env!
     
     # Check if OAuth endpoints are discovered
     if not settings.oauth_token_url:
@@ -378,12 +377,19 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
     
     console.print("\n[green]🎉 All token checks passed![/green]")
     
-    # Show credential storage info
-    if settings.credential_storage_path.exists():
-        import os
-        stat_info = os.stat(settings.credential_storage_path)
-        console.print(f"\n[dim]Credentials stored in: {settings.credential_storage_path}[/dim]")
-        console.print(f"[dim]Permissions: {oct(stat_info.st_mode)[-3:]}[/dim]")
+    # Print MCP client environment variables in a format that can be captured
+    # Only output credentials, not endpoints (which are auto-discovered)
+    print("\n# MCP Client Environment Variables")
+    print(f"export MCP_CLIENT_ACCESS_TOKEN={settings.oauth_access_token}")
+    if settings.oauth_refresh_token and settings.oauth_refresh_token != "None":
+        print(f"export MCP_CLIENT_REFRESH_TOKEN={settings.oauth_refresh_token}")
+    if settings.oauth_client_id:
+        print(f"export MCP_CLIENT_ID={settings.oauth_client_id}")
+    if settings.oauth_client_secret:
+        print(f"export MCP_CLIENT_SECRET={settings.oauth_client_secret}")
+    
+    # Print success message
+    console.print(f"\n[dim]MCP client credentials ready for export[/dim]")
 
 
 async def execute_mcp_command(settings: Settings, command: str) -> None:

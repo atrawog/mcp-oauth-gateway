@@ -26,6 +26,61 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         """Dependency to get Redis client"""
         return redis_manager.client
     
+    async def verify_github_user_auth(request: Request) -> str:
+        """Dependency to verify GitHub user authentication for admin operations"""
+        # Check if user has valid session from GitHub OAuth
+        auth_header = request.headers.get("Authorization", "")
+        
+        if not auth_header.startswith("Bearer "):
+            # No auth - initiate GitHub OAuth flow
+            raise HTTPException(
+                status_code=401,
+                detail={
+                    "error": "authorization_required",
+                    "error_description": "GitHub authentication required for client registration",
+                    "authorization_endpoint": f"https://auth.{settings.base_domain}/authorize"
+                },
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        
+        token = auth_header[7:]  # Remove "Bearer " prefix
+        
+        # Verify token and get user info
+        payload = await auth_manager.verify_jwt_token(token, redis_manager.client)
+        
+        if not payload:
+            raise HTTPException(
+                status_code=401,
+                detail={
+                    "error": "invalid_token",
+                    "error_description": "Invalid or expired token"
+                },
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        
+        # Check if user is in allowed list
+        username = payload.get("username")
+        if not username:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": "access_denied",
+                    "error_description": "No username in token"
+                }
+            )
+        
+        allowed_users = settings.allowed_github_users.split(",") if settings.allowed_github_users else []
+        if allowed_users and username not in allowed_users:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": "access_denied",
+                    "error_description": f"User '{username}' not authorized for client registration"
+                }
+            )
+        
+        return username
+    
     # .well-known/oauth-authorization-server endpoint (RFC 8414)
     @router.get("/.well-known/oauth-authorization-server")
     async def oauth_metadata():
@@ -49,13 +104,14 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "introspection_endpoint": f"{base_url}/introspect"
         }
     
-    # Dynamic Client Registration endpoint (RFC 7591)
+    # Dynamic Client Registration endpoint (RFC 7591) - GITHUB USER PROTECTED
     @router.post("/register", status_code=201)
     async def register_client(
         registration: ClientRegistration,
-        redis_client: redis.Redis = Depends(get_redis)
+        redis_client: redis.Redis = Depends(get_redis),
+        github_username: str = Depends(verify_github_user_auth)
     ):
-        """The Divine Registration Portal - RFC 7591 compliant"""
+        """The Divine Registration Portal - RFC 7591 compliant - GITHUB USER PROTECTED"""
         
         # Validate redirect URIs
         if not registration.redirect_uris:
@@ -493,25 +549,6 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             }
         )
         
-    # Revocation endpoint (RFC 7009)
-    @router.post("/revoke")
-    async def revoke_token(
-        token: str = Form(...),
-        token_type_hint: Optional[str] = Form(None),
-        redis_client: redis.Redis = Depends(get_redis)
-    ):
-        """Token banishment altar - implements RFC 7009 token revocation"""
-        
-        try:
-            raise HTTPException(
-                status_code=401,
-                detail={
-                    "error": "invalid_token",
-                    "error_description": str(e)
-                },
-                headers={"WWW-Authenticate": "Bearer"}
-            )
-    
     # Token revocation endpoint (RFC 7009)
     @router.post("/revoke")
     async def revoke_token(

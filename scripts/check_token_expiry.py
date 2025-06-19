@@ -59,18 +59,18 @@ def main():
     all_valid = True
     
     # Check OAuth Access Token
-    oauth_token = os.getenv("OAUTH_ACCESS_TOKEN")
+    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if oauth_token:
-        if not check_jwt_expiry("OAUTH_ACCESS_TOKEN", oauth_token):
+        if not check_jwt_expiry("GATEWAY_OAUTH_ACCESS_TOKEN", oauth_token):
             all_valid = False
     else:
-        print("❌ OAUTH_ACCESS_TOKEN not found in environment")
+        print("❌ GATEWAY_OAUTH_ACCESS_TOKEN not found in environment")
         all_valid = False
     
     # Check other tokens that might exist
-    oauth_jwt = os.getenv("OAUTH_JWT_TOKEN")
+    oauth_jwt = os.getenv("GATEWAY_JWT_SECRET")
     if oauth_jwt:
-        if not check_jwt_expiry("OAUTH_JWT_TOKEN", oauth_jwt):
+        if not check_jwt_expiry("GATEWAY_JWT_SECRET", oauth_jwt):
             all_valid = False
     
     print("\n" + "=" * 50)

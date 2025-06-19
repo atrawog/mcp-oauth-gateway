@@ -1,15 +1,13 @@
-"""OAuth client implementation with device flow support."""
+"""OAuth client implementation using Authlib."""
 import asyncio
-import json
 import logging
 import secrets
-import time
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, Tuple
-from urllib.parse import urlencode
+from typing import Dict, Any, Optional
+from urllib.parse import urlparse
 
 import httpx
-from jose import jwt
+from authlib.integrations.httpx_client import AsyncOAuth2Client
 from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -21,17 +19,69 @@ console = Console()
 
 
 class OAuthClient:
-    """OAuth 2.0 client with device flow and dynamic registration support."""
+    """OAuth 2.0 client using Authlib."""
     
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.client = httpx.AsyncClient(verify=settings.verify_ssl)
+        self.http_client = httpx.AsyncClient(verify=settings.verify_ssl)
+        self.oauth_client = None
+        self._setup_oauth_client()
+        
+    def _setup_oauth_client(self):
+        """Initialize Authlib OAuth client with current settings."""
+        if self.settings.oauth_client_id:
+            self.oauth_client = AsyncOAuth2Client(
+                client_id=self.settings.oauth_client_id,
+                client_secret=self.settings.oauth_client_secret,
+                token_endpoint=self.settings.oauth_token_url,
+                authorization_endpoint=self.settings.oauth_authorization_url,
+                token=self._get_current_token(),
+                update_token=self._update_token
+            )
+    
+    def _get_current_token(self) -> Optional[Dict[str, Any]]:
+        """Get current token in Authlib format."""
+        if not self.settings.oauth_access_token:
+            return None
+        
+        token = {
+            "access_token": self.settings.oauth_access_token,
+            "token_type": "Bearer"
+        }
+        
+        if self.settings.oauth_refresh_token:
+            token["refresh_token"] = self.settings.oauth_refresh_token
+        
+        if self.settings.oauth_token_expires_at:
+            token["expires_at"] = self.settings.oauth_token_expires_at.timestamp()
+        
+        return token
+    
+    def _update_token(self, token: Dict[str, Any]) -> None:
+        """Update token callback for Authlib."""
+        self.settings.oauth_access_token = token["access_token"]
+        
+        if "refresh_token" in token:
+            self.settings.oauth_refresh_token = token["refresh_token"]
+        
+        # Calculate expiration time
+        if "expires_at" in token:
+            self.settings.oauth_token_expires_at = datetime.fromtimestamp(token["expires_at"])
+        elif "expires_in" in token:
+            self.settings.oauth_token_expires_at = datetime.utcnow() + timedelta(seconds=token["expires_in"])
+        
+        # Update settings to reflect new values
+        self.settings.oauth_access_token = token['access_token']
+        if "refresh_token" in token:
+            self.settings.oauth_refresh_token = token['refresh_token']
         
     async def __aenter__(self):
         return self
         
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.client.aclose()
+        await self.http_client.aclose()
+        if self.oauth_client:
+            await self.oauth_client.aclose()
     
     async def ensure_authenticated(self) -> str:
         """
@@ -40,8 +90,7 @@ class OAuthClient:
         Returns:
             str: Valid access token
         """
-        # Load any stored credentials
-        self.settings.load_credentials()
+        # NO CREDENTIAL FILES! Everything comes from .env as commanded!
         
         # Discover OAuth endpoints if not already discovered
         if not self.settings.oauth_token_url:
@@ -54,7 +103,7 @@ class OAuthClient:
             return self.settings.oauth_access_token
         
         # Check if we need to refresh token
-        if self.settings.oauth_refresh_token and not self.settings.has_valid_credentials():
+        if self.settings.oauth_refresh_token:
             logger.info("Access token expired, attempting refresh")
             try:
                 await self.refresh_token()
@@ -71,12 +120,16 @@ class OAuthClient:
             console.print("Registering OAuth client...")
             await self.register_client()
         
-        # Perform device flow authentication
-        console.print("Starting device authorization flow...")
-        await self.device_flow_auth()
+        # Setup OAuth client after registration
+        self._setup_oauth_client()
         
-        # Save credentials for future use
-        self.settings.save_credentials()
+        # Perform authentication flow
+        if self.settings.oauth_device_auth_url:
+            console.print("Starting device authorization flow...")
+            await self.device_flow_auth()
+        else:
+            console.print("Starting authorization code flow...")
+            await self.manual_auth_flow()
         
         return self.settings.oauth_access_token
     
@@ -90,15 +143,17 @@ class OAuthClient:
         
         registration_data = {
             "client_name": self.settings.client_name,
-            "client_version": self.settings.client_version,
-            "grant_types": ["urn:ietf:params:oauth:grant-type:device_code", "refresh_token"],
+            "application_type": "native",
+            "grant_types": ["authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:device_code"],
             "response_types": ["code"],
-            "scope": "read write",
-            "token_endpoint_auth_method": "client_secret_basic"
+            "redirect_uris": ["urn:ietf:wg:oauth:2.0:oob"],
+            "token_endpoint_auth_method": "client_secret_post",
+            "scope": "read write"
         }
         
         try:
-            response = await self.client.post(
+            # Perform client registration
+            response = await self.http_client.post(
                 self.settings.oauth_registration_url,
                 json=registration_data,
                 headers={"Content-Type": "application/json"}
@@ -112,45 +167,39 @@ class OAuthClient:
             console.print(f"[green]✓[/green] Client registered: {data['client_id']}")
             logger.info(f"Registered OAuth client: {data['client_id']}")
             
+            # Client credentials are now set in settings
+            
         except httpx.HTTPError as e:
             logger.error(f"Client registration failed: {e}")
             raise RuntimeError(f"Failed to register OAuth client: {e}")
     
     async def device_flow_auth(self) -> None:
-        """Perform OAuth device flow authentication."""
-        if not self.settings.oauth_device_auth_url:
-            # Fall back to authorization code flow with manual steps
-            await self.manual_auth_flow()
-            return
-        
-        if not self.settings.oauth_token_url:
-            raise ValueError("OAuth token endpoint not discovered")
+        """Perform OAuth device flow authentication using Authlib."""
+        if not self.oauth_client:
+            raise ValueError("OAuth client not initialized")
         
         # Step 1: Request device code
-        device_data = await self.request_device_code()
+        device_data = await self._request_device_code()
         
         # Step 2: Display user code and instructions
-        self.display_device_code(device_data)
+        self._display_device_code(device_data)
         
         # Step 3: Poll for authorization
-        await self.poll_for_token(device_data)
+        await self._poll_for_device_token(device_data)
     
-    async def request_device_code(self) -> Dict[str, Any]:
-        """Request a device code from the authorization server."""
-        data = {
-            "client_id": self.settings.oauth_client_id,
-            "scope": "read write"
-        }
-        
-        response = await self.client.post(
+    async def _request_device_code(self) -> Dict[str, Any]:
+        """Request device code using Authlib."""
+        response = await self.http_client.post(
             self.settings.oauth_device_auth_url,
-            data=data
+            data={
+                "client_id": self.settings.oauth_client_id,
+                "scope": "read write"
+            }
         )
         response.raise_for_status()
-        
         return response.json()
     
-    def display_device_code(self, device_data: Dict[str, Any]) -> None:
+    def _display_device_code(self, device_data: Dict[str, Any]) -> None:
         """Display device code and instructions to user."""
         user_code = device_data.get("user_code", "")
         verification_uri = device_data.get("verification_uri", "")
@@ -164,22 +213,13 @@ class OAuthClient:
         ))
         console.print("\n")
     
-    async def poll_for_token(self, device_data: Dict[str, Any]) -> None:
-        """Poll authorization server for access token."""
+    async def _poll_for_device_token(self, device_data: Dict[str, Any]) -> None:
+        """Poll for device authorization token."""
         device_code = device_data["device_code"]
         interval = device_data.get("interval", 5)
         expires_in = device_data.get("expires_in", 600)
         
-        data = {
-            "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
-            "device_code": device_code,
-            "client_id": self.settings.oauth_client_id
-        }
-        
-        if self.settings.oauth_client_secret:
-            data["client_secret"] = self.settings.oauth_client_secret
-        
-        start_time = time.time()
+        start_time = asyncio.get_event_loop().time()
         
         with Progress(
             SpinnerColumn(),
@@ -188,16 +228,22 @@ class OAuthClient:
         ) as progress:
             task = progress.add_task("Waiting for authorization...", total=None)
             
-            while time.time() - start_time < expires_in:
+            while asyncio.get_event_loop().time() - start_time < expires_in:
                 try:
-                    response = await self.client.post(
+                    # Poll for token
+                    response = await self.http_client.post(
                         self.settings.oauth_token_url,
-                        data=data
+                        data={
+                            "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+                            "device_code": device_code,
+                            "client_id": self.settings.oauth_client_id,
+                            "client_secret": self.settings.oauth_client_secret
+                        }
                     )
                     
                     if response.status_code == 200:
                         token_data = response.json()
-                        self.save_tokens(token_data)
+                        self._update_token(token_data)
                         progress.update(task, description="[green]✓[/green] Authorization successful!")
                         console.print("\n[green]Authentication completed successfully![/green]")
                         return
@@ -206,14 +252,11 @@ class OAuthClient:
                     error = error_data.get("error", "")
                     
                     if error == "authorization_pending":
-                        # Still waiting for user authorization
                         await asyncio.sleep(interval)
                     elif error == "slow_down":
-                        # Increase polling interval
                         interval += 5
                         await asyncio.sleep(interval)
                     else:
-                        # Other error
                         raise RuntimeError(f"Device flow error: {error}")
                         
                 except httpx.HTTPError as e:
@@ -223,26 +266,27 @@ class OAuthClient:
         raise RuntimeError("Device authorization timed out")
     
     async def manual_auth_flow(self) -> None:
-        """Fallback manual authorization flow."""
+        """Fallback manual authorization flow with PKCE."""
         if not self.settings.oauth_authorization_url:
-            raise ValueError(
-                "OAuth server does not support device flow or authorization code flow. "
-                "Please check server configuration."
-            )
+            raise ValueError("OAuth server does not support authorization code flow")
         
-        # Generate PKCE values
+        # Use Authlib's PKCE support
         code_verifier = secrets.token_urlsafe(64)
         
-        # Build authorization URL
-        auth_params = {
-            "response_type": "code",
-            "client_id": self.settings.oauth_client_id,
-            "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
-            "scope": "read write",
-            "state": secrets.token_urlsafe(16)
-        }
+        if not self.oauth_client:
+            # Create temporary client for auth flow
+            self.oauth_client = AsyncOAuth2Client(
+                client_id=self.settings.oauth_client_id,
+                client_secret=self.settings.oauth_client_secret,
+                redirect_uri="urn:ietf:wg:oauth:2.0:oob"
+            )
         
-        auth_url = f"{self.settings.oauth_authorization_url}?{urlencode(auth_params)}"
+        # Generate authorization URL with PKCE
+        auth_url, state = self.oauth_client.create_authorization_url(
+            self.settings.oauth_authorization_url,
+            scope="read write",
+            code_verifier=code_verifier
+        )
         
         console.print("\n")
         console.print(Panel.fit(
@@ -255,121 +299,47 @@ class OAuthClient:
         console.print("\n")
         auth_code = console.input("[bold cyan]Enter authorization code:[/bold cyan] ")
         
-        # Exchange code for token
-        await self.exchange_code_for_token(auth_code, code_verifier)
-    
-    async def exchange_code_for_token(self, code: str, code_verifier: str) -> None:
-        """Exchange authorization code for access token."""
-        data = {
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
-            "client_id": self.settings.oauth_client_id,
-            "code_verifier": code_verifier
-        }
-        
-        if self.settings.oauth_client_secret:
-            data["client_secret"] = self.settings.oauth_client_secret
-        
-        response = await self.client.post(
+        # Exchange code for token using Authlib
+        token = await self.oauth_client.fetch_token(
             self.settings.oauth_token_url,
-            data=data
+            code=auth_code,
+            code_verifier=code_verifier
         )
-        response.raise_for_status()
         
-        token_data = response.json()
-        self.save_tokens(token_data)
-        
+        self._update_token(token)
         console.print("[green]✓[/green] Token exchange successful!")
     
     async def refresh_token(self) -> None:
-        """Refresh the access token using refresh token."""
+        """Refresh the access token using Authlib."""
         if not self.settings.oauth_refresh_token:
             raise ValueError("No refresh token available")
         
-        if not self.settings.oauth_token_url:
-            raise ValueError("OAuth token endpoint not discovered")
+        if not self.oauth_client:
+            self._setup_oauth_client()
         
-        data = {
-            "grant_type": "refresh_token",
-            "refresh_token": self.settings.oauth_refresh_token,
-            "client_id": self.settings.oauth_client_id
-        }
-        
-        if self.settings.oauth_client_secret:
-            data["client_secret"] = self.settings.oauth_client_secret
-        
-        response = await self.client.post(
+        # Use Authlib's refresh token support
+        token = await self.oauth_client.refresh_token(
             self.settings.oauth_token_url,
-            data=data
+            refresh_token=self.settings.oauth_refresh_token
         )
-        response.raise_for_status()
         
-        token_data = response.json()
-        self.save_tokens(token_data)
-        
+        self._update_token(token)
         logger.info("Successfully refreshed access token")
     
-    def save_tokens(self, token_data: Dict[str, Any]) -> None:
-        """Save tokens from OAuth response."""
-        self.settings.oauth_access_token = token_data["access_token"]
-        
-        if "refresh_token" in token_data:
-            self.settings.oauth_refresh_token = token_data["refresh_token"]
-        
-        # Calculate expiration time
-        expires_in = token_data.get("expires_in", 3600)
-        self.settings.oauth_token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
-        
-        # Save to persistent storage
-        self.settings.save_credentials()
-    
     async def discover_oauth_configuration(self) -> None:
-        """Discover OAuth configuration from the MCP server."""
-        # First, try to get OAuth info from MCP server's auth challenge
-        auth_info = await self._probe_mcp_auth_requirements()
+        """Discover OAuth configuration from well-known endpoint."""
+        # Try to find OAuth metadata URL
+        metadata_url = await self._find_oauth_metadata_url()
         
-        if auth_info and "oauth_metadata_url" in auth_info:
-            # Use the metadata URL from auth challenge
-            metadata_url = auth_info["oauth_metadata_url"]
-        else:
-            # Try well-known location based on issuer
-            if auth_info and "issuer" in auth_info:
-                issuer = auth_info["issuer"].rstrip("/")
-                metadata_url = f"{issuer}/.well-known/oauth-authorization-server"
-            else:
-                # Extract base domain from MCP URL and try common patterns
-                from urllib.parse import urlparse
-                parsed = urlparse(self.settings.mcp_server_url)
-                base_url = f"{parsed.scheme}://{parsed.netloc}"
-                
-                # Try different well-known locations
-                candidates = [
-                    f"{base_url}/.well-known/oauth-authorization-server",
-                    f"{base_url}/.well-known/openid-configuration",
-                    f"{base_url.replace('mcp-', 'auth-')}/.well-known/oauth-authorization-server",
-                    f"{parsed.scheme}://auth.{parsed.netloc}/.well-known/oauth-authorization-server",
-                ]
-                
-                metadata_url = None
-                for candidate in candidates:
-                    try:
-                        response = await self.client.get(candidate)
-                        if response.status_code == 200:
-                            metadata_url = candidate
-                            break
-                    except Exception:
-                        continue
-                
-                if not metadata_url:
-                    raise RuntimeError(
-                        "Could not discover OAuth configuration. "
-                        "Please check if the server supports OAuth 2.0 metadata discovery."
-                    )
+        if not metadata_url:
+            raise RuntimeError(
+                "Could not discover OAuth configuration. "
+                "Please check if the server supports OAuth 2.0 metadata discovery."
+            )
         
         # Fetch metadata
         try:
-            response = await self.client.get(metadata_url)
+            response = await self.http_client.get(metadata_url)
             response.raise_for_status()
             metadata = response.json()
             
@@ -385,73 +355,42 @@ class OAuthClient:
             if not self.settings.oauth_token_url:
                 raise ValueError("OAuth metadata missing required token_endpoint")
             
-            if not self.settings.oauth_authorization_url and not self.settings.oauth_device_auth_url:
-                raise ValueError("OAuth metadata missing both authorization_endpoint and device_authorization_endpoint")
-            
             console.print(f"[green]✓[/green] Discovered OAuth configuration from {metadata_url}")
             logger.info(f"OAuth endpoints discovered: issuer={self.settings.oauth_issuer}")
             
-            # Save discovered endpoints for offline use
-            self.settings.save_credentials()
+            # Endpoints are discovered and set in settings (not persisted)
             
         except Exception as e:
-            logger.error(f"Failed to discover OAuth metadata from {metadata_url}: {e}")
+            logger.error(f"Failed to discover OAuth metadata: {e}")
             raise RuntimeError(f"OAuth discovery failed: {e}")
     
-    async def _probe_mcp_auth_requirements(self) -> Optional[Dict[str, Any]]:
-        """Probe MCP server to discover auth requirements from 401 response."""
-        try:
-            # Make unauthenticated request to trigger 401
-            response = await self.client.post(
-                self.settings.mcp_server_url,
-                json={
-                    "jsonrpc": "2.0",
-                    "method": "initialize",
-                    "params": {
-                        "protocolVersion": "2025-06-18",
-                        "capabilities": {},
-                        "clientInfo": {
-                            "name": self.settings.client_name,
-                            "version": self.settings.client_version
-                        }
-                    },
-                    "id": "probe-auth"
-                },
-                headers={"Content-Type": "application/json"}
-            )
-            
-            if response.status_code == 401:
-                # Parse WWW-Authenticate header
-                www_auth = response.headers.get("WWW-Authenticate", "")
-                auth_info = self._parse_www_authenticate(www_auth)
-                
-                # Also check for Link header with metadata
-                link_header = response.headers.get("Link", "")
-                if "rel=\"oauth-authorization-server\"" in link_header:
-                    # Extract URL from Link header
-                    import re
-                    match = re.search(r'<([^>]+)>.*rel="oauth-authorization-server"', link_header)
-                    if match:
-                        auth_info["oauth_metadata_url"] = match.group(1)
-                
-                return auth_info
-                
-        except Exception as e:
-            logger.debug(f"Auth probe failed: {e}")
+    async def _find_oauth_metadata_url(self) -> Optional[str]:
+        """Find OAuth metadata URL by trying various locations."""
+        parsed = urlparse(self.settings.mcp_server_url)
+        base_url = f"{parsed.scheme}://{parsed.netloc}"
+        
+        # Try OAuth discovery on the same domain first (now that it's fixed!)
+        candidates = [
+            f"{base_url}/.well-known/oauth-authorization-server",
+            f"{base_url}/.well-known/openid-configuration",
+        ]
+        
+        # Also try auth subdomain as fallback
+        if not parsed.netloc.startswith("auth."):
+            domain_parts = parsed.netloc.split(".", 1)
+            if len(domain_parts) > 1:
+                auth_domain = f"auth.{domain_parts[1]}"
+                candidates.extend([
+                    f"{parsed.scheme}://{auth_domain}/.well-known/oauth-authorization-server",
+                    f"{parsed.scheme}://{auth_domain}/.well-known/openid-configuration",
+                ])
+        
+        for candidate in candidates:
+            try:
+                response = await self.http_client.get(candidate)
+                if response.status_code == 200:
+                    return candidate
+            except Exception:
+                continue
         
         return None
-    
-    def _parse_www_authenticate(self, header: str) -> Dict[str, str]:
-        """Parse WWW-Authenticate header for OAuth parameters."""
-        auth_info = {}
-        
-        # Basic parsing of Bearer auth-param format
-        if header.startswith("Bearer "):
-            params_str = header[7:]
-            # Parse key="value" pairs
-            import re
-            for match in re.finditer(r'(\w+)="([^"]+)"', params_str):
-                key, value = match.groups()
-                auth_info[key] = value
-        
-        return auth_info

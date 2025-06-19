@@ -131,8 +131,8 @@ async def main():
     all_valid = True
     
     # Check OAuth Access Token
-    print("\n📋 Checking OAUTH_ACCESS_TOKEN...")
-    oauth_token = check_env_var("OAUTH_ACCESS_TOKEN")
+    print("\n📋 Checking GATEWAY_OAUTH_ACCESS_TOKEN...")
+    oauth_token = check_env_var("GATEWAY_OAUTH_ACCESS_TOKEN")
     if oauth_token:
         payload = decode_jwt_token(oauth_token)
         if payload:
@@ -168,8 +168,8 @@ async def main():
     
     # Check OAuth Client Credentials
     print("\n📋 Checking OAuth Client Credentials...")
-    client_id = check_env_var("OAUTH_CLIENT_ID")
-    client_secret = check_env_var("OAUTH_CLIENT_SECRET")
+    client_id = check_env_var("GATEWAY_OAUTH_CLIENT_ID")
+    client_secret = check_env_var("GATEWAY_OAUTH_CLIENT_SECRET")
     
     if client_id and client_secret:
         print(f"✅ OAuth client credentials present")
@@ -180,8 +180,8 @@ async def main():
         all_valid = False
     
     # Check Refresh Token
-    print("\n📋 Checking OAUTH_REFRESH_TOKEN...")
-    refresh_token = check_env_var("OAUTH_REFRESH_TOKEN")
+    print("\n📋 Checking GATEWAY_OAUTH_REFRESH_TOKEN...")
+    refresh_token = check_env_var("GATEWAY_OAUTH_REFRESH_TOKEN")
     if refresh_token:
         print(f"✅ Refresh token present: {'*' * (len(refresh_token) - 8)}{refresh_token[-8:]}")
     else:

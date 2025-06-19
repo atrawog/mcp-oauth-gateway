@@ -24,22 +24,27 @@ class Settings(BaseSettings):
         description="URL of the MCP server to connect to"
     )
     
-    # OAuth Configuration (all discovered automatically)
+    # OAuth Configuration - MCP CLIENT REALM ONLY!
+    # NEVER use OAUTH_* variables - those are server tokens!
     oauth_client_id: Optional[str] = Field(
         None,
-        description="OAuth client ID (populated after registration)"
+        description="OAuth client ID (populated after registration)",
+        alias="MCP_CLIENT_ID"
     )
     oauth_client_secret: Optional[str] = Field(
         None,
-        description="OAuth client secret (populated after registration)"
+        description="OAuth client secret (populated after registration)",
+        alias="MCP_CLIENT_SECRET"
     )
     oauth_access_token: Optional[str] = Field(
         None,
-        description="Current OAuth access token"
+        description="Current OAuth access token",
+        alias="MCP_CLIENT_ACCESS_TOKEN"
     )
     oauth_refresh_token: Optional[str] = Field(
         None,
-        description="OAuth refresh token for token renewal"
+        description="OAuth refresh token for token renewal",
+        alias="MCP_CLIENT_REFRESH_TOKEN"
     )
     oauth_token_expires_at: Optional[datetime] = Field(
         None,
@@ -47,6 +52,7 @@ class Settings(BaseSettings):
     )
     
     # OAuth Server URLs (discovered automatically)
+    # OAuth endpoints - discovered automatically, not stored
     oauth_issuer: Optional[str] = Field(
         None,
         description="OAuth issuer URL (discovered from server)"
@@ -103,24 +109,13 @@ class Settings(BaseSettings):
         pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$"
     )
     
-    # Storage
-    credential_storage_path: Path = Field(
-        Path.home() / ".mcp" / "credentials.json",
-        description="Path to store OAuth credentials"
-    )
+    # NO CREDENTIAL FILES! Everything through .env as divinely commanded!
     
     # Security
     verify_ssl: bool = Field(
         True,
         description="Verify SSL certificates"
     )
-    
-    @field_validator("credential_storage_path", mode="before")
-    def expand_path(cls, v):
-        """Expand ~ and environment variables in paths."""
-        if isinstance(v, str):
-            v = os.path.expanduser(os.path.expandvars(v))
-        return Path(v)
     
     @field_validator("oauth_token_expires_at", mode="before")
     def parse_datetime(cls, v):
@@ -149,49 +144,13 @@ class Settings(BaseSettings):
         return not self.oauth_client_id or not self.oauth_client_secret
     
     def save_credentials(self) -> None:
-        """Save current OAuth credentials and discovered endpoints to storage."""
-        import json
-        
-        # Ensure directory exists
-        self.credential_storage_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        credentials = {
-            # OAuth credentials
-            "oauth_client_id": self.oauth_client_id,
-            "oauth_client_secret": self.oauth_client_secret,
-            "oauth_access_token": self.oauth_access_token,
-            "oauth_refresh_token": self.oauth_refresh_token,
-            "oauth_token_expires_at": self.oauth_token_expires_at.isoformat() if self.oauth_token_expires_at else None,
-            # Discovered endpoints (cache for offline use)
-            "oauth_issuer": self.oauth_issuer,
-            "oauth_authorization_url": self.oauth_authorization_url,
-            "oauth_token_url": self.oauth_token_url,
-            "oauth_device_auth_url": self.oauth_device_auth_url,
-            "oauth_registration_url": self.oauth_registration_url,
-            "oauth_metadata_url": self.oauth_metadata_url,
-        }
-        
-        with open(self.credential_storage_path, "w") as f:
-            json.dump(credentials, f, indent=2)
-        
-        # Set restrictive permissions (owner read/write only)
-        os.chmod(self.credential_storage_path, 0o600)
+        """Save current OAuth credentials and discovered endpoints to .env file."""
+        # NO CREDENTIAL FILES! Everything flows through .env as commanded!
+        # This violates Commandment 4: Thou Shalt Configure Only Through .env Files
+        pass
     
     def load_credentials(self) -> None:
-        """Load OAuth credentials from storage if they exist."""
-        import json
-        
-        if not self.credential_storage_path.exists():
-            return
-        
-        try:
-            with open(self.credential_storage_path, "r") as f:
-                credentials = json.load(f)
-            
-            # Update settings with loaded credentials
-            for key, value in credentials.items():
-                if hasattr(self, key) and value is not None:
-                    setattr(self, key, value)
-        except Exception:
-            # Ignore errors loading credentials
-            pass
+        """Load OAuth credentials from .env configuration."""
+        # NO CREDENTIAL FILES! Everything flows through .env as commanded!
+        # Credentials are already loaded from environment by pydantic-settings
+        pass

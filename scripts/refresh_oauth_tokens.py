@@ -36,21 +36,21 @@ def update_env_file(token_data: dict):
         
         for line in lines:
             line = line.strip()
-            if line.startswith('OAUTH_ACCESS_TOKEN='):
-                updated_lines.append(f"OAUTH_ACCESS_TOKEN={token_data['access_token']}\n")
-                updated_vars.add('OAUTH_ACCESS_TOKEN')
-            elif line.startswith('OAUTH_REFRESH_TOKEN=') and 'refresh_token' in token_data:
-                updated_lines.append(f"OAUTH_REFRESH_TOKEN={token_data['refresh_token']}\n")
-                updated_vars.add('OAUTH_REFRESH_TOKEN')
+            if line.startswith('GATEWAY_OAUTH_ACCESS_TOKEN='):
+                updated_lines.append(f"GATEWAY_OAUTH_ACCESS_TOKEN={token_data['access_token']}\n")
+                updated_vars.add('GATEWAY_OAUTH_ACCESS_TOKEN')
+            elif line.startswith('GATEWAY_OAUTH_REFRESH_TOKEN=') and 'refresh_token' in token_data:
+                updated_lines.append(f"GATEWAY_OAUTH_REFRESH_TOKEN={token_data['refresh_token']}\n")
+                updated_vars.add('GATEWAY_OAUTH_REFRESH_TOKEN')
             else:
                 updated_lines.append(line + '\n' if line else '\n')
         
         # Add any missing variables
-        if 'OAUTH_ACCESS_TOKEN' not in updated_vars:
-            updated_lines.append(f"OAUTH_ACCESS_TOKEN={token_data['access_token']}\n")
+        if 'GATEWAY_OAUTH_ACCESS_TOKEN' not in updated_vars:
+            updated_lines.append(f"GATEWAY_OAUTH_ACCESS_TOKEN={token_data['access_token']}\n")
         
-        if 'refresh_token' in token_data and 'OAUTH_REFRESH_TOKEN' not in updated_vars:
-            updated_lines.append(f"OAUTH_REFRESH_TOKEN={token_data['refresh_token']}\n")
+        if 'refresh_token' in token_data and 'GATEWAY_OAUTH_REFRESH_TOKEN' not in updated_vars:
+            updated_lines.append(f"GATEWAY_OAUTH_REFRESH_TOKEN={token_data['refresh_token']}\n")
         
         # Write back to file
         with open(env_file, 'w') as f:
@@ -61,9 +61,9 @@ def update_env_file(token_data: dict):
     except Exception as e:
         print(f"❌ Failed to update .env file: {e}")
         print("You may need to manually update the tokens:")
-        print(f"OAUTH_ACCESS_TOKEN={token_data['access_token']}")
+        print(f"GATEWAY_OAUTH_ACCESS_TOKEN={token_data['access_token']}")
         if 'refresh_token' in token_data:
-            print(f"OAUTH_REFRESH_TOKEN={token_data['refresh_token']}")
+            print(f"GATEWAY_OAUTH_REFRESH_TOKEN={token_data['refresh_token']}")
 
 
 async def refresh_token() -> bool:
@@ -71,9 +71,9 @@ async def refresh_token() -> bool:
     print("🔄 Attempting to refresh OAuth tokens...")
     
     # Get required variables
-    refresh_token = get_env_var("OAUTH_REFRESH_TOKEN")
-    client_id = get_env_var("OAUTH_CLIENT_ID")
-    client_secret = get_env_var("OAUTH_CLIENT_SECRET")
+    refresh_token = get_env_var("GATEWAY_OAUTH_REFRESH_TOKEN")
+    client_id = get_env_var("GATEWAY_OAUTH_CLIENT_ID")
+    client_secret = get_env_var("GATEWAY_OAUTH_CLIENT_SECRET")
     base_domain = get_env_var("BASE_DOMAIN")
     
     token_url = f"https://auth.{base_domain}/token"
@@ -149,7 +149,7 @@ async def main():
     print("=" * 40)
     
     # Check if refresh is needed
-    oauth_token = os.getenv("OAUTH_ACCESS_TOKEN")
+    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if oauth_token:
         try:
             # Decode without verification for inspection only

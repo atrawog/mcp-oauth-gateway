@@ -24,16 +24,16 @@ from .test_constants import (
     GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET,
     GITHUB_PAT,
-    JWT_SECRET,
+    GATEWAY_JWT_SECRET,
     BASE_DOMAIN,
     TEST_CALLBACK_URL
 )
 
 # Get REAL OAuth credentials from .env or fail hard
-OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
-OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET")
-OAUTH_ACCESS_TOKEN = os.getenv("OAUTH_ACCESS_TOKEN")
-OAUTH_REFRESH_TOKEN = os.getenv("OAUTH_REFRESH_TOKEN")
+GATEWAY_OAUTH_CLIENT_ID = os.getenv("GATEWAY_GATEWAY_OAUTH_CLIENT_ID")
+GATEWAY_OAUTH_CLIENT_SECRET = os.getenv("GATEWAY_GATEWAY_OAUTH_CLIENT_SECRET")
+GATEWAY_OAUTH_ACCESS_TOKEN = os.getenv("GATEWAY_GATEWAY_OAUTH_ACCESS_TOKEN")
+GATEWAY_OAUTH_REFRESH_TOKEN = os.getenv("GATEWAY_GATEWAY_OAUTH_REFRESH_TOKEN")
 
 class TestRealOAuthFlow:
     """Test REAL OAuth flow with REAL GitHub authentication - NO SIMULATION!"""
@@ -43,16 +43,16 @@ class TestRealOAuthFlow:
         """Test complete OAuth flow using REAL stored tokens from successful auth"""
         
         # REQUIRE real OAuth tokens - fail if not available
-        if not OAUTH_ACCESS_TOKEN:
+        if not GATEWAY_OAUTH_ACCESS_TOKEN:
             pytest.fail(
-                "ERROR: OAUTH_ACCESS_TOKEN not found in .env. "
+                "ERROR: GATEWAY_OAUTH_ACCESS_TOKEN not found in .env. "
                 "You must complete a real GitHub OAuth flow first and store the tokens. "
                 "Run: just generate-github-token"
             )
         
-        if not OAUTH_CLIENT_ID or not OAUTH_CLIENT_SECRET:
+        if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
             pytest.fail(
-                "ERROR: OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET not found in .env. "
+                "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET not found in .env. "
                 "You must register a real OAuth client first. "
                 "Run: just generate-github-token"
             )
@@ -60,7 +60,7 @@ class TestRealOAuthFlow:
         # Step 1: Verify our OAuth client exists in the system
         # Try to start auth flow to validate client registration
         auth_params = {
-            "client_id": OAUTH_CLIENT_ID,
+            "client_id": GATEWAY_OAUTH_CLIENT_ID,
             "redirect_uri": TEST_CALLBACK_URL,
             "response_type": "code",
             "scope": "openid profile email",
@@ -77,7 +77,7 @@ class TestRealOAuthFlow:
             error = auth_response.json()
             if error.get("detail", {}).get("error") == "invalid_client":
                 pytest.fail(
-                    f"ERROR: OAuth client {OAUTH_CLIENT_ID} is not registered in the system. "
+                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. "
                     f"Run: just generate-github-token to register a new client."
                 )
         
@@ -92,7 +92,7 @@ class TestRealOAuthFlow:
             user_response = await github_client.get(
                 "https://api.github.com/user",
                 headers={
-                    "Authorization": f"Bearer {GITHUB_PAT if GITHUB_PAT else OAUTH_ACCESS_TOKEN}",
+                    "Authorization": f"Bearer {GITHUB_PAT if GITHUB_PAT else GATEWAY_OAUTH_ACCESS_TOKEN}",
                     "Accept": "application/vnd.github.v3+json"
                 }
             )
@@ -115,8 +115,8 @@ class TestRealOAuthFlow:
                 "grant_type": "authorization_code",
                 "code": "invalid_code_for_testing",  # Will fail but validates client
                 "redirect_uri": TEST_CALLBACK_URL,
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         
@@ -126,14 +126,14 @@ class TestRealOAuthFlow:
         assert error["detail"]["error"] == "invalid_grant"  # Not invalid_client!
         
         # Step 4: If we have a refresh token, test refresh flow
-        if OAUTH_REFRESH_TOKEN:
+        if GATEWAY_OAUTH_REFRESH_TOKEN:
             refresh_response = await http_client.post(
                 f"{AUTH_BASE_URL}/token",
                 data={
                     "grant_type": "refresh_token",
-                    "refresh_token": OAUTH_REFRESH_TOKEN,
-                    "client_id": OAUTH_CLIENT_ID,
-                    "client_secret": OAUTH_CLIENT_SECRET
+                    "refresh_token": GATEWAY_OAUTH_REFRESH_TOKEN,
+                    "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                    "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
                 }
             )
             
@@ -147,8 +147,8 @@ class TestRealOAuthFlow:
                     f"{AUTH_BASE_URL}/introspect",
                     data={
                         "token": new_tokens["access_token"],
-                        "client_id": OAUTH_CLIENT_ID,
-                        "client_secret": OAUTH_CLIENT_SECRET
+                        "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                        "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
                     }
                 )
                 
@@ -162,8 +162,8 @@ class TestRealOAuthFlow:
                     f"{AUTH_BASE_URL}/revoke",
                     data={
                         "token": new_tokens["access_token"],
-                        "client_id": OAUTH_CLIENT_ID,
-                        "client_secret": OAUTH_CLIENT_SECRET
+                        "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                        "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
                     }
                 )
                 
@@ -191,9 +191,9 @@ class TestRealPKCEFlow:
         """Test PKCE verification with REAL OAuth client"""
         
         # REQUIRE real OAuth client credentials
-        if not OAUTH_CLIENT_ID or not OAUTH_CLIENT_SECRET:
+        if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
             pytest.fail(
-                "ERROR: OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET not found in .env. "
+                "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET not found in .env. "
                 "Run: just generate-github-token to register a real client."
             )
         
@@ -205,7 +205,7 @@ class TestRealPKCEFlow:
         
         # Start REAL auth flow with PKCE
         auth_params = {
-            "client_id": OAUTH_CLIENT_ID,
+            "client_id": GATEWAY_OAUTH_CLIENT_ID,
             "redirect_uri": TEST_CALLBACK_URL,
             "response_type": "code",
             "scope": "openid profile",
@@ -224,7 +224,7 @@ class TestRealPKCEFlow:
             error = auth_response.json()
             if error.get("detail", {}).get("error") == "invalid_client":
                 pytest.fail(
-                    f"ERROR: OAuth client {OAUTH_CLIENT_ID} is not registered. "
+                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered. "
                     f"Run: just generate-github-token"
                 )
         
@@ -251,9 +251,9 @@ class TestRealJWTTokens:
         """Test JWT operations using REAL tokens and REAL Redis storage"""
         
         # REQUIRE real OAuth client for token operations
-        if not OAUTH_CLIENT_ID or not OAUTH_CLIENT_SECRET:
+        if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
             pytest.fail(
-                "ERROR: OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET required. "
+                "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET required. "
                 "Run: just generate-github-token"
             )
         
@@ -266,7 +266,7 @@ class TestRealJWTTokens:
             "username": "testuser",
             "email": "test@example.com",
             "scope": "openid profile email",
-            "client_id": OAUTH_CLIENT_ID,  # Use REAL client ID
+            "client_id": GATEWAY_OAUTH_CLIENT_ID,  # Use REAL client ID
             "jti": jti,
             "iat": now,
             "exp": now + 3600,
@@ -274,15 +274,15 @@ class TestRealJWTTokens:
         }
         
         # Sign with REAL JWT secret from .env
-        real_token = jwt_encode(real_claims, JWT_SECRET, algorithm="HS256")
+        real_token = jwt_encode(real_claims, GATEWAY_JWT_SECRET, algorithm="HS256")
         
         # Test 1: Introspect the REAL token (won't be active because not in Redis)
         introspect_response = await http_client.post(
             f"{AUTH_BASE_URL}/introspect",
             data={
                 "token": real_token,
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         
@@ -298,7 +298,7 @@ class TestRealJWTTokens:
             "jti": secrets.token_urlsafe(16)  # Different JTI
         }
         
-        expired_token = jwt_encode(expired_claims, JWT_SECRET, algorithm="HS256")
+        expired_token = jwt_encode(expired_claims, GATEWAY_JWT_SECRET, algorithm="HS256")
         
         verify_response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
@@ -314,8 +314,8 @@ class TestRealJWTTokens:
             f"{AUTH_BASE_URL}/revoke",
             data={
                 "token": real_token,
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         

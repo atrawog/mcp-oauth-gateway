@@ -11,9 +11,9 @@ from .test_constants import MCP_FETCH_URL
 async def test_debug_mcp_fetch_with_real_oauth(http_client, wait_for_services):
     """Debug test to see what's happening with real OAuth token"""
     
-    oauth_token = os.getenv("OAUTH_ACCESS_TOKEN")
+    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if not oauth_token:
-        pytest.skip("No OAUTH_ACCESS_TOKEN available")
+        pytest.skip("No GATEWAY_OAUTH_ACCESS_TOKEN available")
     
     print(f"\n=== DEBUGGING MCP FETCH WITH REAL OAUTH ===")
     print(f"OAuth token (first 20 chars): {oauth_token[:20]}...")

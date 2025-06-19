@@ -1,6 +1,6 @@
 """
 Sacred OAuth Tests Using Existing Credentials - Real tokens from .env!
-This test uses the OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET that are already registered
+This test uses the GATEWAY_OAUTH_CLIENT_ID, GATEWAY_OAUTH_CLIENT_SECRET that are already registered
 """
 import pytest
 import httpx
@@ -11,12 +11,12 @@ import json
 import os
 
 import time
-from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, JWT_SECRET, GITHUB_PAT, BASE_DOMAIN, TEST_REDIRECT_URI
+from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, GATEWAY_JWT_SECRET, GITHUB_PAT, BASE_DOMAIN, TEST_REDIRECT_URI
 from .jwt_test_helper import encode as jwt_encode
 
 # Use the existing OAuth credentials from .env - these are optional
-OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
-OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET")
+GATEWAY_OAUTH_CLIENT_ID = os.getenv("GATEWAY_OAUTH_CLIENT_ID")
+GATEWAY_OAUTH_CLIENT_SECRET = os.getenv("GATEWAY_OAUTH_CLIENT_SECRET")
 
 class TestExistingOAuthCredentials:
     """Test using the pre-registered OAuth client from .env"""
@@ -26,8 +26,8 @@ class TestExistingOAuthCredentials:
         """Test token endpoint using existing client credentials"""
         
         # Fail with clear error if credentials not available
-        if not OAUTH_CLIENT_ID or not OAUTH_CLIENT_SECRET:
-            pytest.fail("ERROR: OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials from a previous registration.")
+        if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
+            pytest.fail("ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials from a previous registration.")
         
         # Test 1: Invalid grant with correct client credentials
         response = await http_client.post(
@@ -36,8 +36,8 @@ class TestExistingOAuthCredentials:
                 "grant_type": "authorization_code",
                 "code": "invalid_code_xxx",
                 "redirect_uri": "https://example.com/callback",
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         
@@ -48,7 +48,7 @@ class TestExistingOAuthCredentials:
         if response.status_code == 401:
             error = response.json()
             if error.get("detail", {}).get("error") == "invalid_client":
-                pytest.fail(f"ERROR: OAuth client {OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials.")
+                pytest.fail(f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials.")
         
         assert response.status_code == 400  # Should be invalid_grant
         error = response.json()
@@ -61,7 +61,7 @@ class TestExistingOAuthCredentials:
                 "grant_type": "authorization_code",
                 "code": "some_code",
                 "redirect_uri": "https://example.com/callback",
-                "client_id": OAUTH_CLIENT_ID
+                "client_id": GATEWAY_OAUTH_CLIENT_ID
                 # No client_secret - testing public client flow
             }
         )
@@ -82,22 +82,22 @@ class TestExistingOAuthCredentials:
             "username": "testuser",
             "email": "test@example.com",
             "scope": "openid profile email",
-            "client_id": OAUTH_CLIENT_ID,
+            "client_id": GATEWAY_OAUTH_CLIENT_ID,
             "jti": jti,
             "iat": now,
             "exp": now + 3600,
             "iss": AUTH_BASE_URL
         }
         
-        test_token = jwt_encode(test_claims, JWT_SECRET, algorithm="HS256")
+        test_token = jwt_encode(test_claims, GATEWAY_JWT_SECRET, algorithm="HS256")
         
         # Introspect the token (it won't be active because it's not in Redis)
         response = await http_client.post(
             f"{AUTH_BASE_URL}/introspect",
             data={
                 "token": test_token,
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         
@@ -116,7 +116,7 @@ class TestExistingOAuthCredentials:
                 "jti": secrets.token_urlsafe(16),
                 "exp": int(time.time()) + 3600
             },
-            JWT_SECRET,
+            GATEWAY_JWT_SECRET,
             algorithm="HS256"
         )
         
@@ -125,8 +125,8 @@ class TestExistingOAuthCredentials:
             f"{AUTH_BASE_URL}/revoke",
             data={
                 "token": test_token,
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         
@@ -166,12 +166,12 @@ class TestCompleteFlowWithExistingClient:
         """Test the authorization flow with existing client"""
         
         # Fail with clear error if credentials not available
-        if not OAUTH_CLIENT_ID or not OAUTH_CLIENT_SECRET:
-            pytest.fail("ERROR: OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET must be set in .env for this test.")
+        if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
+            pytest.fail("ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET must be set in .env for this test.")
         
         # Start authorization with existing client
         auth_params = {
-            "client_id": OAUTH_CLIENT_ID,
+            "client_id": GATEWAY_OAUTH_CLIENT_ID,
             "redirect_uri": TEST_REDIRECT_URI,  # Use TEST_REDIRECT_URI from constants
             "response_type": "code",
             "scope": "openid profile email",
@@ -190,7 +190,7 @@ class TestCompleteFlowWithExistingClient:
         if response.status_code == 400:
             error = response.json()
             if error.get("detail", {}).get("error") == "invalid_client":
-                pytest.fail(f"ERROR: OAuth client {OAUTH_CLIENT_ID} is not registered in the system. Run client registration first.")
+                pytest.fail(f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first.")
         
         # Should redirect to GitHub
         assert response.status_code == 307
@@ -255,7 +255,7 @@ class TestJWTOperations:
                 "username": "testuser",
                 "exp": int(time.time()) + 3600
             },
-            JWT_SECRET,
+            GATEWAY_JWT_SECRET,
             algorithm="HS256"
         )
         
@@ -279,7 +279,7 @@ class TestJWTOperations:
                 "iat": int(time.time()) - 7200,
                 "exp": int(time.time()) - 3600  # Expired 1 hour ago
             },
-            JWT_SECRET,
+            GATEWAY_JWT_SECRET,
             algorithm="HS256"
         )
         
@@ -287,8 +287,8 @@ class TestJWTOperations:
             f"{AUTH_BASE_URL}/introspect",
             data={
                 "token": expired_token,
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         

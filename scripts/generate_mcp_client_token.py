@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
 """
 Sacred MCP Client Token Generation Script
-Uses mcp-streamablehttp-client's --token flag to generate and manage OAuth tokens.
+Uses mcp-streamablehttp-client's --token flag to generate OAuth tokens and saves them to .env.
 """
 import os
 import sys
 import subprocess
-import json
 import re
 from pathlib import Path
-from typing import Optional, Dict
-from urllib.parse import urlparse
+from typing import Dict, Optional
 
 
 # Load environment variables
 ENV_FILE = Path(__file__).parent.parent / ".env"
 
 
-def load_env():
+def load_env() -> Dict[str, str]:
     """Load environment variables from .env file"""
     env_vars = {}
     if ENV_FILE.exists():
@@ -49,6 +47,25 @@ def save_env_var(key: str, value: str):
     
     with open(ENV_FILE, "w") as f:
         f.writelines(lines)
+
+
+def extract_oauth_vars_from_output(output: str) -> Dict[str, str]:
+    """Extract OAuth environment variables from command output."""
+    oauth_vars = {}
+    
+    # Pattern to match environment variable assignments
+    # Matches: OAUTH_ACCESS_TOKEN=value or OAUTH_ACCESS_TOKEN = value
+    pattern = r'^(OAUTH_[A-Z_]+)\s*=\s*(.+)$'
+    
+    for line in output.split('\n'):
+        match = re.match(pattern, line.strip())
+        if match:
+            key = match.group(1)
+            value = match.group(2).strip()
+            oauth_vars[key] = value
+            print(f"   Found: {key}={value[:20]}..." if len(value) > 20 else f"   Found: {key}={value}")
+    
+    return oauth_vars
 
 
 def ensure_mcp_client_installed() -> bool:
@@ -83,111 +100,11 @@ def ensure_mcp_client_installed() -> bool:
     return True
 
 
-
-
-def run_mcp_client_token_check(base_domain: str) -> Optional[str]:
-    """Run mcp-streamablehttp-client --token to check/generate OAuth tokens"""
-    mcp_url = f"https://mcp-fetch.{base_domain}/mcp"
-    
-    print(f"\n🚀 Running mcp-streamablehttp-client token management...")
-    print(f"   MCP URL: {mcp_url}")
-    
-    # Set environment variable for the server URL
-    env = os.environ.copy()
-    env["MCP_SERVER_URL"] = mcp_url
-    
-    print()
-    
-    try:
-        # Run mcp-streamablehttp-client with --token flag using pixi
-        cmd = [
-            "pixi", "run", "python", "-m", "mcp_streamablehttp_client.cli",
-            "--token",
-            "--server-url", mcp_url
-        ]
-        
-        print(f"📋 Running: {' '.join(cmd)}")
-        print()
-        
-        # Run the command interactively so user can complete OAuth if needed
-        result = subprocess.run(
-            cmd,
-            env=env,
-            cwd=Path(__file__).parent.parent  # Run from project root
-        )
-        
-        if result.returncode == 0:
-            print("\n✅ Token check/generation completed successfully!")
-            
-            # Try to extract token from the credential storage
-            return extract_token_from_storage(base_domain)
-        else:
-            print(f"\n❌ Token operation failed with exit code: {result.returncode}")
-            
-    except Exception as e:
-        print(f"❌ Error running mcp-streamablehttp-client: {e}")
-        return None
-    
-    return None
-
-
-def extract_token_from_storage(base_domain: str) -> Optional[str]:
-    """Extract the access token from mcp-streamablehttp-client's credential storage"""
-    print("\n🔍 Extracting token from credential storage...")
-    
-    # Possible credential storage locations
-    credential_paths = [
-        Path.home() / ".config" / "mcp-streamablehttp-client" / "credentials.json",
-        Path.home() / ".mcp-streamablehttp-client" / "credentials.json",
-        Path.home() / ".mcp" / "credentials.json",
-        Path.cwd() / ".mcp-credentials.json",
-        Path(__file__).parent.parent / ".mcp-credentials.json",
-    ]
-    
-    mcp_url = f"https://mcp-fetch.{base_domain}/mcp"
-    
-    for cred_path in credential_paths:
-        if cred_path.exists():
-            try:
-                with open(cred_path) as f:
-                    creds = json.load(f)
-                    
-                    # Check if we have credentials for our server
-                    if "oauth_access_token" in creds:
-                        token = creds["oauth_access_token"]
-                        print(f"✅ Found access token in: {cred_path}")
-                        return token
-                    
-                    # Check if credentials are stored per-server
-                    if mcp_url in creds and "oauth_access_token" in creds[mcp_url]:
-                        token = creds[mcp_url]["oauth_access_token"]
-                        print(f"✅ Found access token for {mcp_url} in: {cred_path}")
-                        return token
-                        
-            except Exception as e:
-                print(f"⚠️  Error reading {cred_path}: {e}")
-    
-    # Also check .env in mcp-streamablehttp-client directory
-    client_env = Path(__file__).parent.parent / "mcp-streamablehttp-client" / ".env"
-    if client_env.exists():
-        env_vars = {}
-        with open(client_env) as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    key, value = line.split("=", 1)
-                    if key.strip() == "OAUTH_ACCESS_TOKEN":
-                        print(f"✅ Found access token in: {client_env}")
-                        return value.strip()
-    
-    return None
-
-
 def main():
     """Main MCP client token generation flow"""
     print("🚀 MCP Client Token Generator")
     print("=============================")
-    print("This uses mcp-streamablehttp-client --token to manage OAuth tokens")
+    print("This uses mcp-streamablehttp-client --token to generate and save OAuth tokens")
     print()
     
     # Load environment
@@ -204,28 +121,84 @@ def main():
     if not ensure_mcp_client_installed():
         sys.exit(1)
     
-    # Run token check/generation
-    token = run_mcp_client_token_check(base_domain)
+    # Construct MCP URL
+    mcp_url = f"https://mcp-fetch.{base_domain}/mcp"
     
-    if token:
-        # Save token to .env
-        save_env_var("MCP_CLIENT_ACCESS_TOKEN", token)
-        print(f"\n✅ MCP client token saved to .env!")
-        print(f"   MCP_CLIENT_ACCESS_TOKEN={token[:20]}...")
+    print(f"\n🚀 Running mcp-streamablehttp-client token management...")
+    print(f"   MCP URL: {mcp_url}")
+    print()
+    
+    # Set environment variable for the server URL
+    env = os.environ.copy()
+    env["MCP_SERVER_URL"] = mcp_url
+    
+    # Run mcp-streamablehttp-client with --token flag using pixi
+    cmd = [
+        "pixi", "run", "python", "-m", "mcp_streamablehttp_client.cli",
+        "--token",
+        "--server-url", mcp_url
+    ]
+    
+    print(f"📋 Running: {' '.join(cmd)}")
+    print()
+    
+    # Run the command and capture output
+    result = subprocess.run(
+        cmd,
+        env=env,
+        cwd=Path(__file__).parent.parent,
+        capture_output=True,
+        text=True
+    )
+    
+    # Print output for user to see OAuth flow
+    if result.stdout:
+        print(result.stdout)
+    if result.stderr:
+        print(result.stderr, file=sys.stderr)
+    
+    if result.returncode == 0:
+        print("\n✅ Token check/generation completed!")
         
-        # Show usage
-        print("\n📋 You can now use the token with:")
-        print(f"   pixi run python -m mcp_streamablehttp_client.cli \\")
-        print(f"     --server-url https://mcp-fetch.{base_domain}/mcp")
-        print()
-        print("Or set it in your environment:")
-        print(f"   export OAUTH_ACCESS_TOKEN={token}")
+        # Extract OAuth variables from output
+        print("\n🔍 Extracting OAuth variables from output...")
+        combined_output = result.stdout + "\n" + result.stderr
+        oauth_vars = extract_oauth_vars_from_output(combined_output)
         
+        if oauth_vars:
+            print(f"\n📝 Found {len(oauth_vars)} OAuth variables to save")
+            
+            # Save to .env with MCP_CLIENT_ prefix for client tokens
+            for key, value in oauth_vars.items():
+                # Map standard OAuth vars to MCP client-specific ones
+                if key == "OAUTH_ACCESS_TOKEN":
+                    save_env_var("MCP_CLIENT_ACCESS_TOKEN", value)
+                    print(f"   ✅ Saved MCP_CLIENT_ACCESS_TOKEN")
+                elif key == "OAUTH_REFRESH_TOKEN":
+                    save_env_var("MCP_CLIENT_REFRESH_TOKEN", value)
+                    print(f"   ✅ Saved MCP_CLIENT_REFRESH_TOKEN")
+                elif key == "OAUTH_CLIENT_ID":
+                    save_env_var("MCP_CLIENT_ID", value)
+                    print(f"   ✅ Saved MCP_CLIENT_ID")
+                elif key == "OAUTH_CLIENT_SECRET":
+                    save_env_var("MCP_CLIENT_SECRET", value)
+                    print(f"   ✅ Saved MCP_CLIENT_SECRET")
+                else:
+                    # Save other OAuth vars as-is
+                    save_env_var(key, value)
+                    print(f"   ✅ Saved {key}")
+            
+            print("\n✅ OAuth tokens and configuration saved to .env!")
+            print("\n📋 You can now use the client with:")
+            print(f"   export OAUTH_ACCESS_TOKEN=$MCP_CLIENT_ACCESS_TOKEN")
+            print(f"   pixi run python -m mcp_streamablehttp_client.cli \\")
+            print(f"     --server-url {mcp_url}")
+        else:
+            print("\n⚠️  No OAuth variables found in output")
+            print("The client may already be configured with valid tokens.")
     else:
-        print("\n⚠️  Could not extract token after operation")
-        print("\nThe token may have been saved to mcp-streamablehttp-client's credential storage.")
-        print("You can check the token status again with:")
-        print(f"  pixi run python -m mcp_streamablehttp_client.cli --token --server-url https://mcp-fetch.{base_domain}/mcp")
+        print(f"\n❌ Token operation failed with exit code: {result.returncode}")
+        print("\nPlease check the error messages above and try again.")
 
 
 if __name__ == "__main__":

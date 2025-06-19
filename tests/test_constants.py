@@ -49,7 +49,8 @@ GITHUB_CLIENT_ID = _get_env_or_fail("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = _get_env_or_fail("GITHUB_CLIENT_SECRET")
 
 # JWT Configuration - From main .env
-JWT_SECRET = _get_env_or_fail("JWT_SECRET")
+GATEWAY_JWT_SECRET = _get_env_or_fail("GATEWAY_JWT_SECRET")
+JWT_SECRET = GATEWAY_JWT_SECRET  # Backwards compatibility alias
 
 # Token Lifetimes - From main .env
 ACCESS_TOKEN_LIFETIME = _get_env_int_or_fail("ACCESS_TOKEN_LIFETIME")
@@ -63,9 +64,15 @@ MCP_PROTOCOL_VERSIONS_SUPPORTED = _get_env_or_fail("MCP_PROTOCOL_VERSIONS_SUPPOR
 # GitHub Personal Access Token (if needed for tests) - From main .env
 GITHUB_PAT = os.getenv("GITHUB_PAT")  # Optional, some tests might not need it
 
-# OAuth Client Credentials (from successful registration) - From main .env
-OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")  # Optional, set after registration
-OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET")  # Optional, set after registration
+# Gateway OAuth Client Credentials (from successful registration) - From main .env
+GATEWAY_OAUTH_CLIENT_ID = os.getenv("GATEWAY_OAUTH_CLIENT_ID")  # Optional, set after registration
+GATEWAY_OAUTH_CLIENT_SECRET = os.getenv("GATEWAY_OAUTH_CLIENT_SECRET")  # Optional, set after registration
+GATEWAY_OAUTH_ACCESS_TOKEN = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")  # Optional, set after OAuth flow
+GATEWAY_OAUTH_REFRESH_TOKEN = os.getenv("GATEWAY_OAUTH_REFRESH_TOKEN")  # Optional, set after OAuth flow
+# Backwards compatibility aliases
+OAUTH_CLIENT_ID = GATEWAY_OAUTH_CLIENT_ID
+OAUTH_CLIENT_SECRET = GATEWAY_OAUTH_CLIENT_SECRET
+OAUTH_ACCESS_TOKEN = GATEWAY_OAUTH_ACCESS_TOKEN
 
 # Test Configuration - From main .env
 TEST_HTTP_TIMEOUT = _get_env_float_or_fail("TEST_HTTP_TIMEOUT")

@@ -16,7 +16,6 @@ from authlib.jose import jwt, JsonWebToken, JWTClaims
 from authlib.jose.errors import JoseError
 from authlib.oauth2 import OAuth2Error
 from authlib.oauth2.rfc6749 import ClientMixin
-from authlib.oauth2.rfc7591 import register_temporary_credential_endpoint
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 
 from .config import Settings

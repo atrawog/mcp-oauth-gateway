@@ -14,7 +14,7 @@ def create_mcp_config():
     
     # Get required environment variables
     base_domain = os.getenv("BASE_DOMAIN")
-    oauth_access_token = os.getenv("OAUTH_ACCESS_TOKEN")
+    oauth_access_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     
     if not base_domain:
         print("❌ ERROR: BASE_DOMAIN environment variable is not set!")
@@ -22,7 +22,7 @@ def create_mcp_config():
         sys.exit(1)
     
     if not oauth_access_token:
-        print("❌ ERROR: OAUTH_ACCESS_TOKEN environment variable is not set!")
+        print("❌ ERROR: GATEWAY_OAUTH_ACCESS_TOKEN environment variable is not set!")
         print("Please run 'just generate-github-token' first to obtain an OAuth token.")
         sys.exit(1)
     

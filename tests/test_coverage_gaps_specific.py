@@ -13,7 +13,7 @@ import redis.asyncio as redis
 from .jwt_test_helper import encode as jwt_encode
 from .test_constants import (
     AUTH_BASE_URL,
-    JWT_SECRET,
+    GATEWAY_JWT_SECRET,
     TEST_REDIRECT_URI,
     TEST_CLIENT_NAME,
     TEST_CLIENT_SCOPE,
@@ -234,7 +234,7 @@ class TestVerifyEndpointErrors:
                 "exp": int(time.time()) - 3600,  # Expired 1 hour ago
                 "jti": "expired_jti"
             },
-            JWT_SECRET,
+            GATEWAY_JWT_SECRET,
             algorithm="HS256"
         )
         
@@ -322,7 +322,7 @@ class TestIntrospectEdgeCases:
                 "exp": int(time.time()) + 3600,
                 "iss": f"https://auth.{BASE_DOMAIN}"
             },
-            JWT_SECRET,
+            GATEWAY_JWT_SECRET,
             algorithm="HS256"
         )
         
@@ -441,7 +441,7 @@ class TestComplexTokenScenarios:
                 "iss": f"https://auth.{BASE_DOMAIN}"
             }
             
-            test_token = jwt_encode(token_claims, JWT_SECRET, algorithm="HS256")
+            test_token = jwt_encode(token_claims, GATEWAY_JWT_SECRET, algorithm="HS256")
             
             # Store in Redis
             await redis_client.setex(

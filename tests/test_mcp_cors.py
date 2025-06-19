@@ -85,7 +85,7 @@ class TestMCPCORS:
             test_origin = self.cors_origins[0]
         
         # Get OAuth token from environment
-        oauth_token = os.getenv("OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
             pytest.skip("No OAuth token available for CORS testing")
         
@@ -176,7 +176,7 @@ class TestMCPCORS:
         mcp_url = f"https://mcp-fetch.{self.base_domain}"
         
         # Use OAuth token from environment if available
-        oauth_token = os.getenv("OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
             pytest.skip("No OAuth token available for testing")
         

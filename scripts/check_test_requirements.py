@@ -13,15 +13,15 @@ load_dotenv()
 
 
 def check_oauth_token():
-    """Check if OAUTH_ACCESS_TOKEN or OAUTH_JWT_TOKEN exists in environment"""
-    token = os.getenv("OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+    """Check if GATEWAY_OAUTH_ACCESS_TOKEN or GATEWAY_OAUTH_JWT_TOKEN exists in environment"""
+    token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("GATEWAY_OAUTH_JWT_TOKEN")
     if not token:
-        print("❌ OAUTH_ACCESS_TOKEN not found in environment!")
+        print("❌ GATEWAY_OAUTH_ACCESS_TOKEN not found in environment!")
         print("   Tests require REAL OAuth tokens per CLAUDE.md")
         print("   Run: just generate-github-token")
         return False
     else:
-        print("✅ OAUTH_ACCESS_TOKEN found in environment")
+        print("✅ GATEWAY_OAUTH_ACCESS_TOKEN found in environment")
         return True
 
 
@@ -31,7 +31,7 @@ def check_services():
         "BASE_DOMAIN",
         "GITHUB_CLIENT_ID", 
         "GITHUB_CLIENT_SECRET",
-        "JWT_SECRET",
+        "GATEWAY_JWT_SECRET",
         "REDIS_PASSWORD"
     ]
     

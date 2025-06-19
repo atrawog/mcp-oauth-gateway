@@ -9,7 +9,7 @@ import json
 import time
 
 import asyncio
-from .test_constants import AUTH_BASE_URL, JWT_SECRET, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET
+from .test_constants import AUTH_BASE_URL, GATEWAY_JWT_SECRET, GATEWAY_OAUTH_CLIENT_ID, GATEWAY_OAUTH_CLIENT_SECRET
 from .jwt_test_helper import encode as jwt_encode
 
 class TestHealthCheckErrors:
@@ -104,8 +104,8 @@ class TestTokenEndpointEdgeCases:
             f"{AUTH_BASE_URL}/token",
             data={
                 "grant_type": "refresh_token",
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
                 # Missing refresh_token
             }
         )
@@ -123,8 +123,8 @@ class TestTokenEndpointEdgeCases:
             data={
                 "grant_type": "refresh_token",
                 "refresh_token": "invalid_refresh_token_xxx",
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         
@@ -144,8 +144,8 @@ class TestTokenEndpointEdgeCases:
                 "grant_type": "authorization_code",
                 "code": "fake_code_with_different_redirect",
                 "redirect_uri": "https://wrong.example.com/callback",
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         
@@ -167,8 +167,8 @@ class TestPKCEVerification:
                 "grant_type": "authorization_code",
                 "code": "code_requiring_pkce",
                 "redirect_uri": "https://example.com/callback",
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
                 # Missing code_verifier
             }
         )
@@ -199,7 +199,7 @@ class TestTokenRevocationEdgeCases:
             f"{AUTH_BASE_URL}/revoke",
             data={
                 "token": test_token,
-                "client_id": OAUTH_CLIENT_ID,
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": "wrong_secret_xxx"  # Wrong secret
             }
         )
@@ -215,8 +215,8 @@ class TestTokenRevocationEdgeCases:
             f"{AUTH_BASE_URL}/revoke",
             data={
                 "token": "refresh_token_to_revoke_xxx",
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         
@@ -246,8 +246,8 @@ class TestTokenIntrospectionEdgeCases:
             f"{AUTH_BASE_URL}/introspect",
             data={
                 "token": test_token,
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         
@@ -263,8 +263,8 @@ class TestTokenIntrospectionEdgeCases:
             f"{AUTH_BASE_URL}/introspect",
             data={
                 "token": "opaque_refresh_token_xxx",
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         
@@ -321,7 +321,7 @@ class TestAuthorizationEndpointErrors:
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
             params={
-                "client_id": OAUTH_CLIENT_ID,
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "redirect_uri": "https://unregistered.example.com/callback",
                 "response_type": "code",
                 "state": "test_state"

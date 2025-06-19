@@ -12,7 +12,7 @@ import asyncio
 import time
 from urllib.parse import urlparse, parse_qs, urlencode
 
-from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, JWT_SECRET, BASE_DOMAIN
+from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, GATEWAY_JWT_SECRET, BASE_DOMAIN
 from .jwt_test_helper import encode as jwt_encode
 
 # JWT Algorithm is a protocol constant, not configuration
@@ -191,7 +191,7 @@ class TestCoverageGaps:
             "iss": AUTH_BASE_URL
         }
         
-        token = jwt_encode(claims, JWT_SECRET, algorithm=JWT_ALGORITHM)
+        token = jwt_encode(claims, GATEWAY_JWT_SECRET, algorithm=JWT_ALGORITHM)
         
         # Try to verify the token
         response = await http_client.get(
@@ -252,7 +252,7 @@ class TestCoverageGaps:
             "iss": AUTH_BASE_URL
         }
         
-        token = jwt_encode(claims, JWT_SECRET, algorithm=JWT_ALGORITHM)
+        token = jwt_encode(claims, GATEWAY_JWT_SECRET, algorithm=JWT_ALGORITHM)
         
         # Revoke the token
         response = await http_client.post(
@@ -312,7 +312,7 @@ class TestCoverageGaps:
             "exp": now + 3600
         }
         
-        token = jwt_encode(claims, JWT_SECRET, algorithm=JWT_ALGORITHM)
+        token = jwt_encode(claims, GATEWAY_JWT_SECRET, algorithm=JWT_ALGORITHM)
         
         response = await http_client.post(
             f"{AUTH_BASE_URL}/introspect",

@@ -14,7 +14,7 @@ from .test_constants import (
     AUTH_BASE_URL,
     MCP_FETCH_URL,
     TEST_REDIRECT_URI,
-    JWT_SECRET,
+    GATEWAY_JWT_SECRET,
     ACCESS_TOKEN_LIFETIME,
     BASE_DOMAIN,
     REDIS_URL,
@@ -51,7 +51,7 @@ class TestMCPFetchExampleCom:
             }
             
             # Create JWT
-            access_token = jwt_encode(token_claims, JWT_SECRET, algorithm="HS256")
+            access_token = jwt_encode(token_claims, GATEWAY_JWT_SECRET, algorithm="HS256")
             
             # Store in Redis
             await redis_client.setex(

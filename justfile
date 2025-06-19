@@ -124,8 +124,10 @@ rebuild-all: down
 
 # Rebuild specific service
 rebuild service:
-    @docker compose -f {{service}}/docker-compose.yml build --no-cache
+    @echo "Rebuilding service: {{service}}"
+    @docker compose build --no-cache {{service}}
     @docker compose up -d {{service}}
+    @echo "✅ Service {{service}} rebuilt and started"
 
 # View service logs
 logs:
@@ -142,18 +144,18 @@ generate-jwt-secret:
     # Check if .env exists
     if [ ! -f .env ]; then
         echo "❌ .env file not found! Creating one..."
-        echo "JWT_SECRET=${NEW_JWT_SECRET}" > .env
-        echo "✅ Created .env with JWT_SECRET"
+        echo "GATEWAY_JWT_SECRET=${NEW_JWT_SECRET}" > .env
+        echo "✅ Created .env with GATEWAY_JWT_SECRET"
     else
-        # Check if JWT_SECRET already exists in .env
-        if grep -q "^JWT_SECRET=" .env; then
-            # Update existing JWT_SECRET
-            sed -i.bak "s/^JWT_SECRET=.*/JWT_SECRET=${NEW_JWT_SECRET}/" .env
-            echo "✅ Updated JWT_SECRET in .env file"
+        # Check if GATEWAY_JWT_SECRET already exists in .env
+        if grep -q "^GATEWAY_JWT_SECRET=" .env; then
+            # Update existing GATEWAY_JWT_SECRET
+            sed -i.bak "s/^GATEWAY_JWT_SECRET=.*/GATEWAY_JWT_SECRET=${NEW_JWT_SECRET}/" .env
+            echo "✅ Updated GATEWAY_JWT_SECRET in .env file"
         else
-            # Add JWT_SECRET to .env
-            echo "JWT_SECRET=${NEW_JWT_SECRET}" >> .env
-            echo "✅ Added JWT_SECRET to .env file"
+            # Add GATEWAY_JWT_SECRET to .env
+            echo "GATEWAY_JWT_SECRET=${NEW_JWT_SECRET}" >> .env
+            echo "✅ Added GATEWAY_JWT_SECRET to .env file"
         fi
     fi
     
@@ -190,14 +192,14 @@ create-mcp-config:
 # Add MCP servers to Claude Code using claude mcp add
 mcp-add:
     @echo "Adding MCP servers to Claude Code..."
-    @if [ -z "${OAUTH_ACCESS_TOKEN:-}" ]; then \
-        echo "❌ OAUTH_ACCESS_TOKEN not found in .env file"; \
+    @if [ -z "${GATEWAY_OAUTH_ACCESS_TOKEN:-}" ]; then \
+        echo "❌ GATEWAY_OAUTH_ACCESS_TOKEN not found in .env file"; \
         echo "Please run 'just generate-github-token' first"; \
         exit 1; \
     fi
     @claude mcp add mcp-fetch https://mcp-fetch.${BASE_DOMAIN}/mcp \
         --transport http \
-        --header "Authorization: Bearer ${OAUTH_ACCESS_TOKEN}" \
+        --header "Authorization: Bearer ${GATEWAY_OAUTH_ACCESS_TOKEN}" \
         || echo "Failed to add mcp-fetch server"
     @echo "✅ MCP servers added to Claude Code!"
 
@@ -218,15 +220,13 @@ test-claude-integration: ensure-services-ready
 
 # Service-specific rebuilds
 rebuild-auth:
-    @docker compose build auth
-    @docker compose up -d auth --force-recreate
+    @just rebuild auth
 
 rebuild-mcp-fetch:
-    @docker compose build mcp-fetch
-    @docker compose up -d mcp-fetch --force-recreate
+    @just rebuild mcp-fetch
 
 rebuild-traefik:
-    @docker compose -f traefik/docker-compose.yml up -d traefik
+    @just rebuild traefik
 
 # Analysis commands
 analyze-oauth-logs:
@@ -258,7 +258,14 @@ check-ssl:
 # Generate MCP client token using mcp-streamablehttp-client
 mcp-client-token:
     @echo "🔐 Generating MCP client token using mcp-streamablehttp-client..."
-    @pixi run python scripts/generate_mcp_client_token.py
+    @# First ensure mcp-streamablehttp-client is installed
+    @pixi run install-mcp-client || echo "Warning: Failed to install mcp-streamablehttp-client"
+    @# Run the token command and capture output to save env vars
+    @echo "Running OAuth flow..."
+    @export MCP_SERVER_URL="https://mcp-fetch.${BASE_DOMAIN}/mcp" && \
+    pixi run python scripts/capture_mcp_env.py \
+        pixi run python -m mcp_streamablehttp_client.cli \
+        --token --server-url "$MCP_SERVER_URL"
 
 # Setup commands
 setup: network-create volumes-create

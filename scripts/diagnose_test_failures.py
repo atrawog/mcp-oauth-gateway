@@ -56,9 +56,9 @@ async def test_authentication_flow():
     print("\n🔐 TESTING AUTHENTICATION FLOW")
     print("-" * 40)
     
-    oauth_token = os.getenv("OAUTH_ACCESS_TOKEN")
+    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if not oauth_token:
-        print("❌ No OAUTH_ACCESS_TOKEN found")
+        print("❌ No GATEWAY_OAUTH_ACCESS_TOKEN found")
         return False
     
     base_domain = os.getenv("BASE_DOMAIN", "atradev.org")
@@ -127,7 +127,7 @@ async def test_mcp_protocol():
     print("\n🔌 TESTING MCP PROTOCOL")
     print("-" * 40)
     
-    oauth_token = os.getenv("OAUTH_ACCESS_TOKEN")
+    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     base_domain = os.getenv("BASE_DOMAIN", "atradev.org")
     
     try:
@@ -243,9 +243,9 @@ def analyze_token_issues():
     print("\n🎫 ANALYZING TOKEN ISSUES")
     print("-" * 40)
     
-    oauth_token = os.getenv("OAUTH_ACCESS_TOKEN")
+    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if not oauth_token:
-        print("❌ OAUTH_ACCESS_TOKEN missing")
+        print("❌ GATEWAY_OAUTH_ACCESS_TOKEN missing")
         return False
     
     try:
@@ -287,7 +287,7 @@ def check_environment():
     
     required_vars = [
         "BASE_DOMAIN", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET",
-        "JWT_SECRET", "REDIS_PASSWORD", "OAUTH_ACCESS_TOKEN"
+        "GATEWAY_JWT_SECRET", "REDIS_PASSWORD", "GATEWAY_OAUTH_ACCESS_TOKEN"
     ]
     
     missing_vars = []

@@ -79,8 +79,8 @@ async def check_existing_token(token: str) -> bool:
             return False
 
 
-async def register_oauth_client(base_url: str) -> Dict[str, str]:
-    """Register OAuth client with the gateway using REAL FQDN callback URLs"""
+async def register_oauth_client_with_user_token(base_url: str, user_jwt_token: str) -> Dict[str, str]:
+    """Register OAuth client using a valid user JWT token"""
     # Get REAL callback URLs from environment - must be REAL FQDNs
     test_callback_url = os.getenv("TEST_CALLBACK_URL")
     test_redirect_uri = os.getenv("TEST_REDIRECT_URI")
@@ -100,7 +100,8 @@ async def register_oauth_client(base_url: str) -> Dict[str, str]:
                 ],
                 "client_name": "MCP OAuth Token Generator",
                 "scope": "openid profile email"
-            }
+            },
+            headers={"Authorization": f"Bearer {user_jwt_token}"}
         )
         
         if response.status_code != 201:
@@ -292,62 +293,80 @@ async def main():
     else:
         github_pat = existing_pat
     
-    # Step 3: Register OAuth client with REAL callback URLs
-    client_id = os.getenv("OAUTH_CLIENT_ID")
-    client_secret = os.getenv("OAUTH_CLIENT_SECRET")
+    # Step 3: Check if we have existing OAuth client credentials
+    client_id = os.getenv("GATEWAY_OAUTH_CLIENT_ID")
+    client_secret = os.getenv("GATEWAY_OAUTH_CLIENT_SECRET")
+    existing_access_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     
-    if not client_id or not client_secret:
-        print("\n📝 Registering OAuth client with REAL callback URLs...")
-        try:
-            client_data = await register_oauth_client(auth_base_url)
-            client_id = client_data["client_id"]
-            client_secret = client_data["client_secret"]
-            
-            save_env_var("OAUTH_CLIENT_ID", client_id)
-            save_env_var("OAUTH_CLIENT_SECRET", client_secret)
-            print("✅ OAuth client registered successfully!")
-            print(f"   Client ID: {client_id}")
-            print(f"   Callback URLs: {client_data.get('redirect_uris', [])}")
-        except Exception as e:
-            print(f"❌ Failed to register OAuth client: {e}")
-            print("Make sure the gateway is running with: just up")
-            sys.exit(1)
-    else:
+    # If we have everything, check if the access token is still valid
+    if client_id and client_secret and existing_access_token and existing_access_token != "PLACEHOLDER_NEEDS_REAL_OAUTH_FLOW":
         print(f"✅ Using existing OAuth client: {client_id}")
-    
-    # Step 4: Complete REAL OAuth flow to get access tokens
-    existing_access_token = os.getenv("OAUTH_ACCESS_TOKEN")
-    if existing_access_token:
-        print("✅ OAUTH_ACCESS_TOKEN already exists")
+        print("🔍 Checking existing GATEWAY_OAUTH_ACCESS_TOKEN...")
+        
+        # Test if the token is valid by calling /verify
+        verify_ssl = not auth_base_url.startswith("https://localhost") and not "127.0.0.1" in auth_base_url
+        async with httpx.AsyncClient(verify=verify_ssl) as client:
+            try:
+                response = await client.get(
+                    f"{auth_base_url}/verify",
+                    headers={"Authorization": f"Bearer {existing_access_token}"}
+                )
+                if response.status_code == 200:
+                    print("✅ GATEWAY_OAUTH_ACCESS_TOKEN is still valid!")
+                else:
+                    print("❌ GATEWAY_OAUTH_ACCESS_TOKEN is invalid or expired")
+                    existing_access_token = None
+            except Exception as e:
+                print(f"❌ Error validating token: {e}")
+                existing_access_token = None
     else:
-        print("\n🔐 Completing REAL OAuth flow to generate access tokens...")
-        try:
-            access_token, refresh_token = await complete_real_oauth_flow(
-                auth_base_url, client_id, client_secret
-            )
-            
-            save_env_var("OAUTH_ACCESS_TOKEN", access_token)
-            if refresh_token:
-                save_env_var("OAUTH_REFRESH_TOKEN", refresh_token)
-            
-            print("✅ OAuth access tokens generated successfully!")
-            print("💾 Saved tokens to .env")
-            
-        except Exception as e:
-            print(f"❌ OAuth flow failed: {e}")
-            print("You may need to complete this manually or check your configuration.")
+        existing_access_token = None
+    
+    # If we don't have a valid access token, we need to get one
+    if not existing_access_token:
+        print("\n🔐 Need to complete OAuth flow for client registration...")
+        
+        # Check if we have a client to use for OAuth flow
+        if not client_id or not client_secret:
+            print("❌ No OAuth client credentials found!")
+            print("\n📋 BOOTSTRAP PROBLEM DETECTED:")
+            print("We need an OAuth client to get a user token, but need a user token to register a client!")
+            print("\n🔧 MANUAL INTERVENTION REQUIRED:")
+            print("1. Run this script with existing client credentials in .env")
+            print("2. Or use the auth service directly to bootstrap the first client")
+            print(f"3. Visit {auth_base_url} to set up initial OAuth flow")
+            print("\n💡 In production, you'd solve this with:")
+            print("   - Admin interface for initial client registration")
+            print("   - Pre-seeded client credentials in secure storage")
+            print("   - Service-to-service authentication for bootstrap")
             sys.exit(1)
+        
+        # We have client credentials but need a fresh user token
+        print(f"🔄 Need fresh OAuth token for client: {client_id}")
+        
+        # Complete OAuth flow to get user JWT token
+        access_token, refresh_token = await complete_real_oauth_flow(
+            auth_base_url, client_id, client_secret
+        )
+        
+        # Save the tokens
+        save_env_var("GATEWAY_OAUTH_ACCESS_TOKEN", access_token)
+        if refresh_token:
+            save_env_var("GATEWAY_OAUTH_REFRESH_TOKEN", refresh_token)
+        
+        print("💾 Saved new OAuth tokens to .env")
+        existing_access_token = access_token
     
     print("\n✨ Token generation complete!")
     print("\nThe following tokens are now available in .env:")
     print("  ✅ GITHUB_PAT: GitHub Personal Access Token")
-    print("  ✅ OAUTH_CLIENT_ID: OAuth client ID") 
-    print("  ✅ OAUTH_CLIENT_SECRET: OAuth client secret")
+    print("  ✅ GATEWAY_OAUTH_CLIENT_ID: OAuth client ID") 
+    print("  ✅ GATEWAY_OAUTH_CLIENT_SECRET: OAuth client secret")
     
-    if os.getenv("OAUTH_ACCESS_TOKEN"):
-        print("  ✅ OAUTH_ACCESS_TOKEN: OAuth access token")
-    if os.getenv("OAUTH_REFRESH_TOKEN"):
-        print("  ✅ OAUTH_REFRESH_TOKEN: OAuth refresh token")
+    if os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN"):
+        print("  ✅ GATEWAY_OAUTH_ACCESS_TOKEN: OAuth access token")
+    if os.getenv("GATEWAY_OAUTH_REFRESH_TOKEN"):
+        print("  ✅ GATEWAY_OAUTH_REFRESH_TOKEN: OAuth refresh token")
     
     print("\n🎉 All tests should now pass!")
     print("Run: just test")

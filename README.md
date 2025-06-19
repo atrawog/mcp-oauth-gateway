@@ -30,7 +30,7 @@ A sacred OAuth 2.1 gateway implementing RFC 7591 dynamic client registration to 
    # Edit .env with your values:
    # - GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET from your GitHub OAuth App
    # - BASE_DOMAIN (use 'localhost' for local development)
-   # - Generate JWT_SECRET with: just generate-jwt-secret
+   # - Generate GATEWAY_JWT_SECRET with: just generate-jwt-secret
    ```
 
 4. **Start the gateway**
@@ -120,7 +120,7 @@ just analyze-oauth-logs      # Analyze OAuth flow logs
 3. **Generate JWT secret**
    ```bash
    just generate-jwt-secret
-   # Copy the output to JWT_SECRET in .env
+   # Copy the output to GATEWAY_JWT_SECRET in .env
    ```
 
 ## 🎯 Testing the Gateway
@@ -182,7 +182,7 @@ GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
 
 # JWT Configuration (REQUIRED)
-JWT_SECRET=your_jwt_secret_at_least_32_chars
+GATEWAY_JWT_SECRET=your_jwt_secret_at_least_32_chars
 
 # Domain Configuration
 BASE_DOMAIN=localhost              # Your domain

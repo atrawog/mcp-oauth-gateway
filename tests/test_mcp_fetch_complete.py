@@ -54,11 +54,11 @@ class TestMCPFetchComplete:
         # a pre-authorized token from the environment
         
         # Check if we have a valid OAuth token in the environment
-        oauth_token = os.getenv("OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         
         if not oauth_token:
             pytest.fail(
-                "SACRED VIOLATION! No OAUTH_ACCESS_TOKEN in environment. "
+                "SACRED VIOLATION! No GATEWAY_OAUTH_ACCESS_TOKEN in environment. "
                 "Tests MUST use real OAuth tokens! "
                 "Run 'just generate-github-token' to get a real token!"
             )
@@ -171,9 +171,9 @@ class TestMCPFetchComplete:
     async def test_mcp_fetch_validates_url_parameter(self, http_client, wait_for_services):
         """Test that MCP fetch properly validates the URL parameter"""
         
-        oauth_token = os.getenv("OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.skip("Skipping - no OAUTH_ACCESS_TOKEN available")
+            pytest.skip("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available")
         
         # Initialize MCP session properly first
         try:
@@ -220,9 +220,9 @@ class TestMCPFetchComplete:
     async def test_mcp_fetch_handles_invalid_urls(self, http_client, wait_for_services):
         """Test that MCP fetch properly handles invalid URLs"""
         
-        oauth_token = os.getenv("OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.skip("Skipping - no OAUTH_ACCESS_TOKEN available")
+            pytest.skip("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available")
         
         # Initialize MCP session properly first
         try:
@@ -277,9 +277,9 @@ class TestMCPFetchComplete:
     async def test_mcp_fetch_respects_max_size(self, http_client, wait_for_services):
         """Test that MCP fetch respects max_size parameter"""
         
-        oauth_token = os.getenv("OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.skip("Skipping - no OAUTH_ACCESS_TOKEN available")
+            pytest.skip("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available")
         
         # Initialize MCP session properly first
         try:
@@ -389,7 +389,7 @@ async def test_complete_oauth_flow_integration(http_client, wait_for_services):
     # This test demonstrates what a REAL integration test should look like
     # It MUST use real OAuth tokens and verify actual functionality
     
-    oauth_token = os.getenv("OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
     
     if not oauth_token:
         pytest.fail(

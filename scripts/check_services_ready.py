@@ -168,11 +168,11 @@ def check_tokens() -> bool:
     print(f"\n{YELLOW}Checking required tokens and credentials...{RESET}")
     
     required_vars = [
-        ("OAUTH_ACCESS_TOKEN", "OAuth access token for tests"),
+        ("GATEWAY_OAUTH_ACCESS_TOKEN", "OAuth access token for tests"),
         ("BASE_DOMAIN", "Base domain for services"),
         ("GITHUB_CLIENT_ID", "GitHub OAuth client ID"),
         ("GITHUB_CLIENT_SECRET", "GitHub OAuth client secret"),
-        ("JWT_SECRET", "JWT signing secret"),
+        ("GATEWAY_JWT_SECRET", "JWT signing secret"),
         ("REDIS_PASSWORD", "Redis password")
     ]
     

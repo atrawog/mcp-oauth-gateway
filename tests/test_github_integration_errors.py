@@ -9,7 +9,7 @@ import json
 import time
 import asyncio
 from urllib.parse import urlparse, parse_qs
-from .test_constants import AUTH_BASE_URL, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET
+from .test_constants import AUTH_BASE_URL, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GATEWAY_OAUTH_CLIENT_ID, GATEWAY_OAUTH_CLIENT_SECRET
 
 class TestGitHubCallbackErrors:
     """Test GitHub OAuth callback error scenarios"""
@@ -43,7 +43,7 @@ class TestRealOAuthFlowErrors:
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
             params={
-                "client_id": OAUTH_CLIENT_ID,
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "redirect_uri": "https://auth.atradev.org/success",  # Use registered redirect URI
                 "response_type": "code",
                 "scope": "openid profile email",
@@ -75,8 +75,8 @@ class TestRealOAuthFlowErrors:
                 "grant_type": "authorization_code",
                 "code": "expired_or_invalid_code_xxx",
                 "redirect_uri": "https://auth.atradev.org/success",
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         
@@ -98,8 +98,8 @@ class TestPKCEWithRealFlow:
                 "grant_type": "authorization_code",
                 "code": "code_that_requires_pkce",
                 "redirect_uri": "https://auth.atradev.org/success",
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
                 # Missing code_verifier
             }
         )
@@ -119,8 +119,8 @@ class TestRefreshTokenErrors:
             data={
                 "grant_type": "refresh_token",
                 "refresh_token": "invalid_refresh_token_xxx",
-                "client_id": OAUTH_CLIENT_ID,
-                "client_secret": OAUTH_CLIENT_SECRET
+                "client_id": GATEWAY_OAUTH_CLIENT_ID,
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
         
