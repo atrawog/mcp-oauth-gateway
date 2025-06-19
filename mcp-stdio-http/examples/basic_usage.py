@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+"""Basic example of using mcp-stdio-http proxy."""
+import asyncio
+import httpx
+import json
+
+
+async def test_mcp_proxy():
+    """Test the MCP proxy with example requests."""
+    base_url = "http://localhost:3000"
+    
+    async with httpx.AsyncClient() as client:
+        # Check health
+        print("Checking health...")
+        response = await client.get(f"{base_url}/health")
+        print(f"Health check: {response.json()}")
+        
+        # Initialize session
+        print("\nInitializing MCP session...")
+        init_request = {
+            "jsonrpc": "2.0",
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {"tools": {}},
+                "clientInfo": {"name": "test-client", "version": "1.0.0"}
+            },
+            "id": 1
+        }
+        
+        response = await client.post(
+            f"{base_url}/mcp",
+            json=init_request,
+            headers={"Content-Type": "application/json"}
+        )
+        
+        print(f"Initialize response: {json.dumps(response.json(), indent=2)}")
+        session_id = response.headers.get("Mcp-Session-Id")
+        print(f"Session ID: {session_id}")
+        
+        # Send initialized notification
+        print("\nSending initialized notification...")
+        initialized_request = {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized",
+            "params": {}
+        }
+        
+        response = await client.post(
+            f"{base_url}/mcp",
+            json=initialized_request,
+            headers={
+                "Content-Type": "application/json",
+                "Mcp-Session-Id": session_id
+            }
+        )
+        
+        # List available tools
+        print("\nListing available tools...")
+        list_tools_request = {
+            "jsonrpc": "2.0",
+            "method": "tools/list",
+            "params": {},
+            "id": 2
+        }
+        
+        response = await client.post(
+            f"{base_url}/mcp",
+            json=list_tools_request,
+            headers={
+                "Content-Type": "application/json",
+                "Mcp-Session-Id": session_id
+            }
+        )
+        
+        print(f"Tools response: {json.dumps(response.json(), indent=2)}")
+        
+        # Call a tool (example: fetch)
+        print("\nCalling fetch tool...")
+        fetch_request = {
+            "jsonrpc": "2.0",
+            "method": "tools/call",
+            "params": {
+                "name": "fetch",
+                "arguments": {
+                    "url": "https://example.com"
+                }
+            },
+            "id": 3
+        }
+        
+        response = await client.post(
+            f"{base_url}/mcp",
+            json=fetch_request,
+            headers={
+                "Content-Type": "application/json",
+                "Mcp-Session-Id": session_id
+            }
+        )
+        
+        print(f"Fetch response: {json.dumps(response.json(), indent=2)}")
+
+
+if __name__ == "__main__":
+    print("MCP Proxy Example")
+    print("=================")
+    print("Make sure the proxy is running with:")
+    print("  mcp-stdio-http python -m mcp_server_fetch")
+    print()
+    
+    asyncio.run(test_mcp_proxy())

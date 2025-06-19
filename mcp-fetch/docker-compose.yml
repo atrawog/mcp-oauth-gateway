@@ -1,6 +1,8 @@
 services:
   mcp-fetch:
-    build: .
+    build:
+      context: ../
+      dockerfile: mcp-fetch/Dockerfile
     container_name: mcp-fetch
     restart: unless-stopped
     networks:

@@ -1,30 +1,17 @@
-#!/usr/bin/env python3
-"""
-Generic MCP stdio-to-streamable-http Proxy
-Following CLAUDE.md - Universal Proxy for Any MCP Server!
-
-This proxy runs MULTIPLE MCP server instances as subprocesses and bridges
-stdio communication to HTTP endpoints. Each client gets its own session.
-"""
-import sys
+"""Core proxy functionality for bridging stdio MCP servers to HTTP."""
 import asyncio
 import json
 import logging
+import time
 from typing import Dict, Any, Optional, List
 import subprocess
-from fastapi import FastAPI, Request, Response, HTTPException
-from fastapi.responses import JSONResponse, StreamingResponse
-import uvicorn
 from uuid import uuid4
-import weakref
-import time
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class MCPSession:
-    """Individual MCP session with its own subprocess"""
+    """Individual MCP session with its own subprocess."""
     
     def __init__(self, session_id: str, server_command: List[str]):
         self.session_id = session_id
@@ -40,7 +27,7 @@ class MCPSession:
         self._cleanup_task: Optional[asyncio.Task] = None
         
     async def start_server(self):
-        """Start the underlying MCP server process"""
+        """Start the underlying MCP server process."""
         logger.info(f"Starting MCP server for session {self.session_id}: {' '.join(self.server_command)}")
         
         self.process = await asyncio.create_subprocess_exec(
@@ -57,7 +44,7 @@ class MCPSession:
         await self._initialize_session()
         
     async def _read_responses(self):
-        """Read responses from the server stdout"""
+        """Read responses from the server stdout."""
         while self.process and self.process.stdout:
             try:
                 line = await self.process.stdout.readline()
@@ -80,7 +67,7 @@ class MCPSession:
                 break
                 
     async def _handle_response(self, response: Dict[str, Any]):
-        """Handle a response from the server"""
+        """Handle a response from the server."""
         request_id = response.get("id")
         
         if request_id is not None and request_id in self.pending_responses:
@@ -93,7 +80,7 @@ class MCPSession:
             logger.debug(f"Session {self.session_id}: Received unsolicited message: {response}")
             
     async def _send_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Send a request to the server and wait for response"""
+        """Send a request to the server and wait for response."""
         if not self.process or not self.process.stdin:
             raise RuntimeError(f"Session {self.session_id}: Server process not available")
             
@@ -123,7 +110,7 @@ class MCPSession:
         return {}
         
     async def _initialize_session(self):
-        """Initialize the MCP session"""
+        """Initialize the MCP session."""
         self.request_id_counter += 1
         
         init_request = {
@@ -167,7 +154,7 @@ class MCPSession:
         logger.info(f"Session {self.session_id} initialized with server: {self.server_info}")
         
     async def _list_tools(self):
-        """Get list of available tools from the server"""
+        """Get list of available tools from the server."""
         self.request_id_counter += 1
         
         request = {
@@ -188,7 +175,7 @@ class MCPSession:
         logger.info(f"Session {self.session_id}: Available tools: {[t.get('name') for t in self.available_tools]}")
         
     async def handle_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle an incoming MCP request"""
+        """Handle an incoming MCP request."""
         if not self.session_initialized:
             raise RuntimeError(f"Session {self.session_id} not initialized")
             
@@ -207,7 +194,7 @@ class MCPSession:
         return response
         
     async def close(self):
-        """Close the server process"""
+        """Close the server process."""
         logger.info(f"Closing session {self.session_id}")
         
         if self._cleanup_task:
@@ -231,20 +218,20 @@ class MCPSession:
 
 
 class MCPSessionManager:
-    """Manages multiple MCP sessions"""
+    """Manages multiple MCP sessions."""
     
-    def __init__(self, server_command: List[str]):
+    def __init__(self, server_command: List[str], session_timeout: int = 300):
         self.server_command = server_command
         self.sessions: Dict[str, MCPSession] = {}
-        self.session_timeout = 300  # 5 minutes
+        self.session_timeout = session_timeout  # Default 5 minutes
         self._cleanup_task: Optional[asyncio.Task] = None
         
     async def start(self):
-        """Start the session manager"""
+        """Start the session manager."""
         self._cleanup_task = asyncio.create_task(self._cleanup_expired_sessions())
         
     async def stop(self):
-        """Stop the session manager and clean up all sessions"""
+        """Stop the session manager and clean up all sessions."""
         if self._cleanup_task:
             self._cleanup_task.cancel()
             
@@ -254,7 +241,7 @@ class MCPSessionManager:
         self.sessions.clear()
         
     async def get_or_create_session(self, session_id: Optional[str] = None) -> MCPSession:
-        """Get existing session or create a new one"""
+        """Get existing session or create a new one."""
         if session_id is None:
             session_id = str(uuid4())
             
@@ -272,7 +259,7 @@ class MCPSessionManager:
         return session
         
     async def handle_request(self, request_data: Dict[str, Any], session_id: Optional[str] = None) -> tuple[Dict[str, Any], str]:
-        """Handle MCP request and return response with session ID"""
+        """Handle MCP request and return response with session ID."""
         method = request_data.get("method")
         
         # Handle initialize requests specially - they create new sessions
@@ -295,7 +282,7 @@ class MCPSessionManager:
         return response, session.session_id
         
     async def _cleanup_expired_sessions(self):
-        """Periodically clean up expired sessions"""
+        """Periodically clean up expired sessions."""
         while True:
             try:
                 await asyncio.sleep(60)  # Check every minute
@@ -318,82 +305,63 @@ class MCPSessionManager:
                 logger.error(f"Error in session cleanup: {e}")
 
 
-# Create FastAPI app
-app = FastAPI()
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
 
-# Global session manager
-session_manager: Optional[MCPSessionManager] = None
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize the session manager on startup"""
-    global session_manager
-    if len(sys.argv) < 2:
-        raise RuntimeError("No MCP server command provided")
-    server_command = sys.argv[1:]
-    session_manager = MCPSessionManager(server_command)
-    await session_manager.start()
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Clean up on shutdown"""
-    global session_manager
-    if session_manager:
+def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI:
+    """Create FastAPI app with MCP proxy endpoints."""
+    app = FastAPI()
+    
+    # Create session manager
+    session_manager = MCPSessionManager(server_command, session_timeout)
+    
+    @app.on_event("startup")
+    async def startup_event():
+        """Initialize the session manager on startup."""
+        await session_manager.start()
+    
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        """Clean up on shutdown."""
         await session_manager.stop()
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    if session_manager:
+    
+    @app.get("/health")
+    async def health_check():
+        """Health check endpoint."""
         return {
             "status": "healthy", 
             "active_sessions": len(session_manager.sessions),
             "server_command": " ".join(session_manager.server_command)
         }
-    return JSONResponse(
-        status_code=503,
-        content={"status": "unhealthy", "error": "Session manager not initialized"}
-    )
-
-@app.post("/mcp")
-async def handle_mcp(request: Request):
-    """Handle MCP requests without trailing slash redirect"""
-    if not session_manager:
-        raise HTTPException(status_code=503, detail="Session manager not initialized")
-        
-    try:
-        request_data = await request.json()
-        
-        # Extract session ID from headers if present
-        session_id = request.headers.get("Mcp-Session-Id")
-        
-        response, returned_session_id = await session_manager.handle_request(request_data, session_id)
-        
-        # Create response with session ID header
-        json_response = JSONResponse(content=response)
-        json_response.headers["Mcp-Session-Id"] = returned_session_id
-        
-        return json_response
-        
-    except Exception as e:
-        logger.error(f"Error handling request: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={"jsonrpc": "2.0", "error": {"code": -32603, "message": str(e)}, "id": None}
-        )
-
-@app.post("/mcp/")
-async def handle_mcp_trailing(request: Request):
-    """Handle MCP requests with trailing slash"""
-    return await handle_mcp(request)
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python mcp_stdio_http_proxy.py <mcp_server_command> [args...]")
-        print("Example: python mcp_stdio_http_proxy.py python -m mcp_server_fetch")
-        sys.exit(1)
     
-    logger.info(f"Starting MCP stdio-to-HTTP proxy for: {' '.join(sys.argv[1:])}")
+    @app.post("/mcp")
+    async def handle_mcp(request: Request):
+        """Handle MCP requests without trailing slash redirect."""
+        try:
+            request_data = await request.json()
+            
+            # Extract session ID from headers if present
+            session_id = request.headers.get("Mcp-Session-Id")
+            
+            response, returned_session_id = await session_manager.handle_request(request_data, session_id)
+            
+            # Create response with session ID header
+            json_response = JSONResponse(content=response)
+            json_response.headers["Mcp-Session-Id"] = returned_session_id
+            
+            return json_response
+            
+        except Exception as e:
+            logger.error(f"Error handling request: {e}")
+            return JSONResponse(
+                status_code=500,
+                content={"jsonrpc": "2.0", "error": {"code": -32603, "message": str(e)}, "id": None}
+            )
     
-    # Run server without automatic trailing slash redirects
-    uvicorn.run(app, host="0.0.0.0", port=3000, log_level="info")
+    @app.post("/mcp/")
+    async def handle_mcp_trailing(request: Request):
+        """Handle MCP requests with trailing slash."""
+        return await handle_mcp(request)
+    
+    return app
