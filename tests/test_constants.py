@@ -66,6 +66,10 @@ MCP_PROTOCOL_VERSION = _get_env_or_fail("MCP_PROTOCOL_VERSION")
 # GitHub Personal Access Token (if needed for tests) - From main .env
 GITHUB_PAT = os.getenv("GITHUB_PAT")  # Optional, some tests might not need it
 
+# OAuth Client Credentials (from successful registration) - From main .env
+OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")  # Optional, set after registration
+OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET")  # Optional, set after registration
+
 # Test Configuration - From main .env
 TEST_HTTP_TIMEOUT = _get_env_float_or_fail("TEST_HTTP_TIMEOUT")
 TEST_MAX_RETRIES = _get_env_int_or_fail("TEST_MAX_RETRIES")  
