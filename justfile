@@ -255,6 +255,11 @@ check-ssl:
     @echo "Certificates in ACME storage:"
     @docker exec traefik cat /certificates/acme.json | jq -r '.letsencrypt.Certificates[].domain' || echo "No certificates found"
 
+# Generate MCP client token using mcp-streamablehttp-client
+mcp-client-token:
+    @echo "🔐 Generating MCP client token using mcp-streamablehttp-client..."
+    @pixi run python scripts/generate_mcp_client_token.py
+
 # Setup commands
 setup: network-create volumes-create
     @echo "Setting up MCP OAuth Gateway..."

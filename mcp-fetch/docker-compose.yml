@@ -20,6 +20,18 @@ services:
       - "traefik.http.routers.mcp-fetch-health.service=mcp-fetch"
       - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
       
+      # OAuth discovery route - Priority 10 (ABSOLUTE HIGHEST - must work without auth!)
+      - "traefik.http.routers.mcp-fetch-oauth-discovery.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetch-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetch-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
+      - "traefik.http.routers.mcp-fetch-oauth-discovery.service=auth@docker"
+      # No auth middleware - OAuth discovery must be public!
+      
+      # Middleware to rewrite host header for auth service
+      - "traefik.http.middlewares.oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
+      
       # CORS preflight route (OPTIONS) - Priority 4 (HIGHEST for OPTIONS)
       - "traefik.http.routers.mcp-fetch-cors.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-fetch-cors.priority=4"
