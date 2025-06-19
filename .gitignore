@@ -92,3 +92,8 @@ mcp-config.json
 
 # Session files
 sessions/
+
+# MCP HTTP-to-stdio credentials
+mcp-http-stdio/.env
+credentials.json
+.mcp/

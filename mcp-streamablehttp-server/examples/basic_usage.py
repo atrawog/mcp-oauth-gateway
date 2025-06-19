@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Basic example of using mcp-stdio-http proxy."""
+"""Basic example of using mcp-streamablehttp-server."""
 import asyncio
 import httpx
 import json
 
 
-async def test_mcp_proxy():
-    """Test the MCP proxy with example requests."""
+async def test_mcp_server():
+    """Test the MCP streamable HTTP server with example requests."""
     base_url = "http://localhost:3000"
     
     async with httpx.AsyncClient() as client:
@@ -102,10 +102,10 @@ async def test_mcp_proxy():
 
 
 if __name__ == "__main__":
-    print("MCP Proxy Example")
-    print("=================")
-    print("Make sure the proxy is running with:")
-    print("  mcp-stdio-http python -m mcp_server_fetch")
+    print("MCP Streamable HTTP Server Example")
+    print("===================================")
+    print("Make sure the server is running with:")
+    print("  mcp-streamablehttp-server python -m mcp_server_fetch")
     print()
     
-    asyncio.run(test_mcp_proxy())
+    asyncio.run(test_mcp_server())

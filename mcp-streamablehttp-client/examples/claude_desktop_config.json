@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "remote-mcp-fetch": {
+      "command": "mcp-http-stdio",
+      "env": {
+        "MCP_SERVER_URL": "https://mcp-fetch.yourdomain.com/mcp"
+      }
+    },
+    "remote-mcp-fetch-with-config": {
+      "command": "mcp-http-stdio",
+      "args": ["--env-file", "/path/to/mcp-oauth-gateway/mcp-http-stdio/.env"]
+    },
+    "remote-mcp-server-docker": {
+      "command": "docker",
+      "args": [
+        "run", 
+        "--rm", 
+        "-i",
+        "-v", "/home/user/.mcp:/home/mcpuser/.mcp",
+        "-e", "MCP_SERVER_URL=https://mcp-fetch.yourdomain.com/mcp",
+        "mcp-http-stdio:latest"
+      ]
+    }
+  }
+}

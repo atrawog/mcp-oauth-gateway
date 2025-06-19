@@ -127,7 +127,7 @@ class MCPSession:
                     "tools": {}
                 },
                 "clientInfo": {
-                    "name": "mcp-stdio-http-proxy",
+                    "name": "mcp-streamablehttp-server",
                     "version": "1.0.0"
                 }
             },

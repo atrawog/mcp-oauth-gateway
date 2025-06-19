@@ -1,0 +1,41 @@
+services:
+  mcp-streamablehttp-client:
+    build: .
+    environment:
+      # MCP Server Configuration
+      - MCP_SERVER_URL=${MCP_SERVER_URL}
+      
+      # OAuth Configuration
+      - OAUTH_AUTHORIZATION_URL=${OAUTH_AUTHORIZATION_URL}
+      - OAUTH_TOKEN_URL=${OAUTH_TOKEN_URL}
+      - OAUTH_DEVICE_AUTH_URL=${OAUTH_DEVICE_AUTH_URL}
+      - OAUTH_REGISTRATION_URL=${OAUTH_REGISTRATION_URL}
+      - OAUTH_METADATA_URL=${OAUTH_METADATA_URL}
+      
+      # Client Configuration
+      - CLIENT_NAME=${CLIENT_NAME:-mcp-streamablehttp-client}
+      - CLIENT_VERSION=${CLIENT_VERSION:-0.1.0}
+      
+      # Session Configuration
+      - SESSION_TIMEOUT=${SESSION_TIMEOUT:-300}
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-30}
+      
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      
+      # Security
+      - VERIFY_SSL=${VERIFY_SSL:-true}
+    
+    volumes:
+      # Persist credentials between runs
+      - mcp-credentials:/home/mcpuser/.mcp
+      
+    # For interactive OAuth setup
+    stdin_open: true
+    tty: true
+    
+    # No network mode needed - runs as stdio proxy
+    
+volumes:
+  mcp-credentials:
+    driver: local

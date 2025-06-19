@@ -1,4 +1,4 @@
-"""Command-line interface for the MCP stdio-to-HTTP proxy."""
+"""Command-line interface for the MCP stdio-to-streamable-HTTP server."""
 import sys
 import argparse
 import logging
@@ -11,21 +11,21 @@ logger = logging.getLogger(__name__)
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="MCP stdio-to-HTTP proxy - Bridge any MCP stdio server to HTTP endpoints",
+        description="MCP stdio-to-streamable-HTTP server - Bridge any MCP stdio server to streamable HTTP endpoints",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   # Run with a Python MCP server module
-  mcp-stdio-http python -m mcp_server_fetch
+  mcp-streamablehttp-server python -m mcp_server_fetch
   
   # Run with a custom command
-  mcp-stdio-http /path/to/mcp-server --arg1 --arg2
+  mcp-streamablehttp-server /path/to/mcp-server --arg1 --arg2
   
   # Run on a different port
-  mcp-stdio-http --port 8080 python -m mcp_server_fetch
+  mcp-streamablehttp-server --port 8080 python -m mcp_server_fetch
   
   # Run with custom session timeout
-  mcp-stdio-http --timeout 600 python -m mcp_server_fetch
+  mcp-streamablehttp-server --timeout 600 python -m mcp_server_fetch
 """
     )
     

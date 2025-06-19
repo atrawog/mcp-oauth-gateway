@@ -1,0 +1,218 @@
+# MCP Streamable HTTP-to-stdio Client
+
+A client-side tool that enables stdio-based MCP clients (like Claude Desktop) to connect to streamable HTTP-based MCP servers that require OAuth authentication.
+
+## Features
+
+- 🔐 **Automatic OAuth Authentication**: Handles the complete OAuth flow including device authorization
+- 🔄 **Token Management**: Automatically refreshes tokens and persists credentials
+- 🌐 **Streamable HTTP-to-stdio Bridge**: Seamlessly converts between streamable HTTP and stdio transports
+- 🎯 **Zero Configuration**: After initial setup, runs fully automatically
+- 🔒 **Secure Credential Storage**: Credentials are stored securely with restricted permissions
+
+## Installation
+
+```bash
+pip install mcp-streamablehttp-client
+```
+
+Or install from source:
+
+```bash
+git clone https://github.com/yourusername/mcp-streamablehttp-client
+cd mcp-streamablehttp-client
+pip install -e .
+```
+
+## Configuration
+
+Create a `.env` file with your server configuration:
+
+```env
+# MCP Server URL (required)
+MCP_SERVER_URL=https://mcp-fetch.example.com/mcp
+
+# OAuth Server Configuration (required)
+OAUTH_AUTHORIZATION_URL=https://auth.example.com/authorize
+OAUTH_TOKEN_URL=https://auth.example.com/token
+OAUTH_REGISTRATION_URL=https://auth.example.com/register
+
+# Optional: Device flow support
+OAUTH_DEVICE_AUTH_URL=https://auth.example.com/device/code
+
+# Optional: Metadata discovery
+OAUTH_METADATA_URL=https://auth.example.com/.well-known/oauth-authorization-server
+```
+
+## Usage
+
+### First Run - Authentication Setup
+
+On first run, the tool will guide you through OAuth authentication:
+
+```bash
+mcp-streamablehttp-client
+```
+
+The tool will:
+1. Register as an OAuth client (if needed)
+2. Display a URL and code for device authorization
+3. Wait for you to authorize in your browser
+4. Save credentials for future use
+
+### Subsequent Runs
+
+After initial setup, the tool runs automatically:
+
+```bash
+mcp-streamablehttp-client
+```
+
+### Claude Desktop Configuration
+
+Add to your Claude Desktop configuration (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "my-remote-server": {
+      "command": "mcp-streamablehttp-client",
+      "args": ["--env-file", "/path/to/.env"]
+    },
+    "another-server": {
+      "command": "mcp-streamablehttp-client",
+      "env": {
+        "MCP_SERVER_URL": "https://another-mcp.example.com/mcp"
+      }
+    }
+  }
+}
+```
+
+### Command-Line Options
+
+```bash
+mcp-streamablehttp-client --help
+
+Options:
+  --env-file PATH          Path to .env file with configuration
+  --log-level LEVEL        Logging level (DEBUG, INFO, WARNING, ERROR)
+  --server-url URL         Override MCP server URL from .env
+  --reset-auth            Clear stored credentials and re-authenticate
+  --test-auth             Test authentication and exit
+  -c, --command TEXT      Execute a specific MCP tool and exit
+  --help                  Show this message and exit
+```
+
+### Testing Commands
+
+You can test individual MCP tools using the `--command` option:
+
+```bash
+# Test fetch tool
+mcp-streamablehttp-client --command "fetch https://httpbin.org/json"
+
+# Test with different argument formats
+mcp-streamablehttp-client -c "search my search query"
+mcp-streamablehttp-client -c "read_file /path/to/file"
+mcp-streamablehttp-client -c "mytool param1=value1 param2=123"
+mcp-streamablehttp-client -c 'anytool {"param": "value", "number": 42}'
+```
+
+### Testing
+
+**Test authentication:**
+```bash
+mcp-streamablehttp-client --test-auth
+```
+
+**Test a specific tool:**
+```bash
+# Test the fetch tool
+mcp-streamablehttp-client --command "fetch https://example.com"
+
+# List available tools first, then test one
+mcp-streamablehttp-client --command "tools/list"
+```
+
+### Resetting Credentials
+
+To clear stored credentials and re-authenticate:
+
+```bash
+mcp-streamablehttp-client --reset-auth
+```
+
+## How It Works
+
+1. **OAuth Flow**: On first run, performs OAuth device authorization flow
+2. **Credential Storage**: Saves tokens securely in `~/.mcp/credentials.json`
+3. **Automatic Refresh**: Refreshes expired tokens automatically
+4. **Stdio Bridge**: Reads JSON-RPC from stdin, forwards to HTTP, writes responses to stdout
+5. **Session Management**: Maintains MCP session state across requests
+
+## Security
+
+- Credentials are stored in `~/.mcp/credentials.json` with 0600 permissions
+- Supports SSL certificate verification (configurable)
+- Tokens are automatically refreshed before expiration
+- OAuth client credentials are obtained through dynamic registration
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `MCP_SERVER_URL` | MCP server endpoint URL | Required |
+| `OAUTH_AUTHORIZATION_URL` | OAuth authorization endpoint | Required |
+| `OAUTH_TOKEN_URL` | OAuth token endpoint | Required |
+| `OAUTH_REGISTRATION_URL` | OAuth client registration endpoint | Optional |
+| `OAUTH_DEVICE_AUTH_URL` | OAuth device authorization endpoint | Optional |
+| `OAUTH_METADATA_URL` | OAuth metadata discovery URL | Optional |
+| `CLIENT_NAME` | OAuth client name | `mcp-streamablehttp-client` |
+| `SESSION_TIMEOUT` | Session timeout in seconds | `300` |
+| `REQUEST_TIMEOUT` | Request timeout in seconds | `30` |
+| `LOG_LEVEL` | Logging level | `INFO` |
+| `CREDENTIAL_STORAGE_PATH` | Path to store credentials | `~/.mcp/credentials.json` |
+| `VERIFY_SSL` | Verify SSL certificates | `true` |
+
+## Troubleshooting
+
+### Authentication Issues
+
+1. **Check token status first**: `mcp-streamablehttp-client --token`
+2. **Verify server URL**: Ensure `MCP_SERVER_URL` is correct and accessible
+3. **Try token refresh**: The `--token` option automatically refreshes expired tokens
+4. **Reset if needed**: Use `--reset-auth` to clear credentials and re-discover
+5. **Test authentication**: Use `--test-auth` to verify authentication flow
+6. **Debug logging**: Check logs with `--log-level DEBUG`
+7. **Server support**: Ensure the server supports OAuth 2.0 metadata discovery
+
+### Connection Issues
+
+1. Verify `MCP_SERVER_URL` is correct
+2. Check network connectivity
+3. Verify SSL certificates (or set `VERIFY_SSL=false` for testing)
+4. Check server logs for errors
+
+### Token Management
+
+**Check token status:**
+```bash
+mcp-streamablehttp-client --token
+```
+This will:
+- Show current token status and expiration
+- Automatically refresh tokens if they're expired or expiring soon
+- Test the token against the actual server
+- Display detailed OAuth configuration info
+
+**Token expiration handling:**
+The tool automatically refreshes tokens, but if you see authentication errors:
+1. **Check token status**: `mcp-streamablehttp-client --token` 
+2. **Automatic refresh**: The tool will refresh expired tokens automatically
+3. **Manual refresh**: Use `--token` to force a token status check and refresh
+4. **Re-authenticate**: Use `--reset-auth` if refresh tokens are also expired
+
+## License
+
+MIT License - see LICENSE file for details

@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-streamablehttp-client"
+version = "0.1.0"
+description = "Streamable HTTP to stdio proxy client for MCP servers with OAuth support"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "MCP OAuth Gateway Team", email = "team@example.com"},
+]
+keywords = ["mcp", "proxy", "oauth", "stdio", "streamable-http", "client"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "httpx>=0.24.0",
+    "python-dotenv>=1.0.0",
+    "click>=8.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "anyio>=3.0.0",
+    "rich>=13.0.0",
+    "python-jose[cryptography]>=3.3.0",
+    "mcp>=1.0.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/yourusername/mcp-streamablehttp-client"
+"Bug Reports" = "https://github.com/yourusername/mcp-streamablehttp-client/issues"
+"Source" = "https://github.com/yourusername/mcp-streamablehttp-client"
+
+[project.scripts]
+mcp-streamablehttp-client = "mcp_streamablehttp_client.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+mcp_streamablehttp_client = ["py.typed"]

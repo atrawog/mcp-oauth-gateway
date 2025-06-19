@@ -10,8 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2024-XX-XX
 
 ### Added
-- Initial release of mcp-stdio-http
-- Generic stdio-to-HTTP proxy for MCP servers
+- Initial release of mcp-streamablehttp-server
+- Generic stdio-to-streamable-HTTP server for MCP servers
 - Support for MCP protocol version 2025-06-18
 - Session management with automatic cleanup
 - Command-line interface with configurable options
@@ -21,5 +21,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Full type hints support
 - CI/CD workflows for testing and publishing
 
-[Unreleased]: https://github.com/yourusername/mcp-stdio-http/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/yourusername/mcp-stdio-http/releases/tag/v0.1.0
+[Unreleased]: https://github.com/yourusername/mcp-streamablehttp-server/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/yourusername/mcp-streamablehttp-server/releases/tag/v0.1.0
