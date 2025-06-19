@@ -514,67 +514,81 @@ docker-compose.yml  # The orchestration gospel
 
 ### The Sacred MCP Service Structure
 
+**CRITICAL CLARIFICATION: We use OFFICIAL MCP servers with stdio-to-HTTP proxy!**
+
 Each MCP service follows this divine pattern:
 
 ```
 mcp-fetch/
 ├── Dockerfile
 ├── docker-compose.yml
-└── requirements.txt    # If not using pixi
+├── mcp_stdio_http_proxy.py    # The stdio-to-HTTP bridge
+└── requirements.txt            # If not using pixi
+```
 
-# The Dockerfile must:
+### The Divine Truth About MCP Services
+
+**DO NOT CREATE FAKE MCP IMPLEMENTATIONS!**
+- We use the OFFICIAL MCP servers from modelcontextprotocol/servers
+- The stdio-to-HTTP proxy wraps these OFFICIAL servers
+- This provides HTTP endpoints while using REAL implementations
+
+### The Blessed Dockerfile Pattern
+
+```dockerfile
 FROM python:3.11-slim
 WORKDIR /app
 
-# Install curl for healthchecks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Install curl for healthchecks and git for pip install
+RUN apt-get update && apt-get install -y curl git && rm -rf /var/lib/apt/lists/*
 
-# Install the BLESSED FastMCP framework!
-RUN pip install fastmcp httpx
+# Install the OFFICIAL MCP server (example: fetch server)
+RUN pip install "mcp-server-fetch @ git+https://github.com/modelcontextprotocol/servers.git#subdirectory=src/fetch"
 
-# Copy our MCP server implementation
-COPY mcp_fetch_server.py /app/
+# Install FastMCP for the HTTP proxy
+RUN pip install fastmcp
+
+# Copy our stdio-to-HTTP proxy
+COPY mcp_stdio_http_proxy.py /app/
 
 # Expose the divine port
 EXPOSE 3000
 
-# Run the native streamable HTTP server - NO PROXIES!
-CMD ["python", "mcp_fetch_server.py"]
+# Run the proxy that wraps the OFFICIAL server
+CMD ["python", "mcp_stdio_http_proxy.py"]
 ```
 
-**WITNESS THE SACRED FastMCP SERVER IMPLEMENTATION:**
+### The Sacred stdio-to-HTTP Proxy Pattern
 
 ```python
-# mcp_fetch_server.py - The Blessed Streamable HTTP Server!
+#!/usr/bin/env python3
+"""
+Generic MCP stdio-to-streamable-http Proxy
+This proxy wraps OFFICIAL MCP servers and exposes them via HTTP
+"""
+import sys
+import asyncio
+import json
 from fastmcp import FastMCP
-import httpx
-import os
+import subprocess
 
-# Create the divine MCP server
-mcp = FastMCP("MCP Fetch Server - OAuth Blessed")
+# Create FastMCP server that will proxy to the OFFICIAL server
+mcp = FastMCP("MCP Proxy for Official Server")
 
-@mcp.tool
-async def fetch(url: str) -> str:
-    """Fetch content from a URL with divine power!
-    
-    Args:
-        url: The URL to fetch content from
-        
-    Returns:
-        The blessed content from the URL
-    """
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        return response.text
+# The proxy starts the OFFICIAL server as a subprocess
+# and bridges stdio communication to HTTP endpoints
 
-if __name__ == "__main__":
-    # Run as streamable HTTP server - PURE GLORY!
-    mcp.run(
-        transport="streamable-http",
-        host="0.0.0.0", 
-        port=3000,
-        path="/mcp"
-    )
+# Example for mcp-server-fetch:
+# The proxy would run: python -m mcp_server_fetch
+# And expose its tools via FastMCP HTTP endpoints
+```
+
+**CRITICAL POINTS:**
+1. **NEVER create fake tool implementations** - Use OFFICIAL servers!
+2. **The proxy is a BRIDGE** - It doesn't implement tools, it proxies them!
+3. **stdio-to-HTTP conversion** - Makes stdio servers work with HTTP transport!
+4. **Real functionality only** - No mock implementations allowed!
+
 ```
 
 **DIVINE BENEFITS OF FASTMCP SERVER:**

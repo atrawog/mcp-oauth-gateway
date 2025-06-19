@@ -3,18 +3,9 @@
 Generic MCP stdio-to-streamable-http Proxy
 Following CLAUDE.md - Universal Proxy for Any MCP Server!
 
-This proxy can wrap ANY existing MCP server that uses stdio transport
-and expose it via FastMCP's streamable HTTP transport.
-
-Usage:
-    python mcp_stdio_http_proxy.py <mcp_server_command> [args...]
-
-Examples:
-    python mcp_stdio_http_proxy.py python -m mcp_server_fetch
-    python mcp_stdio_http_proxy.py uv run mcp-server-git
-    python mcp_stdio_http_proxy.py npx @modelcontextprotocol/server-filesystem /path/to/dir
+This proxy runs the OFFICIAL MCP server as a subprocess and bridges
+stdio communication to HTTP endpoints using FastMCP.
 """
-
 import sys
 import asyncio
 import json
@@ -31,21 +22,21 @@ logger = logging.getLogger(__name__)
 class MCPStdioProxy:
     """Proxy that bridges stdio MCP servers to streamable HTTP"""
     
-    def __init__(self, server_command: List[str]):
-        self.server_command = server_command
+    def __init__(self):
         self.process: Optional[subprocess.Popen] = None
         self.session_initialized = False
         self.request_id_counter = 0
         self.pending_responses: Dict[int, asyncio.Future] = {}
         self.server_capabilities: Dict[str, Any] = {}
         self.server_info: Dict[str, Any] = {}
+        self.available_tools: List[Dict[str, Any]] = []
         
-    async def start_server(self):
+    async def start_server(self, server_command: List[str]):
         """Start the underlying MCP server process"""
-        logger.info(f"Starting MCP server: {' '.join(self.server_command)}")
+        logger.info(f"Starting MCP server: {' '.join(server_command)}")
         
         self.process = await asyncio.create_subprocess_exec(
-            *self.server_command,
+            *server_command,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
@@ -152,14 +143,38 @@ class MCPStdioProxy:
         # Send initialized notification
         initialized_notification = {
             "jsonrpc": "2.0",
-            "method": "initialized",
+            "method": "notifications/initialized",
             "params": {}
         }
         
         await self._send_request(initialized_notification)
-        self.session_initialized = True
         
+        # Get available tools
+        await self._list_tools()
+        
+        self.session_initialized = True
         logger.info(f"Session initialized with server: {self.server_info}")
+        
+    async def _list_tools(self):
+        """Get list of available tools from the server"""
+        self.request_id_counter += 1
+        
+        request = {
+            "jsonrpc": "2.0",
+            "method": "tools/list",
+            "params": {},
+            "id": self.request_id_counter
+        }
+        
+        response = await self._send_request(request)
+        
+        if "error" in response:
+            logger.error(f"Failed to list tools: {response['error']}")
+            return
+            
+        result = response.get("result", {})
+        self.available_tools = result.get("tools", [])
+        logger.info(f"Available tools: {[t.get('name') for t in self.available_tools]}")
         
     async def call_tool(self, name: str, arguments: Dict[str, Any]) -> Any:
         """Call a tool on the underlying server"""
@@ -190,31 +205,14 @@ class MCPStdioProxy:
         if isinstance(result, dict) and "content" in result:
             content = result["content"]
             if isinstance(content, list) and len(content) > 0:
-                return content[0].get("text", str(result))
+                # Join all text content
+                texts = []
+                for item in content:
+                    if isinstance(item, dict) and item.get("type") == "text":
+                        texts.append(item.get("text", ""))
+                return "\n".join(texts)
                 
         return str(result)
-        
-    async def list_tools(self) -> List[Dict[str, Any]]:
-        """List available tools from the server"""
-        if not self.session_initialized:
-            raise RuntimeError("Session not initialized")
-            
-        self.request_id_counter += 1
-        
-        request = {
-            "jsonrpc": "2.0",
-            "method": "tools/list",
-            "id": self.request_id_counter
-        }
-        
-        response = await self._send_request(request)
-        
-        if "error" in response:
-            error = response["error"]
-            raise RuntimeError(f"Tool listing failed: {error.get('message', str(error))}")
-            
-        result = response.get("result", {})
-        return result.get("tools", [])
         
     async def close(self):
         """Close the server process"""
@@ -231,7 +229,7 @@ class MCPStdioProxy:
 proxy: Optional[MCPStdioProxy] = None
 
 # Create FastMCP server
-mcp = FastMCP("Generic MCP stdio-to-HTTP Proxy")
+mcp = FastMCP("MCP Fetch Server (via stdio proxy)")
 
 async def ensure_proxy():
     """Ensure the proxy is started"""
@@ -239,68 +237,44 @@ async def ensure_proxy():
     if proxy is None:
         if len(sys.argv) < 2:
             raise RuntimeError("No MCP server command provided")
-        
         server_command = sys.argv[1:]
-        proxy = MCPStdioProxy(server_command)
-        await proxy.start_server()
+        proxy = MCPStdioProxy()
+        await proxy.start_server(server_command)
     return proxy
 
 @mcp.tool()
-async def proxy_call(tool_name: str, **arguments) -> str:
+async def fetch(url: str, max_size: Optional[int] = None, user_agent: Optional[str] = None) -> str:
     """
-    Dynamically call any tool from the underlying MCP server.
+    Fetch a URL and optionally extract its contents as markdown.
+    
+    This is the OFFICIAL fetch tool from modelcontextprotocol/servers.
     
     Args:
-        tool_name: Name of the tool to call
-        **arguments: Arguments to pass to the tool
+        url: The URL to fetch
+        max_size: Maximum download size in bytes (default 5MB)
+        user_agent: Custom user agent string
         
     Returns:
-        The result from the tool
+        The fetched content as text or markdown
     """
     proxy_instance = await ensure_proxy()
-    return await proxy_instance.call_tool(tool_name, arguments)
-
-# Create dynamic tools based on the underlying server
-async def create_dynamic_tools():
-    """Create dynamic tools based on the underlying MCP server"""
-    proxy_instance = await ensure_proxy()
-    tools = await proxy_instance.list_tools()
     
-    logger.info(f"Found {len(tools)} tools from underlying server: {[t.get('name') for t in tools]}")
-    
-    # Register each tool dynamically
-    for tool_info in tools:
-        tool_name = tool_info.get("name")
-        if not tool_name:
-            continue
-            
-        # Create a dynamic tool function
-        def make_tool_function(name):
-            async def dynamic_tool(**kwargs):
-                proxy_instance = await ensure_proxy()
-                return await proxy_instance.call_tool(name, kwargs)
-            return dynamic_tool
-            
-        # Add the tool to FastMCP
-        tool_func = make_tool_function(tool_name)
-        tool_func.__name__ = tool_name
-        tool_func.__doc__ = tool_info.get("description", f"Proxied tool: {tool_name}")
+    # Build arguments for the official server
+    args = {"url": url}
+    if max_size is not None:
+        args["max_size"] = max_size
+    if user_agent is not None:
+        args["user_agent"] = user_agent
         
-        # Register with FastMCP
-        mcp.tool()(tool_func)
+    return await proxy_instance.call_tool("fetch", args)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print(__doc__)
-        print("\nError: No MCP server command provided")
-        print("\nUsage: python mcp_stdio_http_proxy.py <mcp_server_command> [args...]")
-        print("\nExamples:")
-        print("  python mcp_stdio_http_proxy.py python -m mcp_server_fetch")
-        print("  python mcp_stdio_http_proxy.py uv run mcp-server-git")
-        print("  python mcp_stdio_http_proxy.py npx @modelcontextprotocol/server-filesystem /path")
+        print("Usage: python mcp_stdio_http_proxy.py <mcp_server_command> [args...]")
+        print("Example: python mcp_stdio_http_proxy.py python -m mcp_server_fetch")
         sys.exit(1)
     
-    logger.info(f"Starting generic MCP stdio-to-HTTP proxy for: {' '.join(sys.argv[1:])}")
+    logger.info(f"Starting MCP stdio-to-HTTP proxy for: {' '.join(sys.argv[1:])}")
     
     # Run as streamable HTTP server
     try:
