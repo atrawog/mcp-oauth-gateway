@@ -1,6 +1,7 @@
 """
 Sacred MCP Protocol Tests - Testing real MCP servers with JSON-RPC 2.0
-Following MCP Protocol 2025-06-18 specifications
+Following MCP Protocol specifications from .env ONLY!
+NO HARDCODED VERSIONS! Must use MCP_PROTOCOL_VERSION from environment!
 """
 import pytest
 import httpx
@@ -11,7 +12,7 @@ from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, MCP_PROTOCOL_VERSION
 
 
 class TestMCPProtocol:
-    """Test MCP Protocol 2025-03-26 compliance"""
+    """Test MCP Protocol compliance - version MUST match .env!"""
     
     @pytest.mark.asyncio
     async def test_mcp_endpoint_requires_auth(self, http_client, wait_for_services):

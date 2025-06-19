@@ -36,7 +36,7 @@ just test
 - ✓ RFC 7591 dynamic client registration
 - ✓ PKCE support with S256 challenge
 - ✓ Claude.ai integration ready
-- ✓ MCP Protocol 2025-03-26 compliant
+- ✓ MCP Protocol 2025-06-18 compliant
 - ✓ Production-ready with healthchecks
 - ✓ Sidecar coverage for testing
 

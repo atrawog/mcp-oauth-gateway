@@ -200,7 +200,7 @@ REFRESH_TOKEN_LIFETIME=2592000     # 30 days
 SESSION_TIMEOUT=3600               # 1 hour
 
 # MCP Protocol Version
-MCP_PROTOCOL_VERSION=2025-03-26
+MCP_PROTOCOL_VERSION=2025-06-18
 ```
 
 ## 🏗️ Architecture

@@ -2,6 +2,7 @@
 import sys
 import argparse
 import logging
+import os
 from .server import run_server
 
 logger = logging.getLogger(__name__)
@@ -36,15 +37,15 @@ Examples:
     
     parser.add_argument(
         "--host",
-        default="0.0.0.0",
-        help="Host to bind to (default: 0.0.0.0)"
+        default=os.getenv("MCP_BIND_HOST", "0.0.0.0"),
+        help="Host to bind to (default: 0.0.0.0, or MCP_BIND_HOST env var)"
     )
     
     parser.add_argument(
         "--port",
         type=int,
-        default=3000,
-        help="Port to bind to (default: 3000)"
+        default=int(os.getenv("MCP_PORT", "3000")),
+        help="Port to bind to (default: 3000, or MCP_PORT env var)"
     )
     
     parser.add_argument(

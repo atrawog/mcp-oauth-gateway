@@ -3,9 +3,11 @@ import asyncio
 import json
 import logging
 import time
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Set
 import subprocess
 from uuid import uuid4
+import os
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -13,9 +15,10 @@ logger = logging.getLogger(__name__)
 class MCPSession:
     """Individual MCP session with its own subprocess."""
     
-    def __init__(self, session_id: str, server_command: List[str]):
+    def __init__(self, session_id: str, server_command: List[str], protocol_version: str = None):
         self.session_id = session_id
         self.server_command = server_command
+        self.protocol_version = protocol_version or os.getenv("MCP_PROTOCOL_VERSION", "2025-06-18")
         self.process: Optional[subprocess.Popen] = None
         self.session_initialized = False
         self.request_id_counter = 0
@@ -40,8 +43,7 @@ class MCPSession:
         # Start reading responses from the server
         asyncio.create_task(self._read_responses())
         
-        # Initialize the session
-        await self._initialize_session()
+        # Don't auto-initialize - wait for client to send initialize request
         
     async def _read_responses(self):
         """Read responses from the server stdout."""
@@ -109,15 +111,18 @@ class MCPSession:
         
         return {}
         
-    async def _initialize_session(self):
+    async def _initialize_session(self, requested_version: Optional[str] = None):
         """Initialize the MCP session."""
         self.request_id_counter += 1
+        
+        # Use requested version or configured version
+        init_version = requested_version or self.protocol_version
         
         init_request = {
             "jsonrpc": "2.0",
             "method": "initialize",
             "params": {
-                "protocolVersion": "2025-06-18",
+                "protocolVersion": init_version,
                 "capabilities": {
                     "tools": {}
                 },
@@ -176,7 +181,51 @@ class MCPSession:
         
     async def handle_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Handle an incoming MCP request."""
-        if not self.session_initialized:
+        # Special handling for initialize requests - they should only come through handle_request
+        method = request_data.get("method")
+        if method == "initialize":
+            # Per MCP spec: servers MAY accept any protocol version and return their supported version
+            # We'll accept any version but always return our supported version
+            requested_version = request_data.get("params", {}).get("protocolVersion")
+            if requested_version:
+                logger.info(f"Client requested protocol version: {requested_version}, server supports: {self.protocol_version}")
+            
+            # Now initialize with correct version
+            if not self.session_initialized:
+                # Forward the initialize request  
+                response = await self._send_request(request_data)
+                
+                # If successful, mark as initialized
+                if "result" in response:
+                    self.session_initialized = True
+                    self.server_capabilities = response["result"].get("capabilities", {})
+                    self.server_info = response["result"].get("serverInfo", {})
+                    
+                    # Send initialized notification
+                    initialized_notification = {
+                        "jsonrpc": "2.0",
+                        "method": "notifications/initialized",
+                        "params": {}
+                    }
+                    await self._send_request(initialized_notification)
+                    
+                    # Get available tools
+                    await self._list_tools()
+                
+                return response
+            else:
+                # Already initialized
+                return {
+                    "jsonrpc": "2.0",
+                    "id": request_data.get("id"),
+                    "error": {
+                        "code": -32603,
+                        "message": "Session already initialized"
+                    }
+                }
+        
+        # Only check initialization for non-initialize requests
+        if method != "initialize" and not self.session_initialized:
             raise RuntimeError(f"Session {self.session_id} not initialized")
             
         logger.info(f"Session {self.session_id}: Handling MCP request: {json.dumps(request_data, indent=2)}")
@@ -225,6 +274,8 @@ class MCPSessionManager:
         self.sessions: Dict[str, MCPSession] = {}
         self.session_timeout = session_timeout  # Default 5 minutes
         self._cleanup_task: Optional[asyncio.Task] = None
+        # Read protocol version from environment - MUST match .env!
+        self.protocol_version = os.getenv("MCP_PROTOCOL_VERSION", "2025-06-18")
         
     async def start(self):
         """Start the session manager."""
@@ -251,7 +302,7 @@ class MCPSessionManager:
             return session
             
         # Create new session
-        session = MCPSession(session_id, self.server_command)
+        session = MCPSession(session_id, self.server_command, self.protocol_version)
         await session.start_server()
         self.sessions[session_id] = session
         
@@ -264,17 +315,74 @@ class MCPSessionManager:
         
         # Handle initialize requests specially - they create new sessions
         if method == "initialize":
-            session = await self.get_or_create_session()
-            response = {
-                "jsonrpc": "2.0",
-                "id": request_data.get("id"),
-                "result": {
-                    "protocolVersion": "2025-06-18",
-                    "capabilities": session.server_capabilities,
-                    "serverInfo": session.server_info
+            # Validate protocol version from request
+            requested_version = request_data.get("params", {}).get("protocolVersion")
+            if requested_version and requested_version != self.protocol_version:
+                # Wrong version - return error
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": request_data.get("id"),
+                    "error": {
+                        "code": -32602,
+                        "message": f"Invalid protocol version. Expected {self.protocol_version}, got {requested_version}"
+                    }
                 }
-            }
-            return response, session.session_id
+                return response, ""
+            
+            # Don't create a new session - handle the initialize request directly
+            if session_id and session_id in self.sessions:
+                # Existing session wants to re-initialize - not allowed
+                response = {
+                    "jsonrpc": "2.0",
+                    "id": request_data.get("id"),
+                    "error": {
+                        "code": -32603,
+                        "message": "Session already initialized"
+                    }
+                }
+                return response, session_id
+            
+            # Create new session but don't auto-initialize
+            new_session_id = str(uuid4())
+            session = MCPSession(new_session_id, self.server_command, self.protocol_version)
+            
+            # Start the process but don't initialize yet
+            logger.info(f"Starting MCP server for session {session.session_id}: {' '.join(session.server_command)}")
+            session.process = await asyncio.create_subprocess_exec(
+                *session.server_command,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            # Start reading responses
+            asyncio.create_task(session._read_responses())
+            
+            # Store the session
+            self.sessions[new_session_id] = session
+            
+            # Handle the initialize request in the session
+            # This will validate the version and return error if wrong
+            response = await session.handle_request(request_data)
+            
+            # Mark as initialized if successful  
+            if "result" in response:
+                session.session_initialized = True
+                session.server_capabilities = response["result"].get("capabilities", {})
+                session.server_info = response["result"].get("serverInfo", {})
+                
+                # Send initialized notification
+                initialized_notification = {
+                    "jsonrpc": "2.0",
+                    "method": "notifications/initialized",
+                    "params": {}
+                }
+                await session._send_request(initialized_notification)
+                
+                # Get available tools
+                await session._list_tools()
+            
+            return response, new_session_id
             
         # For other requests, use existing session or create new one
         session = await self.get_or_create_session(session_id)
@@ -308,7 +416,6 @@ class MCPSessionManager:
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import os
 
 
 def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI:
@@ -364,6 +471,14 @@ def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI
     @app.post("/mcp")
     async def handle_mcp(request: Request):
         """Handle MCP requests without trailing slash redirect."""
+        # Validate Origin header for security (MCP spec requirement)
+        origin = request.headers.get("Origin")
+        if origin and cors_origins:
+            # Check if origin is allowed
+            if origin not in cors_origins:
+                logger.warning(f"Rejected request from unauthorized origin: {origin}")
+                raise HTTPException(status_code=403, detail="Origin not allowed")
+        
         try:
             request_data = await request.json()
             
@@ -388,6 +503,7 @@ def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI
     @app.post("/mcp/")
     async def handle_mcp_trailing(request: Request):
         """Handle MCP requests with trailing slash."""
+        # Origin validation is handled in handle_mcp
         return await handle_mcp(request)
     
     return app

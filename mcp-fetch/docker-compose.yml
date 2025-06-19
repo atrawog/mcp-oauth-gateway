@@ -9,6 +9,7 @@ services:
       - public
     environment:
       - MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}
+      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION}
     labels:
       - "traefik.enable=true"
       # Health check route - Priority 3 (HIGHEST for specific path)

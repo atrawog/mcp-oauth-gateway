@@ -1,10 +1,12 @@
 """
 Main server module for MCP OAuth Dynamic Client
 """
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from .config import Settings
 from .redis_client import RedisManager
@@ -39,6 +41,20 @@ def create_app(settings: Settings = None) -> FastAPI:
         lifespan=lifespan
     )
     
+    # Configure CORS
+    cors_origins = os.getenv("MCP_CORS_ORIGINS", "").split(",")
+    cors_origins = [origin.strip() for origin in cors_origins if origin.strip()]
+    
+    if cors_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=cors_origins,
+            allow_credentials=True,
+            allow_methods=["GET", "POST", "OPTIONS"],
+            allow_headers=["*"],
+            expose_headers=["X-User-Id", "X-User-Name", "X-Auth-Token"]
+        )
+    
     # Health check endpoint
     @app.get("/health")
     async def health_check():
@@ -58,3 +74,7 @@ def create_app(settings: Settings = None) -> FastAPI:
     app.include_router(oauth_router)
     
     return app
+
+
+# Create a default app instance for uvicorn
+app = create_app()

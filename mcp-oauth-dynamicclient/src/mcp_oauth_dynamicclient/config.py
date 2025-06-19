@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     allowed_github_users: str = ""  # Comma-separated list
     
     # MCP Protocol Version
-    mcp_protocol_version: str = "2025-03-26"
+    mcp_protocol_version: str = "2025-06-18"
     
     class Config:
         env_file = ".env"

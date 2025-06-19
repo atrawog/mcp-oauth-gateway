@@ -37,13 +37,23 @@ def main():
     app = create_app(settings)
     
     # Run server
-    uvicorn.run(
-        app if not args.reload else "mcp_oauth_dynamicclient.server:create_app",
-        host=args.host,
-        port=args.port,
-        reload=args.reload,
-        factory=args.reload
-    )
+    if args.reload:
+        # For reload, use the module path
+        uvicorn.run(
+            "mcp_oauth_dynamicclient.server:create_app",
+            host=args.host,
+            port=args.port,
+            reload=True,
+            factory=True
+        )
+    else:
+        # For production, use the app instance
+        uvicorn.run(
+            app,
+            host=args.host,
+            port=args.port,
+            reload=False
+        )
 
 
 if __name__ == "__main__":
