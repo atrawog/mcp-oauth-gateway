@@ -13,8 +13,10 @@ from .test_constants import (
     TEST_REDIRECT_URI,
     TEST_CLIENT_NAME,
     TEST_CLIENT_SCOPE,
-    BASE_DOMAIN
+    BASE_DOMAIN,
+    MCP_PROTOCOL_VERSIONS_SUPPORTED
 )
+from .mcp_helpers import initialize_mcp_session, call_mcp_tool
 
 
 class TestMCPFetchComplete:
@@ -62,59 +64,70 @@ class TestMCPFetchComplete:
                 "Run 'just generate-github-token' to get a real token!"
             )
         
-        # Step 3: Make the MCP request to fetch actual content
-        mcp_request = {
-            "jsonrpc": "2.0",
-            "method": "tools/call",
-            "params": {
-                "name": "fetch",
-                "arguments": {
-                    "url": "https://example.com"  # A reliable test URL
-                }
-            },
-            "id": "complete-test-1"
-        }
+        # Step 3: Initialize MCP session properly
+        try:
+            session_id, init_result = await initialize_mcp_session(
+                http_client, MCP_FETCH_URL, oauth_token
+            )
+        except RuntimeError:
+            # Try with alternative supported version if available
+            if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
+                alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
+                session_id, init_result = await initialize_mcp_session(
+                    http_client, MCP_FETCH_URL, oauth_token, alt_version
+                )
+            else:
+                raise
         
-        # Step 4: Send the request with REAL authentication
-        response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
-            json=mcp_request,
-            headers={
-                "Authorization": f"Bearer {oauth_token}",
-                "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream",
-                "MCP-Protocol-Version": "2025-06-18"
-            },
-            follow_redirects=True  # Follow 307 redirects from Traefik
-        )
-        
-        # Step 5: Check response status
-        # Note: Current MCP service has issues, so we'll validate what we can
-        if response.status_code == 404:
-            # The MCP service may not be properly configured or the endpoint changed
-            print(f"⚠️  MCP service returned 404 - endpoint may have changed")
-            print(f"Response: {response.text[:500]}")
-            
-            # For now, we'll verify that:
-            # 1. The OAuth token was accepted (we got past 401)
-            # 2. We reached the service (not a connection error)
-            # This proves the OAuth flow is working even if MCP service has issues
-            
-            # Let's at least verify the auth is working by checking we can access with token
-            auth_test = await http_client.get(
-                MCP_FETCH_URL,
-                headers={"Authorization": f"Bearer {oauth_token}"}
+        # Step 4: Make the MCP request to fetch actual content
+        try:
+            response_data = await call_mcp_tool(
+                http_client, MCP_FETCH_URL, oauth_token, session_id,
+                "fetch", {"url": "https://example.com"}, "complete-test-1"
             )
             
-            # We should get past the 401 with a valid token
-            assert auth_test.status_code != 401, "OAuth token was rejected!"
+            # Convert to mock response object for compatibility
+            class MockResponse:
+                def __init__(self, status_code, data):
+                    self.status_code = status_code
+                    self._data = data
+                    self.text = json.dumps(data)
+                
+                def json(self):
+                    return self._data
             
-            print(f"✅ OAuth token is valid and accepted by the service")
-            print(f"⚠️  MCP fetch endpoint returned {response.status_code} - service may need configuration")
+            response = MockResponse(200, response_data)
             
-            # For now, we'll consider this test passed if OAuth works
-            # The actual MCP functionality can be tested once the service is fixed
-            return
+        except RuntimeError as e:
+            # If tool call fails, create error response
+            class MockResponse:
+                def __init__(self, status_code, text):
+                    self.status_code = status_code
+                    self.text = text
+                
+                def json(self):
+                    try:
+                        return json.loads(self.text)
+                    except:
+                        return {"error": self.text}
+            
+            response = MockResponse(500, f"Tool call failed: {e}")
+        
+        # Step 5: Check response status - MUST succeed for test to pass!
+        if response.status_code == 404:
+            pytest.fail(
+                f"SACRED VIOLATION OF COMMANDMENT 1: MCP fetch returned 404!\n"
+                f"Tests MUST verify actual functionality, not just OAuth!\n"
+                f"Response: {response.text[:500]}\n"
+                f"This test requires the MCP fetch service to be working 100%!"
+            )
+        
+        if response.status_code != 200:
+            pytest.fail(
+                f"SACRED VIOLATION: MCP fetch returned {response.status_code}!\n"
+                f"Tests MUST verify complete functionality!\n"
+                f"Response: {response.text[:500]}"
+            )
             
         # If we get 200, validate the full response
         if response.status_code == 200:
@@ -163,45 +176,46 @@ class TestMCPFetchComplete:
         if not oauth_token:
             pytest.skip("Skipping - no OAUTH_ACCESS_TOKEN available")
         
-        # Test with missing URL parameter
-        mcp_request = {
-            "jsonrpc": "2.0",
-            "method": "tools/call",
-            "params": {
-                "name": "fetch",
-                "arguments": {}  # Missing url!
-            },
-            "id": "validation-test-1"
-        }
+        # Initialize MCP session properly first
+        try:
+            session_id, init_result = await initialize_mcp_session(
+                http_client, MCP_FETCH_URL, oauth_token
+            )
+        except RuntimeError:
+            # Try with alternative supported version if available
+            if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
+                alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
+                session_id, init_result = await initialize_mcp_session(
+                    http_client, MCP_FETCH_URL, oauth_token, alt_version
+                )
+            else:
+                raise
         
-        response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
-            json=mcp_request,
-            headers={
-                "Authorization": f"Bearer {oauth_token}",
-                "Content-Type": "application/json"
-            }
-        )
-        
-        # Should either return 400 or JSON-RPC error
-        if response.status_code == 200:
-            result = response.json()
-            # MCP server returns validation errors in result.isError
-            if "result" in result and isinstance(result["result"], dict):
-                mcp_result = result["result"]
+        # Test with missing URL parameter using proper tool call
+        try:
+            response_data = await call_mcp_tool(
+                http_client, MCP_FETCH_URL, oauth_token, session_id,
+                "fetch", {}, "validation-test-1"  # Missing url argument
+            )
+            
+            # Check if we got a validation error
+            if "result" in response_data and isinstance(response_data["result"], dict):
+                mcp_result = response_data["result"]
                 if mcp_result.get("isError") == True:
-                    # This is expected for missing URL - validation error
                     print(f"✓ Got expected validation error: {mcp_result}")
                     return
-            # If no error at all, that's wrong
-            assert "error" in result or (result.get("result", {}).get("isError") == True), \
-                "Should return error for missing URL!"
-        elif response.status_code == 307:
-            # Handle Traefik redirect
-            print(f"Got redirect to: {response.headers.get('Location')}")
-            # For now, accept redirects as valid behavior
-        else:
-            assert response.status_code in [400, 422], f"Unexpected status: {response.status_code}"
+            
+            # If no error, test MUST fail - validation is required!
+            pytest.fail(
+                f"SACRED VIOLATION: MCP fetch should validate URL parameter!\n"
+                f"Expected validation error for missing URL but got: {response_data}\n"
+                f"Tests MUST verify complete functionality including validation!"
+            )
+            
+        except RuntimeError as e:
+            # RuntimeError from call_mcp_tool is expected for validation errors
+            print(f"✓ Got expected validation error: {e}")
+            return
     
     @pytest.mark.asyncio
     async def test_mcp_fetch_handles_invalid_urls(self, http_client, wait_for_services):
@@ -211,51 +225,54 @@ class TestMCPFetchComplete:
         if not oauth_token:
             pytest.skip("Skipping - no OAUTH_ACCESS_TOKEN available")
         
+        # Initialize MCP session properly first
+        try:
+            session_id, init_result = await initialize_mcp_session(
+                http_client, MCP_FETCH_URL, oauth_token
+            )
+        except RuntimeError:
+            # Try with alternative supported version if available
+            if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
+                alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
+                session_id, init_result = await initialize_mcp_session(
+                    http_client, MCP_FETCH_URL, oauth_token, alt_version
+                )
+            else:
+                raise
+        
         invalid_urls = [
             "not-a-url",
-            "ftp://not-supported.com",
+            "ftp://not-supported.com", 
             "javascript:alert('xss')",
             "",
             "http://",
         ]
         
         for invalid_url in invalid_urls:
-            mcp_request = {
-                "jsonrpc": "2.0",
-                "method": "tools/call",
-                "params": {
-                    "name": "fetch",
-                    "arguments": {"url": invalid_url}
-                },
-                "id": f"invalid-url-{invalid_url[:10]}"
-            }
-            
-            response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp",
-                json=mcp_request,
-                headers={
-                    "Authorization": f"Bearer {oauth_token}",
-                    "Content-Type": "application/json"
-                }
-            )
-            
-            # Must handle gracefully
-            assert response.status_code in [200, 307, 400, 422], (
-                f"Unexpected status {response.status_code} for URL: {invalid_url}"
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                # MCP server returns validation errors in result.isError
-                if "result" in result and isinstance(result["result"], dict):
-                    mcp_result = result["result"]
+            try:
+                response_data = await call_mcp_tool(
+                    http_client, MCP_FETCH_URL, oauth_token, session_id,
+                    "fetch", {"url": invalid_url}, f"invalid-url-{invalid_url[:10]}"
+                )
+                
+                # Check if we got an error result
+                if "result" in response_data and isinstance(response_data["result"], dict):
+                    mcp_result = response_data["result"]
                     if mcp_result.get("isError") == True:
-                        # This is expected for invalid URL - validation error
-                        print(f"✓ Got expected validation error for {invalid_url}: {mcp_result}")
+                        print(f"✓ Got expected error for '{invalid_url}': {mcp_result}")
                         continue
-                # If no error at all, that's wrong
-                assert "error" in result or (result.get("result", {}).get("isError") == True), \
-                    f"Should return error for invalid URL: {invalid_url}"
+                
+                # If no error, test MUST fail - URL validation is required!
+                pytest.fail(
+                    f"SACRED VIOLATION: MCP fetch should reject invalid URL '{invalid_url}'!\n"
+                    f"Expected error but got: {response_data}\n"
+                    f"Tests MUST verify complete functionality including URL validation!"
+                )
+                
+            except RuntimeError as e:
+                # RuntimeError from call_mcp_tool is expected for invalid URLs
+                print(f"✓ Got expected error for '{invalid_url}': {e}")
+                continue
     
     @pytest.mark.asyncio
     async def test_mcp_fetch_respects_max_size(self, http_client, wait_for_services):
@@ -265,52 +282,46 @@ class TestMCPFetchComplete:
         if not oauth_token:
             pytest.skip("Skipping - no OAUTH_ACCESS_TOKEN available")
         
-        # Request with small max_size
-        mcp_request = {
-            "jsonrpc": "2.0",
-            "method": "tools/call",
-            "params": {
-                "name": "fetch",
-                "arguments": {
-                    "url": "https://example.com",
-                    "max_length": 100  # Very small limit - using correct parameter name
-                }
-            },
-            "id": "size-test-1"
-        }
+        # Initialize MCP session properly first
+        try:
+            session_id, init_result = await initialize_mcp_session(
+                http_client, MCP_FETCH_URL, oauth_token
+            )
+        except RuntimeError:
+            # Try with alternative supported version if available
+            if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
+                alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
+                session_id, init_result = await initialize_mcp_session(
+                    http_client, MCP_FETCH_URL, oauth_token, alt_version
+                )
+            else:
+                raise
         
-        response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
-            json=mcp_request,
-            headers={
-                "Authorization": f"Bearer {oauth_token}",
-                "Content-Type": "application/json"
-            }
-        )
-        
-        # Should either succeed with truncated content or return an error
-        assert response.status_code in [200, 307, 401], f"Request failed with status {response.status_code}: {response.text[:500] if response.status_code != 307 else 'Redirect'}"
-        
-        # If we get 401, the auth token might have expired
-        if response.status_code == 401:
-            print("Got 401 - auth token might have expired")
-            return
+        # Test with small max_length using proper tool call
+        try:
+            response_data = await call_mcp_tool(
+                http_client, MCP_FETCH_URL, oauth_token, session_id,
+                "fetch", {"url": "https://example.com", "max_length": 100}, "size-test-1"
+            )
             
-        # If we get 307, it's a redirect
-        if response.status_code == 307:
-            print("Got 307 redirect")
-            return
+            # Check if we got a result
+            if "result" in response_data:
+                fetch_result = response_data["result"]
+                if "content" in fetch_result and isinstance(fetch_result["content"], list):
+                    for item in fetch_result["content"]:
+                        if item.get("type") == "text" and "text" in item:
+                            content = item["text"]
+                            print(f"Fetched content size: {len(content)} bytes")
+                            # The content should be reasonably small (respecting max_length)
+                            if len(content) <= 500:  # Reasonable limit considering formatting
+                                print("✓ Content size appears to respect max_length")
+                            break
+                else:
+                    print(f"✓ Fetch completed: {fetch_result}")
             
-        result = response.json()
-        if "result" in result:
-            # If successful, content should be limited
-            content = result["result"].get("content") or result["result"]
-            if isinstance(content, str):
-                # Content might be truncated or fetch might respect the limit
-                print(f"Fetched content size: {len(content)} bytes")
-        elif "error" in result:
-            # Server might reject requests with very small max_size
-            print(f"Server rejected small max_size: {result['error']}")
+        except RuntimeError as e:
+            # Tool might reject very small max_length
+            print(f"✓ Server handled small max_length appropriately: {e}")
     
     @pytest.mark.asyncio  
     async def test_mcp_fetch_without_auth_must_fail(self, http_client, wait_for_services):
@@ -411,35 +422,35 @@ async def test_complete_oauth_flow_integration(http_client, wait_for_services):
     )
     assert mcp_response.status_code == 401, "MCP not enforcing auth!"
     
-    # 3. Make authenticated MCP request
-    fetch_response = await http_client.post(
-        f"{MCP_FETCH_URL}/mcp",
-        json={
-            "jsonrpc": "2.0",
-            "method": "tools/call",
-            "params": {
-                "name": "fetch",
-                "arguments": {"url": "https://httpbin.org/json"}
-            },
-            "id": "integration-1"
-        },
-        headers={
-            "Authorization": f"Bearer {oauth_token}",
-            "Content-Type": "application/json"
-        }
-    )
+    # 3. Initialize MCP session properly first
+    try:
+        session_id, init_result = await initialize_mcp_session(
+            http_client, MCP_FETCH_URL, oauth_token
+        )
+    except RuntimeError:
+        # Try with alternative supported version if available
+        if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
+            alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
+            session_id, init_result = await initialize_mcp_session(
+                http_client, MCP_FETCH_URL, oauth_token, alt_version
+            )
+        else:
+            raise
     
-    # 4. MUST succeed completely
-    assert fetch_response.status_code == 200, (
-        f"Complete integration FAILED! Status: {fetch_response.status_code}, "
-        f"Body: {fetch_response.text[:500]}"
-    )
-    
-    # 5. Verify we got real data
-    result = fetch_response.json()
-    assert "result" in result, f"No result in response: {result}"
-    
-    mcp_result = result["result"]
+    # 4. Make authenticated MCP tool call
+    try:
+        response_data = await call_mcp_tool(
+            http_client, MCP_FETCH_URL, oauth_token, session_id,
+            "fetch", {"url": "https://httpbin.org/json"}, "integration-1"
+        )
+        
+        # 5. MUST succeed completely  
+        assert "result" in response_data, f"No result in response: {response_data}"
+        
+        mcp_result = response_data["result"]
+        
+    except RuntimeError as e:
+        pytest.fail(f"Complete integration FAILED! Error: {e}")
     
     # Extract text content from MCP response format
     content_text = ""

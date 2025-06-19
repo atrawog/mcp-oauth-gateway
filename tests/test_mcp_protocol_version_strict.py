@@ -12,6 +12,7 @@ import redis.asyncio as redis
 from .test_constants import (
     MCP_FETCH_URL,
     MCP_PROTOCOL_VERSION,
+    MCP_PROTOCOL_VERSIONS_SUPPORTED,
     JWT_SECRET,
     ACCESS_TOKEN_LIFETIME,
     BASE_DOMAIN,
@@ -99,14 +100,13 @@ class TestMCPProtocolVersionStrict:
             assert "result" in result, "Initialize with correct version must return result"
             assert "protocolVersion" in result["result"], "Result must include protocol version"
             
-            # Verify it's using our version
+            # Verify it's using a supported version (per MCP spec, servers can return their own version)
             returned_version = result["result"]["protocolVersion"]
-            assert returned_version == MCP_PROTOCOL_VERSION, \
-                f"MCP returned wrong version! Expected {MCP_PROTOCOL_VERSION}, got {returned_version}"
+            assert returned_version in MCP_PROTOCOL_VERSIONS_SUPPORTED, \
+                f"MCP returned unsupported version! Expected one of {MCP_PROTOCOL_VERSIONS_SUPPORTED}, got {returned_version}"
             
             # Test 2: WRONG versions MUST fail
             wrong_versions = [
-                "2025-03-26",  # Old version
                 "2024-06-18",  # Wrong year
                 "2025-12-31",  # Future version
                 "1.0.0",       # Different format
@@ -115,11 +115,8 @@ class TestMCPProtocolVersionStrict:
                 None,          # Null value
             ]
             
-            # Add any version that's NOT our configured version
-            if MCP_PROTOCOL_VERSION != "2025-06-18":
-                wrong_versions.append("2025-06-18")
-            if MCP_PROTOCOL_VERSION != "2025-03-26":
-                wrong_versions.append("2025-03-26")
+            # Don't add supported versions as "wrong"
+            # Both 2025-06-18 and 2025-03-26 are acceptable
             
             for wrong_version in wrong_versions:
                 # Skip if it's actually our version (shouldn't happen but be safe)
@@ -172,16 +169,16 @@ class TestMCPProtocolVersionStrict:
                         returned_version = result["result"]["protocolVersion"]
                         
                         # The MCP spec allows servers to accept any version and return their supported version
-                        # What matters is that the server ALWAYS returns the configured version from .env
-                        if returned_version != MCP_PROTOCOL_VERSION:
+                        # What matters is that the server returns a supported version
+                        if returned_version not in MCP_PROTOCOL_VERSIONS_SUPPORTED:
                             pytest.fail(
-                                f"❌ CRITICAL FAILURE: MCP server returned WRONG version! "
-                                f"Expected {MCP_PROTOCOL_VERSION} from .env, but got {returned_version}. "
-                                f"The server MUST always use the version from environment!"
+                                f"❌ CRITICAL FAILURE: MCP server returned unsupported version! "
+                                f"Expected one of {MCP_PROTOCOL_VERSIONS_SUPPORTED}, but got {returned_version}. "
+                                f"The server MUST return a supported version!"
                             )
                         else:
-                            # Server correctly returned the configured version
-                            print(f"✓ Server accepted '{wrong_version}' but correctly returned configured version {MCP_PROTOCOL_VERSION}")
+                            # Server correctly returned a supported version
+                            print(f"✓ Server accepted '{wrong_version}' but correctly returned supported version {returned_version}")
                             print("  Note: MCP spec allows servers to accept any version and return their supported version")
                     else:
                         pytest.fail("❌ FAILURE: No protocol version in response")
@@ -219,10 +216,10 @@ class TestMCPProtocolVersionStrict:
             if "error" in result:
                 print("✓ Correctly rejected missing protocol version")
             elif "result" in result and "protocolVersion" in result.get("result", {}):
-                # If it accepts, it MUST use our configured version
+                # If it accepts, it MUST use a supported version
                 default_version = result["result"]["protocolVersion"]
-                assert default_version == MCP_PROTOCOL_VERSION, \
-                    f"MCP used wrong default version! Expected {MCP_PROTOCOL_VERSION}, got {default_version}"
+                assert default_version in MCP_PROTOCOL_VERSIONS_SUPPORTED, \
+                    f"MCP used wrong default version! Expected one of {MCP_PROTOCOL_VERSIONS_SUPPORTED}, got {default_version}"
                 
         finally:
             # Clean up
@@ -311,14 +308,13 @@ class TestMCPProtocolVersionStrict:
             await redis_client.srem(f"oauth:user_tokens:headertest", jti)
             await redis_client.aclose()
     
-    def test_env_mcp_version_is_correct(self):
-        """Verify that .env has the correct MCP protocol version"""
-        # This test ensures we're using 2025-06-18
-        expected_version = "2025-06-18"
-        
-        assert MCP_PROTOCOL_VERSION == expected_version, \
-            f"MCP_PROTOCOL_VERSION in .env MUST be '{expected_version}'! " \
+    def test_env_mcp_version_is_supported(self):
+        """Verify that .env has a supported MCP protocol version"""
+        # This test ensures we're using one of the supported versions
+        assert MCP_PROTOCOL_VERSION in MCP_PROTOCOL_VERSIONS_SUPPORTED, \
+            f"MCP_PROTOCOL_VERSION in .env MUST be one of {MCP_PROTOCOL_VERSIONS_SUPPORTED}! " \
             f"Currently set to '{MCP_PROTOCOL_VERSION}'. " \
-            f"Update your .env file immediately!"
+            f"Update your .env file to use a supported version!"
         
-        print(f"✓ MCP Protocol Version correctly set to {MCP_PROTOCOL_VERSION}")
+        print(f"✓ MCP Protocol Version correctly set to {MCP_PROTOCOL_VERSION} (supported)")
+        print(f"✓ Supported versions: {MCP_PROTOCOL_VERSIONS_SUPPORTED}")

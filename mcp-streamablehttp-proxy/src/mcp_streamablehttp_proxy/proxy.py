@@ -127,7 +127,7 @@ class MCPSession:
                     "tools": {}
                 },
                 "clientInfo": {
-                    "name": "mcp-streamablehttp-server",
+                    "name": "mcp-streamablehttp-proxy",
                     "version": "1.0.0"
                 }
             },
@@ -181,21 +181,13 @@ class MCPSession:
         
     async def handle_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Handle an incoming MCP request."""
-        # Special handling for initialize requests - they should only come through handle_request
         method = request_data.get("method")
         if method == "initialize":
-            # Per MCP spec: servers MAY accept any protocol version and return their supported version
-            # We'll accept any version but always return our supported version
-            requested_version = request_data.get("params", {}).get("protocolVersion")
-            if requested_version:
-                logger.info(f"Client requested protocol version: {requested_version}, server supports: {self.protocol_version}")
-            
-            # Now initialize with correct version
             if not self.session_initialized:
-                # Forward the initialize request  
+                # Forward the initialize request to the underlying server
                 response = await self._send_request(request_data)
                 
-                # If successful, mark as initialized
+                # If successful, complete the initialization process
                 if "result" in response:
                     self.session_initialized = True
                     self.server_capabilities = response["result"].get("capabilities", {})
@@ -211,6 +203,8 @@ class MCPSession:
                     
                     # Get available tools
                     await self._list_tools()
+                    
+                    logger.info(f"Session {self.session_id} initialized successfully")
                 
                 return response
             else:
@@ -315,23 +309,13 @@ class MCPSessionManager:
         
         # Handle initialize requests specially - they create new sessions
         if method == "initialize":
-            # Validate protocol version from request
+            # Log requested version - we'll accept any and forward to underlying server
             requested_version = request_data.get("params", {}).get("protocolVersion")
-            if requested_version and requested_version != self.protocol_version:
-                # Wrong version - return error
-                response = {
-                    "jsonrpc": "2.0",
-                    "id": request_data.get("id"),
-                    "error": {
-                        "code": -32602,
-                        "message": f"Invalid protocol version. Expected {self.protocol_version}, got {requested_version}"
-                    }
-                }
-                return response, ""
+            if requested_version:
+                logger.info(f"Client requested protocol version: {requested_version}, forwarding to underlying MCP server")
             
-            # Don't create a new session - handle the initialize request directly
+            # Don't allow re-initialization of existing sessions
             if session_id and session_id in self.sessions:
-                # Existing session wants to re-initialize - not allowed
                 response = {
                     "jsonrpc": "2.0",
                     "id": request_data.get("id"),
@@ -342,45 +326,19 @@ class MCPSessionManager:
                 }
                 return response, session_id
             
-            # Create new session but don't auto-initialize
+            # Create new session
             new_session_id = str(uuid4())
             session = MCPSession(new_session_id, self.server_command, self.protocol_version)
             
-            # Start the process but don't initialize yet
-            logger.info(f"Starting MCP server for session {session.session_id}: {' '.join(session.server_command)}")
-            session.process = await asyncio.create_subprocess_exec(
-                *session.server_command,
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
+            # Start the subprocess
+            await session.start_server()
             
-            # Start reading responses
-            asyncio.create_task(session._read_responses())
-            
-            # Store the session
+            # Store the session  
             self.sessions[new_session_id] = session
+            logger.info(f"Created new session {new_session_id}. Total sessions: {len(self.sessions)}")
             
-            # Handle the initialize request in the session
-            # This will validate the version and return error if wrong
+            # Let the session handle the initialize request completely
             response = await session.handle_request(request_data)
-            
-            # Mark as initialized if successful  
-            if "result" in response:
-                session.session_initialized = True
-                session.server_capabilities = response["result"].get("capabilities", {})
-                session.server_info = response["result"].get("serverInfo", {})
-                
-                # Send initialized notification
-                initialized_notification = {
-                    "jsonrpc": "2.0",
-                    "method": "notifications/initialized",
-                    "params": {}
-                }
-                await session._send_request(initialized_notification)
-                
-                # Get available tools
-                await session._list_tools()
             
             return response, new_session_id
             

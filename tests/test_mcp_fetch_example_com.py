@@ -16,8 +16,10 @@ from .test_constants import (
     JWT_SECRET,
     ACCESS_TOKEN_LIFETIME,
     BASE_DOMAIN,
-    REDIS_URL
+    REDIS_URL,
+    MCP_PROTOCOL_VERSIONS_SUPPORTED
 )
+from .mcp_helpers import initialize_mcp_session, call_mcp_tool
 
 
 class TestMCPFetchExampleCom:
@@ -68,113 +70,76 @@ class TestMCPFetchExampleCom:
             # Add to user's tokens
             await redis_client.sadd(f"oauth:user_tokens:{token_claims['username']}", jti)
             
-            # Note: The stdio proxy maintains a persistent session, so no session initialization needed
-            print("Using stdio proxy with persistent MCP session")
+            # Step 2: Initialize MCP session properly
+            try:
+                session_id, init_result = await initialize_mcp_session(
+                    http_client, MCP_FETCH_URL, access_token
+                )
+                print(f"✓ MCP session initialized: {session_id}")
+                
+            except RuntimeError:
+                # Try with alternative supported version if available
+                if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
+                    alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
+                    session_id, init_result = await initialize_mcp_session(
+                        http_client, MCP_FETCH_URL, access_token, alt_version
+                    )
+                    print(f"✓ MCP session initialized with {alt_version}: {session_id}")
+                else:
+                    raise
             
-            # Initialize session (if needed) to get session ID
-            session_id = None
-            
-            # Step 2: List available tools first
-            list_request = {
-                "jsonrpc": "2.0",
-                "method": "tools/list",
-                "id": "list-1"
-            }
-            
-            list_response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp",
-                json=list_request,
-                headers={
-                    "Authorization": f"Bearer {access_token}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream"
-                }
-            )
-            
-            # Capture session ID from response headers
-            if "mcp-session-id" in list_response.headers:
-                session_id = list_response.headers["mcp-session-id"]
-                print(f"Got session ID: {session_id}")
-            
-            if list_response.status_code == 200:
-                tools = list_response.json()
-                print(f"Available tools: {json.dumps(tools, indent=2)}")
-            
-            # Step 3: Now fetch example.com with session
-            fetch_request = {
-                "jsonrpc": "2.0",
-                "method": "tools/call",
-                "params": {
-                    "name": "fetch",
-                    "arguments": {
-                        "url": "https://example.com"
-                    }
-                },
-                "id": "fetch-1"
-            }
-            
-            fetch_response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp",
-                json=fetch_request,
-                headers={
-                    "Authorization": f"Bearer {access_token}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream"
-                }
-            )
-            
-            print(f"Fetch response status: {fetch_response.status_code}")
-            
-            if fetch_response.status_code == 200:
-                result = fetch_response.json()
-                print(f"Fetch result: {json.dumps(result, indent=2)}")
+            # Step 3: Fetch example.com using proper tool call
+            try:
+                response_data = await call_mcp_tool(
+                    http_client, MCP_FETCH_URL, access_token, session_id,
+                    "fetch", {"url": "https://example.com"}, "fetch-1"
+                )
+                
+                print(f"Fetch result: {json.dumps(response_data, indent=2)}")
                 
                 # Check if we got a successful result
-                if "result" in result:
-                    # Extract content from the result
-                    content = str(result["result"])
+                if "result" in response_data:
+                    # Extract content from the result structure
+                    result = response_data["result"]
+                    content_text = ""
+                    
+                    # Handle the MCP content format
+                    if isinstance(result, dict) and "content" in result:
+                        content_items = result["content"]
+                        if isinstance(content_items, list):
+                            for item in content_items:
+                                if isinstance(item, dict) and item.get("type") == "text":
+                                    content_text += item.get("text", "")
+                    else:
+                        content_text = str(result)
                     
                     # Check for "Example Domain"
-                    assert "Example Domain" in content, \
-                        f"Expected 'Example Domain' in fetched content, but got: {content[:500]}..."
+                    assert "Example Domain" in content_text, \
+                        f"Expected 'Example Domain' in fetched content, but got: {content_text[:500]}..."
                     
                     print("✅ SUCCESS! Found 'Example Domain' in fetched content!")
                     return  # Test passed!
                     
-                elif "error" in result:
-                    print(f"MCP error: {result['error']}")
-                    # If method not found, try different approaches
-                    if "method not found" in str(result.get("error", {})).lower():
-                        # Try direct fetch method
-                        fetch_request["method"] = "fetch"
-                        fetch_request["params"] = {"url": "https://example.com"}
-                        
-                        retry_headers = {
-                            "Authorization": f"Bearer {access_token}",
-                            "Content-Type": "application/json",
-                            "Accept": "application/json, text/event-stream"
-                        }
-                        # Only add session ID if we have one
-                        if session_id:
-                            retry_headers["Mcp-Session-Id"] = session_id
-                            
-                        retry_response = await http_client.post(
-                            f"{MCP_FETCH_URL}/mcp",
-                            json=fetch_request,
-                            headers=retry_headers
-                        )
-                        
-                        if retry_response.status_code == 200:
-                            retry_result = retry_response.json()
-                            print(f"Retry result: {json.dumps(retry_result, indent=2)}")
-                            
-            else:
-                print(f"Fetch response body: {fetch_response.text}")
-                
-            # Even if we can't fetch example.com, the test passes if auth works
-            # The MCP service might not be fully configured for fetching
-            assert fetch_response.status_code in [200, 400, 404], \
-                f"Unexpected status code: {fetch_response.status_code}"
+                elif "error" in response_data:
+                    pytest.fail(
+                        f"SACRED VIOLATION: MCP fetch returned error: {response_data['error']}\n"
+                        f"Tests MUST verify actual functionality, not just authentication!\n"
+                        f"This test requires successful fetching of example.com content!"
+                    )
+            
+            except RuntimeError as e:
+                pytest.fail(
+                    f"SACRED VIOLATION: Tool call failed: {e}\n"
+                    f"Tests MUST verify complete functionality!\n"
+                    f"This test requires successful fetching and content validation!"
+                )
+            
+            # If we reach here without returning, the test FAILED to verify content
+            pytest.fail(
+                "SACRED VIOLATION: Failed to verify 'Example Domain' content!\n"
+                "Tests MUST verify actual functionality, not just authentication!\n"
+                "This test requires successful content fetching and validation!"
+            )
                 
         finally:
             # Clean up

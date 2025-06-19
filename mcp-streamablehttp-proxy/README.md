@@ -1,6 +1,6 @@
-# mcp-streamablehttp-server
+# mcp-streamablehttp-proxy
 
-A generic stdio-to-streamable-HTTP server for MCP (Model Context Protocol) servers. This package allows you to expose any MCP server that uses stdio communication as streamable HTTP endpoints compatible with the MCP 2025-06-18 transport specification.
+A generic stdio-to-streamable-HTTP proxy for MCP (Model Context Protocol) servers. This package allows you to expose any MCP server that uses stdio communication as streamable HTTP endpoints compatible with the MCP 2025-06-18 transport specification.
 
 ## Features
 
@@ -14,35 +14,35 @@ A generic stdio-to-streamable-HTTP server for MCP (Model Context Protocol) serve
 ## Installation
 
 ```bash
-pip install mcp-streamablehttp-server
+pip install mcp-streamablehttp-proxy
 ```
 
 ## Quick Start
 
 ### Command Line Usage
 
-The simplest way to use the server is via the command line:
+The simplest way to use the proxy is via the command line:
 
 ```bash
 # Expose an MCP server module via streamable HTTP
-mcp-streamablehttp-server python -m mcp_server_fetch
+mcp-streamablehttp-proxy python -m mcp_server_fetch
 
 # Expose a custom MCP server command via streamable HTTP
-mcp-streamablehttp-server /path/to/your/mcp-server --server-arg1 --server-arg2
+mcp-streamablehttp-proxy /path/to/your/mcp-server --server-arg1 --server-arg2
 
 # Run on a different port
-mcp-streamablehttp-server --port 8080 python -m mcp_server_fetch
+mcp-streamablehttp-proxy --port 8080 python -m mcp_server_fetch
 
 # Increase session timeout to 10 minutes
-mcp-streamablehttp-server --timeout 600 python -m mcp_server_fetch
+mcp-streamablehttp-proxy --timeout 600 python -m mcp_server_fetch
 ```
 
 ### Python API Usage
 
 ```python
-from mcp_streamablehttp_server import run_server
+from mcp_streamablehttp_proxy import run_server
 
-# Run the streamable HTTP server
+# Run the streamable HTTP proxy
 run_server(
     server_command=["python", "-m", "mcp_server_fetch"],
     host="0.0.0.0",
@@ -62,24 +62,24 @@ FROM python:3.11-slim
 # Install your MCP server (example: fetch server)
 RUN pip install "mcp-server-fetch @ git+https://github.com/modelcontextprotocol/servers.git#subdirectory=src/fetch"
 
-# Install the streamable HTTP server
-RUN pip install mcp-streamablehttp-server
+# Install the streamable HTTP proxy
+RUN pip install mcp-streamablehttp-proxy
 
 # Expose the HTTP port
 EXPOSE 3000
 
-# Run the streamable HTTP server wrapping your MCP server
-CMD ["mcp-streamablehttp-server", "python", "-m", "mcp_server_fetch"]
+# Run the streamable HTTP proxy wrapping your MCP server
+CMD ["mcp-streamablehttp-proxy", "python", "-m", "mcp_server_fetch"]
 ```
 
 ## How It Works
 
-The server acts as a bridge between streamable HTTP clients and stdio-based MCP servers:
+The proxy acts as a bridge between streamable HTTP clients and stdio-based MCP servers:
 
 1. **HTTP Request**: Client sends HTTP POST to `/mcp` endpoint
-2. **Session Management**: Server creates or reuses a session for the client
-3. **Stdio Communication**: Server forwards the request to the MCP server via stdin
-4. **Response Handling**: Server reads the response from stdout and returns it via streamable HTTP
+2. **Session Management**: Proxy creates or reuses a session for the client
+3. **Stdio Communication**: Proxy forwards the request to the MCP server via stdin
+4. **Response Handling**: Proxy reads the response from stdout and returns it via streamable HTTP
 
 ## Endpoints
 
@@ -110,7 +110,7 @@ Health check endpoint for monitoring.
 
 ## Session Management
 
-The server manages multiple concurrent sessions:
+The proxy manages multiple concurrent sessions:
 
 - Each client gets its own MCP server subprocess
 - Sessions are identified by `Mcp-Session-Id` header
@@ -128,7 +128,7 @@ The server manages multiple concurrent sessions:
 
 ### Environment Variables
 
-You can also configure the server using environment variables:
+You can also configure the proxy using environment variables:
 
 ```bash
 export MCP_PROXY_HOST=0.0.0.0
@@ -141,28 +141,28 @@ export MCP_PROXY_LOG_LEVEL=info
 
 ### Custom FastAPI Integration
 
-You can integrate the server into your existing FastAPI application:
+You can integrate the proxy into your existing FastAPI application:
 
 ```python
 from fastapi import FastAPI
-from mcp_streamablehttp_server import create_app
+from mcp_streamablehttp_proxy import create_app
 
 # Create your main app
 main_app = FastAPI()
 
-# Create MCP streamable HTTP server app
+# Create MCP streamable HTTP proxy app
 mcp_app = create_app(
     server_command=["python", "-m", "mcp_server_fetch"],
     session_timeout=300
 )
 
 # Mount the MCP app
-main_app.mount("/mcp-server", mcp_app)
+main_app.mount("/mcp-proxy", mcp_app)
 ```
 
 ### Monitoring and Logging
 
-The server provides detailed logging for debugging:
+The proxy provides detailed logging for debugging:
 
 ```python
 import logging
@@ -174,7 +174,7 @@ logging.basicConfig(
 )
 
 # Run with debug logging
-from mcp_streamablehttp_server import run_server
+from mcp_streamablehttp_proxy import run_server
 
 run_server(
     server_command=["python", "-m", "mcp_server_fetch"],
@@ -184,7 +184,7 @@ run_server(
 
 ## Error Handling
 
-The server handles various error scenarios:
+The proxy handles various error scenarios:
 
 - **Server startup failures**: Returns 503 Service Unavailable
 - **Invalid requests**: Returns 400 Bad Request
@@ -199,8 +199,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mcp-streamablehttp-server.git
-cd mcp-streamablehttp-server
+git clone https://github.com/yourusername/mcp-streamablehttp-proxy.git
+cd mcp-streamablehttp-proxy
 
 # Install development dependencies
 pip install -e ".[dev]"

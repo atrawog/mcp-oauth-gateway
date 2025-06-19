@@ -62,6 +62,7 @@ SESSION_TIMEOUT = _get_env_int_or_fail("SESSION_TIMEOUT")
 
 # MCP Protocol Configuration - From main .env
 MCP_PROTOCOL_VERSION = _get_env_or_fail("MCP_PROTOCOL_VERSION")
+MCP_PROTOCOL_VERSIONS_SUPPORTED = _get_env_or_fail("MCP_PROTOCOL_VERSIONS_SUPPORTED").split(",")
 
 # GitHub Personal Access Token (if needed for tests) - From main .env
 GITHUB_PAT = os.getenv("GITHUB_PAT")  # Optional, some tests might not need it

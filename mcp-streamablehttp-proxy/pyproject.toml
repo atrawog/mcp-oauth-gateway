@@ -3,16 +3,16 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "mcp-streamablehttp-server"
+name = "mcp-streamablehttp-proxy"
 version = "0.1.0"
-description = "A generic stdio-to-streamable-HTTP server for MCP (Model Context Protocol) servers"
+description = "A generic stdio-to-streamable-HTTP proxy for MCP (Model Context Protocol) servers"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
     {name = "Your Name", email = "your.email@example.com"},
 ]
-keywords = ["mcp", "model-context-protocol", "server", "streamable-http", "stdio"]
+keywords = ["mcp", "model-context-protocol", "proxy", "streamable-http", "stdio"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -43,13 +43,13 @@ dev = [
 ]
 
 [project.scripts]
-mcp-streamablehttp-server = "mcp_streamablehttp_server.cli:main"
+mcp-streamablehttp-proxy = "mcp_streamablehttp_proxy.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/mcp-streamablehttp-server"
-Repository = "https://github.com/yourusername/mcp-streamablehttp-server.git"
-Issues = "https://github.com/yourusername/mcp-streamablehttp-server/issues"
-Documentation = "https://github.com/yourusername/mcp-streamablehttp-server#readme"
+Homepage = "https://github.com/yourusername/mcp-streamablehttp-proxy"
+Repository = "https://github.com/yourusername/mcp-streamablehttp-proxy.git"
+Issues = "https://github.com/yourusername/mcp-streamablehttp-proxy/issues"
+Documentation = "https://github.com/yourusername/mcp-streamablehttp-proxy#readme"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/mcp_streamablehttp_server"]
+packages = ["src/mcp_streamablehttp_proxy"]

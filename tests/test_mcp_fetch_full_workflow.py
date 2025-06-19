@@ -6,7 +6,8 @@ import pytest
 import httpx
 import os
 import json
-from .test_constants import MCP_FETCH_URL, AUTH_BASE_URL
+from .test_constants import MCP_FETCH_URL, AUTH_BASE_URL, MCP_PROTOCOL_VERSIONS_SUPPORTED
+from .mcp_helpers import initialize_mcp_session, call_mcp_tool, list_mcp_tools
 
 
 @pytest.mark.asyncio
@@ -27,89 +28,72 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     print("\n=== TESTING FULL MCP FETCH WORKFLOW ===")
     print(f"Using OAuth token: {oauth_token[:20]}...")
     
-    # Note: The stdio proxy maintains a persistent session, so no initialization needed
-    print("\nUsing stdio proxy with persistent MCP session")
+    # Step 1: Initialize MCP session properly
+    print("\nStep 1: Initializing MCP session...")
+    try:
+        # Try with default protocol version first, then fallback to supported versions
+        session_id, init_result = await initialize_mcp_session(
+            http_client, MCP_FETCH_URL, oauth_token
+        )
+        print(f"✓ MCP session initialized: {session_id}")
+        print(f"✓ Server info: {init_result.get('serverInfo', {})}")
+    except RuntimeError as e:
+        # Try with alternative supported version
+        if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
+            alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]  # Try the second supported version
+            print(f"Retrying with alternative protocol version: {alt_version}")
+            session_id, init_result = await initialize_mcp_session(
+                http_client, MCP_FETCH_URL, oauth_token, alt_version
+            )
+            print(f"✓ MCP session initialized with {alt_version}: {session_id}")
+        else:
+            raise e
     
-    headers = {
-        "Authorization": f"Bearer {oauth_token}",
-        "Content-Type": "application/json",
-        "Accept": "application/json, text/event-stream"
-    }
+    # Step 2: List available tools
+    print("\nStep 2: Listing available tools...")
+    try:
+        tools_result = await list_mcp_tools(http_client, MCP_FETCH_URL, oauth_token, session_id)
+        print(f"Tools response: {json.dumps(tools_result, indent=2)}")
+    except RuntimeError as e:
+        print(f"Warning: Could not list tools: {e}")
     
-    # Step 1: List available tools
-    list_tools_request = {
-        "jsonrpc": "2.0",
-        "method": "tools/list",
-        "id": "list-tools-1"
-    }
-    
-    print("\nStep 1: Listing available tools...")
-    tools_response = await http_client.post(
-        f"{MCP_FETCH_URL}/mcp",
-        json=list_tools_request,
-        headers=headers,
-        follow_redirects=True
-    )
-    
-    if tools_response.status_code == 200:
-        print(f"Tools response: {tools_response.text[:500]}")
-    
-    # Step 2: Call the fetch tool
-    fetch_request = {
-        "jsonrpc": "2.0",
-        "method": "tools/call",
-        "params": {
-            "name": "fetch",
-            "arguments": {
-                "url": "https://example.com"
-            }
-        },
-        "id": "fetch-1"
-    }
-    
-    print("\nStep 2: Calling fetch tool to get https://example.com...")
-    fetch_response = await http_client.post(
-        f"{MCP_FETCH_URL}/mcp",
-        json=fetch_request,
-        headers=headers,
-        follow_redirects=True
-    )
-    
-    print(f"Fetch response status: {fetch_response.status_code}")
-    
-    if fetch_response.status_code != 200:
-        print(f"Fetch failed! Response: {fetch_response.text}")
-        pytest.fail(f"Failed to fetch content: {fetch_response.status_code}")
+    # Step 3: Call the fetch tool
+    print("\nStep 3: Calling fetch tool to get https://example.com...")
+    try:
+        fetch_result = await call_mcp_tool(
+            http_client, MCP_FETCH_URL, oauth_token, session_id,
+            "fetch", {"url": "https://example.com"}, "fetch-1"
+        )
+        
+        print(f"Fetch response (first 1000 chars): {json.dumps(fetch_result, indent=2)[:1000]}")
+        
+        # Check the result directly (no need to parse JSON again)
+        data = fetch_result
+        
+    except RuntimeError as e:
+        print(f"Fetch failed! Error: {e}")
+        pytest.fail(f"Failed to fetch content: {e}")
     
     # Parse the response
-    response_text = fetch_response.text
-    print(f"Fetch response (first 1000 chars): {response_text[:1000]}")
-    
-    # Parse the JSON response
-    try:
-        data = json.loads(response_text)
-        if "result" in data:
-            result = data["result"]
-            
-            # The result contains content array with text items
-            if "content" in result and isinstance(result["content"], list):
-                for item in result["content"]:
-                    if item.get("type") == "text" and "text" in item:
-                        content = item["text"]
-                        
-                        # Verify we got example.com content
-                        assert "Example Domain" in content or "example" in content.lower(), \
-                            f"Didn't get expected content from example.com! Got: {content[:200]}"
-                        
-                        print(f"\n✅ SUCCESS! Fetched content from example.com")
-                        print(f"✅ Content preview: {content[:200]}...")
-                        print(f"✅ MCP Fetch is working with REAL OAuth!")
-                        return
-        elif "error" in data:
-            pytest.fail(f"MCP returned an error: {data['error']}")
-            
-    except json.JSONDecodeError as e:
-        pytest.fail(f"Failed to parse response as JSON: {e}")
+    if "result" in data:
+        result = data["result"]
+        
+        # The result contains content array with text items
+        if "content" in result and isinstance(result["content"], list):
+            for item in result["content"]:
+                if item.get("type") == "text" and "text" in item:
+                    content = item["text"]
+                    
+                    # Verify we got example.com content
+                    assert "Example Domain" in content or "example" in content.lower(), \
+                        f"Didn't get expected content from example.com! Got: {content[:200]}"
+                    
+                    print(f"\n✅ SUCCESS! Fetched content from example.com")
+                    print(f"✅ Content preview: {content[:200]}...")
+                    print(f"✅ MCP Fetch is working with REAL OAuth!")
+                    return
+    elif "error" in data:
+        pytest.fail(f"MCP returned an error: {data['error']}")
     
     # If we got here, we didn't find the expected content
     pytest.fail("Failed to find fetched content in response!")

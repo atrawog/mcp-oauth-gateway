@@ -18,22 +18,22 @@ ensure-services-ready:
     @pixi run python scripts/check_services_ready.py || (echo "❌ Services not ready! See above for details." && exit 1)
 
 # Run tests with pytest (no mocking allowed!)
-test: ensure-services-ready
+test: ensure-services-ready validate-tokens
     @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v
 
 # Run all tests including integration
-test-all: ensure-services-ready
+test-all: ensure-services-ready validate-tokens
     @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v --tb=short
 
 # Run tests with verbose output
-test-verbose: ensure-services-ready
+test-verbose: ensure-services-ready validate-tokens
     @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
     @pixi run pytest tests/ -v -s
 
 # Run tests with sidecar coverage pattern
-test-sidecar-coverage: ensure-services-ready
+test-sidecar-coverage: ensure-services-ready validate-tokens
     @docker compose down --remove-orphans
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d
     @echo "Waiting for services to be ready..."
@@ -108,6 +108,15 @@ up-fresh: network-create volumes-create build-all
 down:
     @docker compose down
 
+# Rebuild all services with no cache
+rebuild-all: down
+    @echo "Rebuilding all services from scratch..."
+    @docker compose build --no-cache
+    @echo "✅ All services rebuilt successfully"
+    @docker compose up -d
+    @echo "Waiting for services to be healthy..."
+    @pixi run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
+
 # Rebuild specific service
 rebuild service:
     @docker compose -f {{service}}/docker-compose.yml build --no-cache
@@ -126,6 +135,26 @@ generate-jwt-secret:
 # Generate GitHub OAuth token
 generate-github-token:
     @pixi run python scripts/generate_oauth_token.py
+
+# Validate all OAuth tokens
+validate-tokens:
+    @echo "🔍 Validating OAuth tokens..."
+    @pixi run python scripts/validate_tokens.py
+
+# Check token expiration and refresh if needed
+check-token-expiry:
+    @echo "⏰ Checking token expiration..."
+    @pixi run python scripts/check_token_expiry.py
+
+# Refresh OAuth tokens if expired
+refresh-tokens:
+    @echo "🔄 Refreshing OAuth tokens..."
+    @pixi run python scripts/refresh_oauth_tokens.py
+
+# Diagnose test failures and find root causes
+diagnose-tests:
+    @echo "🔍 Diagnosing test failures..."
+    @pixi run python scripts/diagnose_test_failures.py
 
 # Create MCP configuration for Claude Code with bearer token
 create-mcp-config:

@@ -1,4 +1,4 @@
-"""MCP stdio-to-streamable-HTTP server - Bridge any MCP stdio server to streamable HTTP endpoints."""
+"""MCP stdio-to-streamable-HTTP proxy - Bridge any MCP stdio server to streamable HTTP endpoints."""
 
 __version__ = "0.1.0"
 
