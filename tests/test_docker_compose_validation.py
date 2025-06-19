@@ -46,11 +46,11 @@ class TestDockerComposeValidation:
         routers = {
             'mcp-fetch': {
                 'needs_auth': True,
-                'path_rule': 'PathPrefix(`/mcp`)'
+                'path_rule': ['PathPrefix(`/mcp`)', '(Path(`/mcp`) || PathPrefix(`/mcp/`))']
             },
             'mcp-fetch-health': {
                 'needs_auth': False,
-                'path_rule': 'Path(`/health`)'
+                'path_rule': ['Path(`/health`)']
             },
             'mcp-fetch-catchall': {
                 'needs_auth': True,
@@ -72,8 +72,18 @@ class TestDockerComposeValidation:
             
             # Check path rule if required
             if router_config['path_rule']:
-                assert router_config['path_rule'] in label_dict[f"{prefix}.rule"], \
-                    f"Router {router_name} rule missing {router_config['path_rule']}!"
+                # Accept any of the possible path rules
+                rule_found = False
+                if isinstance(router_config['path_rule'], list):
+                    for path_rule in router_config['path_rule']:
+                        if path_rule in label_dict[f"{prefix}.rule"]:
+                            rule_found = True
+                            break
+                else:
+                    rule_found = router_config['path_rule'] in label_dict[f"{prefix}.rule"]
+                
+                assert rule_found, \
+                    f"Router {router_name} rule missing expected path rule!"
             
             # Must have a service assignment - THIS IS THE KEY CHECK!
             assert f"{prefix}.service" in label_dict, \

@@ -16,6 +16,7 @@ services:
       - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
       
       # MCP route with auth - Priority 2
+      # Use PathPrefix to handle both /mcp and /mcp/
       - "traefik.http.routers.mcp-fetch.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.mcp-fetch.priority=2"
       - "traefik.http.routers.mcp-fetch.entrypoints=websecure"
