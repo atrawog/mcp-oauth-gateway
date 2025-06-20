@@ -33,47 +33,40 @@ class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
             return None
         
         token = auth_header[7:]  # Remove "Bearer " prefix
-        
-        # Check if this is a valid registration access token
-        # In our implementation, we store these tokens with client registrations
-        # For now, we'll validate against client credentials (Basic auth)
-        return None  # We use Basic auth instead
+        return token
     
     async def authenticate_client(self, request, client_id: str) -> Optional[OAuth2Client]:
         """
-        Retrieve and authenticate client by client_id.
-        Uses Basic authentication with client credentials.
+        Retrieve and authenticate client by client_id using Bearer token.
+        RFC 7592 requires registration_access_token authentication.
+        Returns None if authentication fails, raises ValueError if client not found.
         """
+        # Get Bearer token from request
+        token = await self.authenticate_token(request)
+        if not token:
+            return None
+        
         # Get client from Redis
         client_data_str = await self.redis_client.get(f"oauth:client:{client_id}")
         if not client_data_str:
-            return None
+            # Client doesn't exist - this should be a 404, not 401
+            raise ValueError(f"Client {client_id} not found")
         
         client_data = json.loads(client_data_str)
         
-        # Validate Basic auth credentials
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Basic "):
-            import base64
-            try:
-                credentials = base64.b64decode(auth_header[6:]).decode('utf-8')
-                provided_id, provided_secret = credentials.split(':', 1)
-                
-                if provided_id != client_id or provided_secret != client_data["client_secret"]:
-                    return None
-                    
-                return OAuth2Client(client_data)
-            except:
-                return None
+        # Validate registration access token
+        stored_token = client_data.get("registration_access_token")
+        if not stored_token or not secrets.compare_digest(token, stored_token):
+            return None
         
-        return None
+        return OAuth2Client(client_data)
     
     async def check_permission(self, client: OAuth2Client, request) -> bool:
         """
         Verify client has permission to modify its registration.
-        In our implementation, authenticated clients can modify themselves.
+        With Bearer token auth, permission is implicit from successful authentication.
         """
-        # Client authenticated via Basic auth has full permissions
+        # Client authenticated via registration_access_token has full permissions
         return True
     
     async def update_client(self, client: OAuth2Client, client_metadata: dict) -> OAuth2Client:
@@ -176,6 +169,10 @@ class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
             "client_name": client_data.get("client_name"),
             "scope": client_data.get("scope")
         }
+        
+        # Add timestamps - REQUIRED by tests and good practice
+        if "client_id_issued_at" in client_data:
+            response["client_id_issued_at"] = client_data["client_id_issued_at"]
         
         # Add expiration if set
         if "client_secret_expires_at" in client_data:

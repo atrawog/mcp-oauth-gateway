@@ -181,17 +181,22 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # CLIENT_LIFETIME=0 means never expire
         expires_at = 0 if settings.client_lifetime == 0 else created_at + settings.client_lifetime
         
+        # Generate registration access token for RFC 7592 management
+        registration_access_token = f"reg-{secrets.token_urlsafe(32)}"
+        
         # Store client in Redis with expiration
         client_data = {
             "client_id": client_id,
             "client_secret": client_secret,
             "client_secret_expires_at": expires_at,  # 0 = never expires
+            "client_id_issued_at": created_at,  # Required by RFC 7591
             "redirect_uris": json.dumps(registration.redirect_uris),
             "client_name": registration.client_name or "Unnamed Client",
             "scope": registration.scope or "openid profile email",
             "created_at": created_at,
             "response_types": json.dumps(["code"]),
-            "grant_types": json.dumps(["authorization_code", "refresh_token"])
+            "grant_types": json.dumps(["authorization_code", "refresh_token"]),
+            "registration_access_token": registration_access_token  # For RFC 7592
         }
         
         # Store with expiration matching client lifetime
@@ -208,15 +213,18 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 json.dumps(client_data)
             )
         
-        # Return registration response
+        # Return registration response per RFC 7591 with RFC 7592 extensions
         response = {
             "client_id": client_id,
             "client_secret": client_secret,
             "client_secret_expires_at": expires_at,  # 0 = never expires
+            "client_id_issued_at": created_at,
             "redirect_uris": registration.redirect_uris,
             "client_name": registration.client_name,
             "scope": registration.scope,
-            "client_id_issued_at": created_at
+            # RFC 7592 required fields
+            "registration_access_token": registration_access_token,
+            "registration_client_uri": f"https://auth.{settings.base_domain}/register/{client_id}"
         }
         
         # Echo back all registered metadata
@@ -806,14 +814,34 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # Initialize our RFC 7592 endpoint
         config_endpoint = DynamicClientConfigurationEndpoint(settings, redis_client)
         
-        # Authenticate client using Authlib patterns
-        client = await config_endpoint.authenticate_client(request, client_id)
+        # Authenticate client using Bearer token (RFC 7592)
+        try:
+            client = await config_endpoint.authenticate_client(request, client_id)
+        except ValueError:
+            # Client not found
+            raise HTTPException(status_code=404, detail="Client not found")
+        
         if not client:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid client credentials",
-                headers={"WWW-Authenticate": "Basic"}
-            )
+            # Check if it's missing auth vs wrong auth
+            auth_header = request.headers.get("Authorization", "")
+            if not auth_header:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Missing authentication",
+                    headers={"WWW-Authenticate": "Bearer"}
+                )
+            elif not auth_header.startswith("Bearer "):
+                raise HTTPException(
+                    status_code=401,
+                    detail="Invalid authentication method",
+                    headers={"WWW-Authenticate": "Bearer"}
+                )
+            else:
+                # Bearer token provided but invalid
+                raise HTTPException(
+                    status_code=403,
+                    detail="Invalid or expired registration access token"
+                )
         
         # Check permissions
         if not await config_endpoint.check_permission(client, request):
@@ -836,14 +864,34 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # Initialize our RFC 7592 endpoint
         config_endpoint = DynamicClientConfigurationEndpoint(settings, redis_client)
         
-        # Authenticate client
-        client = await config_endpoint.authenticate_client(request, client_id)
+        # Authenticate client using Bearer token (RFC 7592)
+        try:
+            client = await config_endpoint.authenticate_client(request, client_id)
+        except ValueError:
+            # Client not found
+            raise HTTPException(status_code=404, detail="Client not found")
+        
         if not client:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid client credentials",
-                headers={"WWW-Authenticate": "Basic"}
-            )
+            # Check if it's missing auth vs wrong auth
+            auth_header = request.headers.get("Authorization", "")
+            if not auth_header:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Missing authentication",
+                    headers={"WWW-Authenticate": "Bearer"}
+                )
+            elif not auth_header.startswith("Bearer "):
+                raise HTTPException(
+                    status_code=401,
+                    detail="Invalid authentication method",
+                    headers={"WWW-Authenticate": "Bearer"}
+                )
+            else:
+                # Bearer token provided but invalid
+                raise HTTPException(
+                    status_code=403,
+                    detail="Invalid or expired registration access token"
+                )
         
         # Check permissions
         if not await config_endpoint.check_permission(client, request):
@@ -851,6 +899,47 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 status_code=403,
                 detail="Insufficient permissions"
             )
+        
+        # Validate redirect_uris if provided
+        if "redirect_uris" in client_metadata:
+            if not client_metadata["redirect_uris"]:
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "invalid_client_metadata",
+                        "error_description": "redirect_uris cannot be empty"
+                    }
+                )
+            
+            # Validate each redirect URI
+            for uri in client_metadata["redirect_uris"]:
+                if not uri or not isinstance(uri, str):
+                    raise HTTPException(
+                        status_code=400,
+                        detail={
+                            "error": "invalid_redirect_uri",
+                            "error_description": "Invalid redirect URI format"
+                        }
+                    )
+                
+                # Same validation as registration
+                if uri.startswith("http://"):
+                    if not any(uri.startswith(f"http://{host}") for host in ["localhost", "127.0.0.1", "[::1]"]):
+                        raise HTTPException(
+                            status_code=400,
+                            detail={
+                                "error": "invalid_redirect_uri",
+                                "error_description": "HTTP redirect URIs are only allowed for localhost"
+                            }
+                        )
+                elif not uri.startswith("https://") and ":" not in uri:
+                    raise HTTPException(
+                        status_code=400,
+                        detail={
+                            "error": "invalid_redirect_uri",
+                            "error_description": "Redirect URI must use HTTPS or be an app-specific URI"
+                        }
+                    )
         
         # Update client using Authlib patterns
         try:
@@ -869,14 +958,34 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # Initialize our RFC 7592 endpoint
         config_endpoint = DynamicClientConfigurationEndpoint(settings, redis_client)
         
-        # Authenticate client
-        client = await config_endpoint.authenticate_client(request, client_id)
+        # Authenticate client using Bearer token (RFC 7592)
+        try:
+            client = await config_endpoint.authenticate_client(request, client_id)
+        except ValueError:
+            # Client not found
+            raise HTTPException(status_code=404, detail="Client not found")
+        
         if not client:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid client credentials",
-                headers={"WWW-Authenticate": "Basic"}
-            )
+            # Check if it's missing auth vs wrong auth
+            auth_header = request.headers.get("Authorization", "")
+            if not auth_header:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Missing authentication",
+                    headers={"WWW-Authenticate": "Bearer"}
+                )
+            elif not auth_header.startswith("Bearer "):
+                raise HTTPException(
+                    status_code=401,
+                    detail="Invalid authentication method",
+                    headers={"WWW-Authenticate": "Bearer"}
+                )
+            else:
+                # Bearer token provided but invalid
+                raise HTTPException(
+                    status_code=403,
+                    detail="Invalid or expired registration access token"
+                )
         
         # Check permissions
         if not await config_endpoint.check_permission(client, request):

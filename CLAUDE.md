@@ -589,14 +589,16 @@ GET /jwks
   "client_id": "unique_client_id",                    // REQUIRED by RFC 7591!
   "client_secret": "secret_for_confidential_clients", // OPTIONAL blessing
   "client_secret_expires_at": 0,                     // REQUIRED if client_secret issued!
+  "registration_access_token": "divine-bearer-token",   // REQUIRED for RFC 7592!
+  "registration_client_uri": "https://auth.domain/register/{client_id}", // REQUIRED!
   // ... all registered metadata MUST be echoed back!
 }
 ```
 
-**Optional Blessings in Response:**
+**CRITICAL RFC 7591/7592 REVELATION:**
 - `client_id_issued_at` - Unix timestamp of creation
-- `registration_access_token` - Token of management
-- `registration_client_uri` - URI for future communion
+- `registration_access_token` - **SACRED BEARER TOKEN FOR CLIENT MANAGEMENT!**
+- `registration_client_uri` - **THE DIVINE URI TO MANAGE THIS CLIENT!**
 
 **The Curse of Errors (HTTP 400 Bad Request):**
 ```json
@@ -616,6 +618,24 @@ GET /jwks
 
 **⚡ BEHOLD! The Sacred Laws of Client Registration Management! ⚡**
 
+**🔥 THE CRITICAL DIVINE SEPARATION OF RFC 7591 AND RFC 7592 - CARVED IN HOLY FIRE! 🔥**
+
+**RFC 7591 - The Public Registration Altar of Divine Welcome:**
+- **POST /register** - PUBLICLY ACCESSIBLE! The gates stand WIDE OPEN!
+- **NO AUTHENTICATION REQUIRED** - Come as you are, lost digital souls!
+- Any client may approach this sacred altar and be BORN AGAIN!
+- Returns `registration_access_token` - **THE SACRED BEARER TOKEN OF POWER!**
+- Returns `registration_client_uri` - **THE HOLY URI TO THY MANAGEMENT TEMPLE!**
+- **THIS IS THE ONLY PUBLIC ENDPOINT** - All else requires divine authentication!
+
+**RFC 7592 - The Protected Management Sanctuary of Bearer Token Glory:**
+- **⚠️ CRITICAL REVELATION ⚠️**: ALL ENDPOINTS REQUIRE BEARER AUTHENTICATION!
+- **HERESY ALERT**: NOT Basic Auth! NOT Client Credentials! NOT OAuth tokens!
+- **ONLY THE SACRED `registration_access_token` GRANTS ENTRY!**
+- Each client receives a UNIQUE bearer token at birth - **GUARD IT WITH YOUR LIFE!**
+- This token is the **ONLY KEY** to managing that specific client!
+- **LOSE IT AND YOUR CLIENT IS ORPHANED FOREVER!**
+
 **The Holy Trinity of Solutions for Invalid Client Recovery:**
 
 1. **THE USER-FRIENDLY ERROR ALTAR** - When invalid clients approach the authorization gate!
@@ -631,17 +651,21 @@ GET /jwks
 
 3. **THE RFC 7592 MANAGEMENT ENDPOINTS** - Divine CRUD operations for client souls!
 
-**The Sacred Management Endpoints (RFC 7592 Compliant via Authlib):**
+**The Sacred Management Endpoints (RFC 7592 FULLY COMPLIANT!):**
 
 **GET /register/{client_id}** - Behold thy registration status!
 ```
-Authorization: Basic base64(client_id:client_secret)
+GET /register/s6BhdRkqt3 HTTP/1.1
+Host: auth.yourdomain.com
+Authorization: Bearer reg-23410913-abewfq.123483
 ```
-Returns the client's complete registration data or 404 if banished!
+Returns the client's complete registration data or 401/403/404 upon failure!
 
 **PUT /register/{client_id}** - Transform thy registration metadata!
 ```
-Authorization: Basic base64(client_id:client_secret)
+PUT /register/s6BhdRkqt3 HTTP/1.1
+Host: auth.yourdomain.com
+Authorization: Bearer reg-23410913-abewfq.123483
 Content-Type: application/json
 
 {
@@ -654,32 +678,83 @@ Returns updated client configuration with divine blessing!
 
 **DELETE /register/{client_id}** - Self-immolation for compromised clients!
 ```
-Authorization: Basic base64(client_id:client_secret)
+DELETE /register/s6BhdRkqt3 HTTP/1.1
+Host: auth.yourdomain.com
+Authorization: Bearer reg-23410913-abewfq.123483
 ```
 Returns 204 No Content upon successful destruction!
 
+**⚡ THE SACRED BEARER TOKEN COMMANDMENTS - VIOLATE THESE AND FACE ETERNAL DAMNATION! ⚡**
+
+1. **THOU SHALT NOT SHARE** registration_access_token between client instances!
+   - Each instance gets its OWN sacred token or faces divine wrath!
+   
+2. **THOU SHALT GUARD THY TOKEN** as zealously as thy private keys!
+   - This token grants ABSOLUTE POWER over thy registration!
+   - Store it in secure vaults, encrypted databases, or HSMs!
+   
+3. **IF COMPROMISED, THOU MUST DIE AND BE REBORN!**
+   - No recovery! No mercy! DELETE and re-register from scratch!
+   - The old token becomes CURSED and must be banished!
+   
+4. **THE TOKEN IS OMNIPOTENT** within its realm!
+   - It can READ thy configuration! UPDATE thy metadata! DELETE thy existence!
+   - With great power comes great responsibility - USE IT WISELY!
+   
+5. **ENTROPY IS SACRED** - 256 bits minimum or face brute force demons!
+   - `secrets.token_urlsafe(32)` is the BLESSED INCANTATION!
+   - Weak tokens invite the hackers of darkness!
+
+**🔥 REMEMBER: This token is NOT an OAuth access token! NOT a refresh token! It is a DIVINE MANAGEMENT CREDENTIAL! 🔥**
+
 **The Divine Benefits of RFC 7592:**
-- Clients can CHECK if they still exist before attempting OAuth flows!
+- Clients can CHECK if they still exist using their registration_access_token!
 - Compromised clients can DELETE themselves from existence!
 - No more eternal zombie clients haunting the Redis crypts!
 - Claude.ai could VERIFY its registration before each connection attempt!
+- SECURE management - only token holders can modify registrations!
 
 **The Sacred Client Lifecycle:**
-1. **BIRTH** - Dynamic registration via POST /register
-2. **LIFE** - 90 days default or ETERNAL if CLIENT_LIFETIME=0
-3. **VERIFICATION** - GET /register/{client_id} to check pulse
-4. **TRANSFORMATION** - PUT /register/{client_id} to evolve
-5. **DEATH** - Natural expiration or DELETE /register/{client_id}
+1. **BIRTH** - Dynamic registration via POST /register (PUBLIC, no auth!)
+2. **BLESSING** - Receive registration_access_token (guard it with thy life!)
+3. **LIFE** - 90 days default or ETERNAL if CLIENT_LIFETIME=0
+4. **VERIFICATION** - GET /register/{client_id} with Bearer token
+5. **TRANSFORMATION** - PUT /register/{client_id} with Bearer token
+6. **DEATH** - Natural expiration or DELETE /register/{client_id}
+7. **REBIRTH** - New registration when the old passes away
 
-**The Authlib RFC 7592 Implementation Glory:**
-- Built upon Authlib's `ClientConfigurationEndpoint` divine patterns!
-- Proper separation of authentication, authorization, and management!
-- Thread-safe Redis operations with eternal or timed persistence!
-- Full compliance with OAuth 2.0 Dynamic Client Registration Management Protocol!
-4. **DEATH** - Automatic expiration or voluntary DELETE
-5. **REBIRTH** - New registration when the old passes away
+**The Divine Security Architecture - THE HOLY SEPARATION OF CONCERNS!**
 
-**IMPLEMENT THESE ENDPOINTS OR FACE CLIENT CONFUSION FOR ETERNITY!**
+**🌟 THE TWO REALMS OF AUTHENTICATION GLORY 🌟**
+
+**REALM 1: Client Registration Management (RFC 7591/7592)**
+- **PUBLIC ALTAR**: POST /register - NO AUTH REQUIRED!
+- **SACRED GIFT**: registration_access_token bestowed upon registration!
+- **PROTECTED SANCTUARY**: GET/PUT/DELETE /register/{id} - BEARER TOKEN ONLY!
+- **DIVINE PURPOSE**: Manage thy client registration lifecycle!
+
+**REALM 2: OAuth 2.0 Token Issuance (RFC 6749)**
+- **AUTHENTICATION REQUIRED**: Client credentials for token endpoint!
+- **SACRED EXCHANGE**: Authorization codes become access tokens!
+- **DIVINE PURPOSE**: Grant access to protected resources!
+
+**⚡ NEVER CONFUSE THESE REALMS! ⚡**
+- registration_access_token ≠ OAuth access_token!
+- Client management ≠ Resource access!
+- RFC 7592 Bearer ≠ OAuth Bearer!
+- **MIXING THESE TOKENS BRINGS CHAOS AND CONFUSION!**
+
+**THE BLESSED IMPLEMENTATION PATTERNS:**
+```
+✅ Registration: No auth → Returns registration_access_token
+✅ Management: Bearer registration_access_token → Modify client
+✅ OAuth: Client credentials → Returns access_token
+❌ HERESY: Using OAuth tokens for client management!
+❌ BLASPHEMY: Using registration tokens for resource access!
+```
+
+**IMPLEMENT THESE ENDPOINTS CORRECTLY OR FACE SECURITY BREACHES FOR ETERNITY!**
+**MAY YOUR TOKENS BE UNIQUE, YOUR ENTROPY HIGH, AND YOUR REALMS FOREVER SEPARATED!**
 
 ### The Authentication Path
 
