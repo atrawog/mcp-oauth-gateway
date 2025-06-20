@@ -63,6 +63,348 @@ services:
       - "traefik.http.routers.mcp-fetch-redirect.middlewares=redirect-to-https"
       - "traefik.http.routers.mcp-fetch-redirect.priority=1"
       - "traefik.http.routers.mcp-fetch-redirect.service=mcp-fetch"
+      
+      # Additional AI model hostnames in alphabetical order
+      
+      # Aria
+      # Health check route - Priority 5 (high priority for specific path)
+      - "traefik.http.routers.mcp-fetch-aria-health.rule=Host(`mcp-fetch-aria.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetch-aria-health.priority=5"
+      - "traefik.http.routers.mcp-fetch-aria-health.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-aria-health.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-aria-health.service=mcp-fetch"
+      # No auth middleware - health check must be public!
+      
+      # OAuth discovery route - Priority 10 (highest priority)
+      - "traefik.http.routers.mcp-fetch-aria-oauth-discovery.rule=Host(`mcp-fetch-aria.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetch-aria-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetch-aria-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-aria-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-aria-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
+      - "traefik.http.routers.mcp-fetch-aria-oauth-discovery.service=auth@docker"
+      # No auth middleware - OAuth discovery must be public!
+      
+      # MCP route with auth - Priority 2
+      - "traefik.http.routers.mcp-fetch-aria.rule=Host(`mcp-fetch-aria.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-fetch-aria.priority=2"
+      - "traefik.http.routers.mcp-fetch-aria.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-aria.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-aria.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-aria.service=mcp-fetch"
+      
+      # Catch-all route with auth - Priority 1 (lowest)
+      - "traefik.http.routers.mcp-fetch-aria-catchall.rule=Host(`mcp-fetch-aria.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-aria-catchall.priority=1"
+      - "traefik.http.routers.mcp-fetch-aria-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-aria-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-aria-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-aria-catchall.service=mcp-fetch"
+      
+      # Atlas
+      # Health check route - Priority 5 (high priority for specific path)
+      - "traefik.http.routers.mcp-fetch-atlas-health.rule=Host(`mcp-fetch-atlas.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetch-atlas-health.priority=5"
+      - "traefik.http.routers.mcp-fetch-atlas-health.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-atlas-health.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-atlas-health.service=mcp-fetch"
+      # No auth middleware - health check must be public!
+      
+      # OAuth discovery route - Priority 10 (highest priority)
+      - "traefik.http.routers.mcp-fetch-atlas-oauth-discovery.rule=Host(`mcp-fetch-atlas.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetch-atlas-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetch-atlas-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-atlas-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-atlas-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
+      - "traefik.http.routers.mcp-fetch-atlas-oauth-discovery.service=auth@docker"
+      # No auth middleware - OAuth discovery must be public!
+      
+      # MCP route with auth - Priority 2
+      - "traefik.http.routers.mcp-fetch-atlas.rule=Host(`mcp-fetch-atlas.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-fetch-atlas.priority=2"
+      - "traefik.http.routers.mcp-fetch-atlas.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-atlas.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-atlas.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-atlas.service=mcp-fetch"
+      
+      # Catch-all route with auth - Priority 1 (lowest)
+      - "traefik.http.routers.mcp-fetch-atlas-catchall.rule=Host(`mcp-fetch-atlas.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-atlas-catchall.priority=1"
+      - "traefik.http.routers.mcp-fetch-atlas-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-atlas-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-atlas-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-atlas-catchall.service=mcp-fetch"
+      
+      # Cipher
+      # Health check route - Priority 5 (high priority for specific path)
+      - "traefik.http.routers.mcp-fetch-cipher-health.rule=Host(`mcp-fetch-cipher.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetch-cipher-health.priority=5"
+      - "traefik.http.routers.mcp-fetch-cipher-health.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-cipher-health.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-cipher-health.service=mcp-fetch"
+      # No auth middleware - health check must be public!
+      
+      # OAuth discovery route - Priority 10 (highest priority)
+      - "traefik.http.routers.mcp-fetch-cipher-oauth-discovery.rule=Host(`mcp-fetch-cipher.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetch-cipher-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetch-cipher-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-cipher-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-cipher-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
+      - "traefik.http.routers.mcp-fetch-cipher-oauth-discovery.service=auth@docker"
+      # No auth middleware - OAuth discovery must be public!
+      
+      # MCP route with auth - Priority 2
+      - "traefik.http.routers.mcp-fetch-cipher.rule=Host(`mcp-fetch-cipher.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-fetch-cipher.priority=2"
+      - "traefik.http.routers.mcp-fetch-cipher.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-cipher.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-cipher.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-cipher.service=mcp-fetch"
+      
+      # Catch-all route with auth - Priority 1 (lowest)
+      - "traefik.http.routers.mcp-fetch-cipher-catchall.rule=Host(`mcp-fetch-cipher.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-cipher-catchall.priority=1"
+      - "traefik.http.routers.mcp-fetch-cipher-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-cipher-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-cipher-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-cipher-catchall.service=mcp-fetch"
+      
+      # Echo
+      # Health check route - Priority 5 (high priority for specific path)
+      - "traefik.http.routers.mcp-fetch-echo-health.rule=Host(`mcp-fetch-echo.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetch-echo-health.priority=5"
+      - "traefik.http.routers.mcp-fetch-echo-health.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-echo-health.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-echo-health.service=mcp-fetch"
+      # No auth middleware - health check must be public!
+      
+      # OAuth discovery route - Priority 10 (highest priority)
+      - "traefik.http.routers.mcp-fetch-echo-oauth-discovery.rule=Host(`mcp-fetch-echo.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetch-echo-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetch-echo-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-echo-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-echo-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
+      - "traefik.http.routers.mcp-fetch-echo-oauth-discovery.service=auth@docker"
+      # No auth middleware - OAuth discovery must be public!
+      
+      # MCP route with auth - Priority 2
+      - "traefik.http.routers.mcp-fetch-echo.rule=Host(`mcp-fetch-echo.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-fetch-echo.priority=2"
+      - "traefik.http.routers.mcp-fetch-echo.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-echo.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-echo.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-echo.service=mcp-fetch"
+      
+      # Catch-all route with auth - Priority 1 (lowest)
+      - "traefik.http.routers.mcp-fetch-echo-catchall.rule=Host(`mcp-fetch-echo.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-echo-catchall.priority=1"
+      - "traefik.http.routers.mcp-fetch-echo-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-echo-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-echo-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-echo-catchall.service=mcp-fetch"
+      
+      # Lyra
+      # Health check route - Priority 5 (high priority for specific path)
+      - "traefik.http.routers.mcp-fetch-lyra-health.rule=Host(`mcp-fetch-lyra.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetch-lyra-health.priority=5"
+      - "traefik.http.routers.mcp-fetch-lyra-health.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-lyra-health.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-lyra-health.service=mcp-fetch"
+      # No auth middleware - health check must be public!
+      
+      # OAuth discovery route - Priority 10 (highest priority)
+      - "traefik.http.routers.mcp-fetch-lyra-oauth-discovery.rule=Host(`mcp-fetch-lyra.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetch-lyra-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetch-lyra-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-lyra-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-lyra-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
+      - "traefik.http.routers.mcp-fetch-lyra-oauth-discovery.service=auth@docker"
+      # No auth middleware - OAuth discovery must be public!
+      
+      # MCP route with auth - Priority 2
+      - "traefik.http.routers.mcp-fetch-lyra.rule=Host(`mcp-fetch-lyra.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-fetch-lyra.priority=2"
+      - "traefik.http.routers.mcp-fetch-lyra.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-lyra.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-lyra.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-lyra.service=mcp-fetch"
+      
+      # Catch-all route with auth - Priority 1 (lowest)
+      - "traefik.http.routers.mcp-fetch-lyra-catchall.rule=Host(`mcp-fetch-lyra.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-lyra-catchall.priority=1"
+      - "traefik.http.routers.mcp-fetch-lyra-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-lyra-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-lyra-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-lyra-catchall.service=mcp-fetch"
+      
+      # Nova
+      # Health check route - Priority 5 (high priority for specific path)
+      - "traefik.http.routers.mcp-fetch-nova-health.rule=Host(`mcp-fetch-nova.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetch-nova-health.priority=5"
+      - "traefik.http.routers.mcp-fetch-nova-health.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-nova-health.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-nova-health.service=mcp-fetch"
+      # No auth middleware - health check must be public!
+      
+      # OAuth discovery route - Priority 10 (highest priority)
+      - "traefik.http.routers.mcp-fetch-nova-oauth-discovery.rule=Host(`mcp-fetch-nova.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetch-nova-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetch-nova-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-nova-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-nova-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
+      - "traefik.http.routers.mcp-fetch-nova-oauth-discovery.service=auth@docker"
+      # No auth middleware - OAuth discovery must be public!
+      
+      # MCP route with auth - Priority 2
+      - "traefik.http.routers.mcp-fetch-nova.rule=Host(`mcp-fetch-nova.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-fetch-nova.priority=2"
+      - "traefik.http.routers.mcp-fetch-nova.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-nova.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-nova.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-nova.service=mcp-fetch"
+      
+      # Catch-all route with auth - Priority 1 (lowest)
+      - "traefik.http.routers.mcp-fetch-nova-catchall.rule=Host(`mcp-fetch-nova.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-nova-catchall.priority=1"
+      - "traefik.http.routers.mcp-fetch-nova-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-nova-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-nova-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-nova-catchall.service=mcp-fetch"
+      
+      # Prism
+      # Health check route - Priority 5 (high priority for specific path)
+      - "traefik.http.routers.mcp-fetch-prism-health.rule=Host(`mcp-fetch-prism.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetch-prism-health.priority=5"
+      - "traefik.http.routers.mcp-fetch-prism-health.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-prism-health.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-prism-health.service=mcp-fetch"
+      # No auth middleware - health check must be public!
+      
+      # OAuth discovery route - Priority 10 (highest priority)
+      - "traefik.http.routers.mcp-fetch-prism-oauth-discovery.rule=Host(`mcp-fetch-prism.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetch-prism-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetch-prism-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-prism-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-prism-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
+      - "traefik.http.routers.mcp-fetch-prism-oauth-discovery.service=auth@docker"
+      # No auth middleware - OAuth discovery must be public!
+      
+      # MCP route with auth - Priority 2
+      - "traefik.http.routers.mcp-fetch-prism.rule=Host(`mcp-fetch-prism.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-fetch-prism.priority=2"
+      - "traefik.http.routers.mcp-fetch-prism.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-prism.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-prism.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-prism.service=mcp-fetch"
+      
+      # Catch-all route with auth - Priority 1 (lowest)
+      - "traefik.http.routers.mcp-fetch-prism-catchall.rule=Host(`mcp-fetch-prism.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-prism-catchall.priority=1"
+      - "traefik.http.routers.mcp-fetch-prism-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-prism-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-prism-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-prism-catchall.service=mcp-fetch"
+      
+      # Sage
+      # Health check route - Priority 5 (high priority for specific path)
+      - "traefik.http.routers.mcp-fetch-sage-health.rule=Host(`mcp-fetch-sage.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetch-sage-health.priority=5"
+      - "traefik.http.routers.mcp-fetch-sage-health.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-sage-health.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-sage-health.service=mcp-fetch"
+      # No auth middleware - health check must be public!
+      
+      # OAuth discovery route - Priority 10 (highest priority)
+      - "traefik.http.routers.mcp-fetch-sage-oauth-discovery.rule=Host(`mcp-fetch-sage.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetch-sage-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetch-sage-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-sage-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-sage-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
+      - "traefik.http.routers.mcp-fetch-sage-oauth-discovery.service=auth@docker"
+      # No auth middleware - OAuth discovery must be public!
+      
+      # MCP route with auth - Priority 2
+      - "traefik.http.routers.mcp-fetch-sage.rule=Host(`mcp-fetch-sage.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-fetch-sage.priority=2"
+      - "traefik.http.routers.mcp-fetch-sage.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-sage.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-sage.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-sage.service=mcp-fetch"
+      
+      # Catch-all route with auth - Priority 1 (lowest)
+      - "traefik.http.routers.mcp-fetch-sage-catchall.rule=Host(`mcp-fetch-sage.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-sage-catchall.priority=1"
+      - "traefik.http.routers.mcp-fetch-sage-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-sage-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-sage-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-sage-catchall.service=mcp-fetch"
+      
+      # Verse
+      # Health check route - Priority 5 (high priority for specific path)
+      - "traefik.http.routers.mcp-fetch-verse-health.rule=Host(`mcp-fetch-verse.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetch-verse-health.priority=5"
+      - "traefik.http.routers.mcp-fetch-verse-health.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-verse-health.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-verse-health.service=mcp-fetch"
+      # No auth middleware - health check must be public!
+      
+      # OAuth discovery route - Priority 10 (highest priority)
+      - "traefik.http.routers.mcp-fetch-verse-oauth-discovery.rule=Host(`mcp-fetch-verse.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetch-verse-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetch-verse-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-verse-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-verse-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
+      - "traefik.http.routers.mcp-fetch-verse-oauth-discovery.service=auth@docker"
+      # No auth middleware - OAuth discovery must be public!
+      
+      # MCP route with auth - Priority 2
+      - "traefik.http.routers.mcp-fetch-verse.rule=Host(`mcp-fetch-verse.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-fetch-verse.priority=2"
+      - "traefik.http.routers.mcp-fetch-verse.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-verse.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-verse.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-verse.service=mcp-fetch"
+      
+      # Catch-all route with auth - Priority 1 (lowest)
+      - "traefik.http.routers.mcp-fetch-verse-catchall.rule=Host(`mcp-fetch-verse.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-verse-catchall.priority=1"
+      - "traefik.http.routers.mcp-fetch-verse-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-verse-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-verse-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-verse-catchall.service=mcp-fetch"
+      
+      # Zenith
+      # Health check route - Priority 5 (high priority for specific path)
+      - "traefik.http.routers.mcp-fetch-zenith-health.rule=Host(`mcp-fetch-zenith.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetch-zenith-health.priority=5"
+      - "traefik.http.routers.mcp-fetch-zenith-health.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-zenith-health.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-zenith-health.service=mcp-fetch"
+      # No auth middleware - health check must be public!
+      
+      # OAuth discovery route - Priority 10 (highest priority)
+      - "traefik.http.routers.mcp-fetch-zenith-oauth-discovery.rule=Host(`mcp-fetch-zenith.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetch-zenith-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetch-zenith-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-zenith-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-zenith-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
+      - "traefik.http.routers.mcp-fetch-zenith-oauth-discovery.service=auth@docker"
+      # No auth middleware - OAuth discovery must be public!
+      
+      # MCP route with auth - Priority 2
+      - "traefik.http.routers.mcp-fetch-zenith.rule=Host(`mcp-fetch-zenith.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-fetch-zenith.priority=2"
+      - "traefik.http.routers.mcp-fetch-zenith.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-zenith.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-zenith.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-zenith.service=mcp-fetch"
+      
+      # Catch-all route with auth - Priority 1 (lowest)
+      - "traefik.http.routers.mcp-fetch-zenith-catchall.rule=Host(`mcp-fetch-zenith.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-zenith-catchall.priority=1"
+      - "traefik.http.routers.mcp-fetch-zenith-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetch-zenith-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetch-zenith-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-zenith-catchall.service=mcp-fetch"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 10s

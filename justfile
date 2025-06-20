@@ -17,21 +17,29 @@ default:
 ensure-services-ready:
     @pixi run python scripts/check_services_ready.py || (echo "❌ Services not ready! See above for details." && exit 1)
 
-# Run tests with pytest (no mocking allowed!)
+# Run tests with pytest (no mocking allowed!) and cleanup after
 test:
     @pixi run pytest tests/ -v
+    @echo "\n🧹 Cleaning up test registrations..."
+    @pixi run python scripts/cleanup_test_data.py --execute
 
-# Run all tests including integration
+# Run all tests including integration and cleanup after
 test-all:
     @pixi run pytest tests/ -v --tb=short
+    @echo "\n🧹 Cleaning up test registrations..."
+    @pixi run python scripts/cleanup_test_data.py --execute
 
-# Run a single test file
+# Run a single test file and cleanup after
 test-file file:
     @pixi run pytest {{ file }} -v
+    @echo "\n🧹 Cleaning up test registrations..."
+    @pixi run python scripts/cleanup_test_data.py --execute
 
-# Run tests with verbose output
+# Run tests with verbose output and cleanup after
 test-verbose:
     @pixi run pytest tests/ -v -s
+    @echo "\n🧹 Cleaning up test registrations..."
+    @pixi run python scripts/cleanup_test_data.py --execute
 
 # Run tests with sidecar coverage pattern
 test-sidecar-coverage:
@@ -205,12 +213,28 @@ setup-claude-code: generate-github-token create-mcp-config
 # OAuth-specific testing
 test-oauth-flow: ensure-services-ready
     @pixi run pytest tests/test_oauth_flow.py -v -s
+    @echo "\n🧹 Cleaning up test registrations..."
+    @pixi run python scripts/cleanup_test_data.py --execute
 
 test-mcp-protocol: ensure-services-ready
     @pixi run pytest tests/test_mcp_protocol.py -v -s
+    @echo "\n🧹 Cleaning up test registrations..."
+    @pixi run python scripts/cleanup_test_data.py --execute
 
 test-claude-integration: ensure-services-ready
     @pixi run pytest tests/test_claude_integration.py -v -s
+    @echo "\n🧹 Cleaning up test registrations..."
+    @pixi run python scripts/cleanup_test_data.py --execute
+
+# MCP AI hostnames tests
+test-mcp-hostnames: ensure-services-ready
+    @pixi run pytest tests/test_mcp_ai_hostnames.py -v -s
+    @echo "\n🧹 Cleaning up test registrations..."
+    @pixi run python scripts/cleanup_test_data.py --execute
+
+# Quick hostname connectivity check
+check-mcp-hostnames:
+    @pixi run python scripts/test_mcp_hostnames.py
 
 # Service-specific rebuilds
 rebuild-auth:
@@ -326,14 +350,9 @@ test-cleanup-show:
     @echo "🔍 Showing test registrations (client_name starting with 'TEST ')..."
     @pixi run python scripts/cleanup_test_data.py --show
 
-# Cleanup test data (dry run by default)
+# Cleanup test data
 test-cleanup:
-    @echo "🧹 Cleaning up test registrations (dry run)..."
-    @pixi run python scripts/cleanup_test_data.py
-    
-# Actually delete test data (use with caution!)
-test-cleanup-execute:
-    @echo "⚠️  DELETING all test registrations and related tokens..."
+    @echo "🧹 Cleaning up test registrations..."
     @pixi run python scripts/cleanup_test_data.py --execute
 
 # Setup commands
