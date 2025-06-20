@@ -6,6 +6,23 @@ services:
     # Run as root for coverage data writing
     user: root
     environment:
+      # Include all the required environment variables from base compose
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - JWT_SECRET=${GATEWAY_JWT_SECRET}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_PRIVATE_KEY_B64=${JWT_PRIVATE_KEY_B64}
+      - BASE_DOMAIN=${BASE_DOMAIN}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - ACCESS_TOKEN_LIFETIME=${ACCESS_TOKEN_LIFETIME}
+      - REFRESH_TOKEN_LIFETIME=${REFRESH_TOKEN_LIFETIME}
+      - SESSION_TIMEOUT=${SESSION_TIMEOUT}
+      - CLIENT_LIFETIME=${CLIENT_LIFETIME}
+      - ALLOWED_GITHUB_USERS=${ALLOWED_GITHUB_USERS}
+      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION}
+      - MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}
+      # Add coverage-specific environment variables
       - PYTHONPATH=/coverage-spy:${PYTHONPATH:-}
       - COVERAGE_PROCESS_START=/coverage-config/.coveragerc
       - COVERAGE_FILE=/coverage-data/.coverage
@@ -13,6 +30,8 @@ services:
       - ./coverage-spy:/coverage-spy:ro
       - ./coverage-spy/.coveragerc:/coverage-config/.coveragerc:ro
       - coverage-data:/coverage-data:rw
+      # Mount source code for coverage mapping
+      - ./mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient:/src/mcp_oauth_dynamicclient:ro
     # Ensure graceful shutdown for coverage collection
     stop_grace_period: 10s
 
@@ -23,7 +42,7 @@ services:
     networks:
       - public
     volumes:
-      - ./auth:/app:ro  # CRITICAL: Mount source for path alignment!
+      - ./mcp-oauth-dynamicclient/src:/src:ro  # CRITICAL: Mount source for path alignment!
       - coverage-data:/coverage-data:rw
       - ./htmlcov:/htmlcov:rw
       - ./coverage-spy/.coveragerc:/.coveragerc:ro
@@ -40,11 +59,14 @@ services:
         # Wait for coverage data to be written
         python /scripts/wait_for_coverage.py
         
-        # Combine and generate reports
+        # Copy coverage data to host mount for processing
         cd /coverage-data
-        coverage combine || echo 'No data to combine'
-        coverage report --rcfile=/.coveragerc || echo 'No data to report'
-        coverage html --rcfile=/.coveragerc -d /htmlcov || echo 'No HTML report generated'
+        if [ -f .coverage ]; then
+            cp .coverage* /htmlcov/ 2>/dev/null || true
+            echo "✅ Coverage data copied to host"
+        else
+            echo "❌ No coverage data found"
+        fi
         
         echo 'Coverage harvester completed'
         # Keep container alive briefly to allow log collection

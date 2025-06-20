@@ -41,14 +41,19 @@ test-verbose:
 test-sidecar-coverage:
     @docker compose down --remove-orphans
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d
+    @echo "Waiting for services to be ready..."
+    @pixi run python scripts/check_services_ready.py || (echo "❌ Services not ready!" && exit 1)
     @pixi run pytest tests/ -v
     @echo "Triggering graceful shutdown to collect coverage data..."
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml stop auth
     @echo "Waiting for coverage harvester to complete..."
     @sleep 5
-    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml logs coverage-harvester
-    @echo "Coverage collection complete"
+    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml logs coverage-harvester | tail -20
+    @echo "Copying coverage data from htmlcov/..."
+    @cp htmlcov/.coverage* . 2>/dev/null || echo "No coverage files to copy"
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml down
+    @echo "Generating coverage report..."
+    @pixi run python scripts/generate_coverage_report.py
 
 # Debug coverage setup
 debug-coverage: ensure-services-ready
