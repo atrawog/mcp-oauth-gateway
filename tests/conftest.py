@@ -126,7 +126,9 @@ def pytest_configure(config):
         "BASE_DOMAIN": "Base domain for services",
         "GITHUB_CLIENT_ID": "GitHub OAuth client ID",
         "GITHUB_CLIENT_SECRET": "GitHub OAuth client secret",
-        "GATEWAY_JWT_SECRET": "JWT signing secret"
+        "GATEWAY_JWT_SECRET": "JWT signing secret",
+        "JWT_PRIVATE_KEY_B64": "RSA private key for RS256 JWT signing",
+        "JWT_ALGORITHM": "JWT algorithm (should be RS256)"
     }
     
     missing = []
@@ -139,6 +141,28 @@ def pytest_configure(config):
         for m in missing:
             print(m, file=sys.stderr)
         pytest.exit("Token validation failed", returncode=1)
+    
+    # Validate JWT_ALGORITHM is RS256
+    jwt_algorithm = os.getenv("JWT_ALGORITHM")
+    if jwt_algorithm != "RS256":
+        print(f"❌ JWT_ALGORITHM must be RS256, but found: {jwt_algorithm}", file=sys.stderr)
+        print("   Update .env file to set JWT_ALGORITHM=RS256", file=sys.stderr)
+        pytest.exit("Configuration validation failed", returncode=1)
+    
+    # Validate JWT_PRIVATE_KEY_B64 is a valid base64-encoded RSA key
+    jwt_private_key_b64 = os.getenv("JWT_PRIVATE_KEY_B64")
+    if jwt_private_key_b64:
+        try:
+            import base64
+            key_bytes = base64.b64decode(jwt_private_key_b64)
+            if not key_bytes.startswith(b'-----BEGIN'):
+                print("❌ JWT_PRIVATE_KEY_B64 does not appear to be a valid PEM-encoded key", file=sys.stderr)
+                print("   Run: just generate-rsa-keys", file=sys.stderr)
+                pytest.exit("Configuration validation failed", returncode=1)
+        except Exception as e:
+            print(f"❌ JWT_PRIVATE_KEY_B64 is not valid base64: {e}", file=sys.stderr)
+            print("   Run: just generate-rsa-keys", file=sys.stderr)
+            pytest.exit("Configuration validation failed", returncode=1)
     
     print("✅ All critical tokens and configuration validated!", file=sys.stderr)
     print("=" * 60, file=sys.stderr)
@@ -358,6 +382,8 @@ async def refresh_and_validate_tokens(ensure_services_ready):
         "GITHUB_CLIENT_ID": "GitHub OAuth client ID",
         "GITHUB_CLIENT_SECRET": "GitHub OAuth client secret",
         "GATEWAY_JWT_SECRET": "JWT signing secret",
+        "JWT_PRIVATE_KEY_B64": "RSA private key for RS256 JWT signing",
+        "JWT_ALGORITHM": "JWT algorithm (should be RS256)",
         "GATEWAY_OAUTH_CLIENT_ID": "Gateway OAuth client ID",
         "GATEWAY_OAUTH_CLIENT_SECRET": "Gateway OAuth client secret"
     }

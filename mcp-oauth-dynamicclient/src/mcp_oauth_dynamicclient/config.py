@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     # JWT Configuration
     jwt_secret: str
     jwt_algorithm: str  # NO DEFAULTS!
+    jwt_private_key_b64: Optional[str] = None  # Base64 encoded RSA private key for RS256
     
     # Domain Configuration
     base_domain: str

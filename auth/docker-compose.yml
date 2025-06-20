@@ -12,6 +12,7 @@ services:
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
       - JWT_SECRET=${GATEWAY_JWT_SECRET}
       - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_PRIVATE_KEY_B64=${JWT_PRIVATE_KEY_B64}
       - BASE_DOMAIN=${BASE_DOMAIN}
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -25,8 +26,6 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    volumes:
-      - auth-keys:/app/keys
     labels:
       - "traefik.enable=true"
       # OAuth routes - Priority 4 (HIGHEST)
@@ -91,6 +90,4 @@ networks:
 
 volumes:
   redis-data:
-    external: true
-  auth-keys:
     external: true

@@ -170,6 +170,11 @@ generate-jwt-secret:
     
     echo "🔥 SACRED JWT SECRET HAS BEEN BLESSED AND WRITTEN TO .ENV!"
 
+# Generate RSA keys for RS256 JWT signing and save to .env
+generate-rsa-keys:
+    @echo "🔑 Generating RSA keys for RS256 JWT signing..."
+    @pixi run python scripts/generate_rsa_keys_to_env.py
+
 # Generate GitHub OAuth token
 generate-github-token:
     @pixi run python scripts/generate_oauth_token.py
