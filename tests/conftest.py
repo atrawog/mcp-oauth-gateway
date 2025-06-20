@@ -112,22 +112,11 @@ def pytest_configure(config):
             )
             
             if verify_response.status_code == 401:
-                # Token might need refresh - let the fixture handle it
-                print(f"⚠️  Gateway token needs refresh (attempt {attempt + 1}/{max_retries})", file=sys.stderr)
-                if attempt < max_retries - 1:
-                    time.sleep(retry_delay)
-                    continue
-                else:
-                    print("❌ Gateway token is not recognized by auth service!", file=sys.stderr)
-                    token_valid = False
-                    # Check if we have a refresh token
-                    refresh_token = os.getenv("GATEWAY_OAUTH_REFRESH_TOKEN")
-                    if not refresh_token or refresh_token == "None":
-                        print("❌ No valid refresh token available!", file=sys.stderr)
-                        print("   Run: just generate-github-token", file=sys.stderr)
-                        print("=" * 60, file=sys.stderr)
-                        pytest.exit("Token validation failed", returncode=1)
-                    break
+                # Token is invalid - abort immediately
+                print("❌ Gateway token is not recognized by auth service!", file=sys.stderr)
+                print("   Run: just generate-github-token", file=sys.stderr)
+                print("=" * 60, file=sys.stderr)
+                pytest.exit("Token validation failed - invalid gateway token", returncode=1)
             elif verify_response.status_code != 200:
                 print(f"❌ Failed to verify gateway token: {verify_response.status_code}", file=sys.stderr)
                 if attempt < max_retries - 1:
@@ -208,10 +197,12 @@ def pytest_configure(config):
     # Summary of validation status
     if token_valid:
         print("✅ All critical tokens and configuration validated!", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
     else:
-        print("⚠️  Pre-test validation completed with warnings", file=sys.stderr)
-        print("   Gateway token needs refresh - will be handled by test fixtures", file=sys.stderr)
-    print("=" * 60, file=sys.stderr)
+        # This should never be reached because we exit immediately on any token failure
+        print("❌ CRITICAL ERROR: Token validation logic error!", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
+        pytest.exit("Token validation logic error", returncode=1)
 
 
 def update_env_file(key: str, value: str):

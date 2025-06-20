@@ -95,7 +95,7 @@ class TestClientRegistrationErrors:
         # Test with malformed JSON (no auth header needed for malformed requests)
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            data="invalid json content",
+            content="invalid json content",
             headers={"Content-Type": "application/json"}
         )
         

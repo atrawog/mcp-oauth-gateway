@@ -555,7 +555,8 @@ class TestMCPErrorHandling:
             response = await http_client.post(
                 f"{MCP_FETCH_URL}/mcp",
                 json=request,
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
+                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                timeout=60.0  # Increase timeout for error handling tests
             )
             
             if response.status_code == 200:

@@ -64,51 +64,67 @@ class TestAdditionalCoverage:
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
         
-        # First register a client
-        registration_data = {
-            "redirect_uris": [TEST_REDIRECT_URI],
-            "client_name": TEST_CLIENT_NAME,
-            "scope": TEST_CLIENT_SCOPE
-        }
-        
-        reg_response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json=registration_data,
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
-        )
-        
-        assert reg_response.status_code == 201
-        client = reg_response.json()
-        
-        # Test with missing client_id
-        token_response = await http_client.post(
-            f"{AUTH_BASE_URL}/token",
-            data={
-                "grant_type": "authorization_code",
-                "code": "some_code",
-                "client_secret": client["client_secret"]
+        client = None
+        try:
+            # First register a client
+            registration_data = {
+                "redirect_uris": [TEST_REDIRECT_URI],
+                "client_name": TEST_CLIENT_NAME,
+                "scope": TEST_CLIENT_SCOPE
             }
-        )
-        
-        # FastAPI returns 422 for missing required fields
-        assert token_response.status_code == 422
-        
-        # Test with missing client_secret for confidential client
-        token_response = await http_client.post(
-            f"{AUTH_BASE_URL}/token",
-            data={
-                "grant_type": "authorization_code",
-                "code": "some_code",
-                "client_id": client["client_id"]
-            }
-        )
-        
-        # Returns 400 for missing client_secret
-        assert token_response.status_code == 400
-        # FastAPI may return different error format
-        error_data = token_response.json()
-        # Check for error in either format
-        assert "error" in error_data or "detail" in error_data
+            
+            reg_response = await http_client.post(
+                f"{AUTH_BASE_URL}/register",
+                json=registration_data,
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            )
+            
+            assert reg_response.status_code == 201
+            client = reg_response.json()
+            
+            # Test with missing client_id
+            token_response = await http_client.post(
+                f"{AUTH_BASE_URL}/token",
+                data={
+                    "grant_type": "authorization_code",
+                    "code": "some_code",
+                    "client_secret": client["client_secret"]
+                }
+            )
+            
+            # FastAPI returns 422 for missing required fields
+            assert token_response.status_code == 422
+            
+            # Test with missing client_secret for confidential client
+            token_response = await http_client.post(
+                f"{AUTH_BASE_URL}/token",
+                data={
+                    "grant_type": "authorization_code",
+                    "code": "some_code",
+                    "client_id": client["client_id"]
+                }
+            )
+            
+            # Returns 400 for missing client_secret
+            assert token_response.status_code == 400
+            # FastAPI may return different error format
+            error_data = token_response.json()
+            # Check for error in either format
+            assert "error" in error_data or "detail" in error_data
+            
+        finally:
+            # Clean up the created client using RFC 7592 DELETE
+            if client and "registration_access_token" in client and "client_id" in client:
+                try:
+                    delete_response = await http_client.delete(
+                        f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                        headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                    )
+                    # 204 No Content is success, 404 is okay if already deleted
+                    if delete_response.status_code not in (204, 404):
+                        print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+                except Exception as e:
+                    print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_introspect_with_malformed_token(self, http_client, wait_for_services, registered_client):
@@ -149,33 +165,49 @@ class TestAdditionalCoverage:
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
         
-        # Register with absolute minimum data
-        registration_data = {
-            "redirect_uris": [TEST_REDIRECT_URI],
-            "client_name": "TEST test_registration_with_minimal_data"
-        }
-        
-        response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json=registration_data,
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
-        )
-        
-        assert response.status_code == 201
-        client = response.json()
-        
-        # Should have generated defaults
-        assert "client_id" in client
-        assert "client_secret" in client
-        # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
-        client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
-        if client_lifetime == 0:
-            assert client["client_secret_expires_at"] == 0  # Never expires
-        else:
-            # Should be created_at + CLIENT_LIFETIME
-            created_at = client.get('client_id_issued_at')
-            expected_expiry = created_at + client_lifetime
-            assert abs(client["client_secret_expires_at"] - expected_expiry) <= 5
+        client = None
+        try:
+            # Register with absolute minimum data
+            registration_data = {
+                "redirect_uris": [TEST_REDIRECT_URI],
+                "client_name": "TEST test_registration_with_minimal_data"
+            }
+            
+            response = await http_client.post(
+                f"{AUTH_BASE_URL}/register",
+                json=registration_data,
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            )
+            
+            assert response.status_code == 201
+            client = response.json()
+            
+            # Should have generated defaults
+            assert "client_id" in client
+            assert "client_secret" in client
+            # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
+            client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
+            if client_lifetime == 0:
+                assert client["client_secret_expires_at"] == 0  # Never expires
+            else:
+                # Should be created_at + CLIENT_LIFETIME
+                created_at = client.get('client_id_issued_at')
+                expected_expiry = created_at + client_lifetime
+                assert abs(client["client_secret_expires_at"] - expected_expiry) <= 5
+                
+        finally:
+            # Clean up the created client using RFC 7592 DELETE
+            if client and "registration_access_token" in client and "client_id" in client:
+                try:
+                    delete_response = await http_client.delete(
+                        f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                        headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                    )
+                    # 204 No Content is success, 404 is okay if already deleted
+                    if delete_response.status_code not in (204, 404):
+                        print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+                except Exception as e:
+                    print(f"Warning: Error during client cleanup: {e}")
         
     @pytest.mark.asyncio
     async def test_jwt_with_invalid_signature(self, http_client, wait_for_services, registered_client):

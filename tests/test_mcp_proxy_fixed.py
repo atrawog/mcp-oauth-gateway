@@ -300,7 +300,7 @@ class TestMCPSessionIsolation:
             assert cross_response.status_code == 200
 
 
-class TestMCPClientHelper:
+class MCPClientHelper:
     """Helper class for MCP client operations with session management"""
     
     def __init__(self, http_client: httpx.AsyncClient, auth_token: str):
@@ -367,7 +367,7 @@ class TestMCPWithHelper:
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
-        mcp = TestMCPClientHelper(http_client, MCP_CLIENT_ACCESS_TOKEN)
+        mcp = MCPClientHelper(http_client, MCP_CLIENT_ACCESS_TOKEN)
         
         # Initialize
         init_result = await mcp.initialize("helper-test")

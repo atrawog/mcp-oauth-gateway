@@ -481,7 +481,7 @@ async def test_rfc7592_malformed_requests(http_client):
     # Test 2: Invalid JSON in PUT request
     response = await http_client.put(
         f"{AUTH_BASE_URL}/register/{client_id}",
-        data="not json",
+        content="not json",
         headers={
             "Authorization": auth_header,
             "Content-Type": "application/json"

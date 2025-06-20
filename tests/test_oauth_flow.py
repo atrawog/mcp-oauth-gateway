@@ -40,54 +40,74 @@ class TestOAuthFlow:
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
         
-        # Test successful registration
-        registration_data = {
-            "redirect_uris": ["https://example.com/callback"],
-            "client_name": "TEST test_client_registration_rfc7591",
-            "client_uri": "https://example.com",
-            "scope": "openid profile",
-            "contacts": ["admin@example.com"]
-        }
+        # Track created clients for cleanup
+        created_clients = []
         
-        response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json=registration_data,
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
-        )
-        
-        assert response.status_code == 201  # MUST return 201 Created
-        client = response.json()
-        
-        # Verify required fields in response
-        assert "client_id" in client
-        assert "client_secret" in client
-        # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
-        client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
-        if client_lifetime == 0:
-            assert client["client_secret_expires_at"] == 0  # Never expires
-        else:
-            # Should be created_at + CLIENT_LIFETIME
-            created_at = client.get('client_id_issued_at')
-            expected_expiry = created_at + client_lifetime
-            assert abs(client["client_secret_expires_at"] - expected_expiry) <= 5
-        
-        # Verify metadata is echoed back
-        assert client["redirect_uris"] == registration_data["redirect_uris"]
-        assert client["client_name"] == registration_data["client_name"]
-        assert client["client_uri"] == registration_data["client_uri"]
-        
-        # Test missing redirect_uris (with proper authentication)
-        invalid_data = {"client_name": "TEST test_client_registration_rfc7591_invalid"}
-        response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json=invalid_data,
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
-        )
-        
-        assert response.status_code == 400  # RFC 7591 compliant error
-        error = response.json()
-        assert error["detail"]["error"] == "invalid_client_metadata"
-        assert "redirect_uris is required" in error["detail"]["error_description"]
+        try:
+            # Test successful registration
+            registration_data = {
+                "redirect_uris": ["https://example.com/callback"],
+                "client_name": "TEST test_client_registration_rfc7591",
+                "client_uri": "https://example.com",
+                "scope": "openid profile",
+                "contacts": ["admin@example.com"]
+            }
+            
+            response = await http_client.post(
+                f"{AUTH_BASE_URL}/register",
+                json=registration_data,
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            )
+            
+            assert response.status_code == 201  # MUST return 201 Created
+            client = response.json()
+            created_clients.append(client)  # Track for cleanup
+            
+            # Verify required fields in response
+            assert "client_id" in client
+            assert "client_secret" in client
+            # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
+            client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
+            if client_lifetime == 0:
+                assert client["client_secret_expires_at"] == 0  # Never expires
+            else:
+                # Should be created_at + CLIENT_LIFETIME
+                created_at = client.get('client_id_issued_at')
+                expected_expiry = created_at + client_lifetime
+                assert abs(client["client_secret_expires_at"] - expected_expiry) <= 5
+            
+            # Verify metadata is echoed back
+            assert client["redirect_uris"] == registration_data["redirect_uris"]
+            assert client["client_name"] == registration_data["client_name"]
+            assert client["client_uri"] == registration_data["client_uri"]
+            
+            # Test missing redirect_uris (with proper authentication)
+            invalid_data = {"client_name": "TEST test_client_registration_rfc7591_invalid"}
+            response = await http_client.post(
+                f"{AUTH_BASE_URL}/register",
+                json=invalid_data,
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            )
+            
+            assert response.status_code == 400  # RFC 7591 compliant error
+            error = response.json()
+            assert error["detail"]["error"] == "invalid_client_metadata"
+            assert "redirect_uris is required" in error["detail"]["error_description"]
+            
+        finally:
+            # Clean up all created clients using RFC 7592 DELETE
+            for client in created_clients:
+                if "registration_access_token" in client and "client_id" in client:
+                    try:
+                        delete_response = await http_client.delete(
+                            f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                            headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                        )
+                        # 204 No Content is success, 404 is okay if already deleted
+                        if delete_response.status_code not in (204, 404):
+                            print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+                    except Exception as e:
+                        print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_authorization_endpoint_validation(self, http_client, registered_client):
