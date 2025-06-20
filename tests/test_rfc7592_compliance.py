@@ -33,7 +33,7 @@ async def test_rfc7592_get_client_configuration(http_client):
     # First register a client
     registration_data = {
         "redirect_uris": ["https://test.example.com/callback"],
-        "client_name": "RFC 7592 GET Test Client",
+        "client_name": "TEST RFC 7592 GET Test Client",
         "scope": "openid profile email",
         "grant_types": ["authorization_code", "refresh_token"],
         "response_types": ["code"]
@@ -114,7 +114,7 @@ async def test_rfc7592_put_update_client(http_client):
     # Register initial client
     initial_data = {
         "redirect_uris": ["https://original.example.com/callback"],
-        "client_name": "Original Name",
+        "client_name": "TEST Original Name",
         "scope": "openid",
         "grant_types": ["authorization_code"]
     }
@@ -138,7 +138,7 @@ async def test_rfc7592_put_update_client(http_client):
             "https://updated.example.com/callback",
             "https://secondary.example.com/callback"
         ],
-        "client_name": "Updated Name via RFC 7592",
+        "client_name": "TEST Updated Name via RFC 7592",
         "scope": "openid profile email",
         "grant_types": ["authorization_code", "refresh_token"],
         "contacts": ["admin@example.com"],
@@ -207,7 +207,7 @@ async def test_rfc7592_put_update_client(http_client):
     )
     assert response.status_code == 200
     persisted = response.json()
-    assert persisted['client_name'] == "Updated Name via RFC 7592"
+    assert persisted['client_name'] == "TEST Updated Name via RFC 7592"
     
     # Clean up
     await http_client.delete(
@@ -225,7 +225,7 @@ async def test_rfc7592_delete_client(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://delete.example.com/callback"],
-            "client_name": "Client to Delete"
+            "client_name": "TEST Client to Delete"
         }
     )
     assert response.status_code == 201
@@ -294,7 +294,7 @@ async def test_rfc7592_requires_correct_bearer_token(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://bearer.example.com/callback"],
-            "client_name": "Bearer Token Test"
+            "client_name": "TEST Bearer Token Test"
         }
     )
     assert response.status_code == 201
@@ -371,7 +371,7 @@ async def test_rfc7592_client_isolation(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://client1.example.com/callback"],
-            "client_name": "Client 1"
+            "client_name": "TEST Client 1"
         }
     )
     assert response1.status_code == 201
@@ -381,7 +381,7 @@ async def test_rfc7592_client_isolation(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://client2.example.com/callback"],
-            "client_name": "Client 2"
+            "client_name": "TEST Client 2"
         }
     )
     assert response2.status_code == 201
@@ -423,7 +423,7 @@ async def test_rfc7592_client_isolation(http_client):
         headers={"Authorization": auth2}
     )
     assert response.status_code == 200
-    assert response.json()['client_name'] == "Client 2"
+    assert response.json()['client_name'] == "TEST Client 2"
     
     # Clean up both clients
     await http_client.delete(
@@ -445,7 +445,7 @@ async def test_rfc7592_malformed_requests(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://malformed.example.com/callback"],
-            "client_name": "Malformed Test Client"
+            "client_name": "TEST Malformed Test Client"
         }
     )
     assert response.status_code == 201
@@ -520,7 +520,7 @@ async def test_rfc7592_concurrent_updates(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://concurrent.example.com/callback"],
-            "client_name": "Concurrent Test",
+            "client_name": "TEST Concurrent Test",
             "scope": "openid"
         }
     )
@@ -584,7 +584,7 @@ async def test_rfc7592_client_lifetime_handling(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://lifetime.example.com/callback"],
-            "client_name": "Lifetime Test Client"
+            "client_name": "TEST Lifetime Test Client"
         }
     )
     assert response.status_code == 201

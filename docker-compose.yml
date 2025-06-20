@@ -17,3 +17,5 @@ volumes:
     external: true
   coverage-data:
     external: true
+  auth-keys:
+    external: true

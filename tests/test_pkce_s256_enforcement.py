@@ -57,6 +57,19 @@ class TestPKCES256Enforcement:
         assert "error" in error_data["detail"]
         assert "plain" in error_data["detail"].get("error_description", "").lower() or \
                "s256" in error_data["detail"].get("error_description", "").lower()
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client_data and "client_id" in client_data:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                # 204 No Content is success, 404 is okay if already deleted
+                if delete_response.status_code not in (204, 404):
+                    print(f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}")
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
     async def test_pkce_s256_proper_validation(self, http_client, wait_for_services):
@@ -104,6 +117,19 @@ class TestPKCES256Enforcement:
         # The important part is it doesn't reject S256
         assert auth_response.status_code == 307
         assert "github.com/login/oauth/authorize" in auth_response.headers["location"]
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client_data and "client_id" in client_data:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                # 204 No Content is success, 404 is okay if already deleted
+                if delete_response.status_code not in (204, 404):
+                    print(f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}")
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
     async def test_pkce_s256_wrong_verifier_rejected(self, http_client, wait_for_services):

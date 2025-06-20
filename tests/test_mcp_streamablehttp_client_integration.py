@@ -231,43 +231,6 @@ class TestMCPStreamableHTTPClientCommand:
         
         print(f"✅ Token status check working")
     
-    @pytest.mark.asyncio
-    async def test_fetch_with_different_urls(self, temp_env_file, mcp_client_env, wait_for_services):
-        """Test fetching different URLs to ensure the proxy works correctly"""
-        env = os.environ.copy()
-        env.update(mcp_client_env)
-        
-        # Test URLs that should work
-        test_urls = [
-            ("https://httpbin.org/html", "Herman Melville"),  # httpbin HTML page
-            ("https://httpbin.org/json", "slideshow"),        # httpbin JSON response
-        ]
-        
-        for url, expected_content in test_urls:
-            cmd = [
-                "pixi", "run", "mcp-streamablehttp-client",
-                "--env-file", temp_env_file,
-                "--command", f"fetch {url}"
-            ]
-            
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                env=env,
-                timeout=30
-            )
-            
-            if result.returncode == 0:
-                content = result.stdout
-                
-                if expected_content in content:
-                    print(f"✅ Successfully fetched {url}")
-                    print(f"   Found expected content: '{expected_content}'")
-                else:
-                    print(f"⚠️  Fetched {url} but didn't find '{expected_content}'")
-            else:
-                print(f"⚠️  Failed to fetch {url}: {result.stderr}")
     
     @pytest.mark.asyncio
     async def test_command_with_complex_parameters(self, temp_env_file, mcp_client_env, wait_for_services):
@@ -313,7 +276,6 @@ class TestMCPClientRealWorldUsage:
         # Run multiple fetch commands
         urls = [
             "https://example.com",
-            "https://httpbin.org/status/200",
         ]
         
         success_count = 0

@@ -21,26 +21,22 @@ ensure-services-ready:
 test:
     @pixi run pytest tests/ -v
     @echo "\n🧹 Cleaning up test registrations..."
-    @pixi run python scripts/cleanup_test_data.py --execute
 
 # Run all tests including integration and cleanup after
 test-all:
     @pixi run pytest tests/ -v --tb=short
     @echo "\n🧹 Cleaning up test registrations..."
-    @pixi run python scripts/cleanup_test_data.py --execute
 
 # Run a single test file and cleanup after
 test-file file:
     @pixi run pytest {{ file }} -v
     @echo "\n🧹 Cleaning up test registrations..."
-    @pixi run python scripts/cleanup_test_data.py --execute
 
 # Run tests with verbose output and cleanup after
 test-verbose:
     @pixi run pytest tests/ -v -s
     @echo "\n🧹 Cleaning up test registrations..."
-    @pixi run python scripts/cleanup_test_data.py --execute
-
+ 
 # Run tests with sidecar coverage pattern
 test-sidecar-coverage:
     @docker compose down --remove-orphans
@@ -332,9 +328,9 @@ oauth-delete-all-registrations:
     @echo "⚠️  WARNING: This will delete ALL client registrations!"
     @pixi run python scripts/manage_oauth_data.py delete-all-registrations
 
-# Delete ALL tokens (dangerous!)
+# Delete ALL OAuth data - tokens, states, codes (dangerous!)
 oauth-delete-all-tokens:
-    @echo "⚠️  WARNING: This will delete ALL tokens!"
+    @echo "⚠️  WARNING: This will delete ALL OAuth data (tokens, states, codes)!"
     @pixi run python scripts/manage_oauth_data.py delete-all-tokens
 
 # Show OAuth statistics

@@ -18,7 +18,9 @@ from dotenv import load_dotenv
 
 # SACRED LAW: Load .env file BEFORE importing test_constants
 # This ensures all environment variables are available!
-load_dotenv()
+# Use explicit path to ensure .env is found regardless of working directory
+env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(env_path)
 
 # Import all configuration from test_constants
 from .test_constants import (
@@ -82,43 +84,78 @@ def pytest_configure(config):
     gateway_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if not gateway_token:
         print("❌ No GATEWAY_OAUTH_ACCESS_TOKEN found! Run: just generate-github-token", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
         pytest.exit("Token validation failed", returncode=1)
     
     # Check JWT structure and expiry
     is_valid, ttl = check_token_expiry(gateway_token)
     if not is_valid:
         print("❌ Gateway token is expired! Run: just generate-github-token", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
         pytest.exit("Token validation failed", returncode=1)
     
     # Verify token with auth service using synchronous request
     import requests
-    try:
-        verify_response = requests.get(
-            f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": f"Bearer {gateway_token}"},
-            timeout=10
-        )
-        
-        if verify_response.status_code == 401:
-            print("❌ Gateway token is not recognized by auth service (possibly cleared from Redis)!", file=sys.stderr)
-            print("   This usually happens after clearing registrations or restarting services.", file=sys.stderr)
-            print("   Run: just generate-github-token", file=sys.stderr)
-            pytest.exit("Token validation failed", returncode=1)
-        elif verify_response.status_code != 200:
-            print(f"❌ Failed to verify gateway token: {verify_response.status_code}", file=sys.stderr)
-            pytest.exit("Token validation failed", returncode=1)
-        else:
-            print(f"✅ Gateway token valid for {ttl/3600:.1f} hours and recognized by auth service", file=sys.stderr)
-    except Exception as e:
-        print(f"❌ Failed to verify token with auth service: {e}", file=sys.stderr)
-        print("   Make sure services are running: just up", file=sys.stderr)
-        pytest.exit("Token validation failed", returncode=1)
+    import time
+    
+    # Try to verify token with retries (auth service might be starting up)
+    max_retries = 3
+    retry_delay = 2
+    token_valid = False
+    
+    for attempt in range(max_retries):
+        try:
+            verify_response = requests.get(
+                f"{AUTH_BASE_URL}/verify",
+                headers={"Authorization": f"Bearer {gateway_token}"},
+                timeout=10
+            )
+            
+            if verify_response.status_code == 401:
+                # Token might need refresh - let the fixture handle it
+                print(f"⚠️  Gateway token needs refresh (attempt {attempt + 1}/{max_retries})", file=sys.stderr)
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    continue
+                else:
+                    print("❌ Gateway token is not recognized by auth service!", file=sys.stderr)
+                    token_valid = False
+                    # Check if we have a refresh token
+                    refresh_token = os.getenv("GATEWAY_OAUTH_REFRESH_TOKEN")
+                    if not refresh_token or refresh_token == "None":
+                        print("❌ No valid refresh token available!", file=sys.stderr)
+                        print("   Run: just generate-github-token", file=sys.stderr)
+                        print("=" * 60, file=sys.stderr)
+                        pytest.exit("Token validation failed", returncode=1)
+                    break
+            elif verify_response.status_code != 200:
+                print(f"❌ Failed to verify gateway token: {verify_response.status_code}", file=sys.stderr)
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    continue
+                print("=" * 60, file=sys.stderr)
+                pytest.exit("Token validation failed", returncode=1)
+            else:
+                print(f"✅ Gateway token valid for {ttl/3600:.1f} hours and recognized by auth service", file=sys.stderr)
+                token_valid = True
+                break
+        except Exception as e:
+            if attempt < max_retries - 1:
+                print(f"⚠️  Failed to verify token (attempt {attempt + 1}/{max_retries}): {e}", file=sys.stderr)
+                time.sleep(retry_delay)
+                continue
+            else:
+                print(f"❌ Failed to verify token with auth service: {e}", file=sys.stderr)
+                print("   Make sure services are running: just up", file=sys.stderr)
+                print("=" * 60, file=sys.stderr)
+                pytest.exit("Token validation failed", returncode=1)
     
     # Check GitHub PAT
     github_pat = os.getenv("GITHUB_PAT")
     if not github_pat or github_pat.strip() == "":
         print("❌ No GitHub PAT configured! GitHub PAT is REQUIRED!", file=sys.stderr)
         print("   Run: just generate-github-token", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
         pytest.exit("Token validation failed", returncode=1)
     
     # Quick validation of other critical variables
@@ -140,14 +177,16 @@ def pytest_configure(config):
         print("❌ Critical environment variables missing:", file=sys.stderr)
         for m in missing:
             print(m, file=sys.stderr)
-        pytest.exit("Token validation failed", returncode=1)
+        print("=" * 60, file=sys.stderr)
+        sys.exit(1)  # Exit immediately with error code
     
     # Validate JWT_ALGORITHM is RS256
     jwt_algorithm = os.getenv("JWT_ALGORITHM")
     if jwt_algorithm != "RS256":
         print(f"❌ JWT_ALGORITHM must be RS256, but found: {jwt_algorithm}", file=sys.stderr)
         print("   Update .env file to set JWT_ALGORITHM=RS256", file=sys.stderr)
-        pytest.exit("Configuration validation failed", returncode=1)
+        print("=" * 60, file=sys.stderr)
+        sys.exit(1)  # Exit immediately with error code
     
     # Validate JWT_PRIVATE_KEY_B64 is a valid base64-encoded RSA key
     jwt_private_key_b64 = os.getenv("JWT_PRIVATE_KEY_B64")
@@ -158,13 +197,20 @@ def pytest_configure(config):
             if not key_bytes.startswith(b'-----BEGIN'):
                 print("❌ JWT_PRIVATE_KEY_B64 does not appear to be a valid PEM-encoded key", file=sys.stderr)
                 print("   Run: just generate-rsa-keys", file=sys.stderr)
-                pytest.exit("Configuration validation failed", returncode=1)
+                print("=" * 60, file=sys.stderr)
+                pytest.exit("Token validation failed", returncode=1)
         except Exception as e:
             print(f"❌ JWT_PRIVATE_KEY_B64 is not valid base64: {e}", file=sys.stderr)
             print("   Run: just generate-rsa-keys", file=sys.stderr)
-            pytest.exit("Configuration validation failed", returncode=1)
+            print("=" * 60, file=sys.stderr)
+            sys.exit(1)  # Exit immediately with error code
     
-    print("✅ All critical tokens and configuration validated!", file=sys.stderr)
+    # Summary of validation status
+    if token_valid:
+        print("✅ All critical tokens and configuration validated!", file=sys.stderr)
+    else:
+        print("⚠️  Pre-test validation completed with warnings", file=sys.stderr)
+        print("   Gateway token needs refresh - will be handled by test fixtures", file=sys.stderr)
     print("=" * 60, file=sys.stderr)
 
 
@@ -218,7 +264,9 @@ async def ensure_services_ready():
         
         missing = required_services - running_services
         if missing:
-            pytest.fail(f"❌ Required services not running: {missing}\nRun: just up")
+            print(f"❌ Required services not running: {missing}", file=sys.stderr)
+            print("Run: just up", file=sys.stderr)
+            pytest.fail("Required services not running")
         
         print("✅ All required Docker services are running")
         
@@ -272,6 +320,7 @@ async def refresh_and_validate_tokens(ensure_services_ready):
         pytest.fail("❌ Gateway token is expired! Run: just generate-github-token")
     
     # Then verify token is actually valid in the auth service
+    token_needs_refresh = False
     async with httpx.AsyncClient(timeout=10.0) as client:
         verify_response = await client.get(
             f"{AUTH_BASE_URL}/verify",
@@ -279,15 +328,20 @@ async def refresh_and_validate_tokens(ensure_services_ready):
         )
         
         if verify_response.status_code == 401:
-            pytest.fail("❌ Gateway token is not recognized by auth service (possibly cleared from Redis)! Run: just generate-github-token")
+            print("⚠️  Gateway token is not recognized by auth service - will attempt refresh")
+            token_needs_refresh = True
         elif verify_response.status_code != 200:
             pytest.fail(f"❌ Failed to verify gateway token: {verify_response.status_code}")
     
-    if ttl < 3600:  # Less than 1 hour
+    if ttl < 3600 or token_needs_refresh:  # Less than 1 hour OR token invalid
         # Try to refresh
         refresh_token = os.getenv("GATEWAY_OAUTH_REFRESH_TOKEN")
-        if not refresh_token:
-            pytest.fail("❌ Gateway token expires soon and no refresh token! Run: just generate-github-token")
+        if not refresh_token or refresh_token == "None":
+            print("⚠️  No valid refresh token available - cannot auto-refresh")
+            if token_needs_refresh:
+                pytest.fail("❌ Gateway token is invalid and no refresh token available! Run: just generate-github-token")
+            else:
+                pytest.fail("❌ Gateway token expires soon and no refresh token! Run: just generate-github-token")
         
         # Refresh the token
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -313,7 +367,13 @@ async def refresh_and_validate_tokens(ensure_services_ready):
                     
                 print("✅ Gateway token refreshed successfully")
             else:
-                pytest.fail(f"❌ Failed to refresh gateway token: {response.status_code}")
+                error_detail = response.text
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get("detail", {}).get("error_description", error_detail)
+                except:
+                    pass
+                pytest.fail(f"❌ Failed to refresh gateway token: {response.status_code} - {error_detail}")
     else:
         print(f"✅ Gateway token valid for {ttl/3600:.1f} hours")
     
@@ -427,7 +487,10 @@ async def wait_for_services(http_client: httpx.AsyncClient):
 
 @pytest.fixture
 async def registered_client(http_client: httpx.AsyncClient, wait_for_services) -> dict:
-    """Register a test OAuth client dynamically - no hardcoded values!"""
+    """Register a test OAuth client dynamically - no hardcoded values!
+    
+    This fixture properly cleans up the registration using RFC 7592 DELETE endpoint.
+    """
     # MUST have OAuth access token - test FAILS if not available
     assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
     
@@ -446,7 +509,23 @@ async def registered_client(http_client: httpx.AsyncClient, wait_for_services) -
     )
     
     assert response.status_code == 201, f"Client registration failed: {response.text}"
-    return response.json()
+    client_data = response.json()
+    
+    # Yield the client data for the test to use
+    yield client_data
+    
+    # Cleanup: Delete the client registration using RFC 7592
+    if "registration_access_token" in client_data and "client_id" in client_data:
+        try:
+            delete_response = await http_client.delete(
+                f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+            )
+            # 204 No Content is success, 404 is okay if already deleted
+            if delete_response.status_code not in (204, 404):
+                print(f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}")
+        except Exception as e:
+            print(f"Warning: Error during client cleanup: {e}")
 
 @pytest.fixture
 def mcp_client_token():

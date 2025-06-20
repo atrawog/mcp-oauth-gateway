@@ -73,6 +73,19 @@ class TestMCPClientOAuthRegistration:
         print(f"✅ Dynamic client registration successful")
         print(f"   Client ID: {client_data['client_id']}")
         
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client_data and "client_id" in client_data:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                # 204 No Content is success, 404 is okay if already deleted
+                if delete_response.status_code not in (204, 404):
+                    print(f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}")
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
+        
         return client_data
     
     @pytest.mark.asyncio
@@ -100,6 +113,19 @@ class TestMCPClientOAuthRegistration:
         
         assert client_data["client_name"] == client_name
         print(f"✅ Authenticated client registration successful")
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client_data and "client_id" in client_data:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                # 204 No Content is success, 404 is okay if already deleted
+                if delete_response.status_code not in (204, 404):
+                    print(f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}")
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
         
         return client_data
 
@@ -146,6 +172,19 @@ class TestMCPClientOAuthFlows:
         
         print(f"✅ Authorization flow initiated successfully")
         print(f"   Redirecting to: {location.split('?')[0]}")
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client and "client_id" in client:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                )
+                # 204 No Content is success, 404 is okay if already deleted
+                if delete_response.status_code not in (204, 404):
+                    print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_pkce_flow_for_cli_clients(self, http_client: httpx.AsyncClient, wait_for_services):

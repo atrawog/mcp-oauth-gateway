@@ -357,38 +357,50 @@ async def delete_all_registrations():
 
 
 async def delete_all_tokens():
-    """Delete ALL tokens"""
+    """Delete ALL tokens, auth states, and auth codes"""
     client = await get_redis_client()
     
     try:
-        # Find all token types
+        # Find all OAuth data types
         access_keys = await client.keys("oauth:token:*")
         refresh_keys = await client.keys("oauth:refresh:*")
+        state_keys = await client.keys("oauth:state:*")
+        code_keys = await client.keys("oauth:code:*")
+        user_token_keys = await client.keys("oauth:user_tokens:*")
         
-        total_keys = len(access_keys) + len(refresh_keys)
+        total_keys = len(access_keys) + len(refresh_keys) + len(state_keys) + len(code_keys) + len(user_token_keys)
         
         if total_keys == 0:
-            print("No tokens to delete.")
+            print("No OAuth data to delete.")
             return
         
         # Confirm
         print(f"⚠️  This will delete:")
         print(f"   - {len(access_keys)} access tokens")
         print(f"   - {len(refresh_keys)} refresh tokens")
+        print(f"   - {len(state_keys)} auth states")
+        print(f"   - {len(code_keys)} auth codes")
+        print(f"   - {len(user_token_keys)} user token indexes")
         confirm = input("Are you sure? (yes/no): ")
         
         if confirm.lower() != "yes":
             print("Cancelled.")
             return
         
-        # Delete all tokens
+        # Delete all OAuth data
         deleted = 0
         if access_keys:
             deleted += await client.delete(*access_keys)
         if refresh_keys:
             deleted += await client.delete(*refresh_keys)
+        if state_keys:
+            deleted += await client.delete(*state_keys)
+        if code_keys:
+            deleted += await client.delete(*code_keys)
+        if user_token_keys:
+            deleted += await client.delete(*user_token_keys)
             
-        print(f"✅ Deleted {deleted} tokens")
+        print(f"✅ Deleted {deleted} OAuth data entries")
         
     finally:
         await client.aclose()

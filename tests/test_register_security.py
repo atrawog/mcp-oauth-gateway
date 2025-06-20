@@ -38,6 +38,17 @@ class TestRegisterEndpointSecurity:
         assert client_data["client_name"] == "TEST test_register_is_public_endpoint"
         
         # Security is enforced at authorization/token stage, not registration
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client_data:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_register_ignores_authorization_headers(self, http_client, wait_for_services):
@@ -62,6 +73,17 @@ class TestRegisterEndpointSecurity:
         client_data = response.json()
         assert "client_id" in client_data
         assert client_data["client_name"] == "TEST test_register_ignores_authorization_headers"
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client_data:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_security_enforced_at_authorization_stage(self, http_client, wait_for_services):
@@ -99,6 +121,17 @@ class TestRegisterEndpointSecurity:
         # Both 302 and 307 are valid redirect status codes
         assert auth_response.status_code in [302, 307]
         assert "github.com/login/oauth/authorize" in auth_response.headers["location"]
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client_data:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_register_with_valid_token_still_succeeds(self, http_client, wait_for_services):
@@ -129,6 +162,17 @@ class TestRegisterEndpointSecurity:
         assert "client_id" in client_data
         assert "client_secret" in client_data
         assert client_data["client_name"] == "TEST test_register_with_valid_token_still_succeeds"
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client_data:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_token_endpoint_requires_authentication(self, http_client, wait_for_services):
@@ -162,6 +206,17 @@ class TestRegisterEndpointSecurity:
         assert token_response.status_code == 401
         error = token_response.json()
         assert error["detail"]["error"] == "invalid_client"
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_multiple_clients_can_register_publicly(self, http_client, wait_for_services):
@@ -193,6 +248,18 @@ class TestRegisterEndpointSecurity:
         # Ensure all clients have unique IDs
         client_ids = [c["client_id"] for c in clients]
         assert len(set(client_ids)) == 3
+        
+        # Cleanup: Delete all client registrations using RFC 7592
+        for client in clients:
+            if "registration_access_token" in client:
+                try:
+                    delete_response = await http_client.delete(
+                        f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                        headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                    )
+                    assert delete_response.status_code in (204, 404)
+                except Exception as e:
+                    print(f"Warning: Error during client cleanup: {e}")
 
 
 class TestRegisterEndpointBootstrap:
@@ -237,3 +304,15 @@ class TestRegisterEndpointBootstrap:
         
         # Security note: While registration is public, using these clients
         # for authorization requires user authentication via GitHub OAuth
+        
+        # Cleanup: Delete both client registrations using RFC 7592
+        for client in [client1, client2]:
+            if "registration_access_token" in client:
+                try:
+                    delete_response = await http_client.delete(
+                        f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                        headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                    )
+                    assert delete_response.status_code in (204, 404)
+                except Exception as e:
+                    print(f"Warning: Error during client cleanup: {e}")

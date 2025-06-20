@@ -317,6 +317,18 @@ class TestJWTTokenCreation:
         
         # This demonstrates that while registration is public,
         # the security is enforced at token issuance stage
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client_data and "client_id" in client_data:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                # 204 No Content is success, 404 is okay if already deleted
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
 
 class TestAuthorizationEndpointErrors:
     """Test authorization endpoint error handling"""

@@ -52,7 +52,7 @@ async def test_rfc7592_rejects_oauth_bearer_tokens(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://bearer-test.example.com/callback"],
-            "client_name": "Bearer Rejection Test"
+            "client_name": "TEST Bearer Rejection Test"
         }
     )
     assert response.status_code == 201
@@ -115,7 +115,7 @@ async def test_rfc7592_authentication_edge_cases(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://edge-case.example.com/callback"],
-            "client_name": "Edge Case Test"
+            "client_name": "TEST Edge Case Test"
         }
     )
     assert response.status_code == 201
@@ -164,7 +164,7 @@ async def test_rfc7592_cross_client_access_forbidden(http_client):
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [f"https://client{i}.example.com/callback"],
-                "client_name": f"Client {i}",
+                "client_name": f"TEST Client {i}",
                 "scope": "openid"
             }
         )
@@ -219,7 +219,7 @@ async def test_rfc7592_cross_client_access_forbidden(http_client):
             headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
-        assert response.json()['client_name'] == f"Client {i}"
+        assert response.json()['client_name'] == f"TEST Client {i}"
     
     # Clean up all clients
     for client in clients:
@@ -241,7 +241,7 @@ async def test_rfc7592_timing_attack_resistance(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://timing.example.com/callback"],
-            "client_name": "Timing Test"
+            "client_name": "TEST Timing Test"
         }
     )
     assert response.status_code == 201
@@ -324,7 +324,7 @@ async def test_rfc7592_rate_limiting(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://ratelimit.example.com/callback"],
-            "client_name": "Rate Limit Test"
+            "client_name": "TEST Rate Limit Test"
         }
     )
     assert response.status_code == 201
@@ -377,7 +377,7 @@ async def test_rfc7592_sql_injection_attempts(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://sqltest.example.com/callback"],
-            "client_name": "SQL Test Client"
+            "client_name": "TEST SQL Test Client"
         }
     )
     assert response.status_code == 201
@@ -424,7 +424,7 @@ async def test_rfc7592_sql_injection_attempts(http_client):
         headers={"Authorization": auth_header}
     )
     assert response.status_code == 200
-    assert response.json()['client_name'] == "SQL Test Client"
+    assert response.json()['client_name'] == "TEST SQL Test Client"
     
     # Clean up
     await http_client.delete(

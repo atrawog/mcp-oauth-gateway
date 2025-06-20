@@ -139,6 +139,17 @@ class TestMCPOAuthDynamicClientPackage:
         finally:
             await redis_client.aclose()
         
+        # Cleanup: Delete the client registration using RFC 7592
+        try:
+            if "registration_access_token" in client_data:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+        except Exception as e:
+            print(f"Warning: Error during client cleanup: {e}")
+        
         return client_data  # Return for use in other tests
     
     @pytest.mark.asyncio
@@ -230,6 +241,17 @@ class TestMCPOAuthDynamicClientPackage:
         assert "github.com/login/oauth/authorize" in location
         
         print(f"✅ Authorization endpoint working with registered clients")
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_token_endpoint_error_handling(self, http_client: httpx.AsyncClient, wait_for_services):
@@ -304,6 +326,17 @@ class TestMCPOAuthDynamicClientPackage:
             
         finally:
             await redis_client.aclose()
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_pkce_support(self, http_client: httpx.AsyncClient, wait_for_services):
@@ -364,6 +397,17 @@ class TestMCPOAuthDynamicClientPackage:
             
         finally:
             await redis_client.aclose()
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_concurrent_client_registrations(self, http_client: httpx.AsyncClient, wait_for_services):
@@ -411,6 +455,18 @@ class TestMCPOAuthDynamicClientPackage:
             
         finally:
             await redis_client.aclose()
+        
+        # Cleanup: Delete all registered clients using RFC 7592
+        for client in clients:
+            if "registration_access_token" in client:
+                try:
+                    delete_response = await http_client.delete(
+                        f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                        headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                    )
+                    assert delete_response.status_code in (204, 404)
+                except Exception as e:
+                    print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_invalid_grant_types(self, http_client: httpx.AsyncClient, wait_for_services):
@@ -446,6 +502,17 @@ class TestMCPOAuthDynamicClientPackage:
             assert error["detail"]["error"] == "unsupported_grant_type"
         
         print(f"✅ Unsupported grant type handling working correctly")
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
 
 
 class TestMCPOAuthDynamicClientIntegration:
@@ -475,6 +542,17 @@ class TestMCPOAuthDynamicClientIntegration:
         
         print(f"✅ Full OAuth flow with MCP client tokens working")
         print(f"   Registered client: {client['client_id']}")
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_auth_service_handles_invalid_tokens(self, http_client: httpx.AsyncClient, wait_for_services):

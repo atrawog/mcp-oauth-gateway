@@ -82,7 +82,7 @@ class TestRFCCompliance:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["http://example.com/callback"],
-                "client_name": "Test Client"
+                "client_name": "TEST Test Client"
             }
         )
         
@@ -104,7 +104,7 @@ class TestRFCCompliance:
                     "http://127.0.0.1:8080/callback",  # HTTP 127.0.0.1
                     "myapp://callback"  # App-specific URI
                 ],
-                "client_name": "Test Client"
+                "client_name": "TEST Test Client"
             }
         )
         
@@ -113,6 +113,19 @@ class TestRFCCompliance:
         assert "client_id" in client
         assert "client_secret" in client
         assert len(client["redirect_uris"]) == 4
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client and "client_id" in client:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                )
+                # 204 No Content is success, 404 is okay if already deleted
+                if delete_response.status_code not in (204, 404):
+                    print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_registration_missing_redirect_uris_rfc7591(self, http_client):
@@ -120,7 +133,7 @@ class TestRFCCompliance:
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "client_name": "Test Client"
+                "client_name": "TEST Test Client"
             }
         )
         

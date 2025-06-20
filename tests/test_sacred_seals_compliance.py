@@ -117,6 +117,17 @@ class TestSacredSealsCompliance:
             
         finally:
             await redis_client.aclose()
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client_data:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_dual_realms_architecture(self, http_client, wait_for_services):
@@ -197,6 +208,17 @@ class TestSacredSealsCompliance:
         # - MCP clients authenticate to access gateway infrastructure
         # - Human users authenticate via GitHub for resource access
         # - The two realms are separate and don't intermingle
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client_data:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                assert delete_response.status_code in (204, 404)
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_sacred_directory_structure(self):
