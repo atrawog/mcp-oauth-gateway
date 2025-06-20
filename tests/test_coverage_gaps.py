@@ -51,10 +51,10 @@ class TestCoverageGaps:
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
-        assert response.status_code == 422  # FastAPI returns 422 for validation errors
+        assert response.status_code == 400  # RFC 7591 compliant error
         error = response.json()
-        # FastAPI validation errors have a different format
-        assert "redirect_uris" in str(error)
+        assert error["detail"]["error"] == "invalid_client_metadata"
+        assert "redirect_uris is required" in error["detail"]["error_description"]
     
     @pytest.mark.asyncio
     async def test_authorize_unsupported_response_type(self, http_client, wait_for_services, registered_client):

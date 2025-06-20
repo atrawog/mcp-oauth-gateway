@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 # OAuth Client Registration Model (RFC 7591)
 class ClientRegistration(BaseModel):
-    redirect_uris: list[str]
+    redirect_uris: Optional[list[str]] = None
     client_name: Optional[str] = None
     client_uri: Optional[str] = None
     logo_uri: Optional[str] = None

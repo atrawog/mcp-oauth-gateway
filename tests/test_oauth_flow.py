@@ -75,9 +75,10 @@ class TestOAuthFlow:
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
-        assert response.status_code == 422  # FastAPI validation error for missing required fields
+        assert response.status_code == 400  # RFC 7591 compliant error
         error = response.json()
-        assert "detail" in error  # FastAPI error format
+        assert error["detail"]["error"] == "invalid_client_metadata"
+        assert "redirect_uris is required" in error["detail"]["error_description"]
     
     @pytest.mark.asyncio
     async def test_authorization_endpoint_validation(self, http_client, registered_client):

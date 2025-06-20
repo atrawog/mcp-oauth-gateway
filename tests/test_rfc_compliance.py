@@ -1,0 +1,125 @@
+"""
+Test RFC 6749 and RFC 7591 compliance for OAuth endpoints
+"""
+import pytest
+import httpx
+from .test_constants import AUTH_BASE_URL
+
+class TestRFCCompliance:
+    """Test that auth service is fully RFC compliant"""
+    
+    @pytest.mark.asyncio
+    async def test_authorize_invalid_client_rfc6749_compliance(self, http_client):
+        """Test that authorize endpoint is RFC 6749 compliant for invalid_client"""
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/authorize",
+            params={
+                "client_id": "non_existent_client",
+                "redirect_uri": "https://example.com/callback",
+                "response_type": "code",
+                "state": "test_state",
+                "code_challenge": "test_challenge",
+                "code_challenge_method": "S256"
+            },
+            follow_redirects=False
+        )
+        
+        assert response.status_code == 400
+        error = response.json()
+        assert error["detail"]["error"] == "invalid_client"
+        assert error["detail"]["error_description"] == "Client authentication failed"
+        # RFC 6749 compliant - only error and error_description fields
+    
+    @pytest.mark.asyncio
+    async def test_token_invalid_client_rfc6749_compliance(self, http_client):
+        """Test that token endpoint is RFC 6749 Section 5.2 compliant for invalid_client"""
+        response = await http_client.post(
+            f"{AUTH_BASE_URL}/token",
+            data={
+                "grant_type": "authorization_code",
+                "code": "test_code",
+                "redirect_uri": "https://example.com/callback",
+                "client_id": "non_existent_client",
+                "client_secret": "test_secret"
+            }
+        )
+        
+        assert response.status_code == 401
+        assert response.headers.get("WWW-Authenticate") == "Basic"
+        error = response.json()
+        assert error["detail"]["error"] == "invalid_client"
+        assert error["detail"]["error_description"] == "Client authentication failed"
+        # RFC 6749 Section 5.2 compliant - only error and error_description fields
+    
+    @pytest.mark.asyncio
+    async def test_oauth_discovery_includes_registration_endpoint(self, http_client):
+        """Test that OAuth discovery metadata includes registration endpoint"""
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+        )
+        
+        assert response.status_code == 200
+        metadata = response.json()
+        assert metadata["registration_endpoint"] == f"{AUTH_BASE_URL}/register"
+        assert metadata["issuer"] == AUTH_BASE_URL
+        
+        # Check new optional fields
+        assert "service_documentation" in metadata
+        assert "op_policy_uri" in metadata
+        assert "op_tos_uri" in metadata
+    
+    @pytest.mark.asyncio
+    async def test_registration_invalid_redirect_uri_rfc7591(self, http_client):
+        """Test RFC 7591 compliance for invalid redirect URI"""
+        # Test HTTP URI for non-localhost
+        response = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json={
+                "redirect_uris": ["http://example.com/callback"],
+                "client_name": "Test Client"
+            }
+        )
+        
+        assert response.status_code == 400
+        error = response.json()
+        assert error["detail"]["error"] == "invalid_redirect_uri"
+        assert "localhost" in error["detail"]["error_description"]
+    
+    @pytest.mark.asyncio
+    async def test_registration_valid_redirect_uris_rfc7591(self, http_client):
+        """Test RFC 7591 compliance for valid redirect URIs"""
+        # Test various valid redirect URIs
+        response = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json={
+                "redirect_uris": [
+                    "https://example.com/callback",  # HTTPS
+                    "http://localhost:3000/callback",  # HTTP localhost
+                    "http://127.0.0.1:8080/callback",  # HTTP 127.0.0.1
+                    "myapp://callback"  # App-specific URI
+                ],
+                "client_name": "Test Client"
+            }
+        )
+        
+        assert response.status_code == 201
+        client = response.json()
+        assert "client_id" in client
+        assert "client_secret" in client
+        assert len(client["redirect_uris"]) == 4
+    
+    @pytest.mark.asyncio
+    async def test_registration_missing_redirect_uris_rfc7591(self, http_client):
+        """Test RFC 7591 compliance for missing redirect_uris"""
+        response = await http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json={
+                "client_name": "Test Client"
+            }
+        )
+        
+        # RFC 7591 - Returns 400 with proper error format
+        assert response.status_code == 400
+        error = response.json()
+        assert error["detail"]["error"] == "invalid_client_metadata"
+        assert "redirect_uris is required" in error["detail"]["error_description"]

@@ -144,7 +144,9 @@ class TestMCPOAuthDynamicClientPackage:
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
-        assert response.status_code == 422  # Unprocessable Entity
+        assert response.status_code == 400  # RFC 7591 compliant
+        error = response.json()
+        assert error["detail"]["error"] == "invalid_client_metadata"
         
         # Test 2: Invalid redirect URI - service may accept non-URL strings
         response = await http_client.post(

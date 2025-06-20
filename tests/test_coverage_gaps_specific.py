@@ -86,8 +86,10 @@ class TestClientRegistrationErrors:
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
-        # Should be 422 for missing required field
-        assert response.status_code == 422
+        # Should be 400 for RFC 7591 compliance
+        assert response.status_code == 400
+        error = response.json()
+        assert error["detail"]["error"] == "invalid_client_metadata"
         
         # Test with malformed JSON (no auth header needed for malformed requests)
         response = await http_client.post(

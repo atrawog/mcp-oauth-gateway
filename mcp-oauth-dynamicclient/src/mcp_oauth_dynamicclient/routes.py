@@ -101,7 +101,10 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "code_challenge_methods_supported": ["S256"],
             "grant_types_supported": ["authorization_code", "refresh_token"],
             "revocation_endpoint": f"{base_url}/revoke",
-            "introspection_endpoint": f"{base_url}/introspect"
+            "introspection_endpoint": f"{base_url}/introspect",
+            "service_documentation": f"{base_url}/docs",
+            "op_policy_uri": f"{base_url}/policy",
+            "op_tos_uri": f"{base_url}/terms"
         }
     
     # Dynamic Client Registration endpoint (RFC 7591) - PUBLIC ACCESS
@@ -112,7 +115,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
     ):
         """The Divine Registration Portal - RFC 7591 compliant - PUBLIC ACCESS"""
         
-        # Validate redirect URIs
+        # Validate redirect URIs - RFC 7591 compliance
         if not registration.redirect_uris:
             raise HTTPException(
                 status_code=400,
@@ -121,6 +124,39 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     "error_description": "redirect_uris is required"
                 }
             )
+        
+        # Validate each redirect URI
+        for uri in registration.redirect_uris:
+            # Check for valid URI format
+            if not uri or not isinstance(uri, str):
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "invalid_redirect_uri",
+                        "error_description": "Invalid redirect URI format"
+                    }
+                )
+            
+            # RFC 7591 - Must be HTTPS (except localhost), HTTP on localhost, or app-specific
+            if uri.startswith("http://"):
+                # Only allow http for localhost
+                if not any(uri.startswith(f"http://{host}") for host in ["localhost", "127.0.0.1", "[::1]"]):
+                    raise HTTPException(
+                        status_code=400,
+                        detail={
+                            "error": "invalid_redirect_uri",
+                            "error_description": "HTTP redirect URIs are only allowed for localhost"
+                        }
+                    )
+            elif not uri.startswith("https://") and not ":" in uri:
+                # Must be HTTPS or have a scheme (for app-specific URIs)
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "invalid_redirect_uri",
+                        "error_description": "Redirect URI must use HTTPS or be an app-specific URI"
+                    }
+                )
         
         # Generate client credentials using Authlib patterns
         credentials = auth_manager.generate_client_credentials()
@@ -184,7 +220,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 status_code=400,
                 detail={
                     "error": "invalid_client",
-                    "error_description": "Unknown client"
+                    "error_description": "Client authentication failed"
                 }
             )
         
@@ -338,11 +374,12 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # Validate client using Authlib OAuth2Client
         client = await auth_manager.get_client(client_id, redis_client)
         if not client:
+            # RFC 6749 Section 5.2 - invalid_client MUST return 401
             raise HTTPException(
                 status_code=401,
                 detail={
                     "error": "invalid_client",
-                    "error_description": "Unknown client"
+                    "error_description": "Client authentication failed"
                 },
                 headers={"WWW-Authenticate": "Basic"}
             )

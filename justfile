@@ -135,6 +135,13 @@ rebuild service:
 logs:
     @docker compose logs -f
 
+# Purge all container logs
+logs-purge:
+    @echo "🧹 Purging all container logs..."
+    @docker compose down
+    @docker compose up -d
+    @echo "✅ All container logs purged (services restarted)"
+
 # Project-specific commands
 
 # Generate JWT secret and save to .env
