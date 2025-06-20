@@ -32,7 +32,8 @@ class TestSacredSealsCompliance:
                 json={
                     "redirect_uris": ["https://example.com/callback"],
                     "grant_types": ["authorization_code"],
-                    "response_types": ["code"]
+                    "response_types": ["code"],
+                    "client_name": "TEST test_redis_key_patterns_and_ttls"
                 },
                 headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
             )

@@ -163,10 +163,23 @@ async def list_tokens():
                     issued_at = payload.get("iat", payload.get("created_at", 0))
                     expires_at = payload.get("exp", payload.get("expires_at", 0))
                     
+                    # Fetch client name
+                    client_id = payload.get("client_id", "N/A")
+                    client_name = "N/A"
+                    if client_id != "N/A":
+                        client_data = await client.get(f"oauth:client:{client_id}")
+                        if client_data:
+                            try:
+                                client_info = json.loads(client_data)
+                                client_name = client_info.get("client_name", "N/A")
+                            except:
+                                pass
+                    
                     tokens.append([
                         jti[:12] + "...",
                         payload.get("username", "N/A"),
-                        payload.get("client_id", "N/A"),
+                        client_id,
+                        client_name,
                         payload.get("scope", "N/A"),
                         format_timestamp(issued_at),
                         format_timestamp(expires_at),
@@ -176,7 +189,7 @@ async def list_tokens():
         print("\n=== Active OAuth Tokens ===")
         print(tabulate(
             tokens,
-            headers=["JTI", "User", "Client ID", "Scope", "Issued", "Expires", "TTL"],
+            headers=["JTI", "User", "Client ID", "Client Name", "Scope", "Issued", "Expires", "TTL"],
             tablefmt="grid"
         ))
         print(f"\nTotal tokens: {len(tokens)}")

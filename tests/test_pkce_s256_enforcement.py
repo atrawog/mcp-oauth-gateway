@@ -25,7 +25,8 @@ class TestPKCES256Enforcement:
             json={
                 "redirect_uris": [TEST_CALLBACK_URL],
                 "grant_types": ["authorization_code"],
-                "response_types": ["code"]
+                "response_types": ["code"],
+                "client_name": "TEST test_pkce_plain_method_rejected"
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
@@ -70,7 +71,8 @@ class TestPKCES256Enforcement:
             json={
                 "redirect_uris": [TEST_CALLBACK_URL],
                 "grant_types": ["authorization_code"],
-                "response_types": ["code"]
+                "response_types": ["code"],
+                "client_name": "TEST test_pkce_s256_proper_validation"
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )

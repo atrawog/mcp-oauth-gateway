@@ -150,7 +150,8 @@ class TestAdditionalCoverage:
         
         # Register with absolute minimum data
         registration_data = {
-            "redirect_uris": [TEST_REDIRECT_URI]
+            "redirect_uris": [TEST_REDIRECT_URI],
+            "client_name": "TEST test_registration_with_minimal_data"
         }
         
         response = await http_client.post(
