@@ -36,5 +36,6 @@ class Settings(BaseSettings):
     # MCP Protocol Version
     mcp_protocol_version: str  # NO DEFAULTS!
     
+    
     class Config:
         env_file = ".env"

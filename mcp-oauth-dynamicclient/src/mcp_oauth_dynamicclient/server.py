@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import Settings
 from .redis_client import RedisManager
 from .auth_authlib import AuthManager
-from .routes import create_oauth_router
+from .routes_secure import create_oauth_router
 
 
 def create_app(settings: Settings = None) -> FastAPI:
@@ -69,7 +69,7 @@ def create_app(settings: Settings = None) -> FastAPI:
                 content={"status": "unhealthy", "error": str(e)}
             )
     
-    # Include OAuth routes
+    # Include OAuth routes with Authlib ResourceProtector for enhanced security
     oauth_router = create_oauth_router(settings, redis_manager, auth_manager)
     app.include_router(oauth_router)
     

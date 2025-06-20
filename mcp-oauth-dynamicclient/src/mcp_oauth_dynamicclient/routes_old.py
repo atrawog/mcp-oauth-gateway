@@ -1,6 +1,5 @@
 """
-OAuth 2.1 and RFC 7591 compliant routes with Authlib ResourceProtector
-Using Authlib's security framework instead of custom implementations
+OAuth 2.1 and RFC 7591 compliant routes
 """
 import secrets
 import json
@@ -11,40 +10,57 @@ from urllib.parse import urlencode
 from fastapi import APIRouter, Request, HTTPException, Form, Query, Response, Depends
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 import redis.asyncio as redis
-from authlib.oauth2.rfc6750 import BearerTokenError
-from authlib.integrations.starlette_client import OAuth
+from authlib.jose.errors import JoseError
 
 from .config import Settings
 from .models import ClientRegistration, TokenResponse, ErrorResponse
 from .auth_authlib import AuthManager, OAuth2Client
 from .rfc7592 import DynamicClientConfigurationEndpoint
-from .async_resource_protector import create_async_resource_protector, handle_oauth_error
 
 
 def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthManager) -> APIRouter:
-    """Create OAuth router with all endpoints using Authlib ResourceProtector"""
+    """Create OAuth router with all endpoints"""
     
     router = APIRouter()
-    
-    # Create AsyncResourceProtector instance
-    require_oauth = create_async_resource_protector(settings, redis_manager.client, auth_manager.key_manager)
     
     async def get_redis() -> redis.Redis:
         """Dependency to get Redis client"""
         return redis_manager.client
     
-    # Custom dependency that uses AsyncResourceProtector
-    async def verify_bearer_token(request: Request):
-        """Verify bearer token using Authlib ResourceProtector"""
-        # AsyncResourceProtector handles all validation and error raising
-        token = await require_oauth.validate_request(request)
-        return token
-    
-    async def verify_github_user_auth(request: Request, token=Depends(verify_bearer_token)) -> str:
+    async def verify_github_user_auth(request: Request) -> str:
         """Dependency to verify GitHub user authentication for admin operations"""
-        # Token is already validated by ResourceProtector
-        username = token.get("username")
+        # Check if user has valid session from GitHub OAuth
+        auth_header = request.headers.get("Authorization", "")
         
+        if not auth_header.startswith("Bearer "):
+            # No auth - initiate GitHub OAuth flow
+            raise HTTPException(
+                status_code=401,
+                detail={
+                    "error": "authorization_required",
+                    "error_description": "GitHub authentication required for client registration",
+                    "authorization_endpoint": f"https://auth.{settings.base_domain}/authorize"
+                },
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        
+        token = auth_header[7:]  # Remove "Bearer " prefix
+        
+        # Verify token and get user info
+        payload = await auth_manager.verify_jwt_token(token, redis_manager.client)
+        
+        if not payload:
+            raise HTTPException(
+                status_code=401,
+                detail={
+                    "error": "invalid_token",
+                    "error_description": "Invalid or expired token"
+                },
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        
+        # Check if user is in allowed list
+        username = payload.get("username")
         if not username:
             raise HTTPException(
                 status_code=403,
@@ -54,7 +70,6 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 }
             )
         
-        # Check if user is in allowed list
         allowed_users = settings.allowed_github_users.split(",") if settings.allowed_github_users else []
         if allowed_users and username not in allowed_users:
             raise HTTPException(
@@ -93,12 +108,17 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "op_tos_uri": f"{base_url}/terms"
         }
     
-    # JWKS endpoint for RS256 public key distribution
+    # JWKS endpoint for RS256 public key distribution - THE BLESSED KEY SHRINE!
     @router.get("/jwks")
     async def jwks():
         """JSON Web Key Set endpoint - distributes the divine RS256 public key!"""
+        # Get the JWK from our key manager
         jwk = auth_manager.key_manager.get_jwk()
-        return {"keys": [jwk]}
+        
+        # Return JWK Set format as per RFC 7517
+        return {
+            "keys": [jwk]
+        }
     
     # Dynamic Client Registration endpoint (RFC 7591) - PUBLIC ACCESS
     @router.post("/register", status_code=201)
@@ -120,6 +140,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         
         # Validate each redirect URI
         for uri in registration.redirect_uris:
+            # Check for valid URI format
             if not uri or not isinstance(uri, str):
                 raise HTTPException(
                     status_code=400,
@@ -129,8 +150,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     }
                 )
             
-            # RFC 7591 - Must be HTTPS (except localhost)
+            # RFC 7591 - Must be HTTPS (except localhost), HTTP on localhost, or app-specific
             if uri.startswith("http://"):
+                # Only allow http for localhost
                 if not any(uri.startswith(f"http://{host}") for host in ["localhost", "127.0.0.1", "[::1]"]):
                     raise HTTPException(
                         status_code=400,
@@ -140,6 +162,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                         }
                     )
             elif not uri.startswith("https://") and not ":" in uri:
+                # Must be HTTPS or have a scheme (for app-specific URIs)
                 raise HTTPException(
                     status_code=400,
                     detail={
@@ -148,31 +171,32 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     }
                 )
         
-        # Generate client credentials
+        # Generate client credentials using Authlib patterns
         credentials = auth_manager.generate_client_credentials()
         client_id = credentials["client_id"]
         client_secret = credentials["client_secret"]
         
         # Calculate client expiration time
         created_at = int(time.time())
+        # CLIENT_LIFETIME=0 means never expire
         expires_at = 0 if settings.client_lifetime == 0 else created_at + settings.client_lifetime
         
         # Generate registration access token for RFC 7592 management
         registration_access_token = f"reg-{secrets.token_urlsafe(32)}"
         
-        # Store client in Redis
+        # Store client in Redis with expiration
         client_data = {
             "client_id": client_id,
             "client_secret": client_secret,
-            "client_secret_expires_at": expires_at,
-            "client_id_issued_at": created_at,
+            "client_secret_expires_at": expires_at,  # 0 = never expires
+            "client_id_issued_at": created_at,  # Required by RFC 7591
             "redirect_uris": json.dumps(registration.redirect_uris),
             "client_name": registration.client_name or "Unnamed Client",
             "scope": registration.scope or "openid profile email",
             "created_at": created_at,
             "response_types": json.dumps(["code"]),
             "grant_types": json.dumps(["authorization_code", "refresh_token"]),
-            "registration_access_token": registration_access_token
+            "registration_access_token": registration_access_token  # For RFC 7592
         }
         
         # Store with expiration matching client lifetime
@@ -183,20 +207,22 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 json.dumps(client_data)
             )
         else:
+            # CLIENT_LIFETIME=0 means never expire
             await redis_client.set(
                 f"oauth:client:{client_id}",
                 json.dumps(client_data)
             )
         
-        # Return registration response per RFC 7591
+        # Return registration response per RFC 7591 with RFC 7592 extensions
         response = {
             "client_id": client_id,
             "client_secret": client_secret,
-            "client_secret_expires_at": expires_at,
+            "client_secret_expires_at": expires_at,  # 0 = never expires
             "client_id_issued_at": created_at,
             "redirect_uris": registration.redirect_uris,
             "client_name": registration.client_name,
             "scope": registration.scope,
+            # RFC 7592 required fields
             "registration_access_token": registration_access_token,
             "registration_client_uri": f"https://auth.{settings.base_domain}/register/{client_id}"
         }
@@ -223,10 +249,11 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
     ):
         """Portal to authentication realm - initiates GitHub OAuth flow"""
         
-        # Validate client
+        # Validate client using Authlib OAuth2Client
         client = await auth_manager.get_client(client_id, redis_client)
         if not client:
             # RFC 6749 - MUST NOT redirect on invalid client_id
+            # Show user-friendly error page that explains the issue
             return HTMLResponse(
                 status_code=400,
                 content=f"""
@@ -255,6 +282,12 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                             padding: 2px 6px;
                             border-radius: 3px;
                         }}
+                        .instructions {{
+                            background: #e8f4f8;
+                            padding: 20px;
+                            border-radius: 5px;
+                            margin-top: 20px;
+                        }}
                         .client-id {{
                             word-break: break-all;
                             font-family: monospace;
@@ -273,6 +306,17 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                             <li>Client ID: <span class="client-id">{client_id}</span></li>
                         </ul>
                         
+                        <div class="instructions">
+                            <h3>How to fix this:</h3>
+                            <p>If you're using <strong>Claude.ai</strong> or another MCP client:</p>
+                            <ol>
+                                <li>Go back to your MCP client application</li>
+                                <li>Remove the existing MCP server connection</li>
+                                <li>Add the MCP server again to trigger a fresh registration</li>
+                            </ol>
+                            <p>The application needs to register a new client ID to establish a connection.</p>
+                        </div>
+                        
                         <p style="margin-top: 30px; color: #666; font-size: 0.9em;">
                             For developers: The client should POST to 
                             <code>https://auth.{settings.base_domain}/register</code> 
@@ -284,8 +328,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 """
             )
         
-        # Validate redirect_uri
+        # Validate redirect_uri using Authlib client
         if not client.check_redirect_uri(redirect_uri):
+            # RFC 6749 - MUST NOT redirect on invalid redirect_uri
             raise HTTPException(
                 status_code=400,
                 detail={
@@ -294,19 +339,20 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 }
             )
         
-        # Validate response_type
+        # Validate response_type using Authlib client
         if not client.check_response_type(response_type):
             return RedirectResponse(
                 url=f"{redirect_uri}?error=unsupported_response_type&state={state}"
             )
         
-        # Validate PKCE method
+        # Validate PKCE method - only S256 is blessed by CLAUDE.md
         if code_challenge and code_challenge_method != "S256":
+            # Plain method is FORBIDDEN per sacred commandments!
             raise HTTPException(
                 status_code=400,
                 detail={
                     "error": "invalid_request",
-                    "error_description": "Only S256 PKCE method is supported"
+                    "error_description": "Only S256 PKCE method is supported. Plain method is deprecated per CLAUDE.md sacred laws!"
                 }
             )
         
@@ -321,6 +367,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "code_challenge_method": code_challenge_method
         }
         
+        # Store with 5 minute TTL
         await redis_client.setex(
             f"oauth:state:{auth_state}",
             300,
@@ -360,7 +407,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         
         auth_data = json.loads(auth_data_str)
         
-        # Exchange GitHub code
+        # Exchange GitHub code using Authlib
         user_info = await auth_manager.exchange_github_code(code)
         
         if not user_info:
@@ -387,6 +434,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "name": user_info.get("name", "")
         }
         
+        # Store with 1 year TTL (per CLAUDE.md)
         await redis_client.setex(
             f"oauth:code:{auth_code}",
             31536000,
@@ -396,13 +444,14 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # Clean up state
         await redis_client.delete(f"oauth:state:{state}")
         
-        # Handle out-of-band redirect URI
+        # Handle out-of-band redirect URI specially
         if auth_data['redirect_uri'] == "urn:ietf:wg:oauth:2.0:oob":
+            # For out-of-band, redirect to success page that displays the code
             return RedirectResponse(
                 url=f"https://auth.{settings.base_domain}/success?code={auth_code}&state={auth_data['state']}"
             )
         
-        # Normal redirect
+        # Normal redirect for other URIs
         redirect_params = {
             "code": auth_code,
             "state": auth_data["state"]
@@ -426,9 +475,10 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
     ):
         """The transmutation chamber - exchanges codes for tokens"""
         
-        # Validate client
+        # Validate client using Authlib OAuth2Client
         client = await auth_manager.get_client(client_id, redis_client)
         if not client:
+            # RFC 6749 Section 5.2 - invalid_client MUST return 401
             raise HTTPException(
                 status_code=401,
                 detail={
@@ -438,7 +488,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 headers={"WWW-Authenticate": "Basic"}
             )
         
-        # Validate client secret
+        # Validate client secret using Authlib
         if client_secret and not client.check_client_secret(client_secret):
             raise HTTPException(
                 status_code=401,
@@ -449,7 +499,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 headers={"WWW-Authenticate": "Basic"}
             )
         
-        # Validate grant type
+        # Validate grant type using Authlib
         if not client.check_grant_type(grant_type):
             raise HTTPException(
                 status_code=400,
@@ -492,7 +542,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     }
                 )
             
-            # Validate PKCE
+            # Validate PKCE if present
             if code_data.get("code_challenge"):
                 if not code_verifier:
                     raise HTTPException(
@@ -503,6 +553,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                         }
                     )
                 
+                # Verify challenge
                 if not auth_manager.verify_pkce_challenge(
                     code_verifier,
                     code_data["code_challenge"],
@@ -529,6 +580,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 redis_client
             )
             
+            # Create refresh token using Authlib
             refresh_token_value = await auth_manager.create_refresh_token(
                 {
                     "user_id": code_data["user_id"],
@@ -598,25 +650,52 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 }
             )
     
-    # ForwardAuth verification endpoint - Using ResourceProtector
+    # ForwardAuth verification endpoint
     @router.get("/verify")
     @router.post("/verify")
     async def verify_token(
         request: Request,
-        token=Depends(verify_bearer_token)
+        redis_client: redis.Redis = Depends(get_redis)
     ):
         """Token examination oracle - validates Bearer tokens for Traefik"""
-        # Token is already validated by ResourceProtector
+        
+        # Extract token from Authorization header
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            raise HTTPException(
+                status_code=401,
+                detail={
+                    "error": "invalid_request",
+                    "error_description": "Missing or invalid Authorization header"
+                },
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        
+        token = auth_header[7:]  # Remove "Bearer " prefix
+        
+        # Verify token using Authlib
+        payload = await auth_manager.verify_jwt_token(token, redis_client)
+        
+        if not payload:
+            raise HTTPException(
+                status_code=401,
+                detail={
+                    "error": "invalid_token",
+                    "error_description": "Token invalid, expired, or revoked"
+                },
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        
         # Return success with user info headers
         return Response(
             status_code=200,
             headers={
-                "X-User-Id": str(token.get("sub", "")),
-                "X-User-Name": token.get("username", ""),
-                "X-Auth-Token": request.headers.get("Authorization", "").replace("Bearer ", "")
+                "X-User-Id": str(payload.get("sub", "")),
+                "X-User-Name": payload.get("username", ""),
+                "X-Auth-Token": token
             }
         )
-    
+        
     # Token revocation endpoint (RFC 7009)
     @router.post("/revoke")
     async def revoke_token(
@@ -626,9 +705,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         client_secret: Optional[str] = Form(None),
         redis_client: redis.Redis = Depends(get_redis)
     ):
-        """Token banishment altar - revokes tokens"""
+        """Token banishment altar - revokes tokens using Authlib"""
         
-        # Validate client
+        # Validate client using Authlib OAuth2Client
         client = await auth_manager.get_client(client_id, redis_client)
         if not client:
             # RFC 7009 - invalid client should still return 200
@@ -637,7 +716,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         if client_secret and not client.check_client_secret(client_secret):
             return Response(status_code=200)
         
-        # Revoke token
+        # Revoke token using Authlib
         await auth_manager.revoke_token(token, redis_client)
         
         # Always return 200 (RFC 7009)
@@ -652,19 +731,19 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         client_secret: Optional[str] = Form(None),
         redis_client: redis.Redis = Depends(get_redis)
     ):
-        """Token examination oracle - RFC 7662 compliant"""
+        """Token examination oracle - uses Authlib for RFC 7662 compliance"""
         
-        # Validate client
+        # Validate client using Authlib OAuth2Client
         client = await auth_manager.get_client(client_id, redis_client)
         if not client or (client_secret and not client.check_client_secret(client_secret)):
             return {"active": False}
         
-        # Introspect token
+        # Introspect token using Authlib
         introspection_result = await auth_manager.introspect_token(token, redis_client)
         
         return introspection_result
     
-    # OAuth success page
+    # OAuth success page for token generation
     @router.get("/success")
     async def oauth_success(
         code: Optional[str] = Query(None),
@@ -724,21 +803,26 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         )
     
     # RFC 7592 - Dynamic Client Registration Management Protocol
+    # Using Authlib's ClientConfigurationEndpoint patterns
     @router.get("/register/{client_id}")
     async def get_client_registration(
         client_id: str,
         request: Request,
         redis_client: redis.Redis = Depends(get_redis)
     ):
-        """Get client registration information - RFC 7592 compliant"""
+        """Get client registration information - RFC 7592 compliant using Authlib patterns"""
+        # Initialize our RFC 7592 endpoint
         config_endpoint = DynamicClientConfigurationEndpoint(settings, redis_client)
         
+        # Authenticate client using Bearer token (RFC 7592)
         try:
             client = await config_endpoint.authenticate_client(request, client_id)
         except ValueError:
+            # Client not found
             raise HTTPException(status_code=404, detail="Client not found")
         
         if not client:
+            # Check if it's missing auth vs wrong auth
             auth_header = request.headers.get("Authorization", "")
             if not auth_header:
                 raise HTTPException(
@@ -753,35 +837,42 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     headers={"WWW-Authenticate": "Bearer"}
                 )
             else:
+                # Bearer token provided but invalid
                 raise HTTPException(
                     status_code=403,
                     detail="Invalid or expired registration access token"
                 )
         
+        # Check permissions
         if not await config_endpoint.check_permission(client, request):
             raise HTTPException(
                 status_code=403,
                 detail="Insufficient permissions"
             )
         
+        # Generate response using Authlib patterns
         return config_endpoint.generate_client_configuration_response(client)
     
     @router.put("/register/{client_id}")
     async def update_client_registration(
         client_id: str,
         request: Request,
-        client_metadata: dict,
+        client_metadata: dict,  # Request body with updated metadata
         redis_client: redis.Redis = Depends(get_redis)
     ):
-        """Update client registration - RFC 7592 compliant"""
+        """Update client registration - RFC 7592 compliant using Authlib patterns"""
+        # Initialize our RFC 7592 endpoint
         config_endpoint = DynamicClientConfigurationEndpoint(settings, redis_client)
         
+        # Authenticate client using Bearer token (RFC 7592)
         try:
             client = await config_endpoint.authenticate_client(request, client_id)
         except ValueError:
+            # Client not found
             raise HTTPException(status_code=404, detail="Client not found")
         
         if not client:
+            # Check if it's missing auth vs wrong auth
             auth_header = request.headers.get("Authorization", "")
             if not auth_header:
                 raise HTTPException(
@@ -796,11 +887,13 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     headers={"WWW-Authenticate": "Bearer"}
                 )
             else:
+                # Bearer token provided but invalid
                 raise HTTPException(
                     status_code=403,
                     detail="Invalid or expired registration access token"
                 )
         
+        # Check permissions
         if not await config_endpoint.check_permission(client, request):
             raise HTTPException(
                 status_code=403,
@@ -818,6 +911,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     }
                 )
             
+            # Validate each redirect URI
             for uri in client_metadata["redirect_uris"]:
                 if not uri or not isinstance(uri, str):
                     raise HTTPException(
@@ -828,6 +922,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                         }
                     )
                 
+                # Same validation as registration
                 if uri.startswith("http://"):
                     if not any(uri.startswith(f"http://{host}") for host in ["localhost", "127.0.0.1", "[::1]"]):
                         raise HTTPException(
@@ -846,6 +941,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                         }
                     )
         
+        # Update client using Authlib patterns
         try:
             updated_client = await config_endpoint.update_client(client, client_metadata)
             return config_endpoint.generate_client_configuration_response(updated_client)
@@ -858,15 +954,19 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         request: Request,
         redis_client: redis.Redis = Depends(get_redis)
     ):
-        """Delete client registration - RFC 7592 compliant"""
+        """Delete client registration - RFC 7592 compliant using Authlib patterns"""
+        # Initialize our RFC 7592 endpoint
         config_endpoint = DynamicClientConfigurationEndpoint(settings, redis_client)
         
+        # Authenticate client using Bearer token (RFC 7592)
         try:
             client = await config_endpoint.authenticate_client(request, client_id)
         except ValueError:
+            # Client not found
             raise HTTPException(status_code=404, detail="Client not found")
         
         if not client:
+            # Check if it's missing auth vs wrong auth
             auth_header = request.headers.get("Authorization", "")
             if not auth_header:
                 raise HTTPException(
@@ -881,18 +981,23 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     headers={"WWW-Authenticate": "Bearer"}
                 )
             else:
+                # Bearer token provided but invalid
                 raise HTTPException(
                     status_code=403,
                     detail="Invalid or expired registration access token"
                 )
         
+        # Check permissions
         if not await config_endpoint.check_permission(client, request):
             raise HTTPException(
                 status_code=403,
                 detail="Insufficient permissions"
             )
         
+        # Delete client using Authlib patterns
         await config_endpoint.delete_client(client)
+        
+        # Return 204 No Content on successful deletion
         return Response(status_code=204)
     
     return router
