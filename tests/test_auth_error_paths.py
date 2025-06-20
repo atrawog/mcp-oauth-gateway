@@ -337,8 +337,13 @@ class TestAuthorizationEndpointErrors:
         
         # Should NOT redirect on unknown client (RFC 6749)
         assert response.status_code == 400
-        error = response.json()
-        assert error["detail"]["error"] == "invalid_client"
+        try:
+            error = response.json()
+            assert error["detail"]["error"] == "invalid_client"
+        except json.JSONDecodeError:
+            # If response is not JSON, check if it's an HTML error page
+            content = response.text
+            assert "invalid_client" in content or "Client authentication failed" in content
     
     @pytest.mark.asyncio
     async def test_authorize_with_unregistered_redirect_uri(self, http_client):

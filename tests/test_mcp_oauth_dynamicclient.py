@@ -8,6 +8,7 @@ All tests use REAL Redis, REAL services, and REAL OAuth tokens.
 import pytest
 import httpx
 import json
+import os
 import secrets
 import time
 from typing import Dict, Any
@@ -104,7 +105,15 @@ class TestMCPOAuthDynamicClientPackage:
         # Verify required RFC 7591 response fields
         assert "client_id" in client_data
         assert "client_secret" in client_data
-        assert client_data["client_secret_expires_at"] == 0  # Never expires
+        # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
+        client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
+        if client_lifetime == 0:
+            assert client_data["client_secret_expires_at"] == 0  # Never expires
+        else:
+            # Should be created_at + CLIENT_LIFETIME
+            created_at = client_data.get('client_id_issued_at')
+            expected_expiry = created_at + client_lifetime
+            assert abs(client_data["client_secret_expires_at"] - expected_expiry) <= 5
         assert client_data["client_name"] == client_name
         assert set(client_data["redirect_uris"]) == set(registration_data["redirect_uris"])
         assert client_data["scope"] == "openid profile email"
@@ -282,9 +291,14 @@ class TestMCPOAuthDynamicClientPackage:
             assert client_info["client_id"] == client["client_id"]
             assert client_info["client_name"] == client_name
             
-            # Check TTL (should be persistent)
+            # Check TTL based on CLIENT_LIFETIME setting
             ttl = await redis_client.ttl(client_key)
-            assert ttl == -1  # No expiration
+            client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
+            if client_lifetime == 0:
+                assert ttl == -1  # No expiration for eternal clients
+            else:
+                # Should have TTL around CLIENT_LIFETIME (allow for test execution time)
+                assert 7770000 <= ttl <= 7776000, f"Expected TTL around {client_lifetime}, got {ttl}"
             
             print(f"✅ Redis integration working correctly")
             

@@ -39,16 +39,13 @@ async def test_client_lifetime_from_env(http_client):
     # Test RFC 7592 GET endpoint
     client_id = data['client_id']
     client_secret = data['client_secret']
+    registration_token = data.get('registration_access_token')
+    assert registration_token, "registration_access_token missing from registration response"
     
-    # Create Basic auth
-    import base64
-    auth_string = f"{client_id}:{client_secret}"
-    auth_header = base64.b64encode(auth_string.encode()).decode()
-    
-    # Get client registration
+    # Get client registration using Bearer token
     response = await http_client.get(
         f"{AUTH_BASE_URL}/register/{client_id}",
-        headers={"Authorization": f"Basic {auth_header}"}
+        headers={"Authorization": f"Bearer {registration_token}"}
     )
     
     assert response.status_code == 200
@@ -58,7 +55,7 @@ async def test_client_lifetime_from_env(http_client):
     # Test DELETE endpoint
     response = await http_client.delete(
         f"{AUTH_BASE_URL}/register/{client_id}",
-        headers={"Authorization": f"Basic {auth_header}"}
+        headers={"Authorization": f"Bearer {registration_token}"}
     )
     
     assert response.status_code == 204
@@ -66,7 +63,7 @@ async def test_client_lifetime_from_env(http_client):
     # Verify client is deleted
     response = await http_client.get(
         f"{AUTH_BASE_URL}/register/{client_id}",
-        headers={"Authorization": f"Basic {auth_header}"}
+        headers={"Authorization": f"Bearer {registration_token}"}
     )
     
     assert response.status_code == 404
@@ -91,11 +88,8 @@ async def test_rfc7592_update_client(http_client):
     
     client_id = original['client_id']
     client_secret = original['client_secret']
-    
-    # Create Basic auth
-    import base64
-    auth_string = f"{client_id}:{client_secret}"
-    auth_header = base64.b64encode(auth_string.encode()).decode()
+    registration_token = original.get('registration_access_token')
+    assert registration_token, "registration_access_token missing from registration response"
     
     # Update the client
     update_data = {
@@ -107,7 +101,7 @@ async def test_rfc7592_update_client(http_client):
     response = await http_client.put(
         f"{AUTH_BASE_URL}/register/{client_id}",
         json=update_data,
-        headers={"Authorization": f"Basic {auth_header}"}
+        headers={"Authorization": f"Bearer {registration_token}"}
     )
     
     assert response.status_code == 200
@@ -125,6 +119,6 @@ async def test_rfc7592_update_client(http_client):
     # Clean up
     response = await http_client.delete(
         f"{AUTH_BASE_URL}/register/{client_id}",
-        headers={"Authorization": f"Basic {auth_header}"}
+        headers={"Authorization": f"Bearer {registration_token}"}
     )
     assert response.status_code == 204

@@ -120,7 +120,6 @@ just analyze-oauth-logs      # Analyze OAuth flow logs
 3. **Generate JWT secret**
    ```bash
    just generate-jwt-secret
-   # Copy the output to GATEWAY_JWT_SECRET in .env
    ```
 
 ## 🎯 Testing the Gateway
@@ -143,33 +142,6 @@ just test
 # Run with coverage
 just test-sidecar-coverage
 ```
-
-### 4. Test OAuth Flow Manually
-
-1. **Register a client**
-   ```bash
-   curl -X POST https://auth.localhost/register \
-     -H "Content-Type: application/json" \
-     -d '{
-       "redirect_uris": ["http://localhost:8080/callback"],
-       "client_name": "Test Client"
-     }'
-   ```
-
-2. **Start authorization flow**
-   - Visit: `https://auth.localhost/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=http://localhost:8080/callback&response_type=code&state=test`
-   - You'll be redirected to GitHub for authentication
-
-3. **Exchange code for token** (after callback)
-   ```bash
-   curl -X POST https://auth.localhost/token \
-     -d "grant_type=authorization_code" \
-     -d "code=YOUR_AUTH_CODE" \
-     -d "client_id=YOUR_CLIENT_ID" \
-     -d "client_secret=YOUR_CLIENT_SECRET" \
-     -d "redirect_uri=http://localhost:8080/callback"
-   ```
-
 ## 🔧 Configuration
 
 ### Environment Variables

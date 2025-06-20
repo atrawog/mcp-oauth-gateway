@@ -123,23 +123,21 @@ async def test_rfc7592_authentication_edge_cases(http_client):
     
     client_id = client['client_id']
     client_secret = client['client_secret']
+    registration_token = client.get('registration_access_token')
+    assert registration_token, "registration_access_token missing"
     
-    # Test various malformed auth headers
+    # Test various malformed auth headers for RFC 7592 Bearer authentication
     test_cases = [
         # (auth_header, expected_status, description)
         (None, 401, "No auth header"),
         ("", 401, "Empty auth header"),
-        ("Basic", 401, "Basic without credentials"),
-        ("Basic x", 401, "Basic with invalid value"),
-        ("Basic invalid-base64!", 401, "Invalid base64"),
-        (f"Basic {base64.b64encode(b'onlyusername').decode()}", 401, "No colon separator"),
-        (f"Basic {base64.b64encode(b':onlypassword').decode()}", 401, "Empty username"),
-        (f"Basic {base64.b64encode(f'{client_id}:'.encode()).decode()}", 401, "Empty password"),
-        (f"Basic {base64.b64encode(f'{client_id}:wrong'.encode()).decode()}", 401, "Wrong password"),
-        (f"Basic {base64.b64encode(f'wrong:{client_secret}'.encode()).decode()}", 404, "Wrong client_id"),
-        ("Digest username=\"test\"", 401, "Wrong auth scheme"),
-        ("OAuth token=\"test\"", 401, "OAuth 1.0 scheme"),
-        (f"Basic {base64.b64encode(f'{client_id}:{client_secret}:extra'.encode()).decode()}", 401, "Extra colons"),
+        ("Bearer", 401, "Bearer without token"),
+        ("Bearer x", 403, "Bearer with invalid token"),
+        ("Bearer invalid-token!", 403, "Invalid Bearer token"),
+        ("Basic token", 401, "Wrong auth scheme (Basic)"),
+        ("Digest username=\"test\"", 401, "Wrong auth scheme (Digest)"),
+        ("OAuth token=\"test\"", 401, "Wrong auth scheme (OAuth 1.0)"),
+        (f"Bearer {registration_token}-extra", 403, "Wrong Bearer token"),
     ]
     
     for auth_header, expected_status, description in test_cases:

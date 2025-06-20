@@ -46,9 +46,14 @@ class TestSacredSealsCompliance:
             client_exists = await redis_client.exists(client_key)
             assert client_exists == 1
             
-            # Client keys should be eternal (no TTL)
+            # Client keys TTL depends on CLIENT_LIFETIME setting
+            client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
             client_ttl = await redis_client.ttl(client_key)
-            assert client_ttl == -1  # -1 means no expiration
+            if client_lifetime == 0:
+                assert client_ttl == -1  # -1 means no expiration
+            else:
+                # Should have TTL around CLIENT_LIFETIME (allow for test execution time)
+                assert 1 <= client_ttl <= client_lifetime
             
             # Start authorization to create state key
             auth_params = {
@@ -137,7 +142,15 @@ class TestSacredSealsCompliance:
         # Client gets credentials for gateway access
         assert "client_id" in client_data
         assert "client_secret" in client_data
-        assert client_data["client_secret_expires_at"] == 0  # Never expires
+        # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
+        client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
+        if client_lifetime == 0:
+            assert client_data["client_secret_expires_at"] == 0  # Never expires
+        else:
+            # Should be created_at + CLIENT_LIFETIME
+            created_at = client_data.get('client_id_issued_at')
+            expected_expiry = created_at + client_lifetime
+            assert abs(client_data["client_secret_expires_at"] - expected_expiry) <= 5
         
         # Test 2: User Authentication Realm - GitHub OAuth for humans
         # Start authorization flow - this goes to GitHub for USER authentication

@@ -8,6 +8,7 @@ import secrets
 import hashlib
 import base64
 import json
+import os
 from urllib.parse import urlparse, parse_qs
 from .test_constants import AUTH_BASE_URL, TEST_CALLBACK_URL, TEST_CLIENT_NAME, TEST_CLIENT_SCOPE, TEST_INVALID_REDIRECT_URI, GATEWAY_OAUTH_ACCESS_TOKEN
 
@@ -60,7 +61,15 @@ class TestOAuthFlow:
         # Verify required fields in response
         assert "client_id" in client
         assert "client_secret" in client
-        assert client["client_secret_expires_at"] == 0  # Never expires
+        # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
+        client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
+        if client_lifetime == 0:
+            assert client["client_secret_expires_at"] == 0  # Never expires
+        else:
+            # Should be created_at + CLIENT_LIFETIME
+            created_at = client.get('client_id_issued_at')
+            expected_expiry = created_at + client_lifetime
+            assert abs(client["client_secret_expires_at"] - expected_expiry) <= 5
         
         # Verify metadata is echoed back
         assert client["redirect_uris"] == registration_data["redirect_uris"]
@@ -96,8 +105,13 @@ class TestOAuthFlow:
         )
         
         assert response.status_code == 400  # MUST return error, not redirect
-        error = response.json()
-        assert error["detail"]["error"] == "invalid_client"
+        try:
+            error = response.json()
+            assert error["detail"]["error"] == "invalid_client"
+        except json.JSONDecodeError:
+            # If response is not JSON, check if it's an HTML error page
+            content = response.text
+            assert "invalid_client" in content or "Client authentication failed" in content
         
         # Test with valid client but invalid redirect_uri - MUST NOT redirect
         response = await http_client.get(

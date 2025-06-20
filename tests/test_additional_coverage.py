@@ -8,6 +8,7 @@ import json
 import secrets
 import hashlib
 import base64
+import os
 
 import time
 from .jwt_test_helper import encode as jwt_encode
@@ -166,7 +167,15 @@ class TestAdditionalCoverage:
         # Should have generated defaults
         assert "client_id" in client
         assert "client_secret" in client
-        assert client["client_secret_expires_at"] == 0  # Never expires
+        # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
+        client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
+        if client_lifetime == 0:
+            assert client["client_secret_expires_at"] == 0  # Never expires
+        else:
+            # Should be created_at + CLIENT_LIFETIME
+            created_at = client.get('client_id_issued_at')
+            expected_expiry = created_at + client_lifetime
+            assert abs(client["client_secret_expires_at"] - expected_expiry) <= 5
         
     @pytest.mark.asyncio
     async def test_jwt_with_invalid_signature(self, http_client, wait_for_services, registered_client):

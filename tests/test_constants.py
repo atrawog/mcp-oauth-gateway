@@ -69,6 +69,10 @@ GATEWAY_OAUTH_CLIENT_ID = os.getenv("GATEWAY_OAUTH_CLIENT_ID")  # Optional, set 
 GATEWAY_OAUTH_CLIENT_SECRET = os.getenv("GATEWAY_OAUTH_CLIENT_SECRET")  # Optional, set after registration
 GATEWAY_OAUTH_ACCESS_TOKEN = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")  # Optional, set after OAuth flow
 GATEWAY_OAUTH_REFRESH_TOKEN = os.getenv("GATEWAY_OAUTH_REFRESH_TOKEN")  # Optional, set after OAuth flow
+
+# MCP Client tokens for testing MCP endpoints
+MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")  # Optional, set after MCP client setup
+MCP_CLIENT_REFRESH_TOKEN = os.getenv("MCP_CLIENT_REFRESH_TOKEN")  # Optional
 # Backwards compatibility aliases
 OAUTH_CLIENT_ID = GATEWAY_OAUTH_CLIENT_ID
 OAUTH_CLIENT_SECRET = GATEWAY_OAUTH_CLIENT_SECRET
@@ -87,3 +91,6 @@ TEST_INVALID_REDIRECT_URI = _get_env_or_fail("TEST_INVALID_REDIRECT_URI")
 # Health Check Configuration - From main .env
 HEALTH_CHECK_TIMEOUT = _get_env_int_or_fail("HEALTH_CHECK_TIMEOUT")
 HEALTH_CHECK_INTERVAL = _get_env_int_or_fail("HEALTH_CHECK_INTERVAL")
+
+# Access Control Configuration - From main .env
+ALLOWED_GITHUB_USERS = _get_env_or_fail("ALLOWED_GITHUB_USERS").split(",")

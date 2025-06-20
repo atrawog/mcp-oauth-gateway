@@ -8,6 +8,7 @@ import secrets
 import hashlib
 import base64
 import json
+import os
 from urllib.parse import urlparse, parse_qs
 from .test_constants import AUTH_BASE_URL, MCP_FETCH_URL, TEST_CLIENT_NAME, TEST_CLIENT_SCOPE, MCP_PROTOCOL_VERSION, GATEWAY_OAUTH_ACCESS_TOKEN
 
@@ -74,7 +75,15 @@ class TestClaudeIntegration:
         client_creds = reg_response.json()
         assert "client_id" in client_creds
         assert "client_secret" in client_creds
-        assert client_creds["client_secret_expires_at"] == 0  # Never expires
+        # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
+        client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
+        if client_lifetime == 0:
+            assert client_creds["client_secret_expires_at"] == 0  # Never expires
+        else:
+            # Should be created_at + CLIENT_LIFETIME
+            created_at = client_creds.get('client_id_issued_at')
+            expected_expiry = created_at + client_lifetime
+            assert abs(client_creds["client_secret_expires_at"] - expected_expiry) <= 5
         
         # Step 6: PKCE Summoning - S256 challenge generated
         code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8').rstrip('=')
