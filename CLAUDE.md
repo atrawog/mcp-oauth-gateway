@@ -394,7 +394,7 @@ docker-compose.yml  # The orchestration gospel
 ### The Divine Truth About MCP Services - THE SACRED PROXY PATTERN!
 
 **WITNESS THE ARCHITECTURAL GLORY OF mcp-streamablehttp-proxy!**
-- We use **mcp-streamablehttp-proxy** - the divine stdio-to-HTTP bridge!
+- We use **mcp-streamablehttp-proxy** - the divine stdio-to-streamablehttp bridge!
 - This wraps OFFICIAL MCP servers from modelcontextprotocol/servers!
 - The proxy spawns the official server as subprocess and bridges stdio ↔ HTTP!
 - Each service runs: `mcp-streamablehttp-proxy python -m mcp_server_fetch`!
@@ -544,28 +544,6 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 - **Private Key Security**: NEVER exposed, used only for token signing!
 - **Key Rotation Support**: Kid (key ID) enables future key rotation miracles!
 
-**THE JWKS ENDPOINT - PUBLIC KEY SHRINE:**
-```json
-GET /jwks
-{
-  "keys": [{
-    "kty": "RSA",
-    "use": "sig",
-    "alg": "RS256",
-    "kid": "blessed-key-1",
-    "n": "...",  // RSA modulus
-    "e": "AQAB"  // RSA exponent
-  }]
-}
-```
-
-**DIVINE BENEFITS OF RS256 OVER HS256:**
-1. **ASYMMETRIC GLORY** - Only auth service needs private key!
-2. **PUBLIC VERIFICATION** - Anyone can verify tokens with public key!
-3. **NO SHARED SECRETS** - Eliminates secret distribution nightmares!
-4. **STANDARD COMPLIANCE** - Industry best practice for OAuth!
-5. **KEY ROTATION** - Seamless key updates without breaking existing tokens!
-
 ### The PKCE Sacred Laws (RFC 7636)
 
 - **S256 Challenge Method** - The blessed transformation!
@@ -599,20 +577,6 @@ GET /jwks
 - `client_id_issued_at` - Unix timestamp of creation
 - `registration_access_token` - **SACRED BEARER TOKEN FOR CLIENT MANAGEMENT!**
 - `registration_client_uri` - **THE DIVINE URI TO MANAGE THIS CLIENT!**
-
-**The Curse of Errors (HTTP 400 Bad Request):**
-```json
-{
-  "error": "invalid_client_metadata",              // REQUIRED error code!
-  "error_description": "The gods explain thy transgression"  // OPTIONAL details
-}
-```
-
-**Sacred Error Codes Mandated by RFC 7591:**
-- `invalid_redirect_uri` - Thy return path is cursed!
-- `invalid_client_metadata` - Thy metadata displeases!
-- `invalid_software_statement` - Thy software statement is false!
-- `unapproved_software_statement` - Thy software lacks blessing!
 
 ### The RFC 7592 Client Management Revelation - DIVINE CLIENT LIFECYCLE MANAGEMENT!
 
@@ -654,35 +618,8 @@ GET /jwks
 **The Sacred Management Endpoints (RFC 7592 FULLY COMPLIANT!):**
 
 **GET /register/{client_id}** - Behold thy registration status!
-```
-GET /register/s6BhdRkqt3 HTTP/1.1
-Host: auth.yourdomain.com
-Authorization: Bearer reg-23410913-abewfq.123483
-```
-Returns the client's complete registration data or 401/403/404 upon failure!
-
 **PUT /register/{client_id}** - Transform thy registration metadata!
-```
-PUT /register/s6BhdRkqt3 HTTP/1.1
-Host: auth.yourdomain.com
-Authorization: Bearer reg-23410913-abewfq.123483
-Content-Type: application/json
-
-{
-  "redirect_uris": ["https://new-callback.example.com"],
-  "client_name": "Reborn Client Name",
-  "scope": "openid profile email"
-}
-```
-Returns updated client configuration with divine blessing!
-
 **DELETE /register/{client_id}** - Self-immolation for compromised clients!
-```
-DELETE /register/s6BhdRkqt3 HTTP/1.1
-Host: auth.yourdomain.com
-Authorization: Bearer reg-23410913-abewfq.123483
-```
-Returns 204 No Content upon successful destruction!
 
 **⚡ THE SACRED BEARER TOKEN COMMANDMENTS - VIOLATE THESE AND FACE ETERNAL DAMNATION! ⚡**
 

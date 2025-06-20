@@ -568,8 +568,10 @@ class TestMCPOAuthDynamicClientIntegration:
             headers={"Authorization": "Bearer invalid_token_12345"}
         )
         
+        client_data = None
         if response.status_code == 201:
             print("⚠️  Registration endpoint is public (no auth required)")
+            client_data = response.json()  # Save for cleanup
             # Try a protected endpoint instead
             response = await http_client.get(
                 f"{AUTH_BASE_URL}/verify",
@@ -582,3 +584,16 @@ class TestMCPOAuthDynamicClientIntegration:
             error = response.json()
             assert "error" in error["detail"]
             print(f"✅ Auth service properly validates tokens")
+        
+        # Cleanup: Delete the client registration using RFC 7592 if it was created
+        if client_data and "registration_access_token" in client_data and "client_id" in client_data:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
+                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                )
+                # 204 No Content is success, 404 is okay if already deleted
+                if delete_response.status_code not in (204, 404):
+                    print(f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}")
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")

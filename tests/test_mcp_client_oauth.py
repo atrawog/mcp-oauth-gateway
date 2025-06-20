@@ -228,6 +228,19 @@ class TestMCPClientOAuthFlows:
         
         assert response.status_code == 307
         print(f"✅ PKCE flow initiated successfully")
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client and "client_id" in client:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                )
+                # 204 No Content is success, 404 is okay if already deleted
+                if delete_response.status_code not in (204, 404):
+                    print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
     
     @pytest.mark.asyncio
     async def test_token_refresh_flow(self, http_client: httpx.AsyncClient, wait_for_services):
@@ -263,6 +276,19 @@ class TestMCPClientOAuthFlows:
         assert error["detail"]["error"] == "invalid_grant"
         
         print(f"✅ Token refresh endpoint working correctly")
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client and "client_id" in client:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                )
+                # 204 No Content is success, 404 is okay if already deleted
+                if delete_response.status_code not in (204, 404):
+                    print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
 
 
 class TestMCPClientTokenValidation:
@@ -342,6 +368,19 @@ class TestMCPClientTokenValidation:
                 print(f"   Scope: {result.get('scope', 'N/A')}")
             else:
                 print(f"⚠️  Token is not active")
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client and "client_id" in client:
+            try:
+                delete_response = await http_client.delete(
+                    f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                )
+                # 204 No Content is success, 404 is okay if already deleted
+                if delete_response.status_code not in (204, 404):
+                    print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+            except Exception as e:
+                print(f"Warning: Error during client cleanup: {e}")
 
 
 class TestMCPClientCredentialStorage:
@@ -387,6 +426,20 @@ class TestMCPClientCredentialStorage:
         
         print(f"✅ Credential storage format verified")
         print(f"   Stored at: {cred_file}")
+        
+        # Cleanup: Delete the client registration using RFC 7592
+        if "registration_access_token" in client and "client_id" in client:
+            async with httpx.AsyncClient() as cleanup_client:
+                try:
+                    delete_response = await cleanup_client.delete(
+                        f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                        headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                    )
+                    # 204 No Content is success, 404 is okay if already deleted
+                    if delete_response.status_code not in (204, 404):
+                        print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+                except Exception as e:
+                    print(f"Warning: Error during client cleanup: {e}")
 
 
 class TestMCPClientErrorScenarios:
@@ -496,3 +549,17 @@ class TestMCPClientRealWorldScenarios:
         print(f"✅ Client re-registration works correctly")
         print(f"   First ID: {client1['client_id']}")
         print(f"   Second ID: {client2['client_id']}")
+        
+        # Cleanup: Delete both client registrations using RFC 7592
+        for client in [client1, client2]:
+            if "registration_access_token" in client and "client_id" in client:
+                try:
+                    delete_response = await http_client.delete(
+                        f"{AUTH_BASE_URL}/register/{client['client_id']}",
+                        headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                    )
+                    # 204 No Content is success, 404 is okay if already deleted
+                    if delete_response.status_code not in (204, 404):
+                        print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+                except Exception as e:
+                    print(f"Warning: Error during client cleanup: {e}")

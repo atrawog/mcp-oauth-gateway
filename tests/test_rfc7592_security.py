@@ -150,7 +150,17 @@ async def test_rfc7592_authentication_edge_cases(http_client):
         if expected_status == 401:
             assert response.headers.get('WWW-Authenticate') == 'Bearer'
     
-    # Clean up - already done above
+    # Cleanup: Delete the client registration using RFC 7592
+    try:
+        delete_response = await http_client.delete(
+            f"{AUTH_BASE_URL}/register/{client_id}",
+            headers={"Authorization": f"Bearer {registration_token}"}
+        )
+        # 204 No Content is success, 404 is okay if already deleted
+        if delete_response.status_code not in (204, 404):
+            print(f"Warning: Failed to delete client {client_id}: {delete_response.status_code}")
+    except Exception as e:
+        print(f"Warning: Error during client cleanup: {e}")
 
 
 @pytest.mark.asyncio
