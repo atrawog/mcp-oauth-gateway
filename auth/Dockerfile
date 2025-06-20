@@ -13,6 +13,9 @@ COPY mcp-oauth-dynamicclient /tmp/mcp-oauth-dynamicclient
 # Install the mcp-oauth-dynamicclient package from source
 RUN pip install --no-cache-dir /tmp/mcp-oauth-dynamicclient
 
+# Install coverage for production coverage collection (sidecar pattern)
+RUN pip install --no-cache-dir coverage
+
 # Clean up the temporary copy
 RUN rm -rf /tmp/mcp-oauth-dynamicclient
 

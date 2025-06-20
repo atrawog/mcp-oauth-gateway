@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 import redis.asyncio as redis
 from authlib.oauth2 import ResourceProtector
 from authlib.oauth2.rfc6750 import BearerTokenValidator
-from authlib.oauth2.rfc6750 import BearerTokenError
+from authlib.oauth2.rfc6750.errors import InvalidTokenError as BearerTokenError
 from authlib.jose import JsonWebToken, JWTClaims
 from authlib.jose.errors import JoseError
 

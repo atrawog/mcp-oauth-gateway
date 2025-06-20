@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import Settings
 from .redis_client import RedisManager
 from .auth_authlib import AuthManager
-from .routes_secure import create_oauth_router
+from .routes import create_oauth_router
 
 
 def create_app(settings: Settings = None) -> FastAPI:

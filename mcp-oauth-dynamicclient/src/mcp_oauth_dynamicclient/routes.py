@@ -11,7 +11,7 @@ from urllib.parse import urlencode
 from fastapi import APIRouter, Request, HTTPException, Form, Query, Response, Depends
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 import redis.asyncio as redis
-from authlib.oauth2.rfc6750 import BearerTokenError
+from authlib.oauth2.rfc6750.errors import InvalidTokenError as BearerTokenError
 from authlib.integrations.starlette_client import OAuth
 
 from .config import Settings
@@ -26,8 +26,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
     
     router = APIRouter()
     
-    # Create AsyncResourceProtector instance
-    require_oauth = create_async_resource_protector(settings, redis_manager.client, auth_manager.key_manager)
+    # Create AsyncResourceProtector instance - defer Redis client access until runtime
+    require_oauth = None
     
     async def get_redis() -> redis.Redis:
         """Dependency to get Redis client"""
@@ -36,6 +36,10 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
     # Custom dependency that uses AsyncResourceProtector
     async def verify_bearer_token(request: Request):
         """Verify bearer token using Authlib ResourceProtector"""
+        # Create resource protector lazily to ensure Redis is initialized
+        nonlocal require_oauth
+        if require_oauth is None:
+            require_oauth = create_async_resource_protector(settings, redis_manager.client, auth_manager.key_manager)
         # AsyncResourceProtector handles all validation and error raising
         token = await require_oauth.validate_request(request)
         return token

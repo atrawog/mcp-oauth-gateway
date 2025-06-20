@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any
 from functools import partial
 
 from fastapi import Request, HTTPException
-from authlib.oauth2.rfc6750 import BearerTokenError
+from authlib.oauth2.rfc6750.errors import InvalidTokenError as BearerTokenError
 import redis.asyncio as redis
 
 from .resource_protector import JWTBearerTokenValidator, handle_oauth_error
