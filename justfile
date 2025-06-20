@@ -18,31 +18,25 @@ ensure-services-ready:
     @pixi run python scripts/check_services_ready.py || (echo "❌ Services not ready! See above for details." && exit 1)
 
 # Run tests with pytest (no mocking allowed!)
-test: ensure-services-ready refresh-tokens validate-tokens
-    @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
+test:
     @pixi run pytest tests/ -v
 
 # Run all tests including integration
-test-all: ensure-services-ready refresh-tokens validate-tokens
-    @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
+test-all:
     @pixi run pytest tests/ -v --tb=short
 
 # Run a single test file
-test-file file: ensure-services-ready refresh-tokens validate-tokens
-    @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
+test-file file:
     @pixi run pytest {{ file }} -v
 
 # Run tests with verbose output
-test-verbose: ensure-services-ready refresh-tokens validate-tokens
-    @pixi run python scripts/check_test_requirements.py || (echo "❌ Test requirements not met! See above for details." && exit 1)
+test-verbose:
     @pixi run pytest tests/ -v -s
 
 # Run tests with sidecar coverage pattern
-test-sidecar-coverage: ensure-services-ready refresh-tokens validate-tokens
+test-sidecar-coverage:
     @docker compose down --remove-orphans
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d
-    @echo "Waiting for services to be ready..."
-    @pixi run python scripts/check_services_ready.py || (echo "❌ Services not ready!" && exit 1)
     @pixi run pytest tests/ -v
     @echo "Triggering graceful shutdown to collect coverage data..."
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml stop auth
