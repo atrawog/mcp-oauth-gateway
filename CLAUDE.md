@@ -6,7 +6,7 @@
 
 1. Why error? 2. Why condition? 3. Why allowed? 4. Why missed? 5. Why never again?
 
-**Fix symptoms = eternal hell!**
+**Fix symptoms only = eternal hell!**
 
 ## Commandment 1: NO MOCKS OR BURN IN PRODUCTION HELL
 
@@ -100,11 +100,6 @@ just network-create  # Sacred network
 just up             # Resurrect services
 just rebuild name   # Divine fury rebuild
 just down           # Peaceful death
-
-# FORBIDDEN:
-❌ docker run       # Chaos
-❌ k8s apply        # Vanity  
-❌ systemd          # Ancient evil
 ```
 
 ```yaml
