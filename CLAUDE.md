@@ -1,73 +1,41 @@
 # Part I: The Ten Sacred Commandments of Divine Development
 
-## Commandment 0: Thou Shalt Practice Root Cause Analysis with Holy Fervor
+## Commandment 0: Root Cause Analysis or Eternal Damnation
 
-**🔥 BEHOLD! Surface symptoms are the DEVIL'S DECEPTIONS sent to lead thee astray! 🔥**
-**Dig deeper into the sacred depths or be ETERNALLY DAMNED to debugging purgatory!**
+**🔥 Surface symptoms are Satan's lies! Five whys or debug forever! ⚡**
 
-### The Five Whys of Divine Investigation - THE HOLY INQUISITION OF TRUTH!
+1. Why error? 2. Why condition? 3. Why allowed? 4. Why missed? 5. Why never again?
 
-1. **Why did this unholy error manifest?** - Witness the visible symptom of corruption!
-2. **Why did this cursed condition exist?** - Uncover the immediate cause of blasphemy!  
-3. **Why was this abomination allowed to flourish?** - Expose the systemic flaw of heresy!
-4. **Why didn't our sacred vigilance catch this earlier?** - Reveal the process gap of negligence!
-5. **Why will this NEVER pollute our realm again?** - Forge the eternal fix of righteousness!
+**Fix symptoms = eternal hell!**
 
-**⚡ SACRED DECREE: Fix symptoms without finding root causes and be CURSED to debug in the fires of eternal torment! ⚡**
-**The lazy developer who patches without understanding shall wander the debugging wilderness for forty years!**
+## Commandment 1: NO MOCKS OR BURN IN PRODUCTION HELL
 
-## Commandment 1: Thou Shalt Never Mock - Test Real or Test Nothing, Ye Faithless Coders!
+**🔥 SACRED LAW: NO MOCKS! NO STUBS! NO FAKES! ⚡**
 
-**🔥 THE MOST SACRED LAW OF ALL - CARVED WITH DIVINE LIGHTNING ACROSS THE CODING HEAVENS! 🔥**
-**This HOLY COMMANDMENT applies to EVERY project - NO EXCEPTIONS! NO EXCUSES! NO MERCY!**
+- Real deployed systems only
+- End-to-end verification mandatory  
+- Real API boundaries
+- No shortcuts to salvation
 
-### The Holy Testing Dogma - THE ORTHODOX CREED OF RIGHTEOUS VERIFICATION!
+**Mock once = production damnation!**
 
-- **⚡ NO MOCKS! NO STUBS! NO FAKES! ⚡** - These are FALSE PROPHETS leading souls to damnation!
-- **Test against REAL deployed systems** or face eternal debugging in the lake of fire!
-- **Every test must verify COMPLETE end-to-end functionality** - partial tests are Satan's whispers!
-- **Tests that only check connectivity are WORTHLESS PRAYERS** - they mock the divine truth!
-- **Internal services are testable through REAL API boundaries** - no shortcuts to salvation!
+## Commandment 2: The Holy Trinity or Chaos
 
-**⚡ DIVINE WRATH UNLEASHED: Mock once and face bugs that ONLY appear in production! ⚡**
-**This is the ETERNAL LAW - written in the blood of failed deployments!**
-**Those who mock shall be mocked by production failures for all eternity!**
+**🔥 Direct execution = chaos! Trinity = salvation! ⚡**
 
-## Commandment 2: Thou Shalt Worship The Blessed Trinity - The Sacred Execution Hierarchy of Divine Order!
-
-**🔥 BEHOLD! Direct execution is CHAOS unleashed by the coding demons! 🔥**
-**Only the BLESSED TRINITY brings HOLY ORDER to the digital realm!**
-
-### The Blessed Trinity of Development Tools - THE DIVINE TRIUMVIRATE OF RIGHTEOUSNESS!
-
-**⚠️ THUNDEROUS DIVINE DECREE: These tools are NOT optional suggestions - they are SACRED COMMANDMENTS etched in stone! ⚠️**
-**Violate this trinity and be cast into the pit of dependency hell!**
-
-#### The Three Sacred Tools That Rule All Projects with Divine Authority
-
-1. **🛠️ just** - The ONE TRUE TASK RUNNER, Blessed Orchestrator of Commands! (make is ancient heresy!)
-2. **📦 pixi** - The CHOSEN PACKAGE MANAGER, Divine Guardian of Dependencies! (pip/conda are false prophets spreading chaos!)
-3. **🐳 docker-compose** - The CONTAINER SHEPHERD, Sacred Orchestrator of Services! (Kubernetes is vanity and over-engineering!)
-
-### The Sacred Execution Laws - CARVED IN DIVINE CODE!
-
-**⚡ THE RIGHTEOUS PATH vs THE HERETICAL WAYS ⚡**
+1. **just** (make is heresy!)
+2. **pixi** (pip/conda are false!)
+3. **docker-compose** (k8s is vanity!)
 
 ```
-❌ BLASPHEMY: python script.py          → ✅ SALVATION: just run-script (→ pixi run python script.py)
-❌ HERESY: pip install package          → ✅ RIGHTEOUSNESS: pixi add package
-❌ CHAOS: docker-compose up            → ✅ DIVINE ORDER: just up
-❌ DAMNATION: pytest tests/            → ✅ BLESSED TESTING: just test
+❌ python/pip/raw docker → ✅ just/pixi/compose
 ```
 
-**Use the heretical commands and face the wrath of environment inconsistencies!**
+**Violate = dependency hell!**
 
-## Commandment 3: Thou Shalt Structure Thy Divine Temple with Sacred Isolation and Holy Segregation!
+## Commandment 3: Sacred Structure or Architectural Damnation
 
-**🏛️ BEHOLD! Each service is a HOLY SANCTUARY blessed by the gods of architecture! 🏛️**
-**This divine structure is MANDATORY for ALL projects - NO EXCEPTIONS OR FACE ARCHITECTURAL DAMNATION!**
-
-### The Divine Directory Laws - THE SACRED ARCHITECTURAL COMMANDMENTS! (Universal for Every Project Under Heaven)
+**🏛️ Sacred isolation mandatory! ⚡**
 
 ```
 any-project/
@@ -95,45 +63,27 @@ any-project/
 └── .gitignore            # Must ignore reports/, htmlcov/, .env!
 ```
 
-## Commandment 4: Thou Shalt Configure ONLY Through Sacred .env Files - The Divine Configuration Gospel!
+## Commandment 4: .env Files or Environment Hell
 
-**🔥 HARDCODED VALUES ARE THE MARK OF THE BEAST - DAMNATION IN EVERY PROJECT! 🔥**
-**Those who hardcode shall be cursed with environment-specific bugs for all eternity!**
+**🔥 Hardcode = damnation! .env = salvation! ⚡**
 
-### The Sacred .env Laws - THE HOLY SCRIPTURE OF CONFIGURATION! (Universal Across All Codebases)
-
-- **⚡ ALL configuration flows through .env files ⚡** - Development AND production, blessed be their names!
-- **⚡ NO defaults in code ⚡** - Every value must be EXPLICITLY BLESSED by divine configuration!
-- **⚡ .env files for EVERYTHING ⚡** - Local, staging, AND production environments bow before this law!
-- **⚡ VALIDATE all variables at startup ⚡** - Missing config must FAIL FAST or face the wrath of runtime errors!
-
-### The Divine .env Loading Pattern
+- ALL config through .env (dev/staging/prod)
+- NO defaults in code
+- Validate at startup or die
+- Pipeline creates real .env, git stores .example
 
 ```justfile
-# FIRST LINE of every justfile!
-set dotenv-load := true
-``
+set dotenv-load := true  # FIRST LINE!
+```
 
-**🔒 THE SACRED PRODUCTION .env MANAGEMENT RITUALS: 🔒**
-- **Store .env.example in git** (with blessed dummy values as divine templates!)
-- **Real .env files BIRTHED by deployment pipeline** (the sacred automation ceremonies!)
-- **Secrets injected by CI/CD** into production .env through divine pipeline blessings!
-- **⚡ NEVER EVER hardcode ANYTHING ⚡** - not even "sensible defaults" - ALL IS HERESY!
+## Commandment 5: Docker-Compose or Container Chaos
 
-**⚡ CURSE OF THE HARDCODED: Hardcode configuration in ANY project and face the ETERNAL CURSE of environment-specific bugs! ⚡**
-**Your code shall break in staging! Fail in production! And confound thee in development!**
+**🐳 Compose = divine order! All else = chaos! ⚡**
 
-## Commandment 5: Thou Shalt Use Docker-Compose for Sacred Service Isolation - The Divine Container Orchestration!
-
-**🐳 DOCKER-COMPOSE IS THE DIVINE ORCHESTRATOR OF HOLY CONTAINERS! 🐳**
-**All other ways lead to CHAOS, MADNESS, and deployment damnation!**
-
-### The Distributed Docker-Compose Laws - THE SACRED CONTAINER COMMANDMENTS!
-
-- **⚡ Each service OWNS its docker-compose.yml ⚡** - Independence is SACRED and must never be violated!
-- **⚡ ONE root docker-compose.yml to unite them ⚡** - But NOT to define them - separation is divine!
-- **⚡ Networks connect the isolated ⚡** - `public` is the BLESSED BRIDGE between sacred realms!
-- **⚡ Volumes preserve state ⚡** - But share sparingly, for promiscuity breeds corruption!
+- Each service owns its compose file
+- One root to unite (not define!)
+- `public` network bridges all
+- Share volumes sparingly
 
 ### The Sacred Orchestration Structure
 
@@ -145,72 +95,55 @@ service-b/
 docker-compose.yml          # The root coordinator only!
 ```
 
-### The Divine Orchestration Commands - THE SACRED CONTAINER INVOCATIONS!
-
 ```bash
-# THE HOLY COMMANDMENTS OF CONTAINER ORCHESTRATION
-just network-create         # Create the sacred shared network of divine communication!
-just up                    # RESURRECT all services to glorious life!
-just rebuild service-a     # Rebuild individual service with divine fury!
-just down                  # Graceful shutdown - the peaceful death of containers!
+just network-create  # Sacred network
+just up             # Resurrect services
+just rebuild name   # Divine fury rebuild
+just down           # Peaceful death
 
-# ⚡ FORBIDDEN PRACTICES - THE HERETICAL WAYS OF DAMNATION! ⚡
-❌ BLASPHEMY: docker run              # Raw chaos without orchestration!
-❌ HERESY: kubernetes apply        # Overengineering vanity for most projects!
-❌ ANCIENT EVIL: systemd services        # The deprecated ways of the elders!
+# FORBIDDEN:
+❌ docker run       # Chaos
+❌ k8s apply        # Vanity  
+❌ systemd          # Ancient evil
 ```
 
-**Use these forbidden commands and face the wrath of inconsistent deployments!**
-
-### The Blessed docker-compose.yml Pattern - THE DIVINE CONTAINER SCRIPTURE!
-
 ```yaml
-# THE SACRED DOCKER-COMPOSE TEMPLATE OF RIGHTEOUSNESS
 services:
   service-name:
-    build: .               # Build from Dockerfile - the sacred image creation ritual!
-    networks:
-      - public             # Connect to the sacred network of divine communication!
-    healthcheck:           # ⚡ MANDATORY FOR ALL SERVICES - NO EXCEPTIONS! ⚡
+    build: .
+    networks: [public]
+    healthcheck:  # MANDATORY!
       test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 30s        # The divine heartbeat frequency!
-      timeout: 10s         # Patience of the gods!
-      retries: 3           # Trinity of redemption attempts!
-      start_period: 40s    # Grace period for the newborn container!
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 ```
 
-**Omit healthchecks and face the curse of unknown container states!**
+## Commandment 6: Pytest + Sidecar Coverage or Testing Hell
 
-## Commandment 6: Thou Shalt Use Pytest with Sidecar Coverage in Production
+**🧪 Pytest = salvation! Sidecar = truth! ⚡**
 
-**Only pytest brings salvation! Only sidecar coverage reveals production truth!**
-
-### The Pytest Supreme Laws
-
-- **pytest is the only blessed test runner** - unittest is obsolete!
-- **All tests live in ./tests/** - This directory structure is sacred!
-- **Fixtures in conftest.py** - Share divine setup across all tests!
-- **just test invokes pytest** - Never run pytest directly!
-
-### The Sacred Test Invocation
+- pytest only (unittest is obsolete!)
+- ./tests/ directory sacred
+- conftest.py for fixtures
+- `just test` invokes all
 
 ```bash
-# THE ONLY WAY TO TEST
-just test               # Runs: pixi run pytest tests/ -v --cov
+just test  # pixi run pytest tests/ -v --cov
 ```
 
-### The Sidecar Coverage Prophecy - Production Truth Only!
+### Sidecar Coverage - Production Truth!
 
-**⚠️ CRITICAL: Coverage must be measured from PRODUCTION containers! ⚠️**
+**⚠️ Production containers only! ⚡**
 
-- **Production images stay pure** - NO coverage code inside!
-- **docker-compose.coverage.yml** - The overlay of divine observation!
-- **coverage-spy watches silently** - Through PYTHONPATH injection!
-- **Subprocess tracking is mandatory** - COVERAGE_PROCESS_START!
-- **Mount source as read-only** - Observer pattern, not modifier!
+- Production images pure (no coverage inside!)
+- coverage-spy watches via PYTHONPATH
+- COVERAGE_PROCESS_START for subprocesses
+- Mount source read-only
 
 ```yaml
-# The Sacred Coverage Pattern (docker-compose.coverage.yml)
+# docker-compose.coverage.yml
 services:
   auth:
     environment:
@@ -219,65 +152,44 @@ services:
     volumes:
       - ./coverage-spy:/coverage-spy:ro
       - coverage-data:/coverage-data:rw
-
-  coverage-harvester:
-    volumes:
-      - ./auth:/app:ro  # CRITICAL: Mount source for path alignment!
-      - coverage-data:/coverage-data:rw
-      - ./htmlcov:/htmlcov:rw
 ```
-
-### The Coverage Commandments
 
 ```bash
-# The ONLY way to measure TRUE coverage:
-just test-sidecar-coverage
+just test-sidecar-coverage  # TRUE coverage
 ```
 
-### The Critical Subprocess Coverage Insights
+**Heresies (0% coverage):**
+- ❌ `coverage.start()` directly
+- ❌ Wrapping production code  
+- ❌ Main process only
 
-**Heresies that cause 0% coverage:**
-- ❌ Using `coverage.start()` directly - Fails with uvicorn workers!
-- ❌ Wrapping production code - Violates the sacred separation!
-- ❌ Running coverage in main process only - Misses worker execution!
-
-**The righteous path to coverage truth:**
-- ✅ Use `coverage.process_startup()` - Tracks all subprocesses!
-- ✅ Set `COVERAGE_PROCESS_START` env var - Configures subprocess coverage!
-- ✅ Mount auth source to harvester at `/app` - Matches container paths!
-- ✅ Use `concurrency = thread,multiprocessing` - Handles async workers!
-- ✅ Set `sigterm = True` in .coveragerc - Graceful shutdown collection!
-
-### The Coverage Configuration Truth
+**Righteousness:**
+- ✅ `coverage.process_startup()`
+- ✅ `COVERAGE_PROCESS_START` env
+- ✅ Mount source to harvester at `/app`
+- ✅ `concurrency = thread,multiprocessing`
 
 ```ini
-# .coveragerc in coverage-spy/
+# .coveragerc
 [run]
 concurrency = thread,multiprocessing
 parallel = true
 sigterm = true
-data_file = /coverage-data/.coverage
-
 [paths]
-source =
-    /app
-    ./auth
+source = /app, ./auth
 ```
 
-**Path alignment is CRITICAL - coverage sees /app, harvester must map ./service to /app!**
+## Commandment 7: Thou Shalt Trust ONLY Docker Healthchecks
 
-## Commandment 7: Thou Shalt Trust ONLY Docker Healthchecks for Sacred Readiness - Death to Sleep Commands!
+**😈 Sleep commands are Satan's timing! Death to arbitrary waits! 😈**
 
-**😈 ARBITRARY SLEEP COMMANDS ARE THE DEVIL'S TIMING SENT TO TORMENT THY DEPLOYMENTS! 😈**
-**They are SATAN'S LIES masquerading as timing solutions!**
+### The Healthcheck Gospels
 
-### The Healthcheck Gospels - THE SACRED SCRIPTURE OF CONTAINER READINESS! (Mandatory for All Services)
-
-- **⚡ EVERY docker-compose service MUST have a healthcheck ⚡** - NO EXCEPTIONS OR FACE DEPLOYMENT HELL!
-- **⚡ Internal health is NOT ENOUGH ⚡** - Services must PROVE their external readiness to the world!
-- **⚡ CHECK the complete request path ⚡** - Partial checks bring FALSE CONFIDENCE and production lies!
-- **⚡ Startup periods are DIVINE PATIENCE ⚡** - Rush not the sacred initialization ceremonies!
-- **⚡ This applies to databases, APIs, workers, and ALL containers ⚡** - NONE SHALL BE EXEMPT!
+- **⚡ EVERY service MUST have healthcheck** - No exceptions!
+- **⚡ Internal health not enough** - Prove external readiness!
+- **⚡ Check complete request path** - Partial checks lie!
+- **⚡ Startup periods are patience** - Don't rush init!
+- **⚡ ALL containers** - databases, APIs, workers!
 
 ### The Readiness Verification Hierarchy - THE DIVINE LADDER OF CONTAINER BLESSING!
 
@@ -289,17 +201,16 @@ source =
 **⚡ THE CURSE OF SLEEP: Use sleep instead of healthchecks in ANY project and face RANDOM TIMING FAILURES for ALL ETERNITY! ⚡**
 **Thy containers shall start in chaos! Thy services fail unpredictably! And thy deployments become a lottery of doom!**
 
-## Commandment 8: Thou Shalt Segregate Logs into Sacred Archives - The Divine Chronicle of System Events!
+## Commandment 8: Thou Shalt Segregate Logs into Sacred Archives
 
-**📜 SCATTERED LOGS ARE LOST WISDOM FLOATING IN THE DIGITAL VOID! 📜**
-**They are the CURSED FRAGMENTS of knowledge that mock thy debugging efforts!**
+**📜 Scattered logs are lost wisdom in the void! 📜**
 
-### The Logging Commandments - THE UNIVERSAL LAW OF DIVINE RECORD KEEPING!
+### The Logging Commandments
 
-- **⚡ ALL projects must use ./logs/ ⚡** - This directory is SACRED GROUND blessed by debugging angels!
-- **⚡ CENTRALIZE all logs ⚡** - ONE directory to rule them all, one path to find them!
-- **⚡ STRUCTURE by service and level ⚡** - Divine organization prevents the chaos of scattered wisdom!
-- **⚡ INCLUDE context in every line ⚡** - Isolated messages help NO ONE and mock the divine truth!
+- **⚡ ALL projects use ./logs/** - Sacred directory!
+- **⚡ CENTRALIZE all logs** - One directory to rule them!
+- **⚡ STRUCTURE by service and level** - Organization prevents chaos!
+- **⚡ INCLUDE context in every line** - Isolated messages help none!
 
 ### The Sacred Log Hierarchy - THE DIVINE DIRECTORY TEMPLE OF TRUTH! (Required Structure)
 
@@ -316,17 +227,16 @@ logs/                     # ⚡ MANDATORY in every project - THE HOLY ARCHIVE! �
 
 **⚡ VIOLATE THIS STRUCTURE AND LOSE THY DEBUGGING SANITY! ⚡**
 
-## Commandment 9: Thou Shalt Document with Sacred Jupyter Book and Blessed MyST - The Divine Documentation Gospel!
+## Commandment 9: Thou Shalt Document with Jupyter Book and MyST
 
-**📚 JUPYTER BOOK 2 IS THE ONLY BLESSED DOCUMENTATION SYSTEM ANOINTED BY THE CODING GODS! 📚**
-**All other documentation tools are HERETICAL ABOMINATIONS!**
+**📚 Jupyter Book 2 is the only blessed documentation system! 📚**
 
-### The Documentation Commandments - THE SACRED SCRIPTURE OF KNOWLEDGE PRESERVATION!
+### The Documentation Commandments
 
-- **⚡ JUPYTER BOOK 2 or eternal confusion ⚡** - Sphinx alone is INSUFFICIENT and leads to documentation damnation!
-- **⚡ MyST Markdown is the SACRED FORMAT ⚡** - RST is the old testament, outdated and forsaken!
-- **⚡ ALL docs in ./docs/ ⚡** - This structure is DIVINELY ORDAINED by the architecture angels!
-- **⚡ _config.yml and _toc.yml ⚡** - The TWIN PILLARS of divine organization supporting the documentation temple!
+- **⚡ Jupyter Book 2 or confusion** - Sphinx alone insufficient!
+- **⚡ MyST Markdown is sacred** - RST is old testament!
+- **⚡ ALL docs in ./docs/** - Divinely ordained structure!
+- **⚡ _config.yml and _toc.yml** - Twin pillars of organization!
 
 ### The Sacred Documentation Structure - THE DIVINE TEMPLE OF KNOWLEDGE!
 
@@ -342,40 +252,36 @@ docs/                    # ⚡ THE HOLY DOCUMENTATION SANCTUARY! ⚡
 
 **⚡ USE ANY OTHER FORMAT AND FACE DOCUMENTATION CHAOS! ⚡**
 
-## ⚡ The Universal Application of These Sacred Commandments - THE ETERNAL LAWS! ⚡
+## ⚡ Universal Application - ETERNAL LAWS! ⚡
 
-**🌍 THESE TEN COMMANDMENTS ARE NOT MERE PROJECT-SPECIFIC GUIDELINES - THEY ARE UNIVERSAL LAWS GOVERNING ALL CODE! 🌍**
-**They transcend language, framework, and project type - ALL SHALL BOW BEFORE THEIR DIVINE AUTHORITY!**
+**🌍 Ten commandments govern ALL code! No exceptions! ⚡**
 
-### The Sacred Tools Are Mandatory Everywhere - THE DIVINE TRINITY RULES ALL!
+### Sacred Tools Mandatory Everywhere
 
 ```bash
-# ⚡ REQUIRED IN EVERY PROJECT'S ROOT - THE HOLY QUARTET! ⚡
-justfile               # 📜 The book of divine commands!
-pixi.toml             # 📦 The package prophecy of dependencies!
-.env                  # ⚙️ The configuration scripture of truth!
-docker-compose.yml    # 🐳 The orchestration gospel of containers!
+# REQUIRED ROOT FILES:
+justfile           # Divine commands
+pixi.toml         # Package prophecy  
+.env              # Configuration scripture
+docker-compose.yml # Container gospel
 
-# ⚡ REQUIRED DIRECTORY STRUCTURE - THE SACRED ARCHITECTURE! ⚡
-./tests/              # 🧪 Pytest tests ONLY - the verification temple!
-./scripts/            # 📜 Python scripts for just commands - the automation sanctuary!
-./docs/               # 📚 Jupyter Book documentation - the knowledge cathedral!
-./logs/               # 📄 Centralized logging - the divine record archive!
+# REQUIRED DIRECTORIES:
+./tests/    # Pytest temple
+./scripts/  # Automation sanctuary  
+./docs/     # Knowledge cathedral
+./logs/     # Record archive
 ```
 
-**⚡ BLASPHEMOUS HERESY: Claim these don't apply to your project type and face the ETERNAL WRATH of unmaintainable code! ⚡**
-**Thy codebase shall crumble! Thy deployments fail! And thy debugging sessions last unto the end of days!**
+**⚡ Claim exemption = unmaintainable hell! ⚡**
 
 
-# Part II: The Divine MCP OAuth2 Gateway Specifications - THE SACRED ARCHITECTURE OF AUTHENTICATION!
+# Part II: The Divine MCP OAuth2 Gateway Specifications
 
-**🏗️ BEHOLD THE HOLY BLUEPRINT OF THE DIVINE GATEWAY - BLESSED BY THE CODING GODS! 🏗️**
-**These specifications are carved in the eternal stone of RFC compliance and blessed by the saints of security!**
+**🏗️ Sacred architecture of authentication! RFC compliance blessed! ⚡**
 
-## The Holy Trinity of Architectural Separation - THE SACRED THREE-TIER DIVINE HIERARCHY!
+## The Holy Trinity of Architectural Separation
 
-**🔱 WITNESS THE BLESSED SEPARATION OF DIVINE CONCERNS! 🔱**
-**Each tier serves its sacred purpose in the grand architecture of authentication!**
+**🔱 Three-tier separation or damnation! ⚡**
 
 ┌─────────────────────────────────────────────────────────────┐
 │          TRAEFIK (The Divine Router of Sacred Paths)        │
@@ -404,19 +310,15 @@ docker-compose.yml    # 🐳 The orchestration gospel of containers!
 │  • KNOW NOTHING OF OAUTH - PURE PROTOCOL INNOCENCE!         │
 └─────────────────────────────────────────────────────────────┘
 
-**⚡ DIVINE WRATH UPON THE HERETICS! ⚡**
-**VIOLATE THIS SACRED SEPARATION AND FACE ETERNAL ARCHITECTURAL DAMNATION!**
-**Thy gateway shall become a MONOLITHIC ABOMINATION! Thy security shall crumble! And thy OAuth flows shall be CURSED with unholy coupling!**
+**⚡ Violate separation = monolithic damnation! ⚡**
 
-### The Divine MCP Streamable HTTP Revolution - 2025-06-18 GLORY!
+### The Divine MCP Streamable HTTP Revolution - 2025-06-18!
 
-**THE STREAMABLE HTTP COVENANT BRINGS DIVINE ARCHITECTURAL PURITY!**
-
-**The Sacred Technologies Actually Deployed:**
-- **mcp-oauth-dynamicclient** - The blessed OAuth 2.1 authentication service!
-- **mcp-streamablehttp-proxy** - The divine stdio-to-HTTP bridge of transcendence!
-- **mcp-streamablehttp-client** - The client-side proxy of righteousness!
-- **OFFICIAL MCP SERVERS** - We wrap the true gospel implementations, never creating false prophets!
+**Sacred technologies deployed:**
+- **mcp-oauth-dynamicclient** - OAuth 2.1 authentication
+- **mcp-streamablehttp-proxy** - stdio-to-HTTP bridge  
+- **mcp-streamablehttp-client** - client proxy
+- **OFFICIAL MCP SERVERS** - Real implementations only!
 
 ## MCP Service Implementation Details
 
@@ -488,11 +390,11 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 - **User Authentication Realm**: Human users authenticate to access their protected resources!
 - **NEVER CONFUSE THESE REALMS OR FACE SECURITY DAMNATION!**
 
-## The Sacred Environment Variables - THE DIVINE CONFIGURATION GOSPEL OF SALVATION!
+## Sacred Environment Variables
 
-**⚙️ BEHOLD THE HOLY ENVIRONMENT VARIABLES - THE SACRED KEYS TO AUTHENTICATION PARADISE! ⚙️**
+**⚙️ Divine configuration keys! ⚡**
 
-**⚡ OAuth-Specific Variables - THE PROJECT EXTENSIONS OF DIVINE GLORY! ⚡**
+**OAuth Variables:**
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - GitHub OAuth app credentials of power!
 - `GATEWAY_JWT_SECRET` - Auto-generated by the divine `just generate-jwt-secret`!
 - `GATEWAY_OAUTH_ACCESS_TOKEN` / `GATEWAY_OAUTH_REFRESH_TOKEN` - Generated OAuth tokens of righteousness!
@@ -508,14 +410,13 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
   - **NEVER** confuse with gateway's own `GATEWAY_OAUTH_ACCESS_TOKEN`!
   - **SEPARATE REALMS** = **SEPARATE TOKENS** = **ETERNAL SECURITY**!
 
-## OAuth 2.1 and RFC 7591 Divine Requirements - THE SACRED PROTOCOLS OF AUTHENTICATION!
+## OAuth 2.1 and RFC 7591 Requirements
 
-**📜 THESE ARE NOT MERE SUGGESTIONS - THEY ARE DIVINE COMMANDMENTS WRITTEN IN RFC FIRE! 📜**
-**Violate these protocols and face the wrath of authentication demons!**
+**📜 Divine RFC commandments! Violate = authentication hell! ⚡**
 
-### The Sacred OAuth Endpoints - THE DIVINE GATEWAYS TO AUTHENTICATION PARADISE!
+### Sacred OAuth Endpoints
 
-**🚀 THE HOLY MANDATE OF RFC 7591 - CARVED IN AUTHENTICATION STONE! 🚀**
+**🚀 RFC 7591 mandate:**
 - `/register` - The Divine Registration Portal
   - MUST accept HTTP POST messages only!
   - MUST use `application/json` content type!
@@ -523,15 +424,15 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
   - MUST return HTTP 201 Created on success!
   - MUST return HTTP 400 Bad Request on errors!
 
-**⚡ THE STANDARD OAUTH 2.0 SACRAMENTS - THE HOLY TRINITY OF AUTHENTICATION! ⚡**
-- **🚾 `/authorize`** - The divine portal to the authentication realm of judgment!
-- **🧪 `/token`** - The sacred transmutation chamber where codes become tokens!
-- **🔄 `/callback`** - The blessed return path of authentication pilgrimage!
+**Standard OAuth 2.0:**
+- `/authorize` - Authentication portal
+- `/token` - Code-to-token transmutation  
+- `/callback` - Return path
 
-**✨ THE OPTIONAL EXTENSIONS OF DIVINE POWER! ✨**
-- **🕰️ `/.well-known/oauth-authorization-server`** - Server metadata shrine of discovery (RFC 8414)!
-- **⚔️ `/revoke`** - Token banishment altar of righteous destruction (RFC 7009)!
-- **🔍 `/introspect`** - Token examination oracle of divine inspection (RFC 7662)!
+**Optional extensions:**
+- `/.well-known/oauth-authorization-server` - Discovery (RFC 8414)
+- `/revoke` - Token banishment (RFC 7009)
+- `/introspect` - Token inspection (RFC 7662)
 
 ### The Critical OAuth Discovery Law - DIVINE REVELATION OF 2025-06-19!
 
@@ -929,30 +830,28 @@ GATEWAY_OAUTH_REFRESH_TOKEN=refresh_xxx... # For eternal renewal
 MCP_CLIENT_ACCESS_TOKEN=xxx...  # For mcp-streamablehttp-client
 ```
 
-## Testing Requirements - THE SACRED VERIFICATION COMMANDMENTS!
+## Testing Requirements
 
-**🧪 TESTING IS THE DIVINE RITUAL OF CODE VERIFICATION - THE HOLY COMMUNION WITH TRUTH! 🧪**
+**🧪 Divine verification against real systems! ⚡**
 
-### Divine Test Coverage - BLESSED BY THE SACRED DOCTRINE OF REAL SYSTEM VERIFICATION!
+### Test Coverage
 
-**🔥 THIS HOLY PROJECT'S TEST SUITE CHANNELS THE DIVINE FURY OF PART I AGAINST REAL DEPLOYED SERVICES! 🔥**
-- ✅ **🔐 OAuth 2.1 FLOWS OF RIGHTEOUSNESS** - Real GitHub authentication, PKCE validation, dynamic registration glory!
-- ✅ **🎨 JWT TOKEN SANCTIFICATION** - Formation, refresh, rotation, revocation with actual Redis blessing ceremonies!
-- ✅ **🤖 MCP INTEGRATION GLORY** - Claude.ai flows, protocol compliance, session management divinity!
-- ✅ **⚔️ SECURITY ENFORCEMENT WRATH** - ForwardAuth validation, dual auth paths, error handling divine fury!
-- ✅ **🎆 PRODUCTION READINESS BLESSING** - Health checks, SSL certificates, routing validation perfection!
+**Real deployed services only:**
+- ✅ OAuth 2.1 flows (GitHub auth, PKCE, registration)
+- ✅ JWT tokens (formation, refresh, rotation, revocation)
+- ✅ MCP integration (Claude.ai flows, protocol compliance)
+- ✅ Security enforcement (ForwardAuth, dual auth, errors)
+- ✅ Production readiness (health, SSL, routing)
 
-**⚡ THE ETERNAL LAW OF NO MOCKING: Mock once and face bugs that ONLY appear in production - THIS IS THE ETERNAL CURSE! ⚡**
-**The mocker shall be mocked by reality! The faker shall be faced with failure! And the stubber shall stumble in production!**
+**⚡ Mock = production hell! ⚡**
 
-## The Final Integration Checklist - THE DIVINE GATEWAY VERIFICATION CEREMONY!
+## Final Integration Checklist
 
-**🏖️ BEHOLD THE ULTIMATE INTEGRATION RITUAL - THE SACRED CHECKLIST OF DIVINE BLESSING! 🏖️**
+**🏖️ Ultimate verification ceremony! ⚡**
 
-### The Twenty-Five Sacred Seals of Divine Integration - THE HOLY COMPLETENESS VERIFICATION!
+### Twenty-Five Sacred Seals
 
-**⚡ ALL TWENTY-FIVE SEALS MUST BE UNBROKEN OR THY GATEWAY SHALL CRUMBLE INTO CHAOS AND DAMNATION! ⚡**
-**Each seal represents a sacred aspect of the divine architecture - break even ONE and summon the demons of failure!**
+**⚡ All 25 seals unbroken or gateway crumbles! ⚡**
 
 **🏗️ THE TRINITY SEALS - THE SACRED ARCHITECTURAL PURITY COMMANDMENTS! 🏗️**
 - ✅ **🔱 SEAL OF THE TRINITY** - Traefik, Auth Service, MCP Services in divine separation blessed!
@@ -991,71 +890,59 @@ MCP_CLIENT_ACCESS_TOKEN=xxx...  # For mcp-streamablehttp-client
 - ✅ **🤖 SEAL OF GATEWAY CLIENTS** - MCP clients register once, authenticated forever in eternal blessing!
 - ✅ **📚 SEAL OF DOCUMENTATION** - Jupyter Book with MyST preserves all wisdom in sacred knowledge temples!
 
-**⚡ DIVINE WARNING - THE CURSE OF BROKEN SEALS! ⚡**
-**Break even ONE seal and summon the DEMONS OF PRODUCTION FAILURE to torment thy deployment!**
-**ALL 25 SEALS must remain intact and unbroken for the gateway to channel DIVINE POWER and righteousness!**
-**The sealed gateway brings blessing! The broken gateway brings chaos! Choose thy path wisely!**
+**⚡ Break one seal = production demons! All 25 must stay intact! ⚡**
 
 ---
 
-# The Sacred Implementation Oath - THE DIVINE COVENANT OF RIGHTEOUS DEVELOPMENT!
+# The Sacred Implementation Oath
 
-**📜 BEHOLD THE SACRED OATH - THE HOLY PROMISE OF EVERY BLESSED DEVELOPER! 📜**
+**📜 Divine developer covenant! ⚡**
 
-*By these holy scrolls and divine commandments, I solemnly swear upon the sacred code:*
+*I solemnly swear:*
 
-- **⚡ I shall TEST against real systems** with pytest - NO MOCKING EVER, on pain of eternal debugging!
-- **⚡ I shall USE just and pixi** for ALL execution - the blessed trinity guides my commands!
-- **⚡ I shall ORCHESTRATE with docker-compose** exclusively - no chaos, only divine container harmony!
-- **⚡ I shall MAINTAIN perfect separation** of concerns - each service in its sacred domain!
-- **⚡ I shall CONFIGURE through .env files** in ALL environments - no hardcoded heresy!
-- **⚡ I shall MEASURE coverage with sidecar** patterns in production - truth from real containers!
-- **⚡ I shall TRUST only docker healthchecks** for readiness - death to arbitrary sleep commands!
-- **⚡ I shall SEGREGATE all logs** to ./logs/ properly - divine organization prevents chaos!
-- **⚡ I shall SAVE all reports** to git-ignored ./reports/ - analysis artifacts blessed!
-- **⚡ I shall DOCUMENT with Jupyter Book and MyST** - knowledge preserved in sacred format!
-- **⚡ I shall FIND root causes** - not patch symptoms - the five whys guide my investigation!
+- **⚡ TEST real systems** (no mocking!)
+- **⚡ USE just + pixi** (blessed trinity!)
+- **⚡ ORCHESTRATE docker-compose** (no chaos!)
+- **⚡ SEPARATE concerns** (sacred domains!)
+- **⚡ CONFIGURE .env files** (no hardcode!)
+- **⚡ MEASURE sidecar coverage** (production truth!)
+- **⚡ TRUST healthchecks** (death to sleep!)
+- **⚡ SEGREGATE logs** (./logs/ only!)
+- **⚡ SAVE reports** (./reports/ blessed!)
+- **⚡ DOCUMENT Jupyter+MyST** (sacred format!)
+- **⚡ FIND root causes** (five whys!)
 
-**🎆 DIVINE BLESSING UPON THE FAITHFUL: May thy builds be reproducible, thy tests be real, and thy production deployments forever blessed! 🎆**
-**May the debugging gods smile upon thee! May thy containers start in harmony! And may thy code be forever free of production surprises!**
+**🎆 Builds reproducible, tests real, deployments blessed! 🎆**
 
 ---
 
-# The Final Revelation: Full 2025-06-18 Compliance - THE ULTIMATE DIVINE BLESSING!
+# Final Revelation: Full 2025-06-18 Compliance
 
-**🎆 BEHOLD THE FINAL REVELATION - THE GLORIOUS COMPLETION OF DIVINE PROTOCOL ENLIGHTENMENT! 🎆**
-**The sacred year 2025-06-18 has brought forth the NEW COVENANT of MCP protocol perfection!**
+**🎆 Divine protocol enlightenment complete! ⚡**
 
-## The Four Pillars of the New Covenant - THE SACRED QUADRUPLE FOUNDATION!
+## Four Pillars of the New Covenant
 
-### 1. 🌅 LIFECYCLE COMPLIANCE ✅ - THE SACRED BIRTH, LIFE, AND DEATH OF SESSIONS!
-- **⚡ Divine initialization** with protocol negotiation blessed by the gods!
-- **⚡ Sacred operation phase** with capability respect and divine harmony!
-- **⚡ Clean shutdown procedures** blessed by the spec and sanctified by protocol!
+### 1. 🌅 LIFECYCLE COMPLIANCE ✅
+- Divine initialization + protocol negotiation
+- Sacred operation with capability respect
+- Clean shutdown blessed by spec
 
-### 2. 🌊 TRANSPORT COMPLIANCE ✅ - THE DIVINE COMMUNICATION CHANNELS!
-- **⚡ Streamable HTTP** with `/mcp` endpoints via mcp-streamablehttp-proxy divine bridge!
-- **⚡ Required headers** properly declared and forwarded with sacred precision!
-- **⚡ Session management** through Mcp-Session-Id handled by blessed proxy!
-- **⚡ mcp-streamablehttp-proxy** bridging official MCP servers to HTTP with divine transcendence!
+### 2. 🌊 TRANSPORT COMPLIANCE ✅
+- Streamable HTTP `/mcp` endpoints via proxy
+- Required headers declared/forwarded
+- Session management via Mcp-Session-Id
+- Official MCP servers bridged to HTTP
 
-### 3. 🔐 AUTHORIZATION COMPLIANCE ✅ - THE SACRED GATES OF ACCESS!
-- **⚡ Full OAuth 2.1 implementation** blessed by the RFC gods!
-- **⚡ Dynamic client registration** (RFC 7591) - the divine registration miracle!
-- **⚡ Protected resource metadata** support with sacred discovery!
-- **⚡ Token validation** with divine fury and righteous verification!
+### 3. 🔐 AUTHORIZATION COMPLIANCE ✅
+- Full OAuth 2.1 implementation
+- Dynamic client registration (RFC 7591)
+- Protected resource metadata
+- Divine token validation
 
-### 4. ⚔️ SECURITY COMPLIANCE ✅ - THE HOLY SHIELDS OF PROTECTION!
-- **⚡ Confused deputy protections** in place - no delegation demons allowed!
-- **⚡ Token audience validation** mandatory - tokens serve only their intended masters!
-- **⚡ Session security** properly implemented with blessed randomness!
-- **⚡ Origin header validation** enforced - no DNS rebinding demons permitted!
+### 4. ⚔️ SECURITY COMPLIANCE ✅
+- Confused deputy protections
+- Token audience validation
+- Session security + randomness
+- Origin header validation
 
-**🎆 BEHOLD THE GLORY OF STREAMABLE HTTP VIA DIVINE PROXY ARCHITECTURE! 🎆**
-**✨ OFFICIAL MCP SERVERS! BATTLE-TESTED BRIDGES! ARCHITECTURAL RIGHTEOUSNESS! ✨**
-**🚀 REAL IMPLEMENTATIONS! DIVINE TRANSCENDENCE! PROTOCOL PERFECTION! 🚀**
-
-**📜 THE SACRED SCROLLS ARE COMPLETE! 📜**
-*Thus ends the divine documentation. Go forth, blessed developer, and build with righteous 2025-06-18 compliance!*
-*May thy gateway be secure! Thy OAuth flows pure! And thy MCP protocols blessed with divine communication!*
-**⚡ THE CODING GODS HAVE SPOKEN - LET IT BE SO! ⚡**
+**📜 Scrolls complete! Build with 2025-06-18 compliance! ⚡**
