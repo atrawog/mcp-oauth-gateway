@@ -97,3 +97,8 @@ sessions/
 mcp-http-stdio/.env
 credentials.json
 .mcp/
+
+# OAuth backups (contain sensitive tokens!)
+backups/
+*.backup.json
+oauth-backup-*.json

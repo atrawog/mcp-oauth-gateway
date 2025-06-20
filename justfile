@@ -360,3 +360,45 @@ setup: network-create volumes-create
     @echo "Setting up MCP OAuth Gateway..."
     @pixi install
     @echo "Setup complete! Run 'just up' to start services."
+
+# OAuth Backup and Restore Commands
+
+# Backup all OAuth registrations and tokens
+oauth-backup:
+    @echo "🔐 Backing up OAuth registrations and tokens..."
+    @pixi run python scripts/backup_oauth_data.py
+
+# List available OAuth backups
+oauth-backup-list:
+    @echo "📋 Available OAuth backups:"
+    @pixi run python scripts/restore_oauth_data.py --list
+
+# Restore OAuth data from latest backup
+oauth-restore:
+    @echo "🔄 Restoring OAuth data from latest backup..."
+    @pixi run python scripts/restore_oauth_data.py --latest
+
+# Restore OAuth data from specific backup file
+oauth-restore-file filename:
+    @echo "🔄 Restoring OAuth data from {{filename}}..."
+    @pixi run python scripts/restore_oauth_data.py --file {{filename}}
+
+# Restore OAuth data from latest backup (clear existing data first)
+oauth-restore-clear:
+    @echo "🔄 Restoring OAuth data from latest backup (clearing existing data)..."
+    @pixi run python scripts/restore_oauth_data.py --latest --clear
+
+# Dry run - show what would be restored without making changes
+oauth-restore-dry:
+    @echo "🔍 Dry run - showing what would be restored..."
+    @pixi run python scripts/restore_oauth_data.py --latest --dry-run
+
+# View contents of latest backup
+oauth-backup-view:
+    @echo "📋 Viewing latest backup contents..."
+    @ls -t backups/oauth-backup-*.json 2>/dev/null | head -1 | xargs pixi run python scripts/view_oauth_backup.py || echo "No backups found"
+
+# View contents of specific backup file
+oauth-backup-view-file filename:
+    @echo "📋 Viewing backup: {{filename}}..."
+    @pixi run python scripts/view_oauth_backup.py backups/{{filename}}
