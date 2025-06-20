@@ -143,14 +143,6 @@ class Settings(BaseSettings):
         """Check if OAuth client registration is needed."""
         return not self.oauth_client_id or not self.oauth_client_secret
     
-    def save_credentials(self) -> None:
-        """Save current OAuth credentials and discovered endpoints to .env file."""
-        # NO CREDENTIAL FILES! Everything flows through .env as commanded!
-        # This violates Commandment 4: Thou Shalt Configure Only Through .env Files
-        pass
-    
-    def load_credentials(self) -> None:
-        """Load OAuth credentials from .env configuration."""
-        # NO CREDENTIAL FILES! Everything flows through .env as commanded!
-        # Credentials are already loaded from environment by pydantic-settings
-        pass
+    # NO CREDENTIAL FILES! Everything flows through .env as commanded by CLAUDE.md!
+    # Credentials are automatically loaded from environment by pydantic-settings
+    # MCP_CLIENT_* environment variables are the ONLY source of truth!

@@ -178,7 +178,7 @@ class TestMCPFetchComplete:
         
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.skip("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available")
+            pytest.fail("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Initialize MCP session properly first
         try:
@@ -227,7 +227,7 @@ class TestMCPFetchComplete:
         
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.skip("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available")
+            pytest.fail("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Initialize MCP session properly first
         try:
@@ -284,7 +284,7 @@ class TestMCPFetchComplete:
         
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.skip("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available")
+            pytest.fail("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Initialize MCP session properly first
         try:

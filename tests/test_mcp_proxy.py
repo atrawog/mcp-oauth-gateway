@@ -71,7 +71,7 @@ class TestMCPProxyAuthentication:
     async def test_gateway_token_authentication(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test authentication using gateway OAuth token"""
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.skip("No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token")
+            pytest.fail("No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
         
         # Gateway token should work for authentication
         response = await http_client.post(

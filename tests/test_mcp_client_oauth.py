@@ -225,7 +225,7 @@ class TestMCPClientTokenValidation:
     async def test_access_token_validation(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test validating access tokens before making MCP requests"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Test token against MCP endpoint
         response = await http_client.post(
@@ -383,7 +383,7 @@ class TestMCPClientRealWorldScenarios:
     async def test_multiple_concurrent_requests(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test handling multiple concurrent MCP requests with same token"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         import asyncio
         

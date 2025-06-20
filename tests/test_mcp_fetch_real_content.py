@@ -35,7 +35,7 @@ class TestMCPFetchRealContent:
         # Get REAL OAuth token from environment
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
         if not oauth_token:
-            pytest.skip("No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token")
+            pytest.fail("No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
         
         # Make MCP request to fetch example.com
         mcp_request = {

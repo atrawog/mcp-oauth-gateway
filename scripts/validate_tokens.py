@@ -122,6 +122,34 @@ async def test_mcp_service(token: str) -> bool:
         return False
 
 
+async def test_github_pat(pat: str) -> bool:
+    """Test if GitHub PAT is valid"""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                "https://api.github.com/user",
+                headers={
+                    "Authorization": f"token {pat}",
+                    "Accept": "application/vnd.github.v3+json"
+                }
+            )
+            
+        if response.status_code == 200:
+            user_data = response.json()
+            print(f"✅ GitHub PAT is valid for user: {user_data.get('login', 'unknown')}")
+            return True
+        elif response.status_code == 401:
+            print(f"❌ GitHub PAT is invalid or expired!")
+            return False
+        else:
+            print(f"⚠️  GitHub API returned unexpected status: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Failed to test GitHub PAT: {e}")
+        return False
+
+
 async def main():
     """Main validation function"""
     print("=" * 60)
@@ -160,11 +188,15 @@ async def main():
     if github_pat:
         if github_pat.startswith('gho_') or github_pat.startswith('ghp_'):
             print("✅ GitHub PAT format looks valid")
-            # Could add GitHub API test here if needed
+            # Test against GitHub API
+            if not await test_github_pat(github_pat):
+                all_valid = False
         else:
-            print("⚠️  GitHub PAT format may be invalid")
+            print("❌ GitHub PAT format is invalid!")
+            all_valid = False
     else:
-        print("⚠️  GitHub PAT not found (may not be required for all tests)")
+        print("❌ GitHub PAT not found - this is REQUIRED!")
+        all_valid = False
     
     # Check OAuth Client Credentials
     print("\n📋 Checking OAuth Client Credentials...")
@@ -186,6 +218,22 @@ async def main():
         print(f"✅ Refresh token present: {'*' * (len(refresh_token) - 8)}{refresh_token[-8:]}")
     else:
         print("⚠️  Refresh token not found")
+    
+    # Check MCP Client Access Token
+    print("\n📋 Checking MCP_CLIENT_ACCESS_TOKEN...")
+    mcp_client_token = check_env_var("MCP_CLIENT_ACCESS_TOKEN")
+    if mcp_client_token:
+        payload = decode_jwt_token(mcp_client_token)
+        if payload:
+            print(f"   Client ID: {payload.get('client_id')}")
+            print(f"   Scope: {payload.get('scope')}")
+            if not check_token_expiry(payload):
+                all_valid = False
+        else:
+            all_valid = False
+    else:
+        print("❌ MCP Client Access Token not found - this is REQUIRED!")
+        all_valid = False
     
     print("\n" + "=" * 60)
     if all_valid:

@@ -117,13 +117,13 @@ def main(
         # Clear credentials if requested
         if reset_auth:
             console.print("[yellow]Clearing stored credentials...[/yellow]")
-            if settings.credential_storage_path.exists():
-                settings.credential_storage_path.unlink()
+            # Clear from environment/settings only - no credential files per CLAUDE.md!
             settings.oauth_access_token = None
             settings.oauth_refresh_token = None
             settings.oauth_client_id = None
             settings.oauth_client_secret = None
             console.print("[green]✓[/green] Credentials cleared")
+            console.print("[dim]Note: To fully reset, clear MCP_CLIENT_* variables from .env[/dim]")
         
         # Run async main
         asyncio.run(async_main(settings, test_auth, token, command))

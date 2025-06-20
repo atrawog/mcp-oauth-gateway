@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Automatically refresh OAuth tokens before running tests.
-This ensures all tokens are valid and tests can run successfully.
+Automatically refresh OAuth tokens that can be refreshed before running tests.
+Validates all required tokens and fails if any are missing or invalid.
+Does NOT attempt to generate tokens that require manual intervention (like GitHub PAT).
 """
 import os
 import sys
@@ -115,14 +116,14 @@ async def refresh_oauth_token():
         return False
 
 
-async def refresh_github_token():
-    """Refresh GitHub PAT using device flow"""
+async def check_github_token():
+    """Check if GitHub PAT exists and is valid - DO NOT try to generate it"""
     print("\n🔄 Checking GitHub PAT...")
     
     github_pat = os.getenv("GITHUB_PAT")
-    if not github_pat:
-        print("⚠️  No GitHub PAT found")
-        return None  # Return None to indicate missing (not invalid)
+    if not github_pat or github_pat.strip() == "":
+        print("❌ No GitHub PAT found!")
+        return None  # Return None to indicate missing
     
     # Test if current PAT is valid
     try:
@@ -141,8 +142,7 @@ async def refresh_github_token():
             return True
         elif response.status_code == 401:
             print("❌ GitHub PAT is invalid or expired!")
-            print("   Attempting to generate new PAT...")
-            return await generate_github_pat()
+            return False
         else:
             print(f"⚠️  GitHub API returned: {response.status_code}")
             return True
@@ -150,52 +150,6 @@ async def refresh_github_token():
     except Exception as e:
         print(f"⚠️  Failed to validate GitHub PAT: {e}")
         return True
-
-
-async def generate_github_pat():
-    """Generate GitHub PAT using device flow (non-interactive)"""
-    github_client_id = os.getenv("GITHUB_CLIENT_ID")
-    
-    if not github_client_id:
-        print("❌ No GITHUB_CLIENT_ID found!")
-        return False
-    
-    try:
-        # Initiate device flow
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            device_response = await client.post(
-                "https://github.com/login/device/code",
-                data={
-                    "client_id": github_client_id,
-                    "scope": "repo read:user"
-                },
-                headers={"Accept": "application/json"}
-            )
-            
-            if device_response.status_code != 200:
-                print(f"❌ Failed to initiate device flow: {device_response.status_code}")
-                return False
-            
-            device_data = device_response.json()
-            device_code = device_data["device_code"]
-            user_code = device_data["user_code"]
-            verification_uri = device_data["verification_uri"]
-            
-            print(f"\n📱 GitHub Device Authorization Required!")
-            print(f"   1. Visit: {verification_uri}")
-            print(f"   2. Enter code: {user_code}")
-            print(f"   3. Authorize the application")
-            print(f"\n⏳ This is required for automated testing.")
-            print(f"   Without a valid GitHub PAT, OAuth tests will fail.")
-            
-            # In non-interactive mode, we can't wait for user input
-            print("\n❌ Cannot complete device flow in non-interactive mode!")
-            print("   Please run manually: just generate-github-token")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Failed to generate GitHub PAT: {e}")
-        return False
 
 
 async def refresh_mcp_client_token():
@@ -251,6 +205,7 @@ async def validate_all_tokens():
     required_tokens = {
         "GATEWAY_OAUTH_ACCESS_TOKEN": "Gateway OAuth access token",
         "MCP_CLIENT_ACCESS_TOKEN": "MCP client access token",
+        "GITHUB_PAT": "GitHub Personal Access Token",
         "BASE_DOMAIN": "Base domain",
         "GITHUB_CLIENT_ID": "GitHub OAuth client ID",
         "GITHUB_CLIENT_SECRET": "GitHub OAuth client secret",
@@ -283,9 +238,9 @@ async def validate_all_tokens():
 
 
 async def main():
-    """Main function to refresh and validate all tokens"""
+    """Main function to refresh refreshable tokens and validate all tokens"""
     print("=" * 60)
-    print("🔐 AUTOMATIC TOKEN REFRESH FOR TESTS")
+    print("🔐 TOKEN REFRESH AND VALIDATION")
     print("=" * 60)
     
     # Load environment
@@ -318,17 +273,18 @@ async def main():
             print("   Please run: just generate-github-token")
             sys.exit(1)
     
-    # Check GitHub PAT
-    github_pat_result = await refresh_github_token()
+    # Check GitHub PAT - but don't try to generate it
+    github_pat_result = await check_github_token()
     if github_pat_result is False:
-        print("\n❌ GitHub PAT is invalid!")
-        print("   Tests that require GitHub API will fail.")
+        print("\n❌ GitHub PAT is invalid or expired!")
+        print("   GitHub PAT is REQUIRED for all tests!")
         print("   To fix: just generate-github-token")
-        # Don't exit - let tests fail as user requested
+        sys.exit(1)  # FAIL HARD - GitHub PAT is REQUIRED!
     elif github_pat_result is None:
-        print("\n⚠️  No GitHub PAT configured")
-        print("   OAuth flow tests will be skipped.")
-        print("   To run all tests: just generate-github-token")
+        print("\n❌ No GitHub PAT configured!")
+        print("   GitHub PAT is REQUIRED for all tests!")
+        print("   To configure: just generate-github-token")
+        sys.exit(1)  # FAIL HARD - GitHub PAT is REQUIRED!
     
     # Ensure MCP client token
     if not await refresh_mcp_client_token():

@@ -71,7 +71,7 @@ class TestMCPProtocolHandling:
     async def test_initialize_request(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test MCP initialize request through proxy"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Send initialize request
         request_data = {
@@ -120,7 +120,7 @@ class TestMCPProtocolHandling:
     async def test_session_management(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test session management through proxy"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Initialize to get session
         init_response = await http_client.post(
@@ -164,7 +164,7 @@ class TestMCPProtocolHandling:
     async def test_protocol_version_negotiation(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test protocol version negotiation"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Try different protocol versions
         for version in ["2025-06-18", "2024-11-05", "1.0"]:
@@ -200,7 +200,7 @@ class TestProxyErrorHandling:
     async def test_invalid_json_rpc_request(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test handling of invalid JSON-RPC requests"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Missing required fields
         invalid_requests = [
@@ -229,7 +229,7 @@ class TestProxyErrorHandling:
     async def test_method_not_found(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test handling of unknown methods"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         response = await http_client.post(
             f"{MCP_FETCH_URL}/mcp",
@@ -278,7 +278,7 @@ class TestProxyRealWorldScenarios:
     async def test_tools_listing(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test listing available tools through proxy"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Need to create a session first
         session_id = await self._create_session(http_client)
@@ -309,7 +309,7 @@ class TestProxyRealWorldScenarios:
     async def test_concurrent_sessions(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test handling multiple concurrent sessions"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Create multiple sessions concurrently
         async def create_session(session_num: int) -> Optional[str]:
@@ -347,7 +347,7 @@ class TestProxyRealWorldScenarios:
     async def test_large_request_handling(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test handling of large requests through proxy"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Create a request with large params
         large_data = "x" * 10000  # 10KB of data
@@ -404,7 +404,7 @@ class TestProxyAuthenticationFlows:
     async def test_bearer_token_authentication(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test Bearer token authentication"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Test with valid token
         response = await http_client.get(
@@ -468,7 +468,7 @@ class TestProxyPerformance:
     async def test_response_times(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test typical response times through proxy"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         import time
         
@@ -509,7 +509,7 @@ class TestProxyPerformance:
     async def test_connection_reuse(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test that connections are reused efficiently"""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.skip("No MCP_CLIENT_ACCESS_TOKEN available")
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
         # Make multiple requests with same client
         for i in range(3):

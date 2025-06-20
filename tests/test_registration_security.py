@@ -88,7 +88,7 @@ class TestRegistrationPublicAccess:
         """Test that anyone with valid GitHub auth can register a client"""
         # Skip if no auth token available
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.skip("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token")
+            pytest.fail("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
         
         # Register a client with valid authentication
         registration_data = {
@@ -122,7 +122,7 @@ class TestTokenSecurityWithoutGitHub:
         """Test that having client credentials alone is not enough to get tokens"""
         # First register a client (requires auth in current implementation)
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.skip("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token")
+            pytest.fail("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
         
         # Register a test client
         registration_response = await http_client.post(
@@ -161,7 +161,7 @@ class TestTokenSecurityWithoutGitHub:
         """Test that authorization endpoint redirects to GitHub for user authentication"""
         # Register a client first
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.skip("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token")
+            pytest.fail("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
         
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
@@ -216,7 +216,7 @@ class TestAllowedUsersEnforcement:
         
         # Skip if no auth token
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.skip("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token")
+            pytest.fail("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
         
         # The actual user restriction is enforced after GitHub callback
         # This test verifies the auth flow structure
@@ -291,7 +291,7 @@ class TestUnauthorizedUserAccess:
         """Test that token endpoint rejects invalid authorization codes"""
         # Register a client first
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.skip("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token")
+            pytest.fail("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
         
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
@@ -338,7 +338,7 @@ class TestSecurityModelValidation:
         
         # Skip if no auth token
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.skip("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token")
+            pytest.fail("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
         
         # Step 1: Register a client
         registration_response = await http_client.post(

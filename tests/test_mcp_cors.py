@@ -87,7 +87,7 @@ class TestMCPCORS:
         # Get OAuth token from environment
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.skip("No OAuth token available for CORS testing")
+            pytest.fail("No OAuth token available for CORS testing - TESTS MUST NOT BE SKIPPED!")
         
         async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
             # Properly initialize MCP session first
@@ -178,7 +178,7 @@ class TestMCPCORS:
         # Use OAuth token from environment if available
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.skip("No OAuth token available for testing")
+            pytest.fail("No OAuth token available for testing - TESTS MUST NOT BE SKIPPED!")
         
         async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
             # Properly initialize MCP session first (without Origin header)

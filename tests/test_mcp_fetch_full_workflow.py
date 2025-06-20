@@ -117,7 +117,7 @@ async def test_oauth_token_validation(http_client, wait_for_services):
     
     oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if not oauth_token:
-        pytest.skip("No OAuth token available")
+        pytest.fail("No OAuth token available - TESTS MUST NOT BE SKIPPED!")
     
     # Test the /verify endpoint directly
     response = await http_client.get(

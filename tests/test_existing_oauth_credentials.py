@@ -138,7 +138,7 @@ class TestExistingOAuthCredentials:
         """Test using GitHub PAT to verify user info"""
         
         if not GITHUB_PAT:
-            pytest.skip("GITHUB_PAT not set - skipping GitHub API test")
+            pytest.fail("GITHUB_PAT not set - TESTS MUST NOT BE SKIPPED! GitHub PAT is REQUIRED!")
         
         # We can use the GitHub PAT to get user info directly
         async with httpx.AsyncClient() as github_client:

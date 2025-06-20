@@ -21,7 +21,7 @@ class TestGitHubCredentialsValid:
         github_pat = os.getenv("GITHUB_PAT")
         
         if not github_pat:
-            pytest.skip("GITHUB_PAT not set - skipping PAT validation")
+            pytest.fail("GITHUB_PAT not set - TESTS MUST NOT BE SKIPPED! GitHub PAT is REQUIRED!")
         
         # Test the PAT by making a simple API call
         async with httpx.AsyncClient() as client:
@@ -58,7 +58,7 @@ class TestGitHubCredentialsValid:
         oauth_client_secret = os.getenv("GATEWAY_OAUTH_CLIENT_SECRET")
         
         if not oauth_client_id or not oauth_client_secret:
-            pytest.skip("GATEWAY_OAUTH_CLIENT_ID or GATEWAY_OAUTH_CLIENT_SECRET not set - skipping OAuth validation")
+            pytest.fail("GATEWAY_OAUTH_CLIENT_ID or GATEWAY_OAUTH_CLIENT_SECRET not set - skipping OAuth validation - TESTS MUST NOT BE SKIPPED!")
         
         # These are our dynamically registered credentials - verify they work
         # We can't directly verify them without a full OAuth flow, but we can
