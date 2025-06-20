@@ -56,7 +56,7 @@ class TestRegistrationPublicAccess:
         # Try to access register endpoint without any authorization header
         registration_data = {
             "redirect_uris": [TEST_CALLBACK_URL],
-            "client_name": "Public Registration Test Client",
+            "client_name": "TEST test_register_endpoint_is_public",
             "scope": TEST_CLIENT_SCOPE
         }
         
@@ -93,7 +93,7 @@ class TestRegistrationPublicAccess:
         # Register a client with valid authentication
         registration_data = {
             "redirect_uris": ["https://testapp.example.com/callback"],
-            "client_name": "Test App for Security Verification",
+            "client_name": "TEST test_anyone_can_register_with_auth",
             "scope": "openid profile email"
         }
         
@@ -107,7 +107,7 @@ class TestRegistrationPublicAccess:
         client_data = response.json()
         assert "client_id" in client_data
         assert "client_secret" in client_data
-        assert client_data["client_name"] == "Test App for Security Verification"
+        assert client_data["client_name"] == "TEST test_anyone_can_register_with_auth"
         
         # Store for later tests
         pytest.test_client_id = client_data["client_id"]
@@ -129,7 +129,7 @@ class TestTokenSecurityWithoutGitHub:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_CALLBACK_URL],
-                "client_name": "Security Test Client",
+                "client_name": "TEST test_registered_client_cannot_get_token_without_github_auth",
                 "scope": "openid profile"
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
@@ -167,7 +167,7 @@ class TestTokenSecurityWithoutGitHub:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_CALLBACK_URL],
-                "client_name": "Auth Flow Test Client",
+                "client_name": "TEST test_authorization_requires_github_login",
                 "scope": "openid profile email"
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
@@ -224,7 +224,7 @@ class TestAllowedUsersEnforcement:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_CALLBACK_URL],
-                "client_name": "User Restriction Test",
+                "client_name": "TEST test_oauth_flow_checks_allowed_users",
                 "scope": "openid profile"
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
@@ -297,7 +297,7 @@ class TestUnauthorizedUserAccess:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_CALLBACK_URL],
-                "client_name": "Invalid Code Test",
+                "client_name": "TEST test_token_exchange_without_valid_code",
                 "scope": "openid profile"
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
@@ -345,7 +345,7 @@ class TestSecurityModelValidation:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_CALLBACK_URL],
-                "client_name": "Complete Security Test",
+                "client_name": "TEST test_complete_security_flow",
                 "scope": "openid profile email"
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}

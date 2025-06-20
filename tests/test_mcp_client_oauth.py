@@ -37,7 +37,7 @@ class TestMCPClientOAuthRegistration:
     async def test_dynamic_client_registration(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test that MCP clients can register dynamically per RFC 7591"""
         # Create unique client for this test
-        client_name = f"mcp-client-oauth-{secrets.token_urlsafe(8)}"
+        client_name = "TEST test_dynamic_client_registration"
         
         registration_data = {
             "redirect_uris": ["http://localhost:8080/callback"],  # Local callback for CLI tools
@@ -72,7 +72,7 @@ class TestMCPClientOAuthRegistration:
         """Test client registration with bearer token (authenticated registration)"""
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "Need OAuth token for authenticated registration"
         
-        client_name = f"mcp-auth-client-{secrets.token_urlsafe(8)}"
+        client_name = "TEST test_client_registration_with_auth_token"
         
         registration_data = {
             "redirect_uris": ["http://localhost:3000/callback"],
@@ -103,7 +103,7 @@ class TestMCPClientOAuthFlows:
     async def test_authorization_code_flow_initiation(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test starting the authorization code flow"""
         # First register a client
-        client_name = f"mcp-flow-test-{secrets.token_urlsafe(8)}"
+        client_name = "TEST test_authorization_code_flow_initiation"
         
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
@@ -147,7 +147,7 @@ class TestMCPClientOAuthFlows:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
-                "client_name": "MCP CLI Client",
+                "client_name": "TEST test_pkce_flow_for_cli_clients",
                 "token_endpoint_auth_method": "none"  # Public client
             }
         )
@@ -193,7 +193,7 @@ class TestMCPClientOAuthFlows:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
-                "client_name": "Refresh Test Client"
+                "client_name": "TEST test_token_refresh_flow"
             }
         )
         
@@ -268,7 +268,7 @@ class TestMCPClientTokenValidation:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
-                "client_name": "Introspection Test Client"
+                "client_name": "TEST test_token_introspection"
             }
         )
         
@@ -308,7 +308,7 @@ class TestMCPClientCredentialStorage:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
-                "client_name": "Storage Test Client"
+                "client_name": "TEST test_credential_format"
             }
         )
         
@@ -417,7 +417,7 @@ class TestMCPClientRealWorldScenarios:
     @pytest.mark.asyncio
     async def test_client_reregistration(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test re-registering a client (common when credentials are lost)"""
-        client_name = "Persistent MCP Client"
+        client_name = "TEST test_client_reregistration"
         
         # Register once
         response1 = await http_client.post(

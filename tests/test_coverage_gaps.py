@@ -40,7 +40,7 @@ class TestCoverageGaps:
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
         
         registration_data = {
-            "client_name": "Test Client Without URIs",
+            "client_name": "TEST test_client_registration_missing_redirect_uris",
             "scope": "openid profile email"
             # Deliberately missing redirect_uris
         }

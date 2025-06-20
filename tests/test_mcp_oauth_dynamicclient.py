@@ -81,7 +81,7 @@ class TestMCPOAuthDynamicClientPackage:
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
         
         # Create unique client name for this test
-        client_name = f"test-client-{secrets.token_urlsafe(8)}"
+        client_name = "TEST test_dynamic_client_registration_rfc7591"
         
         registration_data = {
             "redirect_uris": [TEST_REDIRECT_URI, "https://example.com/callback2"],
@@ -140,7 +140,7 @@ class TestMCPOAuthDynamicClientPackage:
         # Test 1: Missing required field (redirect_uris)
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json={"client_name": "Invalid Client"},
+            json={"client_name": "TEST test_client_registration_validation"},
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
         
@@ -151,7 +151,7 @@ class TestMCPOAuthDynamicClientPackage:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["not-a-valid-uri"],
-                "client_name": "Invalid URI Client"
+                "client_name": "TEST test_client_registration_validation_invalid_uri"
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
@@ -169,7 +169,7 @@ class TestMCPOAuthDynamicClientPackage:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [],
-                "client_name": "Empty URIs Client"
+                "client_name": "TEST test_client_registration_validation_empty_uris"
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
@@ -183,7 +183,7 @@ class TestMCPOAuthDynamicClientPackage:
     async def test_authorization_endpoint_with_registered_client(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test authorization endpoint with a dynamically registered client"""
         # First register a client
-        client_name = f"auth-test-client-{secrets.token_urlsafe(8)}"
+        client_name = "TEST test_authorization_endpoint_with_registered_client"
         
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
@@ -249,7 +249,7 @@ class TestMCPOAuthDynamicClientPackage:
     async def test_redis_integration(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test that mcp-oauth-dynamicclient correctly integrates with Redis"""
         # Register a client
-        client_name = f"redis-test-{secrets.token_urlsafe(8)}"
+        client_name = "TEST test_redis_integration"
         
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
@@ -297,7 +297,7 @@ class TestMCPOAuthDynamicClientPackage:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_REDIRECT_URI],
-                "client_name": "PKCE Test Client"
+                "client_name": "TEST test_pkce_support"
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
@@ -362,7 +362,7 @@ class TestMCPOAuthDynamicClientPackage:
                 f"{AUTH_BASE_URL}/register",
                 json={
                     "redirect_uris": [f"https://example{index}.com/callback"],
-                    "client_name": f"Concurrent Client {index}",
+                    "client_name": f"TEST test_concurrent_client_registrations_{index}",
                     "scope": "openid profile"
                 },
                 headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
@@ -404,7 +404,7 @@ class TestMCPOAuthDynamicClientPackage:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_REDIRECT_URI],
-                "client_name": "Grant Type Test Client"
+                "client_name": "TEST test_invalid_grant_types"
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )
@@ -442,7 +442,7 @@ class TestMCPOAuthDynamicClientIntegration:
         assert MCP_CLIENT_ACCESS_TOKEN, "MCP_CLIENT_ACCESS_TOKEN not available"
         
         # Register a new client
-        client_name = f"mcp-integration-{secrets.token_urlsafe(8)}"
+        client_name = "TEST test_full_oauth_flow_with_mcp_client"
         
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
@@ -469,7 +469,7 @@ class TestMCPOAuthDynamicClientIntegration:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_REDIRECT_URI],
-                "client_name": "Invalid Token Client"
+                "client_name": "TEST test_auth_service_handles_invalid_tokens"
             },
             headers={"Authorization": "Bearer invalid_token_12345"}
         )

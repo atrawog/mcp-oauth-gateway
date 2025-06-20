@@ -264,6 +264,78 @@ mcp-client-token-complete auth_code:
     pixi run python scripts/complete_mcp_oauth.py
 
 
+# OAuth Management Commands
+
+# Show all OAuth client registrations
+oauth-list-registrations:
+    @echo "📋 Listing all OAuth client registrations..."
+    @pixi run python scripts/manage_oauth_data.py list-registrations
+
+# Show all active OAuth tokens
+oauth-list-tokens:
+    @echo "🔑 Listing all active OAuth tokens..."
+    @pixi run python scripts/manage_oauth_data.py list-tokens
+
+# Delete a specific client registration
+oauth-delete-registration client_id:
+    @echo "🗑️  Deleting client registration: {{client_id}}"
+    @pixi run python scripts/manage_oauth_data.py delete-registration {{client_id}}
+
+# Delete a client registration and ALL associated tokens
+oauth-delete-client-complete client_id:
+    @echo "🗑️  Deleting client registration and ALL associated data: {{client_id}}"
+    @pixi run python scripts/manage_oauth_data.py delete-registration {{client_id}}
+
+# Delete a specific token by JTI
+oauth-delete-token jti:
+    @echo "🗑️  Deleting token: {{jti}}"
+    @pixi run python scripts/manage_oauth_data.py delete-token {{jti}}
+
+# Delete ALL client registrations (dangerous!)
+oauth-delete-all-registrations:
+    @echo "⚠️  WARNING: This will delete ALL client registrations!"
+    @pixi run python scripts/manage_oauth_data.py delete-all-registrations
+
+# Delete ALL tokens (dangerous!)
+oauth-delete-all-tokens:
+    @echo "⚠️  WARNING: This will delete ALL tokens!"
+    @pixi run python scripts/manage_oauth_data.py delete-all-tokens
+
+# Show OAuth statistics
+oauth-stats:
+    @echo "📊 OAuth Statistics:"
+    @pixi run python scripts/manage_oauth_data.py stats
+
+# Show all OAuth data (registrations + tokens + stats)
+oauth-show-all: oauth-stats oauth-list-registrations oauth-list-tokens
+    @echo "✅ Complete OAuth data displayed"
+
+# Purge expired tokens (dry run - shows what would be deleted)
+oauth-purge-expired-dry:
+    @echo "🔍 Checking for expired tokens (DRY RUN)..."
+    @pixi run python scripts/purge_expired_tokens.py --dry-run
+
+# Purge expired tokens (actually delete them)
+oauth-purge-expired:
+    @echo "🧹 Purging expired tokens..."
+    @pixi run python scripts/purge_expired_tokens.py
+
+# Test cleanup commands - Sacred pattern: "TEST testname"
+# Show all test registrations (dry run)
+test-cleanup-show:
+    @echo "🔍 Showing test registrations (client_name starting with 'TEST ')..."
+    @pixi run python scripts/cleanup_test_data.py --show
+
+# Cleanup test data (dry run by default)
+test-cleanup:
+    @echo "🧹 Cleaning up test registrations (dry run)..."
+    @pixi run python scripts/cleanup_test_data.py
+    
+# Actually delete test data (use with caution!)
+test-cleanup-execute:
+    @echo "⚠️  DELETING all test registrations and related tokens..."
+    @pixi run python scripts/cleanup_test_data.py --execute
+
 # Setup commands
 setup: network-create volumes-create
     @echo "Setting up MCP OAuth Gateway..."

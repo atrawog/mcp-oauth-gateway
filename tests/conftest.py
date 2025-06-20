@@ -66,6 +66,84 @@ def check_token_expiry(token: str) -> Tuple[bool, int]:
         return False, 0
 
 
+def pytest_configure(config):
+    """Run token validation BEFORE any test collection or execution"""
+    import sys
+    
+    # Force output to be visible
+    sys.stdout.flush()
+    sys.stderr.flush()
+    
+    print("\n" + "=" * 60, file=sys.stderr)
+    print("🔐 PRE-TEST TOKEN VALIDATION", file=sys.stderr)
+    print("=" * 60, file=sys.stderr)
+    
+    # Check Gateway OAuth token exists
+    gateway_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
+    if not gateway_token:
+        print("❌ No GATEWAY_OAUTH_ACCESS_TOKEN found! Run: just generate-github-token", file=sys.stderr)
+        pytest.exit("Token validation failed", returncode=1)
+    
+    # Check JWT structure and expiry
+    is_valid, ttl = check_token_expiry(gateway_token)
+    if not is_valid:
+        print("❌ Gateway token is expired! Run: just generate-github-token", file=sys.stderr)
+        pytest.exit("Token validation failed", returncode=1)
+    
+    # Verify token with auth service using synchronous request
+    import requests
+    try:
+        verify_response = requests.get(
+            f"{AUTH_BASE_URL}/verify",
+            headers={"Authorization": f"Bearer {gateway_token}"},
+            timeout=10
+        )
+        
+        if verify_response.status_code == 401:
+            print("❌ Gateway token is not recognized by auth service (possibly cleared from Redis)!", file=sys.stderr)
+            print("   This usually happens after clearing registrations or restarting services.", file=sys.stderr)
+            print("   Run: just generate-github-token", file=sys.stderr)
+            pytest.exit("Token validation failed", returncode=1)
+        elif verify_response.status_code != 200:
+            print(f"❌ Failed to verify gateway token: {verify_response.status_code}", file=sys.stderr)
+            pytest.exit("Token validation failed", returncode=1)
+        else:
+            print(f"✅ Gateway token valid for {ttl/3600:.1f} hours and recognized by auth service", file=sys.stderr)
+    except Exception as e:
+        print(f"❌ Failed to verify token with auth service: {e}", file=sys.stderr)
+        print("   Make sure services are running: just up", file=sys.stderr)
+        pytest.exit("Token validation failed", returncode=1)
+    
+    # Check GitHub PAT
+    github_pat = os.getenv("GITHUB_PAT")
+    if not github_pat or github_pat.strip() == "":
+        print("❌ No GitHub PAT configured! GitHub PAT is REQUIRED!", file=sys.stderr)
+        print("   Run: just generate-github-token", file=sys.stderr)
+        pytest.exit("Token validation failed", returncode=1)
+    
+    # Quick validation of other critical variables
+    critical_vars = {
+        "BASE_DOMAIN": "Base domain for services",
+        "GITHUB_CLIENT_ID": "GitHub OAuth client ID",
+        "GITHUB_CLIENT_SECRET": "GitHub OAuth client secret",
+        "GATEWAY_JWT_SECRET": "JWT signing secret"
+    }
+    
+    missing = []
+    for var, desc in critical_vars.items():
+        if not os.getenv(var):
+            missing.append(f"  - {var}: {desc}")
+    
+    if missing:
+        print("❌ Critical environment variables missing:", file=sys.stderr)
+        for m in missing:
+            print(m, file=sys.stderr)
+        pytest.exit("Token validation failed", returncode=1)
+    
+    print("✅ All critical tokens and configuration validated!", file=sys.stderr)
+    print("=" * 60, file=sys.stderr)
+
+
 def update_env_file(key: str, value: str):
     """Update a key in the .env file"""
     env_file = Path(".env")
@@ -164,10 +242,24 @@ async def refresh_and_validate_tokens(ensure_services_ready):
     if not gateway_token:
         pytest.fail("❌ No GATEWAY_OAUTH_ACCESS_TOKEN found! Run: just generate-github-token")
     
+    # First check JWT expiry
     is_valid, ttl = check_token_expiry(gateway_token)
     if not is_valid:
         pytest.fail("❌ Gateway token is expired! Run: just generate-github-token")
-    elif ttl < 3600:  # Less than 1 hour
+    
+    # Then verify token is actually valid in the auth service
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        verify_response = await client.get(
+            f"{AUTH_BASE_URL}/verify",
+            headers={"Authorization": f"Bearer {gateway_token}"}
+        )
+        
+        if verify_response.status_code == 401:
+            pytest.fail("❌ Gateway token is not recognized by auth service (possibly cleared from Redis)! Run: just generate-github-token")
+        elif verify_response.status_code != 200:
+            pytest.fail(f"❌ Failed to verify gateway token: {verify_response.status_code}")
+    
+    if ttl < 3600:  # Less than 1 hour
         # Try to refresh
         refresh_token = os.getenv("GATEWAY_OAUTH_REFRESH_TOKEN")
         if not refresh_token:
@@ -229,7 +321,21 @@ async def refresh_and_validate_tokens(ensure_services_ready):
     if mcp_token:
         is_valid, ttl = check_token_expiry(mcp_token)
         if is_valid and ttl > 300:
-            print(f"✅ MCP client token valid for {ttl/3600:.1f} hours")
+            # Verify token is actually valid in the auth service
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                verify_response = await client.get(
+                    f"{AUTH_BASE_URL}/verify",
+                    headers={"Authorization": f"Bearer {mcp_token}"}
+                )
+                
+                if verify_response.status_code == 200:
+                    print(f"✅ MCP client token valid for {ttl/3600:.1f} hours")
+                else:
+                    # Token not valid in auth service, use gateway token
+                    gateway_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
+                    update_env_file("MCP_CLIENT_ACCESS_TOKEN", gateway_token)
+                    os.environ["MCP_CLIENT_ACCESS_TOKEN"] = gateway_token
+                    print("✅ Updated MCP client token from gateway token (previous token not recognized by auth service)")
         else:
             # Use gateway token as MCP client token
             gateway_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")

@@ -42,7 +42,7 @@ class TestOAuthFlow:
         # Test successful registration
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
-            "client_name": "RFC 7591 Test Client",
+            "client_name": "TEST test_client_registration_rfc7591",
             "client_uri": "https://example.com",
             "scope": "openid profile",
             "contacts": ["admin@example.com"]
@@ -68,7 +68,7 @@ class TestOAuthFlow:
         assert client["client_uri"] == registration_data["client_uri"]
         
         # Test missing redirect_uris (with proper authentication)
-        invalid_data = {"client_name": "Invalid Client"}
+        invalid_data = {"client_name": "TEST test_client_registration_rfc7591_invalid"}
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json=invalid_data,

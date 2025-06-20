@@ -20,7 +20,7 @@ class TestRegisterEndpointSecurity:
         
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
-            "client_name": "Test Client",
+            "client_name": "TEST test_register_is_public_endpoint",
             "scope": "openid profile email"
         }
         
@@ -35,7 +35,7 @@ class TestRegisterEndpointSecurity:
         client_data = response.json()
         assert "client_id" in client_data
         assert "client_secret" in client_data
-        assert client_data["client_name"] == "Test Client"
+        assert client_data["client_name"] == "TEST test_register_is_public_endpoint"
         
         # Security is enforced at authorization/token stage, not registration
     
@@ -45,7 +45,7 @@ class TestRegisterEndpointSecurity:
         
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
-            "client_name": "Test Client with Auth Header",
+            "client_name": "TEST test_register_ignores_authorization_headers",
             "scope": "openid profile email"
         }
         
@@ -61,7 +61,7 @@ class TestRegisterEndpointSecurity:
         assert response.status_code == 201
         client_data = response.json()
         assert "client_id" in client_data
-        assert client_data["client_name"] == "Test Client with Auth Header"
+        assert client_data["client_name"] == "TEST test_register_ignores_authorization_headers"
     
     @pytest.mark.asyncio
     async def test_security_enforced_at_authorization_stage(self, http_client, wait_for_services):
@@ -70,7 +70,7 @@ class TestRegisterEndpointSecurity:
         # First, register a client publicly (no auth required)
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
-            "client_name": "Security Test Client",
+            "client_name": "TEST test_security_enforced_at_authorization_stage",
             "scope": "openid profile email"
         }
         
@@ -108,7 +108,7 @@ class TestRegisterEndpointSecurity:
         # because it's a public endpoint per RFC 7591
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
-            "client_name": "Client With Valid Token",
+            "client_name": "TEST test_register_with_valid_token_still_succeeds",
             "scope": "openid profile email"
         }
         
@@ -128,7 +128,7 @@ class TestRegisterEndpointSecurity:
         client_data = response.json()
         assert "client_id" in client_data
         assert "client_secret" in client_data
-        assert client_data["client_name"] == "Client With Valid Token"
+        assert client_data["client_name"] == "TEST test_register_with_valid_token_still_succeeds"
     
     @pytest.mark.asyncio
     async def test_token_endpoint_requires_authentication(self, http_client, wait_for_services):
@@ -139,7 +139,7 @@ class TestRegisterEndpointSecurity:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["https://example.com/callback"],
-                "client_name": "Token Security Test Client"
+                "client_name": "TEST test_token_endpoint_requires_authentication"
             }
         )
         
@@ -173,7 +173,7 @@ class TestRegisterEndpointSecurity:
         for i in range(3):
             registration_data = {
                 "redirect_uris": [f"https://client{i}.example.com/callback"],
-                "client_name": f"Public Test Client {i}",
+                "client_name": f"TEST test_multiple_clients_can_register_publicly_{i}",
                 "scope": "openid profile email"
             }
             
@@ -187,7 +187,7 @@ class TestRegisterEndpointSecurity:
             client_data = response.json()
             assert "client_id" in client_data
             assert "client_secret" in client_data
-            assert client_data["client_name"] == f"Public Test Client {i}"
+            assert client_data["client_name"] == f"TEST test_multiple_clients_can_register_publicly_{i}"
             clients.append(client_data)
         
         # Ensure all clients have unique IDs
@@ -210,7 +210,7 @@ class TestRegisterEndpointBootstrap:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["https://app1.example.com/callback"],
-                "client_name": "Bootstrap Test App 1",
+                "client_name": "TEST test_anyone_can_register_multiple_clients_1",
                 "scope": "openid profile email"
             }
         )
@@ -223,7 +223,7 @@ class TestRegisterEndpointBootstrap:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["https://app2.example.com/callback"],
-                "client_name": "Bootstrap Test App 2",
+                "client_name": "TEST test_anyone_can_register_multiple_clients_2",
                 "scope": "openid profile"
             }
         )

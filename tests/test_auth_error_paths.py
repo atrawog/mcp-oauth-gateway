@@ -85,7 +85,7 @@ class TestClientRegistrationErrors:
         
         registration_data = {
             "redirect_uris": [],  # Empty list should fail
-            "client_name": "Test Client"
+            "client_name": "TEST test_registration_empty_redirect_uris"
         }
         
         response = await http_client.post(
@@ -287,7 +287,7 @@ class TestJWTTokenCreation:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["https://test.example.com/callback"],
-                "client_name": "User Tracking Test Client"
+                "client_name": "TEST test_create_token_with_user_tracking"
             }
         )
         

@@ -38,7 +38,7 @@ class TestMCPFetchComplete:
         # Step 1: Register an OAuth client
         registration_data = {
             "redirect_uris": [TEST_REDIRECT_URI],
-            "client_name": f"{TEST_CLIENT_NAME} - Complete Flow Test",
+            "client_name": "TEST test_mcp_fetch_actually_fetches_content",
             "scope": TEST_CLIENT_SCOPE
         }
         

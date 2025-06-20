@@ -79,6 +79,7 @@ async def check_existing_token(token: str) -> bool:
             return False
 
 
+
 async def register_oauth_client_with_user_token(base_url: str, user_jwt_token: str) -> Dict[str, str]:
     """Register OAuth client using a valid user JWT token"""
     # Get REAL callback URLs from environment - must be REAL FQDNs
@@ -298,6 +299,68 @@ async def main():
     client_secret = os.getenv("GATEWAY_OAUTH_CLIENT_SECRET")
     existing_access_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     
+    # First, validate that the client credentials are actually valid
+    if client_id and client_secret:
+        print(f"🔍 Validating OAuth client credentials: {client_id}...")
+        
+        # Try to use the client credentials with a dummy auth code to see if client is valid
+        verify_ssl = not auth_base_url.startswith("https://localhost") and not "127.0.0.1" in auth_base_url
+        async with httpx.AsyncClient(verify=verify_ssl) as client:
+            try:
+                # Try token endpoint with client credentials to validate them
+                response = await client.post(
+                    f"{auth_base_url}/token",
+                    data={
+                        "grant_type": "authorization_code",
+                        "code": "dummy_code",  # This will fail, but we'll get different errors
+                        "redirect_uri": os.getenv("TEST_CALLBACK_URL", "https://example.com/callback"),
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "code_verifier": "dummy_verifier"
+                    }
+                )
+                
+                # Check the error response to determine if client is valid
+                if response.status_code == 400:
+                    error_data = response.json()
+                    error_code = error_data.get("error", "")
+                    error_detail = error_data.get("detail", {})
+                    
+                    # If detail is a dict, get the error from it
+                    if isinstance(error_detail, dict):
+                        error_code = error_detail.get("error", error_code)
+                    
+                    # If we get "invalid_grant", the client is valid but code is bad (expected)
+                    if error_code == "invalid_grant":
+                        print("✅ OAuth client credentials are valid!")
+                    # If we get "invalid_client", the client doesn't exist or secret is wrong
+                    elif error_code == "invalid_client":
+                        print("❌ OAuth client credentials are invalid or not registered!")
+                        print("   The client was likely cleared from Redis.")
+                        client_id = None
+                        client_secret = None
+                    else:
+                        print(f"⚠️  Unexpected error: {error_code}")
+                        print(f"   Full response: {error_data}")
+                        # Assume client is invalid to be safe
+                        client_id = None
+                        client_secret = None
+                elif response.status_code == 401:
+                    # 401 also indicates invalid client
+                    print("❌ OAuth client credentials are invalid (401 Unauthorized)!")
+                    client_id = None
+                    client_secret = None
+                else:
+                    print(f"❌ Unexpected response validating client: {response.status_code}")
+                    print(f"   Response: {response.text}")
+                    client_id = None
+                    client_secret = None
+                    
+            except Exception as e:
+                print(f"❌ Error validating client credentials: {e}")
+                client_id = None
+                client_secret = None
+    
     # If we have everything, check if the access token is still valid
     if client_id and client_secret and existing_access_token and existing_access_token != "PLACEHOLDER_NEEDS_REAL_OAUTH_FLOW":
         print(f"✅ Using existing OAuth client: {client_id}")
@@ -328,18 +391,40 @@ async def main():
         
         # Check if we have a client to use for OAuth flow
         if not client_id or not client_secret:
-            print("❌ No OAuth client credentials found!")
-            print("\n📋 BOOTSTRAP PROBLEM DETECTED:")
-            print("We need an OAuth client to get a user token, but need a user token to register a client!")
-            print("\n🔧 MANUAL INTERVENTION REQUIRED:")
-            print("1. Run this script with existing client credentials in .env")
-            print("2. Or use the auth service directly to bootstrap the first client")
-            print(f"3. Visit {auth_base_url} to set up initial OAuth flow")
-            print("\n💡 In production, you'd solve this with:")
-            print("   - Admin interface for initial client registration")
-            print("   - Pre-seeded client credentials in secure storage")
-            print("   - Service-to-service authentication for bootstrap")
-            sys.exit(1)
+            print("❌ No valid OAuth client credentials found!")
+            print("\n🔧 Registering new OAuth client (no auth required)...")
+            
+            # Register a new client - no authentication needed!
+            verify_ssl = not auth_base_url.startswith("https://localhost") and not "127.0.0.1" in auth_base_url
+            
+            async with httpx.AsyncClient(verify=verify_ssl) as client:
+                response = await client.post(
+                    f"{auth_base_url}/register",
+                    json={
+                        "redirect_uris": [
+                            os.getenv("TEST_CALLBACK_URL", "https://auth.atradev.org/success"),
+                            os.getenv("TEST_REDIRECT_URI", "https://auth.atradev.org/callback")
+                        ],
+                        "client_name": "MCP OAuth Gateway Client",
+                        "scope": "openid profile email"
+                    }
+                )
+                
+                if response.status_code == 201:
+                    client_data = response.json()
+                    print("✅ Successfully registered new OAuth client!")
+                    
+                    # Save the new client credentials
+                    client_id = client_data["client_id"]
+                    client_secret = client_data["client_secret"]
+                    save_env_var("GATEWAY_OAUTH_CLIENT_ID", client_id)
+                    save_env_var("GATEWAY_OAUTH_CLIENT_SECRET", client_secret)
+                    print(f"💾 Saved new OAuth client credentials to .env")
+                    print(f"   Client ID: {client_id}")
+                else:
+                    print(f"❌ Failed to register client: {response.status_code}")
+                    print(f"   Response: {response.text}")
+                    sys.exit(1)
         
         # We have client credentials but need a fresh user token
         print(f"🔄 Need fresh OAuth token for client: {client_id}")

@@ -67,6 +67,7 @@ pip = "*"
 click = ">=8.0.0"
 anyio = ">=3.0.0"
 rich = ">=13.0.0"
+requests = ">=2.32.4,<3"
 
 [feature.docs.dependencies]
 # Additional dependencies for documentation

@@ -126,7 +126,7 @@ class TestSacredSealsCompliance:
                 "redirect_uris": ["https://claude.ai/callback"],
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"],
-                "client_name": "Claude.ai MCP Client"
+                "client_name": "TEST test_seal_of_dual_realms"
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
         )

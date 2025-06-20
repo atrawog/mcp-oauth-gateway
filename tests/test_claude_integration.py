@@ -55,7 +55,7 @@ class TestClaudeIntegration:
         # Step 4: Registration Miracle - POSTs to /register
         registration_data = {
             "redirect_uris": ["https://claude.ai/oauth/callback"],
-            "client_name": "Claude.ai MCP Client",
+            "client_name": "TEST test_claude_nine_sacred_steps",
             "client_uri": "https://claude.ai",
             "scope": "mcp:access",
             "grant_types": ["authorization_code", "refresh_token"],
