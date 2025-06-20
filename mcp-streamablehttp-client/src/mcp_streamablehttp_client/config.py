@@ -78,6 +78,18 @@ class Settings(BaseSettings):
         description="OAuth server metadata discovery URL (discovered)"
     )
     
+    # RFC 7592 Management Fields
+    registration_access_token: Optional[str] = Field(
+        None,
+        description="Bearer token for managing client registration (RFC 7592)",
+        alias="MCP_CLIENT_REGISTRATION_TOKEN"
+    )
+    registration_client_uri: Optional[str] = Field(
+        None,
+        description="URI for managing this client registration (RFC 7592)",
+        alias="MCP_CLIENT_REGISTRATION_URI"
+    )
+    
     # Client Configuration
     client_name: str = Field(
         "mcp-http-stdio",

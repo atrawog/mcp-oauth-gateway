@@ -165,6 +165,15 @@ class OAuthClient:
             self.settings.oauth_client_id = data["client_id"]
             self.settings.oauth_client_secret = data.get("client_secret")
             
+            # Save RFC 7592 management credentials
+            if "registration_access_token" in data:
+                self.settings.registration_access_token = data["registration_access_token"]
+                logger.info("Saved registration_access_token for client management")
+            
+            if "registration_client_uri" in data:
+                self.settings.registration_client_uri = data["registration_client_uri"]
+                logger.info(f"Saved registration_client_uri: {data['registration_client_uri']}")
+            
             console.print(f"[green]✓[/green] Client registered: {data['client_id']}")
             logger.info(f"Registered OAuth client: {data['client_id']}")
             
@@ -409,3 +418,155 @@ class OAuthClient:
                 continue
         
         return None
+    
+    # RFC 7592 Client Registration Management Methods
+    
+    async def get_client_configuration(self) -> Dict[str, Any]:
+        """
+        Get current client configuration using RFC 7592 endpoint.
+        
+        Returns:
+            dict: Client configuration data
+            
+        Raises:
+            RuntimeError: If operation fails or credentials missing
+        """
+        if not self.settings.registration_access_token or not self.settings.registration_client_uri:
+            raise RuntimeError(
+                "Missing registration management credentials. "
+                "Client must be registered with RFC 7592 support."
+            )
+        
+        try:
+            response = await self.http_client.get(
+                self.settings.registration_client_uri,
+                headers={
+                    "Authorization": f"Bearer {self.settings.registration_access_token}"
+                }
+            )
+            
+            if response.status_code == 404:
+                raise RuntimeError("Client registration not found. Client may have expired.")
+            elif response.status_code == 401:
+                raise RuntimeError("Invalid registration access token")
+            elif response.status_code == 403:
+                raise RuntimeError("Access forbidden - invalid token or permissions")
+            
+            response.raise_for_status()
+            return response.json()
+            
+        except httpx.HTTPError as e:
+            logger.error(f"Failed to get client configuration: {e}")
+            raise RuntimeError(f"Failed to get client configuration: {e}")
+    
+    async def update_client_configuration(self, updates: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update client configuration using RFC 7592 endpoint.
+        
+        Args:
+            updates: Dictionary of fields to update (redirect_uris, client_name, etc.)
+            
+        Returns:
+            dict: Updated client configuration
+            
+        Raises:
+            RuntimeError: If operation fails or credentials missing
+        """
+        if not self.settings.registration_access_token or not self.settings.registration_client_uri:
+            raise RuntimeError(
+                "Missing registration management credentials. "
+                "Client must be registered with RFC 7592 support."
+            )
+        
+        # Allowed update fields per RFC 7592
+        allowed_fields = {
+            "redirect_uris", "client_name", "client_uri", 
+            "logo_uri", "contacts", "tos_uri", "policy_uri",
+            "scope", "grant_types", "response_types"
+        }
+        
+        # Filter to only allowed fields
+        filtered_updates = {k: v for k, v in updates.items() if k in allowed_fields}
+        
+        if not filtered_updates:
+            raise ValueError("No valid fields to update")
+        
+        try:
+            response = await self.http_client.put(
+                self.settings.registration_client_uri,
+                json=filtered_updates,
+                headers={
+                    "Authorization": f"Bearer {self.settings.registration_access_token}",
+                    "Content-Type": "application/json"
+                }
+            )
+            
+            if response.status_code == 404:
+                raise RuntimeError("Client registration not found")
+            elif response.status_code == 401:
+                raise RuntimeError("Invalid registration access token")
+            elif response.status_code == 403:
+                raise RuntimeError("Access forbidden")
+            
+            response.raise_for_status()
+            
+            # Update local client_secret if returned
+            data = response.json()
+            if "client_secret" in data and data["client_secret"] != self.settings.oauth_client_secret:
+                self.settings.oauth_client_secret = data["client_secret"]
+                logger.info("Client secret was rotated by server")
+            
+            return data
+            
+        except httpx.HTTPError as e:
+            logger.error(f"Failed to update client configuration: {e}")
+            raise RuntimeError(f"Failed to update client configuration: {e}")
+    
+    async def delete_client_registration(self) -> None:
+        """
+        Delete this client registration using RFC 7592 endpoint.
+        
+        This is a destructive operation that cannot be undone.
+        The client will need to re-register to continue using the service.
+        
+        Raises:
+            RuntimeError: If operation fails or credentials missing
+        """
+        if not self.settings.registration_access_token or not self.settings.registration_client_uri:
+            raise RuntimeError(
+                "Missing registration management credentials. "
+                "Client must be registered with RFC 7592 support."
+            )
+        
+        try:
+            response = await self.http_client.delete(
+                self.settings.registration_client_uri,
+                headers={
+                    "Authorization": f"Bearer {self.settings.registration_access_token}"
+                }
+            )
+            
+            if response.status_code == 404:
+                # Already deleted, consider this success
+                logger.info("Client registration already deleted")
+            elif response.status_code == 401:
+                raise RuntimeError("Invalid registration access token")
+            elif response.status_code == 403:
+                raise RuntimeError("Access forbidden")
+            elif response.status_code != 204:
+                response.raise_for_status()
+            
+            # Clear local credentials after successful deletion
+            self.settings.oauth_client_id = None
+            self.settings.oauth_client_secret = None
+            self.settings.registration_access_token = None
+            self.settings.registration_client_uri = None
+            self.settings.oauth_access_token = None
+            self.settings.oauth_refresh_token = None
+            
+            logger.info("Client registration deleted successfully")
+            console.print("[green]✓[/green] Client registration deleted")
+            
+        except httpx.HTTPError as e:
+            logger.error(f"Failed to delete client registration: {e}")
+            raise RuntimeError(f"Failed to delete client registration: {e}")

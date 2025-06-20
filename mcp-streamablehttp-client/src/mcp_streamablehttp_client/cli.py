@@ -68,6 +68,20 @@ def setup_logging(level: str) -> None:
     "-c", "--command",
     help="Execute a specific MCP tool and exit. Examples: 'fetch https://example.com', 'search query text', 'read_file path=/tmp/file.txt'"
 )
+@click.option(
+    "--get-client-info",
+    is_flag=True,
+    help="Get current client registration information (RFC 7592)"
+)
+@click.option(
+    "--update-client",
+    help="Update client registration (RFC 7592). Format: field=value,field2=value2"
+)
+@click.option(
+    "--delete-client",
+    is_flag=True,
+    help="Delete client registration (RFC 7592). This is PERMANENT!"
+)
 def main(
     env_file: Path,
     log_level: str,
@@ -75,7 +89,10 @@ def main(
     reset_auth: bool,
     test_auth: bool,
     token: bool,
-    command: str
+    command: str,
+    get_client_info: bool,
+    update_client: str,
+    delete_client: bool
 ) -> None:
     """
     MCP Streamable HTTP-to-stdio client with OAuth support.
@@ -126,16 +143,34 @@ def main(
             console.print("[dim]Note: To fully reset, clear MCP_CLIENT_* variables from .env[/dim]")
         
         # Run async main
-        asyncio.run(async_main(settings, test_auth, token, command))
+        asyncio.run(async_main(
+            settings, test_auth, token, command, 
+            get_client_info, update_client, delete_client
+        ))
         
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
         sys.exit(1)
 
 
-async def async_main(settings: Settings, test_auth: bool, token: bool, command: str) -> None:
+async def async_main(
+    settings: Settings, 
+    test_auth: bool, 
+    token: bool, 
+    command: str,
+    get_client_info: bool,
+    update_client: str,
+    delete_client: bool
+) -> None:
     """Async main function."""
     logger = logging.getLogger(__name__)
+    
+    # Handle RFC 7592 client management commands
+    if get_client_info or update_client or delete_client:
+        await handle_client_management(
+            settings, get_client_info, update_client, delete_client
+        )
+        return
     
     # Check and refresh tokens if requested
     if token:
@@ -244,6 +279,16 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
         console.print(f"[green]✓[/green] Client registered: {settings.oauth_client_id}")
         if settings.oauth_client_secret:
             console.print(f"[dim]  Secret: {settings.oauth_client_secret[:8]}...[/dim]")
+        
+        # Check RFC 7592 management credentials
+        if settings.registration_access_token:
+            console.print(f"[green]✓[/green] RFC 7592 management enabled")
+            console.print(f"[dim]  Management token: {settings.registration_access_token[:20]}...[/dim]")
+            if settings.registration_client_uri:
+                console.print(f"[dim]  Management URI: {settings.registration_client_uri}[/dim]")
+        else:
+            console.print("[yellow]⚠️  No RFC 7592 management credentials[/yellow]")
+            console.print("[dim]  Client registered before RFC 7592 support[/dim]")
     else:
         console.print("[yellow]⚠️  No client credentials found[/yellow]")
     
@@ -418,6 +463,14 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
         save_env_var("MCP_CLIENT_SECRET", settings.oauth_client_secret)
         console.print("   ✅ Saved MCP_CLIENT_SECRET")
     
+    if settings.registration_access_token:
+        save_env_var("MCP_CLIENT_REGISTRATION_TOKEN", settings.registration_access_token)
+        console.print("   ✅ Saved MCP_CLIENT_REGISTRATION_TOKEN")
+    
+    if settings.registration_client_uri:
+        save_env_var("MCP_CLIENT_REGISTRATION_URI", settings.registration_client_uri)
+        console.print("   ✅ Saved MCP_CLIENT_REGISTRATION_URI")
+    
     # Print MCP client environment variables in a format that can be captured
     # Only output credentials, not endpoints (which are auto-discovered)
     print("\n# MCP Client Environment Variables")
@@ -428,6 +481,10 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
         print(f"export MCP_CLIENT_ID={settings.oauth_client_id}")
     if settings.oauth_client_secret:
         print(f"export MCP_CLIENT_SECRET={settings.oauth_client_secret}")
+    if settings.registration_access_token:
+        print(f"export MCP_CLIENT_REGISTRATION_TOKEN={settings.registration_access_token}")
+    if settings.registration_client_uri:
+        print(f"export MCP_CLIENT_REGISTRATION_URI={settings.registration_client_uri}")
     
     # Print success message
     console.print(f"\n[green]✅ MCP client credentials saved to .env![/green]")
@@ -657,6 +714,176 @@ def parse_tool_arguments(tool_name: str, arg_string: str) -> dict:
             args["input"] = arg_string
     
     return args
+
+
+async def handle_client_management(
+    settings: Settings,
+    get_client_info: bool,
+    update_client: str,
+    delete_client: bool
+) -> None:
+    """Handle RFC 7592 client registration management commands."""
+    console.print("\n[cyan]Client Registration Management (RFC 7592)[/cyan]")
+    console.print("=" * 45)
+    
+    # Create OAuth client
+    async with OAuthClient(settings) as oauth:
+        # Ensure we have registration credentials
+        if not settings.registration_access_token or not settings.registration_client_uri:
+            console.print("[red]Error:[/red] No RFC 7592 management credentials found.")
+            console.print("[dim]Client must be registered with RFC 7592 support.[/dim]")
+            
+            # Check if we have client_id but missing management creds
+            if settings.oauth_client_id:
+                console.print("\n[yellow]Client is registered but missing management credentials.[/yellow]")
+                console.print("[dim]This can happen if the client was registered before RFC 7592 support.[/dim]")
+                console.print("[dim]Consider re-registering with --reset-auth to get management capabilities.[/dim]")
+            sys.exit(1)
+        
+        try:
+            if get_client_info:
+                # Get current client configuration
+                console.print("\n[cyan]Fetching client registration...[/cyan]")
+                config = await oauth.get_client_configuration()
+                
+                console.print(f"\n[green]✓[/green] Client configuration retrieved!")
+                console.print("\n[bold]Client Registration Details:[/bold]")
+                
+                # Display key fields
+                console.print(f"  Client ID: {config.get('client_id', 'N/A')}")
+                console.print(f"  Client Name: {config.get('client_name', 'N/A')}")
+                console.print(f"  Scope: {config.get('scope', 'N/A')}")
+                
+                if 'redirect_uris' in config:
+                    console.print(f"  Redirect URIs: {', '.join(config['redirect_uris'])}")
+                
+                if 'grant_types' in config:
+                    console.print(f"  Grant Types: {', '.join(config['grant_types'])}")
+                
+                if 'client_id_issued_at' in config:
+                    issued_at = config['client_id_issued_at']
+                    from datetime import datetime
+                    dt = datetime.fromtimestamp(issued_at)
+                    console.print(f"  Issued At: {dt.isoformat()}Z")
+                
+                if 'client_secret_expires_at' in config:
+                    expires_at = config['client_secret_expires_at']
+                    if expires_at == 0:
+                        console.print("  Expires: Never (eternal client)")
+                    else:
+                        dt = datetime.fromtimestamp(expires_at)
+                        console.print(f"  Expires: {dt.isoformat()}Z")
+                
+                # Show raw JSON for debugging
+                console.print("\n[dim]Full configuration (JSON):[/dim]")
+                import json
+                console.print(json.dumps(config, indent=2))
+                
+            elif update_client:
+                # Parse update string
+                console.print(f"\n[cyan]Parsing update request: {update_client}[/cyan]")
+                
+                updates = {}
+                for pair in update_client.split(','):
+                    if '=' not in pair:
+                        console.print(f"[red]Error:[/red] Invalid format: {pair}")
+                        console.print("[dim]Expected format: field=value,field2=value2[/dim]")
+                        sys.exit(1)
+                    
+                    key, value = pair.split('=', 1)
+                    key = key.strip()
+                    value = value.strip()
+                    
+                    # Handle array fields
+                    if key in ['redirect_uris', 'grant_types', 'response_types', 'contacts']:
+                        # Split by semicolon for arrays
+                        if ';' in value:
+                            updates[key] = [v.strip() for v in value.split(';')]
+                        else:
+                            updates[key] = [value]
+                    else:
+                        updates[key] = value
+                
+                console.print(f"\n[cyan]Updates to apply:[/cyan]")
+                for k, v in updates.items():
+                    console.print(f"  {k}: {v}")
+                
+                # Confirm before updating
+                console.print("\n[yellow]This will update your client registration.[/yellow]")
+                console.print("Continue? [y/N]: ", end="")
+                if input().strip().lower() != 'y':
+                    console.print("[dim]Update cancelled.[/dim]")
+                    return
+                
+                # Perform update
+                console.print("\n[cyan]Updating client registration...[/cyan]")
+                updated = await oauth.update_client_configuration(updates)
+                
+                console.print(f"[green]✓[/green] Client registration updated!")
+                
+                # Show what changed
+                console.print("\n[bold]Updated fields:[/bold]")
+                for key in updates:
+                    if key in updated:
+                        console.print(f"  {key}: {updated[key]}")
+                
+                # Save new client_secret if it changed
+                if 'client_secret' in updated and updated['client_secret'] != settings.oauth_client_secret:
+                    console.print("\n[yellow]⚠️  Client secret was rotated by server![/yellow]")
+                    console.print("[dim]Updating .env file with new secret...[/dim]")
+                    
+                    from pathlib import Path
+                    env_file = Path(".env")
+                    
+                    def save_env_var(key: str, value: str):
+                        """Save or update an environment variable in .env file"""
+                        lines = []
+                        found = False
+                        
+                        if env_file.exists():
+                            with open(env_file) as f:
+                                for line in f:
+                                    if line.strip().startswith(f"{key}="):
+                                        lines.append(f"{key}={value}\n")
+                                        found = True
+                                    else:
+                                        lines.append(line)
+                        
+                        if not found:
+                            lines.append(f"\n{key}={value}\n")
+                        
+                        with open(env_file, "w") as f:
+                            f.writelines(lines)
+                    
+                    save_env_var("MCP_CLIENT_SECRET", updated['client_secret'])
+                    console.print("[green]✓[/green] New client secret saved to .env")
+                
+            elif delete_client:
+                # Confirm deletion
+                console.print("\n[red]⚠️  WARNING: This will PERMANENTLY delete your client registration![/red]")
+                console.print("[dim]You will need to re-register to use this service again.[/dim]")
+                console.print("\nClient to delete:")
+                console.print(f"  Client ID: {settings.oauth_client_id}")
+                console.print(f"  Client Name: {settings.client_name}")
+                
+                console.print("\n[red]Are you SURE you want to delete this client? Type 'DELETE' to confirm:[/red] ", end="")
+                confirmation = input().strip()
+                
+                if confirmation != "DELETE":
+                    console.print("[dim]Deletion cancelled.[/dim]")
+                    return
+                
+                # Perform deletion
+                console.print("\n[cyan]Deleting client registration...[/cyan]")
+                await oauth.delete_client_registration()
+                
+                console.print("\n[green]✓[/green] Client registration deleted successfully!")
+                console.print("[dim]All credentials have been cleared from memory.[/dim]")
+                console.print("[dim]You may want to remove MCP_CLIENT_* variables from .env[/dim]")
+                
+        except Exception as e:
+            console.print(f"\n[red]Error:[/red] {e}")
+            sys.exit(1)
 
 
 if __name__ == "__main__":
