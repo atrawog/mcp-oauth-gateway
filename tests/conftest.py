@@ -128,16 +128,33 @@ def pytest_configure(config):
                 print(f"✅ Gateway token valid for {ttl/3600:.1f} hours and recognized by auth service", file=sys.stderr)
                 token_valid = True
                 break
-        except Exception as e:
+        except requests.exceptions.ConnectionError as e:
             if attempt < max_retries - 1:
-                print(f"⚠️  Failed to verify token (attempt {attempt + 1}/{max_retries}): {e}", file=sys.stderr)
+                print(f"⚠️  Cannot connect to auth service (attempt {attempt + 1}/{max_retries})", file=sys.stderr)
                 time.sleep(retry_delay)
                 continue
             else:
-                print(f"❌ Failed to verify token with auth service: {e}", file=sys.stderr)
+                print(f"❌ Cannot connect to auth service at {AUTH_BASE_URL}", file=sys.stderr)
                 print("   Make sure services are running: just up", file=sys.stderr)
                 print("=" * 60, file=sys.stderr)
-                pytest.exit("Token validation failed", returncode=1)
+                pytest.exit("Cannot connect to auth service", returncode=1)
+        except requests.exceptions.Timeout as e:
+            if attempt < max_retries - 1:
+                print(f"⚠️  Auth service timeout (attempt {attempt + 1}/{max_retries})", file=sys.stderr)
+                time.sleep(retry_delay)
+                continue
+            else:
+                print(f"❌ Auth service timeout - service may be overloaded", file=sys.stderr)
+                print("=" * 60, file=sys.stderr)
+                pytest.exit("Auth service timeout", returncode=1)
+        except SystemExit:
+            # Re-raise SystemExit from pytest.exit() calls
+            raise
+        except Exception as e:
+            # Other exceptions (JSON decode errors, etc)
+            print(f"❌ Unexpected error verifying token: {e}", file=sys.stderr)
+            print("=" * 60, file=sys.stderr)
+            pytest.exit(f"Token verification error: {e}", returncode=1)
     
     # Check GitHub PAT
     github_pat = os.getenv("GITHUB_PAT")
