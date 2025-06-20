@@ -16,6 +16,9 @@ RUN pip install --no-cache-dir /tmp/mcp-oauth-dynamicclient
 # Clean up the temporary copy
 RUN rm -rf /tmp/mcp-oauth-dynamicclient
 
+# Create keys directory for RS256 - THE BLESSED KEY SANCTUARY!
+RUN mkdir -p /app/keys
+
 # Create non-root user
 RUN useradd -m -u 1000 authuser && chown -R authuser:authuser /app
 USER authuser

@@ -11,21 +11,26 @@ services:
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
       - JWT_SECRET=${GATEWAY_JWT_SECRET}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
       - BASE_DOMAIN=${BASE_DOMAIN}
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
-      - ACCESS_TOKEN_LIFETIME=${ACCESS_TOKEN_LIFETIME:-86400}
-      - REFRESH_TOKEN_LIFETIME=${REFRESH_TOKEN_LIFETIME:-2592000}
-      - SESSION_TIMEOUT=${SESSION_TIMEOUT:-3600}
-      - ALLOWED_GITHUB_USERS=${ALLOWED_GITHUB_USERS:-}
-      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - ACCESS_TOKEN_LIFETIME=${ACCESS_TOKEN_LIFETIME}
+      - REFRESH_TOKEN_LIFETIME=${REFRESH_TOKEN_LIFETIME}
+      - SESSION_TIMEOUT=${SESSION_TIMEOUT}
+      - CLIENT_LIFETIME=${CLIENT_LIFETIME}
+      - ALLOWED_GITHUB_USERS=${ALLOWED_GITHUB_USERS}
+      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION}
       - MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}
     depends_on:
       redis:
         condition: service_healthy
+    volumes:
+      - auth-keys:/app/keys
     labels:
       - "traefik.enable=true"
       # OAuth routes - Priority 4 (HIGHEST)
-      - "traefik.http.routers.auth-oauth.rule=Host(`auth.${BASE_DOMAIN}`) && (PathPrefix(`/register`) || PathPrefix(`/authorize`) || PathPrefix(`/token`) || PathPrefix(`/callback`) || PathPrefix(`/.well-known`) || PathPrefix(`/revoke`) || PathPrefix(`/introspect`) || PathPrefix(`/success`))"
+      - "traefik.http.routers.auth-oauth.rule=Host(`auth.${BASE_DOMAIN}`) && (PathPrefix(`/register`) || PathPrefix(`/authorize`) || PathPrefix(`/token`) || PathPrefix(`/callback`) || PathPrefix(`/.well-known`) || PathPrefix(`/revoke`) || PathPrefix(`/introspect`) || PathPrefix(`/success`) || PathPrefix(`/jwks`))"
       - "traefik.http.routers.auth-oauth.priority=4"
       - "traefik.http.routers.auth-oauth.entrypoints=websecure"
       - "traefik.http.routers.auth-oauth.tls.certresolver=letsencrypt"
@@ -86,4 +91,6 @@ networks:
 
 volumes:
   redis-data:
+    external: true
+  auth-keys:
     external: true

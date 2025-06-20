@@ -15,6 +15,7 @@ from authlib.jose.errors import JoseError
 from .config import Settings
 from .models import ClientRegistration, TokenResponse, ErrorResponse
 from .auth_authlib import AuthManager, OAuth2Client
+from .rfc7592 import DynamicClientConfigurationEndpoint
 
 
 def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthManager) -> APIRouter:
@@ -107,6 +108,18 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "op_tos_uri": f"{base_url}/terms"
         }
     
+    # JWKS endpoint for RS256 public key distribution - THE BLESSED KEY SHRINE!
+    @router.get("/jwks")
+    async def jwks():
+        """JSON Web Key Set endpoint - distributes the divine RS256 public key!"""
+        # Get the JWK from our key manager
+        jwk = auth_manager.key_manager.get_jwk()
+        
+        # Return JWK Set format as per RFC 7517
+        return {
+            "keys": [jwk]
+        }
+    
     # Dynamic Client Registration endpoint (RFC 7591) - PUBLIC ACCESS
     @router.post("/register", status_code=201)
     async def register_client(
@@ -163,31 +176,47 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         client_id = credentials["client_id"]
         client_secret = credentials["client_secret"]
         
-        # Store client in Redis (eternal storage)
+        # Calculate client expiration time
+        created_at = int(time.time())
+        # CLIENT_LIFETIME=0 means never expire
+        expires_at = 0 if settings.client_lifetime == 0 else created_at + settings.client_lifetime
+        
+        # Store client in Redis with expiration
         client_data = {
             "client_id": client_id,
             "client_secret": client_secret,
-            "client_secret_expires_at": credentials["client_secret_expires_at"],
+            "client_secret_expires_at": expires_at,  # 0 = never expires
             "redirect_uris": json.dumps(registration.redirect_uris),
             "client_name": registration.client_name or "Unnamed Client",
             "scope": registration.scope or "openid profile email",
-            "created_at": int(time.time()),
+            "created_at": created_at,
             "response_types": json.dumps(["code"]),
             "grant_types": json.dumps(["authorization_code", "refresh_token"])
         }
         
-        # Store with sacred key pattern
-        await redis_client.set(f"oauth:client:{client_id}", json.dumps(client_data))
+        # Store with expiration matching client lifetime
+        if settings.client_lifetime > 0:
+            await redis_client.setex(
+                f"oauth:client:{client_id}", 
+                settings.client_lifetime,
+                json.dumps(client_data)
+            )
+        else:
+            # CLIENT_LIFETIME=0 means never expire
+            await redis_client.set(
+                f"oauth:client:{client_id}",
+                json.dumps(client_data)
+            )
         
         # Return registration response
         response = {
             "client_id": client_id,
             "client_secret": client_secret,
-            "client_secret_expires_at": 0,
+            "client_secret_expires_at": expires_at,  # 0 = never expires
             "redirect_uris": registration.redirect_uris,
             "client_name": registration.client_name,
             "scope": registration.scope,
-            "client_id_issued_at": client_data["created_at"]
+            "client_id_issued_at": created_at
         }
         
         # Echo back all registered metadata
@@ -216,12 +245,79 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         client = await auth_manager.get_client(client_id, redis_client)
         if not client:
             # RFC 6749 - MUST NOT redirect on invalid client_id
-            raise HTTPException(
+            # Show user-friendly error page that explains the issue
+            return HTMLResponse(
                 status_code=400,
-                detail={
-                    "error": "invalid_client",
-                    "error_description": "Client authentication failed"
-                }
+                content=f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>OAuth Client Registration Error</title>
+                    <style>
+                        body {{
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                            padding: 40px;
+                            max-width: 600px;
+                            margin: 0 auto;
+                            background-color: #f5f5f5;
+                        }}
+                        .error-container {{
+                            background: white;
+                            padding: 30px;
+                            border-radius: 10px;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        }}
+                        h1 {{ color: #d73502; }}
+                        .error-code {{ 
+                            font-family: monospace;
+                            background: #f0f0f0;
+                            padding: 2px 6px;
+                            border-radius: 3px;
+                        }}
+                        .instructions {{
+                            background: #e8f4f8;
+                            padding: 20px;
+                            border-radius: 5px;
+                            margin-top: 20px;
+                        }}
+                        .client-id {{
+                            word-break: break-all;
+                            font-family: monospace;
+                            font-size: 0.9em;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="error-container">
+                        <h1>⚠️ OAuth Client Registration Invalid</h1>
+                        <p>The application attempting to connect has an invalid or expired client registration.</p>
+                        
+                        <p><strong>Technical Details:</strong></p>
+                        <ul>
+                            <li>Error: <span class="error-code">invalid_client</span></li>
+                            <li>Client ID: <span class="client-id">{client_id}</span></li>
+                        </ul>
+                        
+                        <div class="instructions">
+                            <h3>How to fix this:</h3>
+                            <p>If you're using <strong>Claude.ai</strong> or another MCP client:</p>
+                            <ol>
+                                <li>Go back to your MCP client application</li>
+                                <li>Remove the existing MCP server connection</li>
+                                <li>Add the MCP server again to trigger a fresh registration</li>
+                            </ol>
+                            <p>The application needs to register a new client ID to establish a connection.</p>
+                        </div>
+                        
+                        <p style="margin-top: 30px; color: #666; font-size: 0.9em;">
+                            For developers: The client should POST to 
+                            <code>https://auth.{settings.base_domain}/register</code> 
+                            to obtain new credentials.
+                        </p>
+                    </div>
+                </body>
+                </html>
+                """
             )
         
         # Validate redirect_uri using Authlib client
@@ -697,5 +793,102 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             </html>
             """
         )
+    
+    # RFC 7592 - Dynamic Client Registration Management Protocol
+    # Using Authlib's ClientConfigurationEndpoint patterns
+    @router.get("/register/{client_id}")
+    async def get_client_registration(
+        client_id: str,
+        request: Request,
+        redis_client: redis.Redis = Depends(get_redis)
+    ):
+        """Get client registration information - RFC 7592 compliant using Authlib patterns"""
+        # Initialize our RFC 7592 endpoint
+        config_endpoint = DynamicClientConfigurationEndpoint(settings, redis_client)
+        
+        # Authenticate client using Authlib patterns
+        client = await config_endpoint.authenticate_client(request, client_id)
+        if not client:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid client credentials",
+                headers={"WWW-Authenticate": "Basic"}
+            )
+        
+        # Check permissions
+        if not await config_endpoint.check_permission(client, request):
+            raise HTTPException(
+                status_code=403,
+                detail="Insufficient permissions"
+            )
+        
+        # Generate response using Authlib patterns
+        return config_endpoint.generate_client_configuration_response(client)
+    
+    @router.put("/register/{client_id}")
+    async def update_client_registration(
+        client_id: str,
+        request: Request,
+        client_metadata: dict,  # Request body with updated metadata
+        redis_client: redis.Redis = Depends(get_redis)
+    ):
+        """Update client registration - RFC 7592 compliant using Authlib patterns"""
+        # Initialize our RFC 7592 endpoint
+        config_endpoint = DynamicClientConfigurationEndpoint(settings, redis_client)
+        
+        # Authenticate client
+        client = await config_endpoint.authenticate_client(request, client_id)
+        if not client:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid client credentials",
+                headers={"WWW-Authenticate": "Basic"}
+            )
+        
+        # Check permissions
+        if not await config_endpoint.check_permission(client, request):
+            raise HTTPException(
+                status_code=403,
+                detail="Insufficient permissions"
+            )
+        
+        # Update client using Authlib patterns
+        try:
+            updated_client = await config_endpoint.update_client(client, client_metadata)
+            return config_endpoint.generate_client_configuration_response(updated_client)
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+    
+    @router.delete("/register/{client_id}")
+    async def delete_client_registration(
+        client_id: str,
+        request: Request,
+        redis_client: redis.Redis = Depends(get_redis)
+    ):
+        """Delete client registration - RFC 7592 compliant using Authlib patterns"""
+        # Initialize our RFC 7592 endpoint
+        config_endpoint = DynamicClientConfigurationEndpoint(settings, redis_client)
+        
+        # Authenticate client
+        client = await config_endpoint.authenticate_client(request, client_id)
+        if not client:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid client credentials",
+                headers={"WWW-Authenticate": "Basic"}
+            )
+        
+        # Check permissions
+        if not await config_endpoint.check_permission(client, request):
+            raise HTTPException(
+                status_code=403,
+                detail="Insufficient permissions"
+            )
+        
+        # Delete client using Authlib patterns
+        await config_endpoint.delete_client(client)
+        
+        # Return 204 No Content on successful deletion
+        return Response(status_code=204)
     
     return router

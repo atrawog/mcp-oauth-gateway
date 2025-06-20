@@ -14,25 +14,26 @@ class Settings(BaseSettings):
     
     # JWT Configuration
     jwt_secret: str
-    jwt_algorithm: str = "HS256"  # Will upgrade to RS256 in next iteration
+    jwt_algorithm: str  # NO DEFAULTS!
     
     # Domain Configuration
     base_domain: str
     
     # Redis Configuration
     redis_url: str
-    redis_password: Optional[str] = None  # Optional for backward compatibility
+    redis_password: Optional[str]  # NO DEFAULTS!
     
-    # Token Lifetimes
-    access_token_lifetime: int = 86400  # 24 hours
-    refresh_token_lifetime: int = 2592000  # 30 days
-    session_timeout: int = 3600  # 1 hour
+    # Token Lifetimes - NO DEFAULTS, MUST BE IN .env!
+    access_token_lifetime: int
+    refresh_token_lifetime: int
+    session_timeout: int
+    client_lifetime: int  # 0 = never expires
     
     # Access Control
-    allowed_github_users: str = ""  # Comma-separated list
+    allowed_github_users: str  # NO DEFAULTS! Comma-separated list
     
     # MCP Protocol Version
-    mcp_protocol_version: str = "2025-06-18"
+    mcp_protocol_version: str  # NO DEFAULTS!
     
     class Config:
         env_file = ".env"

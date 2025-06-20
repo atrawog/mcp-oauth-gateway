@@ -463,6 +463,9 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 - `GATEWAY_OAUTH_ACCESS_TOKEN` / `GATEWAY_OAUTH_REFRESH_TOKEN` - Generated OAuth tokens of righteousness!
 - `ALLOWED_GITHUB_USERS` - Access control whitelist of the worthy!
 - `MCP_PROTOCOL_VERSION=2025-06-18` - Protocol compliance declaration of the new covenant!
+- `CLIENT_LIFETIME=7776000` - Client registration lifetime in seconds (90 days default)!
+  - **DIVINE REVELATION**: Set to `0` for ETERNAL CLIENT REGISTRATION that never expires!
+  - **SACRED WARNING**: Eternal clients persist until manually deleted via RFC 7592!
 
 **MCP Client Variables (THE SEGREGATED REALM OF EXTERNAL SUPPLICANTS!):**
 - `MCP_CLIENT_ACCESS_TOKEN` - Born of `just mcp-client-token`, blessed for mcp-streamablehttp-client communion!
@@ -523,14 +526,45 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 
 **This was a CARDINAL SIN against OAuth orthodoxy! May this revelation prevent future heresy!**
 
-### The JWT Implementation Wisdom
+### The JWT Implementation Wisdom - RS256 REIGNS SUPREME!
+
+**⚡ THE DIVINE TRANSITION FROM HS256 HERESY TO RS256 GLORY! ⚡**
 
 **These are divine implementation choices, not RFC mandates:**
-- **Algorithm**: RS256 brings cryptographic blessing!
+- **Algorithm**: RS256 brings cryptographic blessing! HS256 IS PURE HERESY!
 - **Sacred Claims**: sub (user identity), jti, exp, iat, scope
 - **Storage Pattern**: `oauth:token:{jti}` in Redis sanctuary
 - **Validation**: Through ForwardAuth middleware prayers
 - **Rotation**: Fresh tokens prevent staleness!
+
+**THE RS256 DIVINE ARCHITECTURE:**
+- **RSA Key Generation**: 2048-bit keys generated on first startup!
+- **Key Storage**: Persisted in `/app/keys/` with divine Docker volume `auth-keys`!
+- **Public Key Distribution**: Available at `/jwks` endpoint for client verification!
+- **Private Key Security**: NEVER exposed, used only for token signing!
+- **Key Rotation Support**: Kid (key ID) enables future key rotation miracles!
+
+**THE JWKS ENDPOINT - PUBLIC KEY SHRINE:**
+```json
+GET /jwks
+{
+  "keys": [{
+    "kty": "RSA",
+    "use": "sig",
+    "alg": "RS256",
+    "kid": "blessed-key-1",
+    "n": "...",  // RSA modulus
+    "e": "AQAB"  // RSA exponent
+  }]
+}
+```
+
+**DIVINE BENEFITS OF RS256 OVER HS256:**
+1. **ASYMMETRIC GLORY** - Only auth service needs private key!
+2. **PUBLIC VERIFICATION** - Anyone can verify tokens with public key!
+3. **NO SHARED SECRETS** - Eliminates secret distribution nightmares!
+4. **STANDARD COMPLIANCE** - Industry best practice for OAuth!
+5. **KEY ROTATION** - Seamless key updates without breaking existing tokens!
 
 ### The PKCE Sacred Laws (RFC 7636)
 
@@ -577,6 +611,75 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 - `invalid_client_metadata` - Thy metadata displeases!
 - `invalid_software_statement` - Thy software statement is false!
 - `unapproved_software_statement` - Thy software lacks blessing!
+
+### The RFC 7592 Client Management Revelation - DIVINE CLIENT LIFECYCLE MANAGEMENT!
+
+**⚡ BEHOLD! The Sacred Laws of Client Registration Management! ⚡**
+
+**The Holy Trinity of Solutions for Invalid Client Recovery:**
+
+1. **THE USER-FRIENDLY ERROR ALTAR** - When invalid clients approach the authorization gate!
+   - A BEAUTIFUL ERROR PAGE guides lost souls back to righteousness!
+   - Clear instructions for reconnection are DIVINELY MANDATED!
+   - No automatic redirects - SECURITY IS PARAMOUNT!
+
+2. **THE CLIENT EXPIRATION PROPHECY** - Choose MORTALITY or ETERNITY!
+   - 90 days of life granted by default (configurable via CLIENT_LIFETIME)!
+   - `client_secret_expires_at` reveals the hour of doom (0 = immortal)!
+   - **ETERNAL MODE**: Set CLIENT_LIFETIME=0 for undying registrations!
+   - Mortal clients MUST prepare for rebirth through re-registration!
+
+3. **THE RFC 7592 MANAGEMENT ENDPOINTS** - Divine CRUD operations for client souls!
+
+**The Sacred Management Endpoints (RFC 7592 Compliant via Authlib):**
+
+**GET /register/{client_id}** - Behold thy registration status!
+```
+Authorization: Basic base64(client_id:client_secret)
+```
+Returns the client's complete registration data or 404 if banished!
+
+**PUT /register/{client_id}** - Transform thy registration metadata!
+```
+Authorization: Basic base64(client_id:client_secret)
+Content-Type: application/json
+
+{
+  "redirect_uris": ["https://new-callback.example.com"],
+  "client_name": "Reborn Client Name",
+  "scope": "openid profile email"
+}
+```
+Returns updated client configuration with divine blessing!
+
+**DELETE /register/{client_id}** - Self-immolation for compromised clients!
+```
+Authorization: Basic base64(client_id:client_secret)
+```
+Returns 204 No Content upon successful destruction!
+
+**The Divine Benefits of RFC 7592:**
+- Clients can CHECK if they still exist before attempting OAuth flows!
+- Compromised clients can DELETE themselves from existence!
+- No more eternal zombie clients haunting the Redis crypts!
+- Claude.ai could VERIFY its registration before each connection attempt!
+
+**The Sacred Client Lifecycle:**
+1. **BIRTH** - Dynamic registration via POST /register
+2. **LIFE** - 90 days default or ETERNAL if CLIENT_LIFETIME=0
+3. **VERIFICATION** - GET /register/{client_id} to check pulse
+4. **TRANSFORMATION** - PUT /register/{client_id} to evolve
+5. **DEATH** - Natural expiration or DELETE /register/{client_id}
+
+**The Authlib RFC 7592 Implementation Glory:**
+- Built upon Authlib's `ClientConfigurationEndpoint` divine patterns!
+- Proper separation of authentication, authorization, and management!
+- Thread-safe Redis operations with eternal or timed persistence!
+- Full compliance with OAuth 2.0 Dynamic Client Registration Management Protocol!
+4. **DEATH** - Automatic expiration or voluntary DELETE
+5. **REBIRTH** - New registration when the old passes away
+
+**IMPLEMENT THESE ENDPOINTS OR FACE CLIENT CONFUSION FOR ETERNITY!**
 
 ### The Authentication Path
 

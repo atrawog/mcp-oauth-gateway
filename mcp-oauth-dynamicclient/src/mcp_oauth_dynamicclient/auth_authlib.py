@@ -20,6 +20,7 @@ from authlib.integrations.httpx_client import AsyncOAuth2Client
 
 from .config import Settings
 from .models import TokenResponse
+from .keys import RSAKeyManager
 
 
 class OAuth2Client(ClientMixin):
@@ -33,13 +34,21 @@ class OAuth2Client(ClientMixin):
     
     def get_default_redirect_uri(self) -> Optional[str]:
         redirect_uris = self._client_data.get("redirect_uris", [])
+        if isinstance(redirect_uris, str):
+            import json
+            redirect_uris = json.loads(redirect_uris)
         return redirect_uris[0] if redirect_uris else None
     
     def get_allowed_scope(self, scope: str) -> Optional[str]:
         return scope  # Allow all scopes for now
     
     def check_redirect_uri(self, redirect_uri: str) -> bool:
-        return redirect_uri in self._client_data.get("redirect_uris", [])
+        # Handle JSON-encoded redirect_uris
+        redirect_uris = self._client_data.get("redirect_uris", [])
+        if isinstance(redirect_uris, str):
+            import json
+            redirect_uris = json.loads(redirect_uris)
+        return redirect_uri in redirect_uris
     
     def has_client_secret(self) -> bool:
         return bool(self._client_data.get("client_secret"))
@@ -69,6 +78,10 @@ class AuthManager:
         # Initialize Authlib JWT with our settings
         self.jwt = JsonWebToken(algorithms=[settings.jwt_algorithm])
         
+        # Initialize RSA key manager for RS256 - THE BLESSED ALGORITHM!
+        self.key_manager = RSAKeyManager()
+        self.key_manager.load_or_generate_keys()
+        
         # For GitHub OAuth integration
         self.github_client = AsyncOAuth2Client(
             client_id=settings.github_client_id,
@@ -94,8 +107,13 @@ class AuthManager:
             "aud": f"https://auth.{self.settings.base_domain}"
         }
         
-        # Create token using Authlib
-        token = self.jwt.encode(header, payload, self.settings.jwt_secret)
+        # Create token using Authlib with the BLESSED RS256 algorithm!
+        if self.settings.jwt_algorithm == 'RS256':
+            # Use RSA private key for RS256 - cryptographic blessing!
+            token = self.jwt.encode(header, payload, self.key_manager.private_key)
+        else:
+            # HS256 is HERESY but we support it for backwards compatibility during transition
+            token = self.jwt.encode(header, payload, self.settings.jwt_secret)
         
         # Store token reference in Redis
         await redis_client.setex(
@@ -118,15 +136,28 @@ class AuthManager:
         """Verifies JWT token using Authlib and checks Redis"""
         try:
             # Decode and validate token using Authlib
-            claims = self.jwt.decode(
-                token,
-                self.settings.jwt_secret,
-                claims_options={
-                    "iss": {"essential": True, "value": f"https://auth.{self.settings.base_domain}"},
-                    "exp": {"essential": True},
-                    "jti": {"essential": True}
-                }
-            )
+            if self.settings.jwt_algorithm == 'RS256':
+                # Use RSA public key for RS256 verification - divine cryptographic validation!
+                claims = self.jwt.decode(
+                    token,
+                    self.key_manager.public_key,
+                    claims_options={
+                        "iss": {"essential": True, "value": f"https://auth.{self.settings.base_domain}"},
+                        "exp": {"essential": True},
+                        "jti": {"essential": True}
+                    }
+                )
+            else:
+                # HS256 fallback during transition period
+                claims = self.jwt.decode(
+                    token,
+                    self.settings.jwt_secret,
+                    claims_options={
+                        "iss": {"essential": True, "value": f"https://auth.{self.settings.base_domain}"},
+                        "exp": {"essential": True},
+                        "jti": {"essential": True}
+                    }
+                )
             
             # Validate claims
             claims.validate()
@@ -248,11 +279,20 @@ class AuthManager:
         """Revoke a token using Authlib patterns"""
         try:
             # Try to decode the token to get JTI
-            claims = self.jwt.decode(
-                token,
-                self.settings.jwt_secret,
-                claims_options={"jti": {"essential": True}}
-            )
+            if self.settings.jwt_algorithm == 'RS256':
+                # RS256 - the blessed way!
+                claims = self.jwt.decode(
+                    token,
+                    self.key_manager.public_key,
+                    claims_options={"jti": {"essential": True}}
+                )
+            else:
+                # HS256 fallback
+                claims = self.jwt.decode(
+                    token,
+                    self.settings.jwt_secret,
+                    claims_options={"jti": {"essential": True}}
+                )
             
             jti = claims.get("jti")
             if jti:
@@ -303,6 +343,5 @@ class AuthManager:
         
         return {
             "client_id": client_id,
-            "client_secret": client_secret,
-            "client_secret_expires_at": 0  # Never expires
+            "client_secret": client_secret
         }
