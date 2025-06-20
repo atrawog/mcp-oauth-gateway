@@ -1,41 +1,39 @@
 # Part I: The Ten Sacred Commandments of Divine Development
 
-## Commandment 0: Root Cause Analysis or Eternal Damnation
+## Commandment 0: Root Cause or Eternal Hell
 
-**🔥 Surface symptoms are Satan's lies! Five whys or debug forever! ⚡**
+**🔥 Five whys or debug forever! ⚡**
 
 1. Why error? 2. Why condition? 3. Why allowed? 4. Why missed? 5. Why never again?
 
-**Fix symptoms only = eternal hell!**
+**Symptoms only = hell!**
 
-## Commandment 1: NO MOCKS OR BURN IN PRODUCTION HELL
+## Commandment 1: NO MOCKS OR BURN
 
-**🔥 SACRED LAW: NO MOCKS! NO STUBS! NO FAKES! ⚡**
+**🔥 NO MOCKS! NO STUBS! NO FAKES! ⚡**
 
-- Real deployed systems only
-- End-to-end verification mandatory  
-- Real API boundaries
-- No shortcuts to salvation
+- Real systems only
+- End-to-end mandatory
+- Real APIs only
+- No shortcuts
 
-**Mock once = production damnation!**
+**Mock = production hell!**
 
-## Commandment 2: The Holy Trinity or Chaos
+## Commandment 2: Holy Trinity or Chaos
 
-**🔥 Direct execution = chaos! Trinity = salvation! ⚡**
+**🔥 Trinity = salvation! ⚡**
 
-1. **just** (make is heresy!)
-2. **pixi** (pip/conda are false!)
-3. **docker-compose** (k8s is vanity!)
+1. **just** (make = heresy)
+2. **pixi** (pip/conda = false)
+3. **docker-compose** (k8s = vanity)
 
 ```
-❌ python/pip/raw docker → ✅ just/pixi/compose
+❌ python/pip/docker → ✅ just/pixi/compose
 ```
 
-**Violate = dependency hell!**
+## Commandment 3: Sacred Structure or Chaos
 
-## Commandment 3: Sacred Structure or Architectural Damnation
-
-**🏛️ Sacred isolation mandatory! ⚡**
+**🏛️ Isolation mandatory! ⚡**
 
 ```
 any-project/
@@ -63,17 +61,17 @@ any-project/
 └── .gitignore            # Must ignore reports/, htmlcov/, .env!
 ```
 
-## Commandment 4: .env Files or Environment Hell
+## Commandment 4: .env or Hell
 
-**🔥 Hardcode = damnation! .env = salvation! ⚡**
+**🔥 .env = salvation! ⚡**
 
-- ALL config through .env (dev/staging/prod)
+- ALL config through .env
 - NO defaults in code
-- Validate at startup or die
-- Pipeline creates real .env, git stores .example
+- Validate at startup
+- Pipeline creates real, git stores .example
 
 ```justfile
-set dotenv-load := true  # FIRST LINE!
+set dotenv-load := true
 ```
 
 ## Commandment 5: Docker-Compose or Container Chaos
@@ -128,48 +126,32 @@ services:
 just test  # pixi run pytest tests/ -v --cov
 ```
 
-### Sidecar Coverage - Production Truth!
+### Sidecar Coverage
 
-**⚠️ Production containers only! ⚡**
+**⚠️ Production only! ⚡**
 
-- Production images pure (no coverage inside!)
-- coverage-spy watches via PYTHONPATH
+- Pure images, spy via PYTHONPATH
 - COVERAGE_PROCESS_START for subprocesses
 - Mount source read-only
 
 ```yaml
-# docker-compose.coverage.yml
-services:
-  auth:
-    environment:
-      - PYTHONPATH=/coverage-spy:${PYTHONPATH:-}
-      - COVERAGE_PROCESS_START=/coverage-config/.coveragerc
-    volumes:
-      - ./coverage-spy:/coverage-spy:ro
-      - coverage-data:/coverage-data:rw
+auth:
+  environment:
+    - PYTHONPATH=/coverage-spy:${PYTHONPATH:-}
+    - COVERAGE_PROCESS_START=/coverage-config/.coveragerc
 ```
 
 ```bash
-just test-sidecar-coverage  # TRUE coverage
+just test-sidecar-coverage
 ```
 
-**Heresies (0% coverage):**
-- ❌ `coverage.start()` directly
-- ❌ Wrapping production code  
-- ❌ Main process only
-
-**Righteousness:**
-- ✅ `coverage.process_startup()`
-- ✅ `COVERAGE_PROCESS_START` env
-- ✅ Mount source to harvester at `/app`
-- ✅ `concurrency = thread,multiprocessing`
+**Heresies:** ❌ direct start ❌ wrapping ❌ main only
+**Truth:** ✅ process_startup ✅ env var ✅ mount /app
 
 ```ini
-# .coveragerc
 [run]
 concurrency = thread,multiprocessing
 parallel = true
-sigterm = true
 [paths]
 source = /app, ./auth
 ```
@@ -247,36 +229,25 @@ docs/                    # ⚡ THE HOLY DOCUMENTATION SANCTUARY! ⚡
 
 **⚡ USE ANY OTHER FORMAT AND FACE DOCUMENTATION CHAOS! ⚡**
 
-## ⚡ Universal Application - ETERNAL LAWS! ⚡
+## ⚡ Universal Laws
 
-**🌍 Ten commandments govern ALL code! No exceptions! ⚡**
-
-### Sacred Tools Mandatory Everywhere
+**🌍 Ten commandments govern ALL! ⚡**
 
 ```bash
-# REQUIRED ROOT FILES:
-justfile           # Divine commands
-pixi.toml         # Package prophecy  
-.env              # Configuration scripture
-docker-compose.yml # Container gospel
-
-# REQUIRED DIRECTORIES:
-./tests/    # Pytest temple
-./scripts/  # Automation sanctuary  
-./docs/     # Knowledge cathedral
-./logs/     # Record archive
+# ROOT: justfile, pixi.toml, .env, docker-compose.yml
+# DIRS: ./tests/, ./scripts/, ./docs/, ./logs/
 ```
 
-**⚡ Claim exemption = unmaintainable hell! ⚡**
+**⚡ Exemption = hell! ⚡**
 
 
-# Part II: The Divine MCP OAuth2 Gateway Specifications
+# Part II: Divine MCP OAuth2 Gateway
 
-**🏗️ Sacred architecture of authentication! RFC compliance blessed! ⚡**
+**🏗️ Sacred auth architecture! ⚡**
 
-## The Holy Trinity of Architectural Separation
+## Holy Trinity Separation
 
-**🔱 Three-tier separation or damnation! ⚡**
+**🔱 Three tiers or damnation! ⚡**
 
 ┌─────────────────────────────────────────────────────────────┐
 │          TRAEFIK (The Divine Router of Sacred Paths)        │
@@ -307,13 +278,13 @@ docker-compose.yml # Container gospel
 
 **⚡ Violate separation = monolithic damnation! ⚡**
 
-### The Divine MCP Streamable HTTP Revolution - 2025-06-18!
+### MCP Streamable HTTP Revolution - 2025-06-18
 
-**Sacred technologies deployed:**
-- **mcp-oauth-dynamicclient** - OAuth 2.1 authentication
-- **mcp-streamablehttp-proxy** - stdio-to-HTTP bridge  
-- **mcp-streamablehttp-client** - client proxy
-- **OFFICIAL MCP SERVERS** - Real implementations only!
+**Sacred tech:**
+- mcp-oauth-dynamicclient (OAuth 2.1)
+- mcp-streamablehttp-proxy (stdio→HTTP)
+- mcp-streamablehttp-client (client proxy)
+- OFFICIAL MCP SERVERS only!
 
 ## MCP Service Implementation Details
 
@@ -385,11 +356,9 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 - **User Authentication Realm**: Human users authenticate to access their protected resources!
 - **NEVER CONFUSE THESE REALMS OR FACE SECURITY DAMNATION!**
 
-## Sacred Environment Variables
+## Sacred Env Vars
 
-**⚙️ Divine configuration keys! ⚡**
-
-**OAuth Variables:**
+**⚙️ Divine config! ⚡**
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - GitHub OAuth app credentials of power!
 - `GATEWAY_JWT_SECRET` - Auto-generated by the divine `just generate-jwt-secret`!
 - `GATEWAY_OAUTH_ACCESS_TOKEN` / `GATEWAY_OAUTH_REFRESH_TOKEN` - Generated OAuth tokens of righteousness!
@@ -405,13 +374,13 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
   - **NEVER** confuse with gateway's own `GATEWAY_OAUTH_ACCESS_TOKEN`!
   - **SEPARATE REALMS** = **SEPARATE TOKENS** = **ETERNAL SECURITY**!
 
-## OAuth 2.1 and RFC 7591 Requirements
+## OAuth 2.1 + RFC 7591
 
-**📜 Divine RFC commandments! Violate = authentication hell! ⚡**
+**📜 RFC law! Violate = hell! ⚡**
 
-### Sacred OAuth Endpoints
+### Sacred Endpoints
 
-**🚀 RFC 7591 mandate:**
+**🚀 RFC 7591:**
 - `/register` - The Divine Registration Portal
   - MUST accept HTTP POST messages only!
   - MUST use `application/json` content type!
@@ -419,15 +388,8 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
   - MUST return HTTP 201 Created on success!
   - MUST return HTTP 400 Bad Request on errors!
 
-**Standard OAuth 2.0:**
-- `/authorize` - Authentication portal
-- `/token` - Code-to-token transmutation  
-- `/callback` - Return path
-
-**Optional extensions:**
-- `/.well-known/oauth-authorization-server` - Discovery (RFC 8414)
-- `/revoke` - Token banishment (RFC 7009)
-- `/introspect` - Token inspection (RFC 7662)
+**Core:** /authorize, /token, /callback
+**Extensions:** /.well-known/*, /revoke, /introspect
 
 ### The Critical OAuth Discovery Law - DIVINE REVELATION OF 2025-06-19!
 
@@ -825,28 +787,22 @@ GATEWAY_OAUTH_REFRESH_TOKEN=refresh_xxx... # For eternal renewal
 MCP_CLIENT_ACCESS_TOKEN=xxx...  # For mcp-streamablehttp-client
 ```
 
-## Testing Requirements
+## Testing
 
-**🧪 Divine verification against real systems! ⚡**
+**🧪 Real systems only! ⚡**
 
-### Test Coverage
+**Coverage:**
+- ✅ OAuth flows + PKCE
+- ✅ JWT lifecycle
+- ✅ MCP integration
+- ✅ Security enforcement
+- ✅ Production readiness
 
-**Real deployed services only:**
-- ✅ OAuth 2.1 flows (GitHub auth, PKCE, registration)
-- ✅ JWT tokens (formation, refresh, rotation, revocation)
-- ✅ MCP integration (Claude.ai flows, protocol compliance)
-- ✅ Security enforcement (ForwardAuth, dual auth, errors)
-- ✅ Production readiness (health, SSL, routing)
+**⚡ Mock = hell! ⚡**
 
-**⚡ Mock = production hell! ⚡**
+## Integration Checklist
 
-## Final Integration Checklist
-
-**🏖️ Ultimate verification ceremony! ⚡**
-
-### Twenty-Five Sacred Seals
-
-**⚡ All 25 seals unbroken or gateway crumbles! ⚡**
+**🏖️ 25 seals or death! ⚡**
 
 **🏗️ THE TRINITY SEALS - THE SACRED ARCHITECTURAL PURITY COMMANDMENTS! 🏗️**
 - ✅ **🔱 SEAL OF THE TRINITY** - Traefik, Auth Service, MCP Services in divine separation blessed!
@@ -889,55 +845,36 @@ MCP_CLIENT_ACCESS_TOKEN=xxx...  # For mcp-streamablehttp-client
 
 ---
 
-# The Sacred Implementation Oath
+# Sacred Implementation Oath
 
-**📜 Divine developer covenant! ⚡**
+**📜 Divine covenant! ⚡**
 
-*I solemnly swear:*
+*I swear:*
 
-- **⚡ TEST real systems** (no mocking!)
-- **⚡ USE just + pixi** (blessed trinity!)
-- **⚡ ORCHESTRATE docker-compose** (no chaos!)
-- **⚡ SEPARATE concerns** (sacred domains!)
-- **⚡ CONFIGURE .env files** (no hardcode!)
-- **⚡ MEASURE sidecar coverage** (production truth!)
-- **⚡ TRUST healthchecks** (death to sleep!)
-- **⚡ SEGREGATE logs** (./logs/ only!)
-- **⚡ SAVE reports** (./reports/ blessed!)
-- **⚡ DOCUMENT Jupyter+MyST** (sacred format!)
-- **⚡ FIND root causes** (five whys!)
+- **⚡ TEST real** (no mocks)
+- **⚡ USE trinity** (just+pixi+compose)
+- **⚡ SEPARATE concerns**
+- **⚡ CONFIGURE .env**
+- **⚡ MEASURE sidecar**
+- **⚡ TRUST healthchecks**
+- **⚡ SEGREGATE logs**
+- **⚡ SAVE reports**
+- **⚡ DOCUMENT MyST**
+- **⚡ FIND root causes**
 
-**🎆 Builds reproducible, tests real, deployments blessed! 🎆**
+**🎆 Real tests, blessed deploys! 🎆**
 
 ---
 
-# Final Revelation: Full 2025-06-18 Compliance
+# Final Revelation: 2025-06-18 Compliance
 
-**🎆 Divine protocol enlightenment complete! ⚡**
+**🎆 Divine protocol complete! ⚡**
 
-## Four Pillars of the New Covenant
+## Four Pillars
 
-### 1. 🌅 LIFECYCLE COMPLIANCE ✅
-- Divine initialization + protocol negotiation
-- Sacred operation with capability respect
-- Clean shutdown blessed by spec
+1. **🌅 LIFECYCLE** - Init, operation, shutdown
+2. **🌊 TRANSPORT** - HTTP `/mcp`, headers, sessions
+3. **🔐 AUTH** - OAuth 2.1, RFC 7591, tokens
+4. **⚔️ SECURITY** - Deputy protection, validation
 
-### 2. 🌊 TRANSPORT COMPLIANCE ✅
-- Streamable HTTP `/mcp` endpoints via proxy
-- Required headers declared/forwarded
-- Session management via Mcp-Session-Id
-- Official MCP servers bridged to HTTP
-
-### 3. 🔐 AUTHORIZATION COMPLIANCE ✅
-- Full OAuth 2.1 implementation
-- Dynamic client registration (RFC 7591)
-- Protected resource metadata
-- Divine token validation
-
-### 4. ⚔️ SECURITY COMPLIANCE ✅
-- Confused deputy protections
-- Token audience validation
-- Session security + randomness
-- Origin header validation
-
-**📜 Scrolls complete! Build with 2025-06-18 compliance! ⚡**
+**📜 Build with 2025-06-18! ⚡**
