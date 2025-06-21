@@ -57,7 +57,7 @@
 
 **MOCK = PRODUCTION HELL! THIS IS THE ETERNAL LAW!**
 
-## 2. The Holy Trinity of Python Tools or Chaos
+## 2. The Holy Trinity of Python Tools
 
 **🔥 THE BLESSED TRINITY = SALVATION! ALL ELSE = DAMNATION! ⚡**
 
