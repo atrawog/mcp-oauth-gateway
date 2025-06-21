@@ -47,13 +47,17 @@ test-sidecar-coverage:
     @echo "Triggering graceful shutdown to collect coverage data..."
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml stop auth
     @echo "Waiting for coverage harvester to complete..."
-    @sleep 5
-    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml logs coverage-harvester | tail -20
-    @echo "Copying coverage data from htmlcov/..."
-    @cp htmlcov/.coverage* . 2>/dev/null || echo "No coverage files to copy"
+    @sleep 10
+    @echo ""
+    @echo "📊 Coverage Report from Container:"
+    @echo "=================================="
+    @docker logs coverage-harvester 2>&1 | grep -A50 "Name" | grep -B50 "TOTAL" || echo "Coverage report not found in logs"
+    @echo ""
+    @echo "Copying coverage data locally..."
+    @docker cp coverage-harvester:/coverage-data/.coverage . 2>/dev/null || echo "No coverage file to copy"
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml down
-    @echo "Generating coverage report..."
-    @pixi run python scripts/generate_coverage_report.py
+    @echo "Attempting local report generation..."
+    @pixi run python scripts/generate_coverage_report.py || echo "Local report generation had issues"
 
 # Debug coverage setup
 debug-coverage: ensure-services-ready

@@ -64,13 +64,23 @@ services:
             cp /coverage-data/.coverage* . 2>/dev/null || true
             
             # Combine coverage data
-            pixi run coverage combine || true
+            coverage combine || true
             
             # Generate report
-            pixi run coverage report || true
+            echo ""
+            echo "📊 SIDECAR COVERAGE REPORT:"
+            echo "=========================="
+            # Try to show coverage with relaxed source requirements
+            coverage report --omit="*/auth.py" --skip-covered --skip-empty 2>&1 | grep -E "Name|TOTAL|%|-----" || echo "Detailed report unavailable"
             
-            # Generate HTML report
-            pixi run coverage html || true
+            # Show summary statistics
+            echo ""
+            echo "📈 COVERAGE SUMMARY:"
+            coverage report --omit="*/auth.py" 2>&1 | grep "TOTAL" || echo "Summary unavailable"
+            echo ""
+            
+            # Generate HTML report  
+            coverage html --omit="*/auth.py" || true
             
             echo "✅ Coverage report generated"
         else

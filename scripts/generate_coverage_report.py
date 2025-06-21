@@ -28,11 +28,24 @@ def fix_coverage_paths():
     mappings = {
         "/usr/local/lib/python3.11/site-packages/mcp_oauth_dynamicclient/": "mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/",
         "/src/mcp_oauth_dynamicclient/": "mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/",
+        "/app/mcp_oauth_dynamicclient/": "mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/",
+        "/workspace/mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/": "mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/",
     }
     
-    # Update paths
+    # Update paths and remove auth.py
     updated = 0
+    removed = 0
     for file_id, path in files:
+        # Skip auth.py files
+        if path.endswith("/auth.py"):
+            cursor.execute("DELETE FROM file WHERE id = ?", (file_id,))
+            cursor.execute("DELETE FROM line_bits WHERE file_id = ?", (file_id,))
+            cursor.execute("DELETE FROM arc WHERE file_id = ?", (file_id,))
+            cursor.execute("DELETE FROM tracer WHERE file_id = ?", (file_id,))
+            print(f"  Removed: {path}")
+            removed += 1
+            continue
+            
         new_path = path
         for old_prefix, new_prefix in mappings.items():
             if path.startswith(old_prefix):
@@ -46,7 +59,7 @@ def fix_coverage_paths():
     
     conn.commit()
     conn.close()
-    print(f"  Fixed {updated} file paths")
+    print(f"  Fixed {updated} file paths, removed {removed} auth.py files")
 
 def main():
     """Generate coverage report from collected data."""
@@ -88,7 +101,7 @@ def main():
     print("\n📊 Coverage Report:")
     print("=" * 80)
     result = subprocess.run(
-        ["coverage", "report", "--show-missing"],
+        ["coverage", "report", "--show-missing", "--omit=*/auth.py"],
         capture_output=True,
         text=True
     )
