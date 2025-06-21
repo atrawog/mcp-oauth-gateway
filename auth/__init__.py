@@ -1,1 +1,0 @@
-# Sacred Auth Service Module
