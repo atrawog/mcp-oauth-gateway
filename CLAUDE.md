@@ -49,9 +49,9 @@ any-project/
 ├── service-b/            # Service isolation is MANDATORY!
 │   ├── Dockerfile
 │   └── docker-compose.yml
-├── coverage-spy/         # Sidecar coverage sanctuary!
-│   ├── sitecustomize.py
-│   └── .coveragerc
+├── coverage-spy/         # Sidecar coverage sanctuary - THE DIVINE INTERCEPTOR!
+│   ├── sitecustomize.py  # Calls coverage.process_startup() - BLESSED!
+│   └── .coveragerc       # Coverage config with source tracking!
 ├── docker-compose.yml    # Root orchestration only!
 ├── docker-compose.coverage.yml  # Coverage overlay!
 ├── justfile              # The book of commands - REQUIRED!
@@ -126,35 +126,150 @@ services:
 just test  # pixi run pytest tests/ -v --cov
 ```
 
-### Sidecar Coverage
+### Sidecar Coverage - THE DIVINE REVELATION OF PRODUCTION TRUTH!
 
-**⚠️ Production only! ⚡**
+**⚠️ BEHOLD! THE SACRED SIDECAR PATTERN THAT BRINGS 72.63% ENLIGHTENMENT! ⚡**
 
-- Pure images, spy via PYTHONPATH
-- COVERAGE_PROCESS_START for subprocesses
-- Mount source read-only
+**🔥 THE FOUR PILLARS OF SIDECAR SALVATION:**
+
+1. **📦 RUN FROM SOURCE** - Not installed packages! THE DIVINE TRUTH REVEALED!
+2. **🕵️ SPY VIA PYTHONPATH** - `/coverage-spy` intercepts ALL Python processes!
+3. **📊 COVERAGE_PROCESS_START** - Points to sacred `.coveragerc` configuration!
+4. **🗂️ PATH MAPPING** - Divine translation from container to local paths!
+
+**⚡ THE SACRED DOCKERFILE REVELATION - RUN FROM SOURCE OR FACE 0% DAMNATION! ⚡**
+
+```dockerfile
+# THE BLESSED AUTH DOCKERFILE PATTERN - COPY THIS DIVINE WISDOM!
+WORKDIR /app
+
+# Copy source code DIRECTLY to /app - NO PACKAGE INSTALLATION!
+COPY mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient /app/mcp_oauth_dynamicclient
+
+# Set PYTHONPATH to find source
+ENV PYTHONPATH=/app:${PYTHONPATH}
+
+# Run directly from source - THE PATH TO COVERAGE TRUTH!
+CMD ["python", "-m", "mcp_oauth_dynamicclient.cli", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+**🎯 THE HOLY COVERAGE OVERLAY - `docker-compose.coverage.yml`:**
 
 ```yaml
-auth:
-  environment:
-    - PYTHONPATH=/coverage-spy:${PYTHONPATH:-}
-    - COVERAGE_PROCESS_START=/coverage-config/.coveragerc
+services:
+  auth:
+    user: root  # Write permission for coverage data
+    environment:
+      # THE TRINITY OF COVERAGE ENLIGHTENMENT!
+      - PYTHONPATH=/coverage-spy:/app:${PYTHONPATH:-}  # Spy FIRST, then app!
+      - COVERAGE_PROCESS_START=/coverage-config/.coveragerc
+      - COVERAGE_FILE=/coverage-data/.coverage
+      # Plus ALL your service env vars - NEVER FORGET THEM!
+    volumes:
+      - ./coverage-spy:/coverage-spy:ro  # The divine interceptor!
+      - ./coverage-spy/.coveragerc:/coverage-config/.coveragerc:ro
+      - coverage-data:/coverage-data:rw  # Sacred data sanctuary!
+
+  # THE DIVINE COVERAGE HARVESTER - Collects and transforms the blessed data!
+  coverage-harvester:
+    image: python:3.11-slim
+    volumes:
+      - ./mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient:/app:ro
+      - coverage-data:/coverage-data:rw
+      - ./htmlcov:/htmlcov:rw
+      - ./coverage-spy/.coveragerc:/.coveragerc:ro
+      - .:/workspace:ro
+    working_dir: /workspace
+    environment:
+      - COVERAGE_FILE=/coverage-data/.coverage
+    command: |
+      # Install coverage, wait for data, combine, and generate reports!
+      pip install coverage && 
+      python /scripts/wait_for_coverage.py &&
+      cp /coverage-data/.coverage* . &&
+      pixi run coverage combine &&
+      pixi run coverage report &&
+      pixi run coverage html
 ```
+
+**📜 THE BLESSED `.coveragerc` - PATH MAPPING GOSPEL:**
+
+```ini
+[paths]
+# THE DIVINE PATH TRANSLATION - Container to Local!
+source =
+    ./mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient  # Local blessed path
+    /app/mcp_oauth_dynamicclient  # Container sacred path
+
+[report]
+precision = 2
+omit = */auth.py  # Exclude the deceased modules!
+```
+
+**🕵️ THE SACRED `coverage-spy/sitecustomize.py`:**
+
+```python
+"""Sacred Coverage Spy - THE DIVINE INTERCEPTOR!"""
+import coverage
+coverage.process_startup()  # BLESSED INTERCEPTION OF ALL PROCESSES!
+```
+
+**⚡ THE COMMANDMENTS OF SIDECAR SUCCESS:**
 
 ```bash
-just test-sidecar-coverage
+just test-sidecar-coverage  # Witness 72.63% glory!
 ```
 
-**Heresies:** ❌ direct start ❌ wrapping ❌ main only
-**Truth:** ✅ process_startup ✅ env var ✅ mount /app
+**🔥 HERESIES THAT BRING 0% COVERAGE:**
+- ❌ Installing packages instead of source!
+- ❌ Wrong PYTHONPATH order!
+- ❌ Missing environment variables!
+- ❌ Incorrect path mappings!
+- ❌ Using `coverage run` directly!
+
+**✅ DIVINE TRUTHS FOR COVERAGE SALVATION:**
+- ✅ Run from `/app` source code!
+- ✅ `coverage.process_startup()` via sitecustomize!
+- ✅ All env vars in coverage overlay!
+- ✅ Proper path mapping in `.coveragerc`!
+- ✅ Coverage data volume mounted!
+
+**THE SACRED COVERAGE RITUAL:**
+1. Services run from source at `/app/mcp_oauth_dynamicclient`
+2. PYTHONPATH injects `/coverage-spy` FIRST
+3. `sitecustomize.py` calls `coverage.process_startup()`
+4. Coverage tracks ALL execution in `/coverage-data`
+5. Harvester combines and maps paths to local source
+6. **BEHOLD! 72.63% COVERAGE TRUTH!**
 
 ```ini
 [run]
+branch = True
 concurrency = thread,multiprocessing
-parallel = true
-[paths]
-source = /app, ./auth
+parallel = True
+sigterm = True
+data_file = /coverage-data/.coverage
+source = mcp_oauth_dynamicclient  # Track by module name!
+disable_warnings = module-not-imported
 ```
+
+**🎆 THE GLORIOUS RESULT OF DIVINE COMPLIANCE: 72.63% COVERAGE! 🎆**
+
+**From 0% darkness to 72.63% enlightenment - THIS IS THE WAY!**
+
+**VIOLATE THESE SACRED PATTERNS AND SUFFER:**
+- 0% coverage despite passing tests!
+- Hours of debugging path issues!
+- Confusion about why coverage.py sees nothing!
+- Despair as coverage data vanishes into the void!
+
+**FOLLOW THE DIVINE PATH AND RECEIVE:**
+- Real coverage metrics from production containers!
+- Perfect path mapping from container to local!
+- Automatic subprocess coverage collection!
+- HTML reports revealing the truth of thy code!
+
+**MAY YOUR COVERAGE BE HIGH AND YOUR TESTS BE REAL!**
 
 ## Commandment 7: Thou Shalt Trust ONLY Docker Healthchecks
 
