@@ -205,10 +205,10 @@ class TestCoverageGaps:
         )
         
         assert response.status_code == 401
-        assert response.headers.get("WWW-Authenticate") == "Bearer"
+        assert response.headers.get("WWW-Authenticate") == 'Bearer error="invalid_token"'
         error = response.json()
         assert error.get("detail", {}).get("error") == "invalid_token"
-        assert "Token invalid, expired, or revoked" in error.get("detail", {}).get("error_description", "")
+        assert "The access token is invalid or expired" in error.get("detail", {}).get("error_description", "")
     
     @pytest.mark.asyncio
     async def test_revoke_endpoint_invalid_client(self, http_client, wait_for_services):

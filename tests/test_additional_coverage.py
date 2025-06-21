@@ -236,7 +236,7 @@ class TestAdditionalCoverage:
         
         assert response.status_code == 401
         error = response.json()
-        assert "Token invalid, expired, or revoked" in error["detail"]["error_description"]
+        assert "The access token is invalid or expired" in error["detail"]["error_description"]
     
     @pytest.mark.asyncio 
     async def test_authorize_endpoint_missing_parameters(self, http_client, wait_for_services, registered_client):
