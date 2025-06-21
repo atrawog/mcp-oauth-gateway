@@ -99,8 +99,9 @@ class TestMCPFetchsCompliance:
                 }
             )
             
-            assert response.status_code == 400
+            assert response.status_code == 200  # JSON-RPC errors return 200
             data = response.json()
+            assert "error" in data
             assert data["error"]["code"] == -32602  # Invalid params
             assert "Unsupported protocol version" in data["error"]["data"]
     

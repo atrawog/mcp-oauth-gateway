@@ -337,8 +337,9 @@ class TestMCPFetchsRealContent:
                 
                 if status >= 400:
                     # Should return error for 4xx and 5xx
-                    assert "error" in data
-                    assert str(status) in data["error"]["data"]
+                    assert "result" in data
+                    assert data["result"]["isError"] is True
+                    assert str(status) in data["result"]["content"][0]["text"]
                 else:
                     # Should succeed for 2xx and 3xx (after redirect)
                     if status not in [301, 302, 303, 307, 308]:  # Redirect codes

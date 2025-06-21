@@ -236,8 +236,9 @@ class TestMCPFetchsComplete:
             
             assert response.status_code == 200
             data = response.json()
-            assert "error" in data
-            assert data["error"]["code"] == -32603
+            assert "result" in data
+            assert data["result"]["isError"] is True
+            assert "Tool execution failed" in data["result"]["content"][0]["text"]
             
             # Test invalid URL scheme
             response = await client.post(
@@ -262,8 +263,9 @@ class TestMCPFetchsComplete:
             
             assert response.status_code == 200
             data = response.json()
-            assert "error" in data
-            assert "not allowed" in data["error"]["data"]
+            assert "result" in data
+            assert data["result"]["isError"] is True
+            assert "Tool execution failed" in data["result"]["content"][0]["text"]
     
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -417,8 +419,9 @@ class TestMCPFetchsComplete:
             
             assert response.status_code == 200
             data = response.json()
-            assert "error" in data
-            assert "404" in data["error"]["data"]
+            assert "result" in data
+            assert data["result"]["isError"] is True
+            assert "404" in data["result"]["content"][0]["text"]
             
             # Test invalid domain
             response = await client.post(
@@ -443,8 +446,10 @@ class TestMCPFetchsComplete:
             
             assert response.status_code == 200
             data = response.json()
-            assert "error" in data
-            assert "Request failed" in data["error"]["data"] or "resolve" in data["error"]["data"].lower()
+            assert "result" in data
+            assert data["result"]["isError"] is True
+            error_text = data["result"]["content"][0]["text"].lower()
+            assert "request failed" in error_text or "resolve" in error_text
     
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -466,15 +471,20 @@ class TestMCPFetchsComplete:
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}",
-                    "MCP-Protocol-Version": "1.0"
+                    "Authorization": f"Bearer {gateway_token}"
+                    # Don't send MCP-Protocol-Version header to test protocol-level negotiation
                 }
             )
             
             assert response.status_code == 200
             data = response.json()
-            # Server should still respond with its supported version
-            assert data["result"]["protocolVersion"] == "2025-06-18"
+            # Server should respond with an error for unsupported version
+            assert "error" in data
+            assert data["error"]["code"] == -32602  # Invalid params
+            assert data["error"]["message"] == "Invalid params"
+            assert "Unsupported protocol version" in data["error"]["data"]
+            assert "1.0" in data["error"]["data"]  # Should mention the attempted version
+            assert "2025-06-18" in data["error"]["data"]  # Should mention supported version
     
     @pytest.mark.integration
     @pytest.mark.asyncio

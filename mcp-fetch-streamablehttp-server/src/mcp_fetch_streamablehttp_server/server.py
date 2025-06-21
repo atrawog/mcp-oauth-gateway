@@ -207,7 +207,12 @@ class StreamableHTTPServer:
                             },
                             "id": request_id
                         },
-                        status_code=400
+                        status_code=200,
+                        headers={
+                            "Content-Type": "application/json",
+                            "Mcp-Session-Id": self.transport.session_id,
+                            "MCP-Protocol-Version": self.settings.protocol_version,
+                        }
                     )
                 
                 result = {

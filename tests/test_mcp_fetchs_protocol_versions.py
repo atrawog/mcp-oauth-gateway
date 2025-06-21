@@ -123,7 +123,7 @@ class TestMCPProtocolVersions:
                     }
                 )
                 
-                assert response.status_code == 400, f"Version {version} should be rejected"
+                assert response.status_code == 200, f"Version {version} should return JSON-RPC error"
                 data = response.json()
                 assert "error" in data
                 assert data["error"]["code"] == -32602
