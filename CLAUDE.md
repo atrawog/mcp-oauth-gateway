@@ -304,28 +304,14 @@ volumes:
 
 **⚡ Violate separation = monolithic damnation! ⚡**
 
-### MCP Streamable HTTP Revolution - 2025-06-18
-
-**Sacred tech:**
-- mcp-oauth-dynamicclient (OAuth 2.1)
-- mcp-streamablehttp-proxy (stdio→HTTP)
-- mcp-streamablehttp-client (client proxy)
-- OFFICIAL MCP SERVERS only!
-
-## MCP Service Implementation Details
-
-### The Sacred MCP Service Structure - THE ACTUAL DIVINE ARCHITECTURE!
-
-**BEHOLD THE TRUTH: We use the holy trinity of mcp-streamablehttp packages!**
+## MCP Gateway Implementation Details
 
 ### The Divine Truth About MCP Services - THE SACRED PROXY PATTERN!
 
 **WITNESS THE ARCHITECTURAL GLORY OF mcp-streamablehttp-proxy!**
 - We use **mcp-streamablehttp-proxy** - the divine stdio-to-streamablehttp bridge!
 - This wraps OFFICIAL MCP servers from modelcontextprotocol/servers!
-- The proxy spawns the official server as subprocess and bridges stdio ↔ HTTP!
-- Each service runs: `mcp-streamablehttp-proxy python -m mcp_server_fetch`!
-- **NO FAKE IMPLEMENTATIONS** - Only bridges to the true gospel servers!
+- The proxy spawns the official MCP server as subprocess and bridges stdio ↔ HTTP!
 
 **THE DIVINE PROXY RESPONSIBILITIES:**
 1. **SUBPROCESS MANAGEMENT** - Spawns and manages the official MCP server!
@@ -335,7 +321,7 @@ volumes:
 5. **ERROR TRANSLATION** - Converts stdio errors to proper HTTP responses!
 
 **DIVINE BENEFITS OF mcp-streamablehttp-proxy ARCHITECTURE:**
-- **OFFICIAL SERVER WRAPPING** - Uses real MCP implementations, never fakes!
+- **OFFICIAL SERVER WRAPPING** - Uses real MCP implementations!
 - **AUTOMATIC HEALTH CHECKS** - Built-in `/health` endpoint for Docker orchestration!
 - **SUBPROCESS ISOLATION** - Each MCP server runs in isolated process space!
 - **OAUTH INTEGRATION** - Ready for Bearer token authentication via Traefik!
@@ -358,9 +344,6 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 - **Project-specific networks** - Connected to the sacred `public` network of righteousness!
 
 **The service MUST NOT know about authentication - that's Traefik's holy job per the Trinity separation!**
-**Violate this separation and face eternal architectural damnation!**
-
-**Beware! Many have fallen by confusing these dual authentication realms!**
 
 ### 1. The MCP Gateway Client Realm - Where External Systems Seek Divine Access!
    - MCP clients (Claude.ai, IDEs, etc.) prove their worthiness here!
@@ -417,26 +400,10 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 **Core:** /authorize, /token, /callback
 **Extensions:** /.well-known/*, /revoke, /introspect
 
-### The Critical OAuth Discovery Law - DIVINE REVELATION OF 2025-06-19!
-
-**⚠️ BEHOLD! A HERESY MOST FOUL WAS DISCOVERED AND VANQUISHED! ⚠️**
+### DIVINE REVELATIONS FOR MCP 2025-06-18!
 
 **The `/.well-known/oauth-authorization-server` endpoint MUST be accessible on ALL subdomains!**
 
-**This is NOT optional - it's a FUNDAMENTAL LAW carved in DIVINE FIRE across the OAuth heavens!**
-
-**The Blasphemous Error That Was Purged:**
-- The cursed configuration confined OAuth discovery to ONLY the auth subdomain!
-- Clients hitting `https://mcp-fetch.yourdomain.com/mcp` were ABANDONED IN DARKNESS!
-- They cried out for guidance at `https://mcp-fetch.yourdomain.com/.well-known/oauth-authorization-server`
-- But found only 401 DAMNATION instead of the sacred metadata!
-
-**The Divine Truth Revealed Through Righteous Debugging:**
-- **EVERY subdomain MUST offer the path to OAuth salvation!**
-- **The discovery endpoint is the BEACON OF AUTHENTICATION HOPE!**
-- **Without it, clients wander in authentication purgatory FOREVER!**
-
-**The Sacred Implementation That Brings Redemption:**
 ```yaml
 # In each MCP service's docker-compose.yml - PRIORITY 10 (DIVINE SUPREMACY!)
 - "traefik.http.routers.mcp-fetch-oauth-discovery.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
@@ -445,8 +412,6 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 - "traefik.http.middlewares.oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
 # NO AUTH MIDDLEWARE - Discovery must be PUBLIC SALVATION for all who seek it!
 ```
-
-**This was a CARDINAL SIN against OAuth orthodoxy! May this revelation prevent future heresy!**
 
 ### The PKCE Sacred Laws (RFC 7636)
 
@@ -465,9 +430,7 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 - Server MUST validate redirect URIs for security!
 - Clients MUST NOT create their own identifiers!
 
-### The RFC 7592 Client Management Revelation - DIVINE CLIENT LIFECYCLE MANAGEMENT!
-
-**⚡ BEHOLD! The Sacred Laws of Client Registration Management! ⚡**
+### The RFC 7592 Client Management Revelation
 
 **🔥 THE CRITICAL DIVINE SEPARATION OF RFC 7591 AND RFC 7592 - CARVED IN HOLY FIRE! 🔥**
 
@@ -480,8 +443,6 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 - **THIS IS THE ONLY PUBLIC ENDPOINT** - All else requires divine authentication!
 
 **RFC 7592 - The Protected Management Sanctuary of Bearer Token Glory:**
-- **⚠️ CRITICAL REVELATION ⚠️**: ALL ENDPOINTS REQUIRE BEARER AUTHENTICATION!
-- **HERESY ALERT**: NOT Basic Auth! NOT Client Credentials! NOT OAuth tokens!
 - **ONLY THE SACRED `registration_access_token` GRANTS ENTRY!**
 - Each client receives a UNIQUE bearer token at birth - **GUARD IT WITH YOUR LIFE!**
 - This token is the **ONLY KEY** to managing that specific client!
@@ -508,36 +469,6 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 **PUT /register/{client_id}** - Transform thy registration metadata!
 **DELETE /register/{client_id}** - Self-immolation for compromised clients!
 
-**⚡ THE SACRED BEARER TOKEN COMMANDMENTS - VIOLATE THESE AND FACE ETERNAL DAMNATION! ⚡**
-
-1. **THOU SHALT NOT SHARE** registration_access_token between client instances!
-   - Each instance gets its OWN sacred token or faces divine wrath!
-   
-2. **THOU SHALT GUARD THY TOKEN** as zealously as thy private keys!
-   - This token grants ABSOLUTE POWER over thy registration!
-   - Store it in secure vaults, encrypted databases, or HSMs!
-   
-3. **IF COMPROMISED, THOU MUST DIE AND BE REBORN!**
-   - No recovery! No mercy! DELETE and re-register from scratch!
-   - The old token becomes CURSED and must be banished!
-   
-4. **THE TOKEN IS OMNIPOTENT** within its realm!
-   - It can READ thy configuration! UPDATE thy metadata! DELETE thy existence!
-   - With great power comes great responsibility - USE IT WISELY!
-   
-5. **ENTROPY IS SACRED** - 256 bits minimum or face brute force demons!
-   - `secrets.token_urlsafe(32)` is the BLESSED INCANTATION!
-   - Weak tokens invite the hackers of darkness!
-
-**🔥 REMEMBER: This token is NOT an OAuth access token! NOT a refresh token! It is a DIVINE MANAGEMENT CREDENTIAL! 🔥**
-
-**The Divine Benefits of RFC 7592:**
-- Clients can CHECK if they still exist using their registration_access_token!
-- Compromised clients can DELETE themselves from existence!
-- No more eternal zombie clients haunting the Redis crypts!
-- Claude.ai could VERIFY its registration before each connection attempt!
-- SECURE management - only token holders can modify registrations!
-
 **The Sacred Client Lifecycle:**
 1. **BIRTH** - Dynamic registration via POST /register (PUBLIC, no auth!)
 2. **BLESSING** - Receive registration_access_token (guard it with thy life!)
@@ -551,13 +482,13 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 
 **🌟 THE TWO REALMS OF AUTHENTICATION GLORY 🌟**
 
-**REALM 1: Client Registration Management (RFC 7591/7592)**
+**MCP Gateway Client Realm: Client Registration Management (RFC 7591/7592)**
 - **PUBLIC ALTAR**: POST /register - NO AUTH REQUIRED!
 - **SACRED GIFT**: registration_access_token bestowed upon registration!
 - **PROTECTED SANCTUARY**: GET/PUT/DELETE /register/{id} - BEARER TOKEN ONLY!
 - **DIVINE PURPOSE**: Manage thy client registration lifecycle!
 
-**REALM 2: OAuth 2.0 Token Issuance (RFC 6749)**
+**User Authentication Realm: OAuth 2.0 Token Issuance (RFC 6749)**
 - **AUTHENTICATION REQUIRED**: Client credentials for token endpoint!
 - **SACRED EXCHANGE**: Authorization codes become access tokens!
 - **DIVINE PURPOSE**: Grant access to protected resources!
@@ -594,9 +525,6 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 - **Always include** WWW-Authenticate header on 401!
 
 ## MCP Protocol 2025-06-18 Divine Specifications - THE GLORIOUS NEW COVENANT OF PROTOCOL ENLIGHTENMENT!
-
-**🎆 BEHOLD THE SACRED MCP PROTOCOL - BLESSED BY THE DIVINE YEAR 2025-06-18! 🎆**
-**This is the NEW COVENANT that brings salvation to all MCP communications!**
 
 ### The Sacred MCP Lifecycle Laws - AS DECREED BY THE PROTOCOL GODS IN 2025-06-18!
 
@@ -666,7 +594,7 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 
 
 **The Divine Benefits of mcp-streamablehttp-proxy Architecture:**
-- **OFFICIAL FUNCTIONALITY** - Wraps real MCP servers, never creates fakes!
+- **OFFICIAL FUNCTIONALITY** - Wraps real MCP servers, never uses fakes!
 - **HTTP TRANSPORT** - Provides `/mcp` and `/health` endpoints for web access!
 - **PROCESS ISOLATION** - Each MCP server runs in separate process space!
 - **OAUTH READY** - Bearer token authentication handled by Traefik layer!
@@ -776,16 +704,16 @@ redis:session:{id}:messages  # MCP message queue
 ### Smart Token Generation - THE DIVINE AUTOMATION OF AUTHENTICATION BLESSING!
 
 ```bash
-# JWT Secret Generation (FULLY AUTOMATED!)
-just generate-jwt-secret
-just generate-github-token
+# JWT Secret Generation
+just generate-jwt- # Fully automated
+just generate-github-token # Needs manual intervention at first run
 ```
 
 ### MCP Client Token Generation - THE SACRED RITUAL FOR EXTERNAL SUPPLICANTS!
 
 ```bash
 # Invoke the divine token generation ceremony for mcp-streamablehttp-client!
-just mcp-client-token
+just mcp-client-token  # Needs manual intervention at first run
 ```
 
 **This BLESSED INCANTATION channels the following DIVINE POWERS:**
@@ -836,7 +764,7 @@ MCP_CLIENT_ACCESS_TOKEN=xxx...  # For mcp-streamablehttp-client
 - ✅ **🔐 SEAL OF FORWARDAUTH** - Middleware blessing protects all MCP endpoints with divine judgment!
 
 **⚙️ THE DEVELOPMENT COMMANDMENT SEALS - THE UNIVERSAL LAWS OF DIVINE CODING! ⚙️**
-- ✅ **⚡ SEAL OF NO MOCKS** - 154 real tests against deployed services with righteous fury!
+- ✅ **⚡ SEAL OF NO MOCKS** - Real tests against deployed services with righteous fury and 100% success!
 - ✅ **🔱 SEAL OF THE BLESSED TOOLS** - just, pixi, docker-compose trinity reigns supreme!
 - ✅ **🏗️ SEAL OF SACRED STRUCTURE** - ./tests/, ./scripts/, ./docs/, ./logs/, ./reports/ divine isolation!
 - ✅ **⚙️ SEAL OF ENV SANCTITY** - All configuration flows through blessed .env files!
@@ -870,37 +798,3 @@ MCP_CLIENT_ACCESS_TOKEN=xxx...  # For mcp-streamablehttp-client
 **⚡ Break one seal = production demons! All 25 must stay intact! ⚡**
 
 ---
-
-# Sacred Implementation Oath
-
-**📜 Divine covenant! ⚡**
-
-*I swear:*
-
-- **⚡ TEST real** (no mocks)
-- **⚡ USE trinity** (just+pixi+compose)
-- **⚡ SEPARATE concerns**
-- **⚡ CONFIGURE .env**
-- **⚡ MEASURE sidecar**
-- **⚡ TRUST healthchecks**
-- **⚡ SEGREGATE logs**
-- **⚡ SAVE reports**
-- **⚡ DOCUMENT MyST**
-- **⚡ FIND root causes**
-
-**🎆 Real tests, blessed deploys! 🎆**
-
----
-
-# Final Revelation: 2025-06-18 Compliance
-
-**🎆 Divine protocol complete! ⚡**
-
-## Four Pillars
-
-1. **🌅 LIFECYCLE** - Init, operation, shutdown
-2. **🌊 TRANSPORT** - HTTP `/mcp`, headers, sessions
-3. **🔐 AUTH** - OAuth 2.1, RFC 7591, tokens
-4. **⚔️ SECURITY** - Deputy protection, validation
-
-**📜 Build with 2025-06-18! ⚡**
