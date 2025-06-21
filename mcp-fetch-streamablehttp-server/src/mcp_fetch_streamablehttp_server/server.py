@@ -95,21 +95,8 @@ class StreamableHTTPServer:
         if method in ["POST", "PUT"]:
             body = await request.body()
             
-        # Handle authentication
-        auth_header = headers.get("authorization", "")
-        if not auth_header.startswith("Bearer ") and path != "/health":
-            return JSONResponse(
-                status_code=401,
-                headers={"WWW-Authenticate": "Bearer"},
-                content={"error": "Unauthorized", "message": "Bearer token required"}
-            )
-            
-        # For stateless operation, process request directly
-        if method == "POST" and path == "/mcp":
-            return await self._handle_stateless_request(headers, body)
-        elif method == "GET" and path == "/health":
-            return JSONResponse({"status": "healthy", "version": self.settings.server_version})
-        elif method == "OPTIONS":
+        # Handle OPTIONS first (CORS preflight doesn't require auth)
+        if method == "OPTIONS":
             # CORS preflight
             return Response(
                 status_code=200,
@@ -120,6 +107,23 @@ class StreamableHTTPServer:
                     "Access-Control-Max-Age": "86400",
                 }
             )
+            
+        # Handle health check (no auth required)
+        if method == "GET" and path == "/health":
+            return JSONResponse({"status": "healthy", "version": self.settings.server_version})
+            
+        # Handle authentication for other requests
+        auth_header = headers.get("authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return JSONResponse(
+                status_code=401,
+                headers={"WWW-Authenticate": "Bearer"},
+                content={"error": "Unauthorized", "message": "Bearer token required"}
+            )
+            
+        # For stateless operation, process request directly
+        if method == "POST" and path == "/mcp":
+            return await self._handle_stateless_request(headers, body)
         else:
             return JSONResponse(
                 status_code=404,

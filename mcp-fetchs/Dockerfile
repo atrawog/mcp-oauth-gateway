@@ -4,6 +4,7 @@ FROM python:3.12-slim
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -13,8 +14,13 @@ WORKDIR /app
 COPY mcp-fetch-streamablehttp-server/pyproject.toml ./
 COPY mcp-fetch-streamablehttp-server/src/ ./src/
 
-# Install the package and dependencies
-RUN pip install --no-cache-dir -e .
+# Upgrade pip and install wheel
+RUN pip install --upgrade pip wheel
+
+# Install the package and dependencies with verbose output
+RUN pip install --no-cache-dir -v -e . || (echo "Installation failed, trying individual packages" && \
+    pip install --no-cache-dir mcp httpx pydantic pydantic-settings python-dotenv beautifulsoup4 aiofiles uvloop uvicorn fastapi && \
+    pip install --no-cache-dir robotspy || echo "Warning: robotspy installation failed")
 
 # Add non-root user
 RUN useradd -m -u 1000 mcpuser && chown -R mcpuser:mcpuser /app

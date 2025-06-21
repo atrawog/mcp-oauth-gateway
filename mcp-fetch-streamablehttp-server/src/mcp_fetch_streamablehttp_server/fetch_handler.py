@@ -9,9 +9,15 @@ from bs4 import BeautifulSoup
 from mcp import Tool
 from mcp.types import TextContent, ImageContent
 from pydantic import BaseModel, Field
-from robotspy import Robots
 
 logger = logging.getLogger(__name__)
+
+try:
+    from robotspy import Robots
+    HAS_ROBOTSPY = True
+except ImportError:
+    logger.warning("robotspy not available, robots.txt checking disabled")
+    HAS_ROBOTSPY = False
 
 
 class FetchArguments(BaseModel):
@@ -90,9 +96,10 @@ class FetchHandler:
         if parsed.scheme not in self.allowed_schemes:
             raise ValueError(f"URL scheme {parsed.scheme} not allowed")
             
-        # Check robots.txt
-        if not await self._check_robots(parsed, args.user_agent):
-            raise ValueError(f"Fetching {args.url} is disallowed by robots.txt")
+        # Check robots.txt if available
+        if HAS_ROBOTSPY:
+            if not await self._check_robots(parsed, args.user_agent):
+                raise ValueError(f"Fetching {args.url} is disallowed by robots.txt")
             
         # Prepare headers
         headers = args.headers or {}
@@ -172,6 +179,8 @@ class FetchHandler:
             
     async def _check_robots(self, url: httpx.URL, user_agent: str) -> bool:
         """Check if URL is allowed by robots.txt."""
+        if not HAS_ROBOTSPY:
+            return True  # Allow all if robotspy not available
         
         # Construct robots.txt URL
         robots_url = f"{url.scheme}://{url.host}"

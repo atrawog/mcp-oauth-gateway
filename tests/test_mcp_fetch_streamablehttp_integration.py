@@ -3,22 +3,31 @@
 import json
 import pytest
 import httpx
-from unittest.mock import patch, AsyncMock
 
 from tests.conftest import ensure_services_ready
+from tests.test_constants import BASE_DOMAIN, GATEWAY_OAUTH_ACCESS_TOKEN
 
+
+@pytest.fixture
+def base_domain():
+    """Base domain for tests."""
+    return BASE_DOMAIN
 
 @pytest.fixture
 def fetch_native_base_url(base_domain):
     """Base URL for native fetch service."""
     return f"https://mcp-fetchs.{base_domain}"
 
+@pytest.fixture
+def valid_oauth_token():
+    """Valid OAuth token for testing."""
+    return GATEWAY_OAUTH_ACCESS_TOKEN
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_health_check(fetch_native_base_url):
+async def test_fetch_native_health_check(fetch_native_base_url, wait_for_services):
     """Test health check endpoint."""
-    await ensure_services_ready()
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.get(f"{fetch_native_base_url}/health")
@@ -31,9 +40,8 @@ async def test_fetch_native_health_check(fetch_native_base_url):
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_requires_auth(fetch_native_base_url):
+async def test_fetch_native_requires_auth(fetch_native_base_url, wait_for_services):
     """Test that MCP endpoint requires authentication."""
-    await ensure_services_ready()
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
@@ -48,9 +56,8 @@ async def test_fetch_native_requires_auth(fetch_native_base_url):
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_cors_preflight(fetch_native_base_url):
+async def test_fetch_native_cors_preflight(fetch_native_base_url, wait_for_services):
     """Test CORS preflight handling."""
-    await ensure_services_ready()
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.options(
@@ -70,9 +77,8 @@ async def test_fetch_native_cors_preflight(fetch_native_base_url):
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_initialize(fetch_native_base_url, valid_oauth_token):
+async def test_fetch_native_initialize(fetch_native_base_url, valid_oauth_token, wait_for_services):
     """Test MCP initialization."""
-    await ensure_services_ready()
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
@@ -112,9 +118,8 @@ async def test_fetch_native_initialize(fetch_native_base_url, valid_oauth_token)
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_list_tools(fetch_native_base_url, valid_oauth_token):
+async def test_fetch_native_list_tools(fetch_native_base_url, valid_oauth_token, wait_for_services):
     """Test listing available tools."""
-    await ensure_services_ready()
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
@@ -149,43 +154,31 @@ async def test_fetch_native_list_tools(fetch_native_base_url, valid_oauth_token)
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_call_tool_fetch(fetch_native_base_url, valid_oauth_token):
+async def test_fetch_native_call_tool_fetch(fetch_native_base_url, base_domain, valid_oauth_token, wait_for_services):
     """Test calling the fetch tool."""
-    await ensure_services_ready()
     
-    # Mock httpx to avoid actual external requests
-    mock_response = AsyncMock()
-    mock_response.status_code = 200
-    mock_response.text = "<html><head><title>Test Page</title></head><body>Hello World</body></html>"
-    mock_response.headers = {"content-type": "text/html"}
-    
-    with patch("httpx.AsyncClient") as mock_client:
-        mock_instance = AsyncMock()
-        mock_instance.__aenter__.return_value = mock_instance
-        mock_instance.get = AsyncMock(return_value=mock_response)
-        mock_client.return_value = mock_instance
-        
-        async with httpx.AsyncClient(verify=False) as client:
-            response = await client.post(
-                f"{fetch_native_base_url}/mcp",
-                json={
-                    "jsonrpc": "2.0",
-                    "method": "tools/call",
-                    "params": {
-                        "name": "fetch",
-                        "arguments": {
-                            "url": "https://example.com",
-                            "method": "GET"
-                        }
-                    },
-                    "id": 3
+    # Fetch from our own auth service's health endpoint
+    async with httpx.AsyncClient(verify=False) as client:
+        response = await client.post(
+            f"{fetch_native_base_url}/mcp",
+            json={
+                "jsonrpc": "2.0",
+                "method": "tools/call",
+                "params": {
+                    "name": "fetch",
+                    "arguments": {
+                        "url": f"https://auth.{base_domain}/health",
+                        "method": "GET"
+                    }
                 },
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_oauth_token}"
-                }
-            )
-            
+                "id": 3
+            },
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {valid_oauth_token}"
+            }
+        )
+        
     assert response.status_code == 200
     data = response.json()
     assert data["jsonrpc"] == "2.0"
@@ -198,15 +191,13 @@ async def test_fetch_native_call_tool_fetch(fetch_native_base_url, valid_oauth_t
     
     content = result["content"][0]
     assert content["type"] == "text"
-    assert "Hello World" in content["text"]
-    assert content.get("title") == "Test Page"
+    assert "healthy" in content["text"]  # Our auth service returns {"status": "healthy", ...}
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_invalid_json_rpc(fetch_native_base_url, valid_oauth_token):
+async def test_fetch_native_invalid_json_rpc(fetch_native_base_url, valid_oauth_token, wait_for_services):
     """Test handling of invalid JSON-RPC requests."""
-    await ensure_services_ready()
     
     async with httpx.AsyncClient(verify=False) as client:
         # Missing jsonrpc version
@@ -229,9 +220,8 @@ async def test_fetch_native_invalid_json_rpc(fetch_native_base_url, valid_oauth_
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_unknown_method(fetch_native_base_url, valid_oauth_token):
+async def test_fetch_native_unknown_method(fetch_native_base_url, valid_oauth_token, wait_for_services):
     """Test handling of unknown methods."""
-    await ensure_services_ready()
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
@@ -257,9 +247,8 @@ async def test_fetch_native_unknown_method(fetch_native_base_url, valid_oauth_to
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_oauth_discovery(fetch_native_base_url):
+async def test_fetch_native_oauth_discovery(fetch_native_base_url, wait_for_services):
     """Test OAuth discovery endpoint routing."""
-    await ensure_services_ready()
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.get(

@@ -20,22 +20,35 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=public"
       
-      # MCP endpoint with auth
+      # CORS preflight (OPTIONS) endpoint - no auth - higher priority
+      - "traefik.http.routers.mcp-fetchs-options.rule=Host(`mcp-fetchs.${BASE_DOMAIN}`) && PathPrefix(`/mcp`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.mcp-fetchs-options.priority=3"
+      - "traefik.http.routers.mcp-fetchs-options.service=mcp-fetchs"
+      - "traefik.http.routers.mcp-fetchs-options.tls=true"
+      - "traefik.http.routers.mcp-fetchs-options.tls.certresolver=letsencrypt"
+      
+      # MCP endpoint with auth - lower priority catches all non-OPTIONS
       - "traefik.http.routers.mcp-fetchs.rule=Host(`mcp-fetchs.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.mcp-fetchs.priority=2"
       - "traefik.http.routers.mcp-fetchs.middlewares=mcp-auth"
       - "traefik.http.routers.mcp-fetchs.service=mcp-fetchs"
+      - "traefik.http.routers.mcp-fetchs.tls=true"
+      - "traefik.http.routers.mcp-fetchs.tls.certresolver=letsencrypt"
       
       # OAuth discovery endpoint
       - "traefik.http.routers.mcp-fetchs-oauth-discovery.rule=Host(`mcp-fetchs.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
       - "traefik.http.routers.mcp-fetchs-oauth-discovery.priority=10"
       - "traefik.http.routers.mcp-fetchs-oauth-discovery.service=auth@docker"
       - "traefik.http.routers.mcp-fetchs-oauth-discovery.middlewares=oauth-discovery-rewrite"
+      - "traefik.http.routers.mcp-fetchs-oauth-discovery.tls=true"
+      - "traefik.http.routers.mcp-fetchs-oauth-discovery.tls.certresolver=letsencrypt"
       
       # Health check endpoint (no auth)
       - "traefik.http.routers.mcp-fetchs-health.rule=Host(`mcp-fetchs.${BASE_DOMAIN}`) && Path(`/health`)"
       - "traefik.http.routers.mcp-fetchs-health.priority=5"
       - "traefik.http.routers.mcp-fetchs-health.service=mcp-fetchs"
+      - "traefik.http.routers.mcp-fetchs-health.tls=true"
+      - "traefik.http.routers.mcp-fetchs-health.tls.certresolver=letsencrypt"
       
       # Service definition
       - "traefik.http.services.mcp-fetchs.loadbalancer.server.port=3000"
