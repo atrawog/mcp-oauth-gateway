@@ -1,0 +1,3 @@
+Hello from the MCP Filesystem service!
+This is a test file to verify the filesystem server is working correctly.
+The sacred trinity protects this content with OAuth authentication.

@@ -26,6 +26,7 @@ dev-auth = "cd auth && uvicorn main:app --reload --host 0.0.0.0 --port 8000"
 
 # MCP client installation
 install-mcp-client = "pip install -e ./mcp-streamablehttp-client"
+install-mcp-fetch-native = "pip install -e ./mcp-fetch-streamablehttp-server"
 
 [dependencies]
 # Testing framework - pytest is blessed!
@@ -60,6 +61,9 @@ sphinx = ">=7.0.0,<8"
 python-dotenv = ">=1.0.0,<2"
 pyyaml = ">=6.0,<7"
 aiohttp = ">=3.12.13,<4"
+beautifulsoup4 = ">=4.12.3,<5"
+aiofiles = ">=24.0.0"
+uvloop = ">=0.21.0,<1"
 
 # MCP packages
 mcp = ">=1.0.0"
@@ -68,6 +72,10 @@ click = ">=8.0.0"
 anyio = ">=3.0.0"
 rich = ">=13.0.0"
 requests = ">=2.32.4,<3"
+
+[pypi-dependencies]
+# PyPI-only dependencies (not available in conda-forge)
+robotspy = ">=0.8.0"
 
 [feature.docs.dependencies]
 # Additional dependencies for documentation

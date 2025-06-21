@@ -5,6 +5,8 @@ include:
   - traefik/docker-compose.yml
   - auth/docker-compose.yml
   - mcp-fetch/docker-compose.yml
+  - mcp-filesystem/docker-compose.yml
+  - mcp-fetch-streamablehttp-server/docker-compose.yml
 
 networks:
   public:
