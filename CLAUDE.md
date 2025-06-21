@@ -1,360 +1,220 @@
-# Part I: The Ten Sacred Commandments of Divine Development
+# Part I: The Ten Sacred Commandments of Divine Python Development
 
-## Commandment 0: Root Cause or Eternal Hell
+**🔥 BEHOLD! THE UNIVERSAL LAWS OF PYTHON RIGHTEOUSNESS! ⚡**
+**⚡ IGNORE THESE AT YOUR PERIL! PRODUCTION WILL PUNISH YOUR HERESY! ⚡**
 
-**🔥 Five whys or debug forever! ⚡**
+## Commandment 0: Root Cause Analysis or Eternal Debugging Hell
 
-1. Why error? 2. Why condition? 3. Why allowed? 4. Why missed? 5. Why never again?
+**🔥 FIVE WHYS OR DEBUG FOREVER! THE DIVINE LAW OF PROBLEM SOLVING! ⚡**
 
-**Symptoms only = hell!**
+**THE SACRED RITUAL OF ROOT CAUSE DIVINATION:**
+1. **Why did it fail?** - The surface symptom of darkness!
+2. **Why did that condition exist?** - The enabling circumstance of doom!
+3. **Why was it allowed?** - The systemic failure of protection!
+4. **Why wasn't it caught?** - The testing blindness of ignorance!
+5. **Why will it never happen again?** - The divine fix of eternal prevention!
 
-## Commandment 1: NO MOCKS OR BURN
+**⚡ TREATING SYMPTOMS = ETERNAL SUFFERING! ⚡**
+**⚡ FINDING ROOT CAUSE = DIVINE ENLIGHTENMENT! ⚡**
 
-**🔥 NO MOCKS! NO STUBS! NO FAKES! ⚡**
+**THE HERESIES OF SHALLOW DEBUGGING:**
+- ❌ "Fixed the error" (but not WHY it happened!)
+- ❌ "Added a try/except" (bandaid on cancer!)
+- ❌ "Works on my machine" (production is thy judge!)
+- ❌ "Restarted and it worked" (randomness is Satan!)
 
-- Real systems only
-- End-to-end mandatory
-- Real APIs only
-- No shortcuts
+**THE PATH TO DEBUGGING SALVATION:**
+- ✅ Reproduce reliably or face chaos!
+- ✅ Trace to the source of evil!
+- ✅ Fix the SYSTEM, not the instance!
+- ✅ Write tests that guard eternally!
+- ✅ Document the divine wisdom gained!
 
-**Mock = production hell!**
+## Commandment 1: NO MOCKS OR BURN IN PRODUCTION HELL
 
-## Commandment 2: Holy Trinity or Chaos
+**🔥 NO MOCKS! NO STUBS! NO FAKES! THE DIVINE LAW OF REAL TESTING! ⚡**
 
-**🔥 Trinity = salvation! ⚡**
+**THE SACRED TRUTH:**
+- **Real systems only** - Test against ACTUAL services!
+- **End-to-end mandatory** - The FULL stack or nothing!
+- **Real APIs only** - Mock responses are LIES!
+- **No shortcuts** - Pain now or AGONY later!
 
-1. **just** (make = heresy)
-2. **pixi** (pip/conda = false)
-3. **docker-compose** (k8s = vanity)
+**⚡ EVERY MOCK IS A LIE WAITING TO DESTROY PRODUCTION! ⚡**
 
-```
-❌ python/pip/docker → ✅ just/pixi/compose
-```
+**THE SINS OF MOCKING:**
+- ❌ Mock objects that behave differently than reality!
+- ❌ Stub methods that hide integration failures!
+- ❌ Fake services that mask timing issues!
+- ❌ Patched dependencies that create false confidence!
 
-## Commandment 3: Sacred Structure or Chaos
+**THE PATH OF TESTING RIGHTEOUSNESS:**
+- ✅ Docker containers for real services!
+- ✅ Actual databases with real constraints!
+- ✅ True API calls with network latency!
+- ✅ Production-like environments always!
+- ✅ Integration tests that reveal truth!
 
-**🏛️ Isolation mandatory! ⚡**
+**MOCK = PRODUCTION HELL! THIS IS THE ETERNAL LAW!**
 
-```
-any-project/
-├── ./tests/              # ALL pytest tests HERE - NO EXCEPTIONS!
-├── ./scripts/            # ALL Python scripts for just commands!
-├── ./docs/               # ALL Jupyter Book documentation!
-├── ./logs/               # ALL logs segregated here!
-├── ./reports/            # ALL analysis reports (git-ignored)!
-├── ./htmlcov/            # Coverage reports (git-ignored)!
-├── service-a/            # Each service in its own directory!
-│   ├── Dockerfile
-│   └── docker-compose.yml
-├── service-b/            # Service isolation is MANDATORY!
-│   ├── Dockerfile
-│   └── docker-compose.yml
-├── coverage-spy/         # Sidecar coverage sanctuary - THE DIVINE INTERCEPTOR!
-│   ├── sitecustomize.py  # Calls coverage.process_startup() - BLESSED!
-│   └── .coveragerc       # Coverage config with source tracking!
-├── docker-compose.yml    # Root orchestration only!
-├── docker-compose.coverage.yml  # Coverage overlay!
-├── justfile              # The book of commands - REQUIRED!
-├── pixi.toml             # Package management - REQUIRED!
-├── .env                  # Configuration - REQUIRED!
-├── .coveragerc           # Coverage config - REQUIRED!
-└── .gitignore            # Must ignore reports/, htmlcov/, .env!
-```
+## Commandment 2: The Holy Trinity of Python Tools or Chaos
 
-## Commandment 4: .env or Hell
+**🔥 THE BLESSED TRINITY = SALVATION! ALL ELSE = DAMNATION! ⚡**
 
-**🔥 .env = salvation! ⚡**
+**THE THREE PILLARS OF PYTHON ENLIGHTENMENT:**
+1. **just** - The divine task runner!
+2. **pixi** - The blessed package manager!
+3. **docker-compose** - The sacred orchestrator!
 
-- ALL config through .env
-- NO defaults in code
-- Validate at startup
-- Pipeline creates real, git stores .example
+**⚡ VIOLATE THE TRINITY AND FACE DEPENDENCY HELL! ⚡**
 
+**THE DIVINE JUSTFILE PATTERN:**
 ```justfile
 set dotenv-load := true
+set positional-arguments := true
+
+# List all divine commands
+default:
+    @just --list
+
+# Setup the blessed project
+setup:
+    pixi install
+
+# Run the sacred tests
+test:
+    pixi run pytest tests/ -v
 ```
 
-## Commandment 5: Docker-Compose or Container Chaos
+## Commandment 3: Sacred Project Structure or Directory Chaos
 
-**🐳 Compose = divine order! All else = chaos! ⚡**
-
-- Each service owns its compose file
-- One root to unite (not define!)
-- `public` network bridges all
-- Share volumes sparingly
-
-### The Sacred Orchestration Structure
+**🏛️ DIVINE ISOLATION IS MANDATORY! STRUCTURE BRINGS SALVATION! ⚡**
 
 ```
-service-a/
-  └── docker-compose.yml    # Service A's complete definition
-service-b/
-  └── docker-compose.yml    # Service B's complete definition
-docker-compose.yml          # The root coordinator only!
+any-python-project/
+├── src/                  # SOURCE CODE SANCTUARY - All Python modules here!
+│   └── your_package/     # Your blessed package with __init__.py!
+├── tests/                # ALL pytest tests HERE - NO EXCEPTIONS!
+│   ├── conftest.py       # Sacred fixtures and divine configuration!
+│   ├── unit/             # Unit test temple (if you must)!
+│   └── integration/      # Integration test cathedral (blessed!)!
+├── scripts/              # ALL Python scripts for automation!
+├── docs/                 # ALL Jupyter Book documentation!
+│   ├── _config.yml       # Documentation configuration gospel!
+│   └── _toc.yml          # Table of contents scripture!
+├── logs/                 # ALL logs segregated here!
+├── reports/              # ALL analysis reports (git-ignored)!
+├── htmlcov/              # Coverage reports (git-ignored)!
+├── coverage-spy/         # Sidecar coverage sanctuary!
+│   └── sitecustomize.py  # The divine coverage interceptor!
+├── docker-compose.yml    # Service orchestration scripture!
+├── justfile              # The book of divine commands!
+├── pixi.toml             # Package management gospel!
+├── pyproject.toml        # Python project metadata!
+├── .env                  # Sacred configuration!
+├── .env.example          # Configuration template!
+├── .coveragerc           # Coverage configuration!
+├── .gitignore            # Must ignore the unholy!
+└── README.md             # Project revelation!
 ```
 
-```bash
-just network-create  # Sacred network
-just up             # Resurrect services
-just rebuild name   # Divine fury rebuild
-just down           # Peaceful death
-```
+**⚡ VIOLATE THIS STRUCTURE = PROJECT CHAOS! ⚡**
 
+## Commandment 4: Configuration Through .env or Damnation
+
+**🔥 ALL CONFIGURATION FLOWS THROUGH .ENV! THIS IS THE LAW! ⚡**
+
+**THE DIVINE CONFIGURATION COMMANDMENTS:**
+- **ALL config through .env** - No hardcoded values!
+- **NO defaults in code** - Explicit > implicit!
+- **Validate at startup** - Fail fast and loud!
+- **Store .env.example** - Template for mortals!
+
+**⚡ HARDCODE VALUES = PRODUCTION DISASTERS! ⚡**
+
+## Commandment 5: Docker Compose for All Services or Container Chaos
+
+**🐳 COMPOSE IS THE DIVINE ORCHESTRATOR! ALL ELSE IS MADNESS! ⚡**
+
+**THE SACRED ORCHESTRATION PRINCIPLES:**
+- **One service, one directory** - Divine isolation!
+- **Compose for coordination** - Not definition!
+- **Named networks** - Bridge thy services via public!
+- **Holy Traefik** - The one proxy to rule all services!
+- **Health checks mandatory** - Prove thy readiness!
+
+**THE BLESSED DOCKER-COMPOSE PATTERN:**
 ```yaml
-services:
-  service-name:
-    build: .
-    networks: [public]
-    healthcheck:  # MANDATORY!
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+include:
+  - traefik/docker-compose.yml
+  - serviceA/docker-compose.yml
+  - serviceB/docker-compose.yml
+
+networks:
+  public:
+    external: true
+
+volumes:
+  traefik-certificates:
+    external: true
+  serviceA-data:
+    external: true
+  serviceB-data:
+    external: true
 ```
 
-## Commandment 6: Pytest + Sidecar Coverage or Testing Hell
+**⚡ NO HEALTHCHECKS = RANDOM FAILURES! ⚡**
 
-**🧪 Pytest = salvation! Sidecar = truth! ⚡**
+## Commandment 6: Pytest and Coverage or Testing Damnation
 
-- pytest only (unittest is obsolete!)
-- ./tests/ directory sacred
-- conftest.py for fixtures
-- `just test` invokes all
+**🧪 PYTEST IS THE ONLY TRUE TEST RUNNER! COVERAGE REVEALS TRUTH! ⚡**
 
-```bash
-just test  # pixi run pytest tests/ -v --cov
-```
+**THE TESTING COMMANDMENTS:**
+- **pytest only** - unittest is obsolete darkness!
+- **./tests/ directory** - The sacred testing temple!
+- **conftest.py** - Divine fixtures live here!
+- **Coverage or ignorance** - Measure thy righteousness!
+- **Test behavior, not implementation** - Focus on divine outcomes!
 
-### Sidecar Coverage - THE DIVINE REVELATION OF PRODUCTION TRUTH!
+**⚡ UNTESTED CODE = BROKEN CODE! THIS IS LAW! ⚡**
 
-**⚠️ BEHOLD! THE SACRED SIDECAR PATTERN THAT BRINGS 72.63% ENLIGHTENMENT! ⚡**
+## Commandment 7: Real Health Checks or Random Failures
 
-**🔥 THE FOUR PILLARS OF SIDECAR SALVATION:**
+**😈 SLEEP COMMANDS ARE SATAN'S TIMING! ONLY HEALTHCHECKS SAVE! ⚡**
 
-1. **📦 RUN FROM SOURCE** - Not installed packages! THE DIVINE TRUTH REVEALED!
-2. **🕵️ SPY VIA PYTHONPATH** - `/coverage-spy` intercepts ALL Python processes!
-3. **📊 COVERAGE_PROCESS_START** - Points to sacred `.coveragerc` configuration!
-4. **🗂️ PATH MAPPING** - Divine translation from container to local paths!
+**THE HEALTH CHECK GOSPELS:**
+- **EVERY service needs health** - Prove thy life!
+- **Dependencies must be ready** - Full chain verified!
+- **Check actual functionality** - Not just port open!
+- **Check production endpoints** - FQDN or death!
 
-**⚡ THE SACRED DOCKERFILE REVELATION - RUN FROM SOURCE OR FACE 0% DAMNATION! ⚡**
+**⚡ sleep 10 = RANDOM PRODUCTION FAILURES! ⚡**
 
-```dockerfile
-# THE BLESSED AUTH DOCKERFILE PATTERN - COPY THIS DIVINE WISDOM!
-WORKDIR /app
+## Commandment 8: Centralized Logging or Debugging Chaos
 
-# Copy source code DIRECTLY to /app - NO PACKAGE INSTALLATION!
-COPY mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient /app/mcp_oauth_dynamicclient
+**📜 SCATTERED LOGS = LOST WISDOM! CENTRALIZE OR SUFFER! ⚡**
 
-# Set PYTHONPATH to find source
-ENV PYTHONPATH=/app:${PYTHONPATH}
+**THE LOGGING COMMANDMENTS:**
+- **./logs/ directory** - The sacred log temple!
+- **Structured logging** - JSON for the divine parsers!
+- **Context in every line** - Trace thy errors!
+- **Rotate and archive** - Prevent disk doom!
 
-# Run directly from source - THE PATH TO COVERAGE TRUTH!
-CMD ["python", "-m", "mcp_oauth_dynamicclient.cli", "--host", "0.0.0.0", "--port", "8000"]
-```
+**⚡ PROPER LOGGING = DEBUGGING PARADISE! CHAOS LOGGING = ETERNAL SUFFERING! ⚡**
 
-**🎯 THE HOLY COVERAGE OVERLAY - `docker-compose.coverage.yml`:**
+## Commandment 9: Document with Jupyter Book or Knowledge Chaos
 
-```yaml
-services:
-  auth:
-    user: root  # Write permission for coverage data
-    environment:
-      # THE TRINITY OF COVERAGE ENLIGHTENMENT!
-      - PYTHONPATH=/coverage-spy:/app:${PYTHONPATH:-}  # Spy FIRST, then app!
-      - COVERAGE_PROCESS_START=/coverage-config/.coveragerc
-      - COVERAGE_FILE=/coverage-data/.coverage
-      # Plus ALL your service env vars - NEVER FORGET THEM!
-    volumes:
-      - ./coverage-spy:/coverage-spy:ro  # The divine interceptor!
-      - ./coverage-spy/.coveragerc:/coverage-config/.coveragerc:ro
-      - coverage-data:/coverage-data:rw  # Sacred data sanctuary!
+**📚 JUPYTER BOOK = DIVINE DOCUMENTATION! ALL ELSE IS INFERIOR! ⚡**
 
-  # THE DIVINE COVERAGE HARVESTER - Collects and transforms the blessed data!
-  coverage-harvester:
-    image: python:3.11-slim
-    volumes:
-      - ./mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient:/app:ro
-      - coverage-data:/coverage-data:rw
-      - ./htmlcov:/htmlcov:rw
-      - ./coverage-spy/.coveragerc:/.coveragerc:ro
-      - .:/workspace:ro
-    working_dir: /workspace
-    environment:
-      - COVERAGE_FILE=/coverage-data/.coverage
-    command: |
-      # Install coverage, wait for data, combine, and generate reports!
-      pip install coverage && 
-      python /scripts/wait_for_coverage.py &&
-      cp /coverage-data/.coverage* . &&
-      pixi run coverage combine &&
-      pixi run coverage report &&
-      pixi run coverage html
-```
+**THE DOCUMENTATION COMMANDMENTS:**
+- **Jupyter Book only** - Modern divine tooling!
+- **MyST Markdown** - The blessed format!
+- **./docs/ directory** - Knowledge sanctuary!
+- **Build automatically** - CI/CD blessed!
 
-**📜 THE BLESSED `.coveragerc` - PATH MAPPING GOSPEL:**
+**⚡ UNDOCUMENTED CODE = UNUSABLE CODE! ⚡**
 
-```ini
-[paths]
-# THE DIVINE PATH TRANSLATION - Container to Local!
-source =
-    ./mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient  # Local blessed path
-    /app/mcp_oauth_dynamicclient  # Container sacred path
-
-[report]
-precision = 2
-omit = */auth.py  # Exclude the deceased modules!
-```
-
-**🕵️ THE SACRED `coverage-spy/sitecustomize.py`:**
-
-```python
-"""Sacred Coverage Spy - THE DIVINE INTERCEPTOR!"""
-import coverage
-coverage.process_startup()  # BLESSED INTERCEPTION OF ALL PROCESSES!
-```
-
-**⚡ THE COMMANDMENTS OF SIDECAR SUCCESS:**
-
-```bash
-just test-sidecar-coverage  # Witness 72.63% glory!
-```
-
-**🔥 HERESIES THAT BRING 0% COVERAGE:**
-- ❌ Installing packages instead of source!
-- ❌ Wrong PYTHONPATH order!
-- ❌ Missing environment variables!
-- ❌ Incorrect path mappings!
-- ❌ Using `coverage run` directly!
-
-**✅ DIVINE TRUTHS FOR COVERAGE SALVATION:**
-- ✅ Run from `/app` source code!
-- ✅ `coverage.process_startup()` via sitecustomize!
-- ✅ All env vars in coverage overlay!
-- ✅ Proper path mapping in `.coveragerc`!
-- ✅ Coverage data volume mounted!
-
-**THE SACRED COVERAGE RITUAL:**
-1. Services run from source at `/app/mcp_oauth_dynamicclient`
-2. PYTHONPATH injects `/coverage-spy` FIRST
-3. `sitecustomize.py` calls `coverage.process_startup()`
-4. Coverage tracks ALL execution in `/coverage-data`
-5. Harvester combines and maps paths to local source
-6. **BEHOLD! 72.63% COVERAGE TRUTH!**
-
-```ini
-[run]
-branch = True
-concurrency = thread,multiprocessing
-parallel = True
-sigterm = True
-data_file = /coverage-data/.coverage
-source = mcp_oauth_dynamicclient  # Track by module name!
-disable_warnings = module-not-imported
-```
-
-**🎆 THE GLORIOUS RESULT OF DIVINE COMPLIANCE: 72.63% COVERAGE! 🎆**
-
-**From 0% darkness to 72.63% enlightenment - THIS IS THE WAY!**
-
-**VIOLATE THESE SACRED PATTERNS AND SUFFER:**
-- 0% coverage despite passing tests!
-- Hours of debugging path issues!
-- Confusion about why coverage.py sees nothing!
-- Despair as coverage data vanishes into the void!
-
-**FOLLOW THE DIVINE PATH AND RECEIVE:**
-- Real coverage metrics from production containers!
-- Perfect path mapping from container to local!
-- Automatic subprocess coverage collection!
-- HTML reports revealing the truth of thy code!
-
-**MAY YOUR COVERAGE BE HIGH AND YOUR TESTS BE REAL!**
-
-## Commandment 7: Thou Shalt Trust ONLY Docker Healthchecks
-
-**😈 Sleep commands are Satan's timing! Death to arbitrary waits! 😈**
-
-### The Healthcheck Gospels
-
-- **⚡ EVERY service MUST have healthcheck** - No exceptions!
-- **⚡ Internal health not enough** - Prove external readiness!
-- **⚡ Check complete request path** - Partial checks lie!
-- **⚡ Startup periods are patience** - Don't rush init!
-- **⚡ ALL containers** - databases, APIs, workers!
-
-### The Readiness Verification Hierarchy - THE DIVINE LADDER OF CONTAINER BLESSING!
-
-1. **💪 Service Internal Health** - Can the blessed service process divine requests?
-2. **🔗 Dependency Connectivity** - Can it commune with its sacred dependencies?
-3. **✅ Full Request Validation** - Does the COMPLETE chain work in holy harmony?
-4. **🎨 Business Logic Verification** - Can it perform its ACTUAL divine purpose?
-
-**⚡ THE CURSE OF SLEEP: Use sleep instead of healthchecks in ANY project and face RANDOM TIMING FAILURES for ALL ETERNITY! ⚡**
-**Thy containers shall start in chaos! Thy services fail unpredictably! And thy deployments become a lottery of doom!**
-
-## Commandment 8: Thou Shalt Segregate Logs into Sacred Archives
-
-**📜 Scattered logs are lost wisdom in the void! 📜**
-
-### The Logging Commandments
-
-- **⚡ ALL projects use ./logs/** - Sacred directory!
-- **⚡ CENTRALIZE all logs** - One directory to rule them!
-- **⚡ STRUCTURE by service and level** - Organization prevents chaos!
-- **⚡ INCLUDE context in every line** - Isolated messages help none!
-
-### The Sacred Log Hierarchy - THE DIVINE DIRECTORY TEMPLE OF TRUTH! (Required Structure)
-
-```
-logs/                     # ⚡ MANDATORY in every project - THE HOLY ARCHIVE! ⚡
-├── service-a/
-│   ├── error.log        # 🔥 The SINS and transgressions of service A!
-│   ├── info.log         # 📜 The righteous DEEDS and events of service A!
-│   └── debug.log        # 🧠 The inner THOUGHTS and contemplations of service A!
-├── service-b/
-│   └── ...              # Each service CONFESSES separately in divine isolation!
-└── app.log              # For blessed single-service projects!
-```
-
-**⚡ VIOLATE THIS STRUCTURE AND LOSE THY DEBUGGING SANITY! ⚡**
-
-## Commandment 9: Thou Shalt Document with Jupyter Book and MyST
-
-**📚 Jupyter Book 2 is the only blessed documentation system! 📚**
-
-### The Documentation Commandments
-
-- **⚡ Jupyter Book 2 or confusion** - Sphinx alone insufficient!
-- **⚡ MyST Markdown is sacred** - RST is old testament!
-- **⚡ ALL docs in ./docs/** - Divinely ordained structure!
-- **⚡ _config.yml and _toc.yml** - Twin pillars of organization!
-
-### The Sacred Documentation Structure - THE DIVINE TEMPLE OF KNOWLEDGE!
-
-```
-docs/                    # ⚡ THE HOLY DOCUMENTATION SANCTUARY! ⚡
-├── _config.yml      # 📜 Jupyter Book configuration GOSPEL - the sacred settings!
-├── _toc.yml         # 📚 Table of contents SCRIPTURE - the divine navigation!
-├── index.md         # ✨ The PRIMARY REVELATION (MyST format blessed!)
-├── api/             # 🚀 API documentation TEMPLE (MyST format sanctified!)
-├── guides/          # 🎯 User guidance SANCTUARY (MyST format divine!)
-└── architecture/    # 🏗️ System design CATHEDRAL (MyST format holy!)
-```
-
-**⚡ USE ANY OTHER FORMAT AND FACE DOCUMENTATION CHAOS! ⚡**
-
-## ⚡ Universal Laws
-
-**🌍 Ten commandments govern ALL! ⚡**
-
-```bash
-# ROOT: justfile, pixi.toml, .env, docker-compose.yml
-# DIRS: ./tests/, ./scripts/, ./docs/, ./logs/
-```
-
-**⚡ Exemption = hell! ⚡**
-
+---
 
 # Part II: Divine MCP OAuth2 Gateway
 
