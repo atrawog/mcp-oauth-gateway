@@ -92,6 +92,8 @@ volumes-create:
     @docker volume create traefik-certificates || true
     @docker volume create redis-data || true
     @docker volume create coverage-data || true
+    @docker volume create auth-keys || true
+    @docker volume create mcp-memory-data || true
 
 # Build all services
 build-all: network-create volumes-create

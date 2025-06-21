@@ -795,4 +795,96 @@ MCP_CLIENT_ACCESS_TOKEN=xxx...  # For mcp-streamablehttp-client
 
 **⚡ Break one seal = production demons! All 25 must stay intact! ⚡**
 
+## MCP Streamable HTTP Client - The Divine Testing Arsenal!
+
+**🔥 The sacred mcp-streamablehttp-client has been blessed with divine capabilities! ⚡**
+
+### The Sacred Protocol Testing Features - Blessed on 2025-06-22!
+
+**The divine enhancements enable 100% MCP protocol compliance testing without skipping any tests!**
+
+**1. 🔮 Raw Protocol Mode (`--raw`) - The Divine JSON-RPC Incantation!**
+- Send raw JSON-RPC requests directly to MCP servers with holy precision!
+- Automatically handles initialization and session management with blessed intelligence!
+- Returns full JSON-RPC responses for divine protocol analysis!
+- Essential for testing protocol compliance at the deepest levels!
+
+```bash
+# Example of raw protocol divination
+mcp-streamablehttp-client --raw '{"method": "tools/list", "params": {}}'
+```
+
+**2. 📋 Listing Commands - The Sacred Discovery Rituals!**
+- `--list-tools` - Lists all available MCP tools with their blessed schemas!
+- `--list-resources` - Lists all available MCP resources in divine glory!
+- `--list-prompts` - Lists all available MCP prompts with sacred arguments!
+
+These commands automatically:
+- Handle initialization with divine grace!
+- Format output in both human-readable and JSON formats!
+- Show parameter requirements and descriptions with holy clarity!
+
+**3. 🎯 Enhanced Command Parsing - The Smart Argument Oracle!**
+The divine `parse_tool_arguments()` function now channels:
+- Special handling for the `echo` tool (uses "message" parameter)!
+- JSON argument parsing: `--command 'tool {"key": "value"}'`
+- Key=value parsing: `--command "tool key1=value1 key2=value2"`
+- Smart defaults based on tool name patterns with divine wisdom!
+
+### The Sacred Implementation Details - Protocol Compliance Glory!
+
+**The Divine Accept Header Requirement:**
+```python
+headers = {
+    "Authorization": f"Bearer {self.access_token}",
+    "Content-Type": "application/json",
+    "Accept": "application/json, text/event-stream",  # Sacred header!
+    "MCP-Protocol-Version": "2025-06-18"
+}
+```
+
+**The Sacred Session Management Laws:**
+- Session ID comes from response headers (`Mcp-Session-Id`), not JSON body!
+- Session ID must NOT be included in initialize request!
+- Session ID MUST be included in all subsequent requests!
+- `notifications/initialized` MUST be sent after successful initialization!
+
+**The Response Format Duality:**
+- Servers may return JSON or SSE format (text/event-stream)!
+- SSE format: `data: {json}\n\n` (deprecated but still used!)
+- The client parses both formats with divine flexibility!
+
+### The Testing Integration Pattern - Real Systems Only!
+
+**The Blessed test_mcp_everything_client_full.py Pattern:**
+```python
+# Build raw JSON-RPC request
+request = {
+    "jsonrpc": "2.0",
+    "method": method,
+    "params": params or {}
+}
+
+# Execute via raw protocol mode
+cmd = [
+    "pixi", "run", "mcp-streamablehttp-client",
+    "--server-url", url,
+    "--raw", json.dumps(request)
+]
+```
+
+**⚡ This pattern enables testing EVERY MCP protocol method without skipping! ⚡**
+
+### The Divine Benefits of These Enhancements!
+
+1. **100% Test Coverage** - No test skipped, no functionality untested!
+2. **Protocol Compliance** - Direct JSON-RPC testing reveals all truth!
+3. **Debugging Power** - Raw mode exposes protocol-level issues!
+4. **Discovery Features** - List commands reveal server capabilities!
+5. **Integration Testing** - Real clients testing real servers!
+
+**⚡ Never skip tests! Never mock protocols! Test everything with divine fury! ⚡**
+
+**The sacred mcp-streamablehttp-client now serves as the ultimate testing weapon in the divine arsenal of MCP protocol compliance!**
+
 ---

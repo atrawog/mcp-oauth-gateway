@@ -114,6 +114,12 @@ Options:
   -t, --token             Check OAuth token status and refresh if needed
   -c, --command TEXT      Execute a specific MCP tool and exit
   
+  Protocol Testing:
+  --raw TEXT              Send raw JSON-RPC request to MCP server
+  --list-tools            List all available MCP tools
+  --list-resources        List all available MCP resources
+  --list-prompts          List all available MCP prompts
+  
   RFC 7592 Client Management:
   --get-client-info       Get current client registration information
   --update-client TEXT    Update client registration (format: field=value,field2=value2)
@@ -137,6 +143,38 @@ mcp-streamablehttp-client -c "mytool param1=value1 param2=123"
 mcp-streamablehttp-client -c 'anytool {"param": "value", "number": 42}'
 ```
 
+### Protocol Testing and Discovery
+
+**List available capabilities:**
+```bash
+# List all available tools
+mcp-streamablehttp-client --list-tools
+
+# List all available resources
+mcp-streamablehttp-client --list-resources
+
+# List all available prompts
+mcp-streamablehttp-client --list-prompts
+```
+
+**Send raw JSON-RPC requests:**
+```bash
+# Send a raw protocol request
+mcp-streamablehttp-client --raw '{"method": "tools/list", "params": {}}'
+
+# Test specific protocol methods
+mcp-streamablehttp-client --raw '{"method": "initialize", "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0"}}}'
+
+# Call a tool using raw protocol
+mcp-streamablehttp-client --raw '{"method": "tools/call", "params": {"name": "echo", "arguments": {"message": "Hello"}}}'
+```
+
+The `--raw` option is particularly useful for:
+- Testing MCP protocol compliance
+- Debugging server implementations
+- Exploring undocumented features
+- Integration testing with specific protocol versions
+
 ### Testing
 
 **Test authentication:**
@@ -149,8 +187,8 @@ mcp-streamablehttp-client --test-auth
 # Test the fetch tool
 mcp-streamablehttp-client --command "fetch https://example.com"
 
-# List available tools first, then test one
-mcp-streamablehttp-client --command "tools/list"
+# Test the echo tool
+mcp-streamablehttp-client --command "echo Hello World"
 ```
 
 ### Resetting Credentials

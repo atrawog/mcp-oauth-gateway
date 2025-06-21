@@ -1,0 +1,36 @@
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Install basic dependencies for health checks and Python for proxy
+RUN apk add --no-cache curl netcat-openbsd python3 py3-pip
+
+# Install the official MCP memory server
+RUN npm install -g @modelcontextprotocol/server-memory@latest
+
+# Copy the mcp-streamablehttp-proxy package source
+COPY ../mcp-streamablehttp-proxy /tmp/mcp-streamablehttp-proxy
+
+# Install the mcp-streamablehttp-proxy package from source
+RUN pip3 install --break-system-packages /tmp/mcp-streamablehttp-proxy
+
+# Clean up the temporary copy
+RUN rm -rf /tmp/mcp-streamablehttp-proxy
+
+# Create data directory for memory storage
+RUN mkdir -p /data
+
+# Expose the standard MCP port
+EXPOSE 3000
+
+# Set environment variables
+ENV PORT=3000
+ENV MEMORY_FILE_PATH=/data/memory.json
+
+# Health check to verify the server is responding
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+
+# Use mcp-streamablehttp-proxy to wrap the memory server
+# Using shell form to handle the command properly
+CMD mcp-streamablehttp-proxy npx @modelcontextprotocol/server-memory

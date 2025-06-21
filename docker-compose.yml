@@ -8,6 +8,7 @@ include:
   - mcp-filesystem/docker-compose.yml
   - mcp-fetchs/docker-compose.yml
   - mcp-everything/docker-compose.yml
+  - mcp-memory/docker-compose.yml
 
 networks:
   public:
@@ -21,4 +22,6 @@ volumes:
   coverage-data:
     external: true
   auth-keys:
+    external: true
+  mcp-memory-data:
     external: true

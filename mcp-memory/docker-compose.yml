@@ -1,0 +1,76 @@
+services:
+  mcp-memory:
+    build:
+      context: ../
+      dockerfile: mcp-memory/Dockerfile
+    container_name: mcp-memory
+    restart: unless-stopped
+    networks:
+      - public
+    ports:
+      - "3000"
+    environment:
+      - MCP_CORS_ORIGINS=*
+      - MCP_PROTOCOL_VERSION=2025-06-18
+      - MEMORY_FILE_PATH=/data/memory.json
+    volumes:
+      - mcp-memory-data:/data
+    labels:
+      # OAuth Discovery Route - Priority 10 (Highest!)
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-memory-oauth-discovery.rule=Host(`mcp-memory.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-memory-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-memory-oauth-discovery.service=auth@docker"
+      - "traefik.http.routers.mcp-memory-oauth-discovery.tls=true"
+      - "traefik.http.routers.mcp-memory-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.mcp-memory-oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
+      - "traefik.http.routers.mcp-memory-oauth-discovery.middlewares=mcp-memory-oauth-discovery-rewrite"
+
+      # Health Check Route - Priority 8
+      - "traefik.http.routers.mcp-memory-health.rule=Host(`mcp-memory.${BASE_DOMAIN}`) && PathPrefix(`/health`)"
+      - "traefik.http.routers.mcp-memory-health.priority=8"
+      - "traefik.http.routers.mcp-memory-health.service=mcp-memory"
+      - "traefik.http.routers.mcp-memory-health.tls=true"
+      - "traefik.http.routers.mcp-memory-health.tls.certresolver=letsencrypt"
+
+      # CORS Preflight Route - Priority 6
+      - "traefik.http.routers.mcp-memory-cors.rule=Host(`mcp-memory.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.mcp-memory-cors.priority=6"
+      - "traefik.http.routers.mcp-memory-cors.service=mcp-memory"
+      - "traefik.http.routers.mcp-memory-cors.tls=true"
+      - "traefik.http.routers.mcp-memory-cors.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-memory-cors.middlewares=cors-headers"
+
+      # MCP Route with Auth - Priority 2
+      - "traefik.http.routers.mcp-memory.rule=Host(`mcp-memory.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-memory.priority=2"
+      - "traefik.http.routers.mcp-memory.service=mcp-memory"
+      - "traefik.http.routers.mcp-memory.tls=true"
+      - "traefik.http.routers.mcp-memory.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-memory.middlewares=mcp-auth"
+
+      # Catch-all Route with Auth - Priority 1 (Lowest!)
+      - "traefik.http.routers.mcp-memory-catchall.rule=Host(`mcp-memory.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-memory-catchall.priority=1"
+      - "traefik.http.routers.mcp-memory-catchall.service=mcp-memory"
+      - "traefik.http.routers.mcp-memory-catchall.tls=true"
+      - "traefik.http.routers.mcp-memory-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-memory-catchall.middlewares=mcp-auth"
+
+      # Service definition
+      - "traefik.http.services.mcp-memory.loadbalancer.server.port=3000"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  public:
+    external: true
+
+volumes:
+  mcp-memory-data:
+    external: true
