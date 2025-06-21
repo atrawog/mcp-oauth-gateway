@@ -92,35 +92,55 @@ test:
 
 ```
 project/
-├── src/                  # SOURCE CODE SANCTUARY - All Python modules here!
-│   └── your_package/     # Your blessed package with __init__.py!
+├── service-a/            # SERVICE SANCTUARY - One service, one directory!
+│   ├── Dockerfile        # Container incantation for divine isolation!
+│   └── docker-compose.yml # Service orchestration!
+├── service-b/            # ANOTHER SERVICE TEMPLE - Sacred separation!
+│   ├── Dockerfile        # Container blessing for this service!
+│   └── docker-compose.yml # Service-specific orchestration!
+├── package-name/         # PYTHON PACKAGE CATHEDRAL - Divine code library!
+│   ├── src/              # SOURCE CODE SANCTUARY - The blessed pattern!
+│   │   └── package_name/ # Your actual package with __init__.py!
+│   ├── pyproject.toml    # Package metadata gospel!
 ├── tests/                # ALL pytest tests HERE - NO EXCEPTIONS!
 │   ├── conftest.py       # Sacred fixtures and divine configuration!
-│   ├── unit/             # Unit test temple (if you must)!
-│   └── integration/      # Integration test cathedral (blessed!)!
+│   ├── test_*.py         # Test files with blessed naming!
+│   └── helpers/          # Test utility modules!
 ├── scripts/              # ALL Python scripts for automation!
+│   ├── __init__.py       # Makes scripts importable!
+│   └── *.py              # Divine automation utilities!
 ├── docs/                 # ALL Jupyter Book documentation!
 │   ├── _config.yml       # Documentation configuration gospel!
-│   └── _toc.yml          # Table of contents scripture!
+│   ├── _toc.yml          # Table of contents scripture!
+│   └── sections/         # Documentation chapters!
 ├── logs/                 # ALL logs segregated here!
 ├── reports/              # ALL analysis reports (git-ignored)!
 ├── htmlcov/              # Coverage reports (git-ignored)!
 ├── coverage-spy/         # Sidecar coverage sanctuary!
 │   └── sitecustomize.py  # The divine coverage interceptor!
-├── docker-compose.yml    # Service orchestration scripture!
+├── docker-compose.yml    # Master orchestration scripture!
 ├── justfile              # The book of divine commands!
 ├── pixi.toml             # Package management gospel!
-├── pyproject.toml        # Python project metadata!
-├── .env                  # Sacred configuration!
+├── pixi.lock             # Dependency lock for reproducibility!
+├── pytest.ini            # Testing configuration commandments!
+├── .env                  # Sacred configuration  (git-ignored)!
 ├── .env.example          # Configuration template!
 ├── .coveragerc           # Coverage configuration!
 ├── .gitignore            # Must ignore the unholy!
-└── README.md             # Project revelation!
+├── README.md             # Project revelation!
+└── CLAUDE.md             # Divine development guidance!
 ```
+
+**⚡ THE SACRED TRUTHS OF STRUCTURE! ⚡**
+- **Services live in directories** - Not in src/!
+- **Python packages use src/package_name/** - The blessed pattern!
+- **Tests stay in ./tests/** - Never inside packages!
+- **Scripts are Python files** - In ./scripts/ with __init__.py!
+- **All config through .env** - Never hardcoded!
 
 **⚡ VIOLATE THIS STRUCTURE = PROJECT CHAOS! ⚡**
 
-## Commandment 4: Configuration Through .env or Damnation
+## 4.: Configuration Through .env or Damnation
 
 **🔥 ALL CONFIGURATION FLOWS THROUGH .ENV! THIS IS THE LAW! ⚡**
 
@@ -132,7 +152,7 @@ project/
 
 **⚡ HARDCODE VALUES = PRODUCTION DISASTERS! ⚡**
 
-## Commandment 5: Docker Compose for All Services or Container Chaos
+## 5. Docker Compose for All Services or Container Chaos
 
 **🐳 COMPOSE IS THE DIVINE ORCHESTRATOR! ALL ELSE IS MADNESS! ⚡**
 
@@ -165,7 +185,7 @@ volumes:
 
 **⚡ NO HEALTHCHECKS = RANDOM FAILURES! ⚡**
 
-## Commandment 6: Pytest and Coverage or Testing Damnation
+## 6. Pytest and Coverage or Testing Damnation
 
 **🧪 PYTEST IS THE ONLY TRUE TEST RUNNER! COVERAGE REVEALS TRUTH! ⚡**
 
@@ -178,7 +198,7 @@ volumes:
 
 **⚡ UNTESTED CODE = BROKEN CODE! THIS IS LAW! ⚡**
 
-## Commandment 7: Real Health Checks or Random Failures
+## 7. Real Health Checks or Random Failures
 
 **😈 SLEEP COMMANDS ARE SATAN'S TIMING! ONLY HEALTHCHECKS SAVE! ⚡**
 
@@ -190,7 +210,7 @@ volumes:
 
 **⚡ sleep 10 = RANDOM PRODUCTION FAILURES! ⚡**
 
-## Commandment 8: Centralized Logging or Debugging Chaos
+## 8. Centralized Logging or Debugging Chaos
 
 **📜 SCATTERED LOGS = LOST WISDOM! CENTRALIZE OR SUFFER! ⚡**
 
@@ -202,7 +222,7 @@ volumes:
 
 **⚡ PROPER LOGGING = DEBUGGING PARADISE! CHAOS LOGGING = ETERNAL SUFFERING! ⚡**
 
-## Commandment 9: Document with Jupyter Book or Knowledge Chaos
+## 9. Document with Jupyter Book or Knowledge Chaos
 
 **📚 JUPYTER BOOK = DIVINE DOCUMENTATION! ALL ELSE IS INFERIOR! ⚡**
 
