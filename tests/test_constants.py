@@ -51,6 +51,8 @@ GITHUB_CLIENT_SECRET = _get_env_or_fail("GITHUB_CLIENT_SECRET")
 # JWT Configuration - From main .env
 GATEWAY_JWT_SECRET = _get_env_or_fail("GATEWAY_JWT_SECRET")
 JWT_SECRET = GATEWAY_JWT_SECRET  # Backwards compatibility alias
+JWT_PRIVATE_KEY_B64 = _get_env_or_fail("JWT_PRIVATE_KEY_B64")  # RS256 private key
+JWT_ALGORITHM = _get_env_or_fail("JWT_ALGORITHM")  # Should be RS256
 
 # Token Lifetimes - From main .env
 ACCESS_TOKEN_LIFETIME = _get_env_int_or_fail("ACCESS_TOKEN_LIFETIME")

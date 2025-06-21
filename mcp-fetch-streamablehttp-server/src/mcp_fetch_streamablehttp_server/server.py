@@ -10,7 +10,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 import uvloop
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
-from mcp import Server
+from mcp.server import Server
 from mcp.types import TextContent, ImageContent
 from pydantic_settings import BaseSettings
 

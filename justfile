@@ -226,6 +226,10 @@ setup-claude-code: generate-github-token create-mcp-config
     @echo "✅ Claude Code setup complete!"
     @echo "📝 MCP config saved to ~/.config/claude/mcp-config.json"
 
+# Execute command in auth container
+exec-auth *args:
+    @docker exec auth {{args}}
+
 # OAuth-specific testing
 test-oauth-flow: ensure-services-ready
     @pixi run pytest tests/test_oauth_flow.py -v -s

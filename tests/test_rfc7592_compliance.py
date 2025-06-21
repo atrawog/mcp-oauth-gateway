@@ -75,7 +75,7 @@ async def test_rfc7592_get_client_configuration(http_client):
         f"{AUTH_BASE_URL}/register/{client_id}"
     )
     assert response.status_code == 401
-    assert response.headers.get('WWW-Authenticate') == 'Bearer'
+    assert response.headers.get('WWW-Authenticate') == 'Bearer realm="auth"'
     
     # Test 3: GET with wrong token - MUST return 403
     wrong_auth = create_bearer_auth_header("reg-wrong-token")
@@ -172,7 +172,7 @@ async def test_rfc7592_put_update_client(http_client):
         json={"client_name": "Unauthorized Update"}
     )
     assert response.status_code == 401
-    assert response.headers.get('WWW-Authenticate') == 'Bearer'
+    assert response.headers.get('WWW-Authenticate') == 'Bearer realm="auth"'
     
     # Test 3: PUT with wrong token - MUST return 403
     wrong_token = "reg-wrong-token-update"
@@ -242,7 +242,7 @@ async def test_rfc7592_delete_client(http_client):
         f"{AUTH_BASE_URL}/register/{client_id}"
     )
     assert response.status_code == 401
-    assert response.headers.get('WWW-Authenticate') == 'Bearer'
+    assert response.headers.get('WWW-Authenticate') == 'Bearer realm="auth"'
     
     # Test 2: DELETE with wrong token - MUST return 403
     wrong_token = "reg-wrong-token-delete"
@@ -342,7 +342,7 @@ async def test_rfc7592_requires_correct_bearer_token(http_client):
         f"{AUTH_BASE_URL}/register/{client_id}"
     )
     assert response.status_code == 401
-    assert response.headers.get('WWW-Authenticate') == 'Bearer'
+    assert response.headers.get('WWW-Authenticate') == 'Bearer realm="auth"'
     
     # Test with Basic auth - should return 401 (wrong auth method)
     import base64
@@ -352,7 +352,7 @@ async def test_rfc7592_requires_correct_bearer_token(http_client):
         headers={"Authorization": basic_auth}
     )
     assert response.status_code == 401
-    assert response.headers.get('WWW-Authenticate') == 'Bearer'
+    assert response.headers.get('WWW-Authenticate') == 'Bearer realm="auth"'
     
     # Clean up with correct token
     auth_header = create_bearer_auth_header(registration_token)

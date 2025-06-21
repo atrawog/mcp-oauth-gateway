@@ -5,7 +5,7 @@ import pytest
 import httpx
 from unittest.mock import patch, AsyncMock
 
-from tests.conftest import assert_integration_test, ensure_services_ready
+from tests.conftest import ensure_services_ready
 
 
 @pytest.fixture

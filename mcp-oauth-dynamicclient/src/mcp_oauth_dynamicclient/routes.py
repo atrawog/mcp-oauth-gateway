@@ -748,13 +748,13 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 raise HTTPException(
                     status_code=401,
                     detail="Missing authentication",
-                    headers={"WWW-Authenticate": "Bearer"}
+                    headers={"WWW-Authenticate": 'Bearer realm="auth"'}
                 )
             elif not auth_header.startswith("Bearer "):
                 raise HTTPException(
                     status_code=401,
                     detail="Invalid authentication method",
-                    headers={"WWW-Authenticate": "Bearer"}
+                    headers={"WWW-Authenticate": 'Bearer realm="auth"'}
                 )
             else:
                 raise HTTPException(
@@ -791,13 +791,13 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 raise HTTPException(
                     status_code=401,
                     detail="Missing authentication",
-                    headers={"WWW-Authenticate": "Bearer"}
+                    headers={"WWW-Authenticate": 'Bearer realm="auth"'}
                 )
             elif not auth_header.startswith("Bearer "):
                 raise HTTPException(
                     status_code=401,
                     detail="Invalid authentication method",
-                    headers={"WWW-Authenticate": "Bearer"}
+                    headers={"WWW-Authenticate": 'Bearer realm="auth"'}
                 )
             else:
                 raise HTTPException(
@@ -876,13 +876,13 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 raise HTTPException(
                     status_code=401,
                     detail="Missing authentication",
-                    headers={"WWW-Authenticate": "Bearer"}
+                    headers={"WWW-Authenticate": 'Bearer realm="auth"'}
                 )
             elif not auth_header.startswith("Bearer "):
                 raise HTTPException(
                     status_code=401,
                     detail="Invalid authentication method",
-                    headers={"WWW-Authenticate": "Bearer"}
+                    headers={"WWW-Authenticate": 'Bearer realm="auth"'}
                 )
             else:
                 raise HTTPException(

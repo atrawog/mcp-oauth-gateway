@@ -148,7 +148,7 @@ async def test_rfc7592_authentication_edge_cases(http_client):
         )
         assert response.status_code == expected_status, f"Failed: {description}"
         if expected_status == 401:
-            assert response.headers.get('WWW-Authenticate') == 'Bearer'
+            assert response.headers.get('WWW-Authenticate') == 'Bearer realm="auth"'
     
     # Cleanup: Delete the client registration using RFC 7592
     try:
