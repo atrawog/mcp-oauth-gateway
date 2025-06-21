@@ -11,7 +11,7 @@ from tests.conftest import assert_integration_test, ensure_services_ready
 @pytest.fixture
 def fetch_native_base_url(base_domain):
     """Base URL for native fetch service."""
-    return f"https://mcp-fetch-native.{base_domain}"
+    return f"https://mcp-fetchs.{base_domain}"
 
 
 @pytest.mark.integration

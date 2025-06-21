@@ -1,0 +1,58 @@
+services:
+  mcp-fetchs:
+    build:
+      context: ../
+      dockerfile: mcp-fetchs/Dockerfile
+    container_name: mcp-fetchs
+    restart: unless-stopped
+    ports:
+      - "3001:3000"  # Different port to avoid conflicts
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+      - MCP_FETCH_SERVER_NAME=mcp-fetch-streamablehttp
+      - MCP_FETCH_PROTOCOL_VERSION=2025-06-18
+      - MCP_FETCH_DEFAULT_USER_AGENT=ModelContextProtocol/1.0 (Fetch Server)
+    networks:
+      - public
+    labels:
+      # Basic router
+      - "traefik.enable=true"
+      - "traefik.docker.network=public"
+      
+      # MCP endpoint with auth
+      - "traefik.http.routers.mcp-fetchs.rule=Host(`mcp-fetchs.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-fetchs.priority=2"
+      - "traefik.http.routers.mcp-fetchs.middlewares=mcp-auth"
+      - "traefik.http.routers.mcp-fetchs.service=mcp-fetchs"
+      
+      # OAuth discovery endpoint
+      - "traefik.http.routers.mcp-fetchs-oauth-discovery.rule=Host(`mcp-fetchs.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetchs-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetchs-oauth-discovery.service=auth@docker"
+      - "traefik.http.routers.mcp-fetchs-oauth-discovery.middlewares=oauth-discovery-rewrite"
+      
+      # Health check endpoint (no auth)
+      - "traefik.http.routers.mcp-fetchs-health.rule=Host(`mcp-fetchs.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetchs-health.priority=5"
+      - "traefik.http.routers.mcp-fetchs-health.service=mcp-fetchs"
+      
+      # Service definition
+      - "traefik.http.services.mcp-fetchs.loadbalancer.server.port=3000"
+      
+      # Middleware for OAuth discovery
+      - "traefik.http.middlewares.oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
+      
+      # Auth middleware
+      - "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"
+      - "traefik.http.middlewares.mcp-auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name,X-Auth-Token"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  public:
+    external: true

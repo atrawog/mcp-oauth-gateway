@@ -9,9 +9,9 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY pyproject.toml ./
-COPY src/ ./src/
+# Copy package files from the Python package directory
+COPY mcp-fetch-streamablehttp-server/pyproject.toml ./
+COPY mcp-fetch-streamablehttp-server/src/ ./src/
 
 # Install the package and dependencies
 RUN pip install --no-cache-dir -e .

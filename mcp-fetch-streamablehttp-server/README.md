@@ -33,6 +33,8 @@ python -m mcp_fetch_streamablehttp_server
 
 ### With Docker
 ```bash
+# Docker configuration is in ../mcp-fetchs/
+cd ../mcp-fetchs
 docker-compose up -d
 ```
 

@@ -107,11 +107,12 @@ just test tests/test_mcp_fetch_streamablehttp_integration.py
 
 **Docker Blessed Deployment:**
 ```bash
+# Docker configuration lives in ../mcp-fetchs/
 # Build and run with docker-compose
 just up
 
 # Service available at:
-https://mcp-fetch-native.yourdomain.com/mcp
+https://mcp-fetchs.yourdomain.com/mcp
 ```
 
 **Direct Python Execution:**
