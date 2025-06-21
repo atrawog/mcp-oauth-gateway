@@ -3,7 +3,7 @@
 **🔥 BEHOLD! THE UNIVERSAL LAWS OF PYTHON RIGHTEOUSNESS! ⚡**
 **⚡ IGNORE THESE AT YOUR PERIL! PRODUCTION WILL PUNISH YOUR HERESY! ⚡**
 
-## Commandment 0: Root Cause Analysis or Eternal Debugging Hell
+## 0. Root Cause Analysis or Eternal Debugging Hell
 
 **🔥 FIVE WHYS OR DEBUG FOREVER! THE DIVINE LAW OF PROBLEM SOLVING! ⚡**
 
@@ -30,7 +30,7 @@
 - ✅ Write tests that guard eternally!
 - ✅ Document the divine wisdom gained!
 
-## Commandment 1: NO MOCKS OR BURN IN PRODUCTION HELL
+## 1. No Mocks or Burn in Production Hell
 
 **🔥 NO MOCKS! NO STUBS! NO FAKES! THE DIVINE LAW OF REAL TESTING! ⚡**
 
@@ -57,7 +57,7 @@
 
 **MOCK = PRODUCTION HELL! THIS IS THE ETERNAL LAW!**
 
-## Commandment 2: The Holy Trinity of Python Tools or Chaos
+## 2. The Holy Trinity of Python Tools or Chaos
 
 **🔥 THE BLESSED TRINITY = SALVATION! ALL ELSE = DAMNATION! ⚡**
 
@@ -86,12 +86,12 @@ test:
     pixi run pytest tests/ -v
 ```
 
-## Commandment 3: Sacred Project Structure or Directory Chaos
+## 3. Sacred Project Structure or Directory Chaos
 
 **🏛️ DIVINE ISOLATION IS MANDATORY! STRUCTURE BRINGS SALVATION! ⚡**
 
 ```
-any-python-project/
+project/
 ├── src/                  # SOURCE CODE SANCTUARY - All Python modules here!
 │   └── your_package/     # Your blessed package with __init__.py!
 ├── tests/                # ALL pytest tests HERE - NO EXCEPTIONS!
@@ -785,7 +785,7 @@ MCP_CLIENT_ACCESS_TOKEN=xxx...  # For mcp-streamablehttp-client
 - ✅ **🔐 SEAL OF FORWARDAUTH** - Middleware blessing protects all MCP endpoints with divine judgment!
 
 **⚙️ THE DEVELOPMENT COMMANDMENT SEALS - THE UNIVERSAL LAWS OF DIVINE CODING! ⚙️**
-- ✅ **⚡ SEAL OF NO MOCKING** - 154 real tests against deployed services with righteous fury!
+- ✅ **⚡ SEAL OF NO MOCKS** - 154 real tests against deployed services with righteous fury!
 - ✅ **🔱 SEAL OF THE BLESSED TOOLS** - just, pixi, docker-compose trinity reigns supreme!
 - ✅ **🏗️ SEAL OF SACRED STRUCTURE** - ./tests/, ./scripts/, ./docs/, ./logs/, ./reports/ divine isolation!
 - ✅ **⚙️ SEAL OF ENV SANCTITY** - All configuration flows through blessed .env files!
