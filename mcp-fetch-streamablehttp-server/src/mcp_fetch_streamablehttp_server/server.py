@@ -12,7 +12,7 @@ from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 from mcp.server import Server
 from mcp.types import TextContent, ImageContent
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field
 from pydantic_settings import BaseSettings
 
 from .transport import StreamableHTTPTransport
@@ -23,26 +23,26 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 logger = logging.getLogger(__name__)
 
-
 class Settings(BaseSettings):
     """Server configuration."""
     
     # Server settings
-    server_name: str = "mcp-fetch-streamablehttp"
-    server_version: str = "0.1.0"
-    protocol_version: str = "2025-06-18"
+    server_name: str = Field(..., description="Server name")
+    server_version: str = Field(..., description="Server version")
+    protocol_version: str = Field(..., description="Protocol version")
     
     # Fetch settings
-    allowed_schemes: List[str] = ["http", "https"]
-    max_redirects: int = 5
-    default_user_agent: str = "ModelContextProtocol/1.0 (Fetch Server)"
+    fetch_allowed_schemes: List[str] = Field(default=["http", "https"], description="Allowed URL schemes")
+    fetch_max_redirects: int = Field(default=5, description="Max redirects")
+    fetch_default_user_agent: str = Field(default="ModelContextProtocol/1.0 (Fetch Server)", description="User agent")
     
     # Transport settings
-    enable_sse: bool = False  # SSE support for future implementation
+    fetch_enable_sse: bool = Field(default=False, description="SSE support for future implementation")
     
     model_config = ConfigDict(
-        env_prefix="MCP_FETCH_",
-        env_file=".env"
+        env_prefix="MCP_",
+        env_file=".env",
+        extra="allow"
     )
 
 
@@ -53,8 +53,8 @@ class StreamableHTTPServer:
         self.settings = settings or Settings()
         self.transport = StreamableHTTPTransport()
         self.fetch_handler = FetchHandler(
-            allowed_schemes=self.settings.allowed_schemes,
-            max_redirects=self.settings.max_redirects
+            allowed_schemes=self.settings.fetch_allowed_schemes,
+            max_redirects=self.settings.fetch_max_redirects
         )
         
         # Create MCP server
@@ -123,9 +123,23 @@ class StreamableHTTPServer:
                 content={"error": "Unauthorized", "message": "Bearer token required"}
             )
             
+        # Check MCP protocol version header if provided
+        mcp_version = headers.get("mcp-protocol-version", headers.get("MCP-Protocol-Version"))
+        if mcp_version and mcp_version != self.settings.protocol_version:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "Unsupported protocol version", "message": f"Server only supports MCP version: {self.settings.protocol_version}, got {mcp_version}"}
+            )
+        
         # For stateless operation, process request directly
         if method == "POST" and path == "/mcp":
             return await self._handle_stateless_request(headers, body)
+        elif method == "GET" and path == "/mcp":
+            # SSE endpoint - not implemented yet
+            return JSONResponse(
+                status_code=501,
+                content={"error": "Not implemented", "message": "Server-Sent Events not yet supported"}
+            )
         else:
             return JSONResponse(
                 status_code=404,
@@ -135,16 +149,8 @@ class StreamableHTTPServer:
     async def _handle_stateless_request(self, headers: Dict[str, str], body: bytes) -> Response:
         """Handle stateless JSON-RPC request."""
         
-        # Validate content type
-        content_type = headers.get("content-type", "").lower()
-        if not content_type.startswith("application/json"):
-            return JSONResponse(
-                status_code=400,
-                content={
-                    "error": "Invalid content type",
-                    "message": "Content-Type must be application/json"
-                }
-            )
+        # Note: Be lenient with content type as long as body is valid JSON
+        # This allows clients that may send incorrect content types
             
         # Parse JSON-RPC request
         try:
@@ -185,11 +191,29 @@ class StreamableHTTPServer:
         
         try:
             if method == "initialize":
-                # Handle initialization
+                # Handle initialization per MCP 2025-06-18
+                # Client should provide protocolVersion in params
+                client_protocol = params.get("protocolVersion", self.settings.protocol_version)
+                
+                # Check if client protocol matches server version
+                if client_protocol != self.settings.protocol_version:
+                    return JSONResponse(
+                        content={
+                            "jsonrpc": "2.0",
+                            "error": {
+                                "code": -32602,
+                                "message": "Invalid params",
+                                "data": f"Unsupported protocol version: {client_protocol}. Server supports: {self.settings.protocol_version}"
+                            },
+                            "id": request_id
+                        },
+                        status_code=400
+                    )
+                
                 result = {
                     "protocolVersion": self.settings.protocol_version,
                     "capabilities": {
-                        "tools": {},
+                        "tools": {},  # We support tools
                         "prompts": None,
                         "resources": None,
                         "logging": None
@@ -200,23 +224,90 @@ class StreamableHTTPServer:
                     }
                 }
             elif method == "tools/list":
-                # List available tools
+                # List available tools per MCP 2025-06-18
+                # Support pagination via cursor parameter
+                cursor = params.get("cursor")
+                
                 tools = self.fetch_handler.get_tools()
+                # For now, return all tools (no pagination)
                 result = {
                     "tools": [tool.model_dump() for tool in tools]
+                    # "nextCursor" would be included if we had more tools
                 }
             elif method == "tools/call":
-                # Call a tool
+                # Call a tool per MCP 2025-06-18
+                if not params:
+                    return JSONResponse(
+                        content={
+                            "jsonrpc": "2.0",
+                            "error": {
+                                "code": -32602,
+                                "message": "Invalid params",
+                                "data": "Missing params for tools/call"
+                            },
+                            "id": request_id
+                        },
+                        headers={
+                            "Content-Type": "application/json",
+                            "Mcp-Session-Id": self.transport.session_id,
+                            "MCP-Protocol-Version": self.settings.protocol_version,
+                        }
+                    )
+                    
                 tool_name = params.get("name")
+                if not tool_name:
+                    return JSONResponse(
+                        content={
+                            "jsonrpc": "2.0",
+                            "error": {
+                                "code": -32602,
+                                "message": "Invalid params",
+                                "data": "Missing required parameter: name"
+                            },
+                            "id": request_id
+                        },
+                        headers={
+                            "Content-Type": "application/json",
+                            "Mcp-Session-Id": self.transport.session_id,
+                            "MCP-Protocol-Version": self.settings.protocol_version,
+                        }
+                    )
+                    
                 tool_args = params.get("arguments", {})
                 
                 if tool_name == "fetch":
-                    contents = await self.fetch_handler.handle_fetch(tool_args)
-                    result = {
-                        "content": [content.model_dump() for content in contents]
-                    }
+                    try:
+                        contents = await self.fetch_handler.handle_fetch(tool_args)
+                        result = {
+                            "content": [content.model_dump() for content in contents],
+                            "isError": False
+                        }
+                    except Exception as tool_error:
+                        # Tool execution error (not protocol error)
+                        result = {
+                            "content": [{
+                                "type": "text",
+                                "text": f"Tool execution failed: {str(tool_error)}"
+                            }],
+                            "isError": True
+                        }
                 else:
-                    raise ValueError(f"Unknown tool: {tool_name}")
+                    return JSONResponse(
+                        content={
+                            "jsonrpc": "2.0",
+                            "error": {
+                                "code": -32602,
+                                "message": "Invalid params",
+                                "data": f"Unknown tool: {tool_name}"
+                            },
+                            "id": request_id
+                        },
+                        headers={
+                            "Content-Type": "application/json",
+                            "Mcp-Session-Id": self.transport.session_id,
+                            "MCP-Protocol-Version": self.settings.protocol_version,
+                        }
+                    )
             else:
                 # Unknown method
                 return JSONResponse(
@@ -228,6 +319,11 @@ class StreamableHTTPServer:
                             "data": f"Unknown method: {method}"
                         },
                         "id": request_id
+                    },
+                    headers={
+                        "Content-Type": "application/json",
+                        "Mcp-Session-Id": self.transport.session_id,
+                        "MCP-Protocol-Version": self.settings.protocol_version,
                     }
                 )
                 
@@ -256,6 +352,11 @@ class StreamableHTTPServer:
                         "data": str(e)
                     },
                     "id": request_id
+                },
+                headers={
+                    "Content-Type": "application/json",
+                    "Mcp-Session-Id": self.transport.session_id,
+                    "MCP-Protocol-Version": self.settings.protocol_version,
                 }
             )
                     

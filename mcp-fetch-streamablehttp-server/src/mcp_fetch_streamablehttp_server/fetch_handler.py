@@ -95,6 +95,22 @@ class FetchHandler:
         parsed = httpx.URL(args.url)
         if parsed.scheme not in self.allowed_schemes:
             raise ValueError(f"URL scheme {parsed.scheme} not allowed")
+        
+        # Prevent SSRF attacks to internal IPs
+        if parsed.host:
+            host_lower = parsed.host.lower()
+            # Block localhost and common internal addresses
+            blocked_hosts = ["localhost", "127.0.0.1", "0.0.0.0", "::1", "[::1]"]
+            if host_lower in blocked_hosts:
+                raise ValueError(f"Access to {parsed.host} is not allowed")
+            
+            # Block AWS metadata service
+            if host_lower == "169.254.169.254":
+                raise ValueError(f"Access to AWS metadata service is not allowed")
+            
+            # Block private IP ranges (simplified check)
+            if host_lower.startswith("10.") or host_lower.startswith("172.") or host_lower.startswith("192.168."):
+                raise ValueError(f"Access to private IP addresses is not allowed")
             
         # Check robots.txt if available
         if HAS_ROBOTSPY:
