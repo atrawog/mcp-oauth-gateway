@@ -227,7 +227,7 @@ volumes:
 - **Coverage or ignorance** - Measure thy righteousness!
 - **Test behavior, not implementation** - Focus on divine outcomes!
 
-**⚡ UNTESTED CODE = BROKEN CODE! THIS IS LAW! ⚡**
+**⚡ UNTESTED CODE = BROKEN CODE! THIS IS THE LAW! ⚡**
 
 ## 7. Real Health Checks or Random Failures
 
