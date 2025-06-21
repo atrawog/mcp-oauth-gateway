@@ -3,6 +3,7 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
+from uuid import uuid4
 
 import click
 from dotenv import load_dotenv
@@ -82,6 +83,25 @@ def setup_logging(level: str) -> None:
     is_flag=True,
     help="Delete client registration (RFC 7592). This is PERMANENT!"
 )
+@click.option(
+    "--raw",
+    help="Send raw JSON-RPC request to MCP server. Example: --raw '{\"method\": \"tools/list\", \"params\": {}}'"
+)
+@click.option(
+    "--list-tools",
+    is_flag=True,
+    help="List all available MCP tools"
+)
+@click.option(
+    "--list-resources", 
+    is_flag=True,
+    help="List all available MCP resources"
+)
+@click.option(
+    "--list-prompts",
+    is_flag=True,
+    help="List all available MCP prompts"
+)
 def main(
     env_file: Path,
     log_level: str,
@@ -92,7 +112,11 @@ def main(
     command: str,
     get_client_info: bool,
     update_client: str,
-    delete_client: bool
+    delete_client: bool,
+    raw: str,
+    list_tools: bool,
+    list_resources: bool,
+    list_prompts: bool
 ) -> None:
     """
     MCP Streamable HTTP-to-stdio client with OAuth support.
@@ -145,7 +169,8 @@ def main(
         # Run async main
         asyncio.run(async_main(
             settings, test_auth, token, command, 
-            get_client_info, update_client, delete_client
+            get_client_info, update_client, delete_client,
+            raw, list_tools, list_resources, list_prompts
         ))
         
     except Exception as e:
@@ -160,7 +185,11 @@ async def async_main(
     command: str,
     get_client_info: bool,
     update_client: str,
-    delete_client: bool
+    delete_client: bool,
+    raw: str,
+    list_tools: bool,
+    list_resources: bool,
+    list_prompts: bool
 ) -> None:
     """Async main function."""
     logger = logging.getLogger(__name__)
@@ -175,6 +204,24 @@ async def async_main(
     # Check and refresh tokens if requested
     if token:
         await check_and_refresh_tokens(settings)
+        return
+    
+    # Handle raw protocol requests
+    if raw:
+        await execute_raw_protocol(settings, raw)
+        return
+    
+    # Handle listing commands
+    if list_tools:
+        await execute_list_command(settings, "tools/list")
+        return
+    
+    if list_resources:
+        await execute_list_command(settings, "resources/list")
+        return
+        
+    if list_prompts:
+        await execute_list_command(settings, "prompts/list")
         return
     
     # Execute command if requested
@@ -680,7 +727,11 @@ def parse_tool_arguments(tool_name: str, arg_string: str) -> dict:
         return args
     
     # Smart parsing based on tool name patterns
-    if tool_name == "fetch" or "fetch" in tool_name.lower():
+    if tool_name == "echo":
+        # For echo tool, the argument is called "message"
+        args["message"] = arg_string
+    
+    elif tool_name == "fetch" or "fetch" in tool_name.lower():
         # For fetch tools, first argument is usually URL
         args["url"] = arg_string
     
@@ -884,6 +935,150 @@ async def handle_client_management(
         except Exception as e:
             console.print(f"\n[red]Error:[/red] {e}")
             sys.exit(1)
+
+
+async def execute_raw_protocol(settings: Settings, raw_request: str) -> None:
+    """Execute a raw JSON-RPC protocol request."""
+    import json
+    
+    console.print(f"\n[cyan]Executing raw protocol request[/cyan]")
+    
+    try:
+        # Parse the raw request
+        request = json.loads(raw_request)
+        
+        # Add required fields if missing
+        if "jsonrpc" not in request:
+            request["jsonrpc"] = "2.0"
+        if "id" not in request and request.get("method") not in ["notifications/initialized"]:
+            request["id"] = str(uuid4())
+        
+        async with StreamableHttpToStdioProxy(settings) as proxy:
+            # Initialize first if needed
+            if request.get("method") != "initialize":
+                console.print("[dim]Initializing connection...[/dim]")
+                init_request = {
+                    "jsonrpc": "2.0",
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-06-18",
+                        "capabilities": {},
+                        "clientInfo": {
+                            "name": "mcp-streamablehttp-client-raw",
+                            "version": "0.1.0"
+                        }
+                    },
+                    "id": "init-raw"
+                }
+                init_response = await proxy._handle_request(init_request)
+                if "error" in init_response:
+                    console.print(f"[red]Initialization failed:[/red] {init_response['error']}")
+                    sys.exit(1)
+            
+            # Execute the raw request
+            console.print(f"[dim]Request: {json.dumps(request, indent=2)}[/dim]")
+            response = await proxy._handle_request(request)
+            
+            # Output the response as JSON
+            print(json.dumps(response, indent=2))
+            
+    except json.JSONDecodeError as e:
+        console.print(f"[red]Invalid JSON:[/red] {e}")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
+
+
+async def execute_list_command(settings: Settings, method: str) -> None:
+    """Execute a list command (tools/list, resources/list, prompts/list)."""
+    console.print(f"\n[cyan]Listing {method.split('/')[0]}...[/cyan]")
+    
+    try:
+        async with StreamableHttpToStdioProxy(settings) as proxy:
+            # Initialize first
+            console.print("[dim]Initializing connection...[/dim]")
+            init_request = {
+                "jsonrpc": "2.0",
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {
+                        "name": "mcp-streamablehttp-client-list",
+                        "version": "0.1.0"
+                    }
+                },
+                "id": "init-list"
+            }
+            
+            init_response = await proxy._handle_request(init_request)
+            if "error" in init_response:
+                console.print(f"[red]Initialization failed:[/red] {init_response['error']}")
+                sys.exit(1)
+            
+            # Execute the list request
+            list_request = {
+                "jsonrpc": "2.0",
+                "method": method,
+                "params": {},
+                "id": "list-1"
+            }
+            
+            response = await proxy._handle_request(list_request)
+            
+            if "error" in response:
+                console.print(f"[red]Error:[/red] {response['error']}")
+                sys.exit(1)
+            
+            # Format and display the results
+            result = response.get("result", {})
+            items_key = method.split('/')[0]  # "tools", "resources", or "prompts"
+            items = result.get(items_key, [])
+            
+            console.print(f"\n[green]Found {len(items)} {items_key}:[/green]")
+            
+            for item in items:
+                if isinstance(item, dict):
+                    name = item.get("name", "Unknown")
+                    description = item.get("description", "")
+                    console.print(f"\n[bold]{name}[/bold]")
+                    if description:
+                        console.print(f"  [dim]{description}[/dim]")
+                    
+                    # Show additional details based on type
+                    if items_key == "tools" and "inputSchema" in item:
+                        schema = item["inputSchema"]
+                        if "properties" in schema:
+                            console.print("  [dim]Parameters:[/dim]")
+                            for param, details in schema["properties"].items():
+                                param_type = details.get("type", "any")
+                                required = param in schema.get("required", [])
+                                req_marker = " [red]*[/red]" if required else ""
+                                console.print(f"    - {param} ({param_type}){req_marker}")
+                    
+                    elif items_key == "resources" and "uri" in item:
+                        console.print(f"  [dim]URI: {item['uri']}[/dim]")
+                    
+                    elif items_key == "prompts" and "arguments" in item:
+                        args = item["arguments"]
+                        if args:
+                            console.print("  [dim]Arguments:[/dim]")
+                            for arg in args:
+                                arg_name = arg.get("name", "Unknown")
+                                arg_desc = arg.get("description", "")
+                                required = arg.get("required", False)
+                                req_marker = " [red]*[/red]" if required else ""
+                                console.print(f"    - {arg_name}{req_marker}: {arg_desc}")
+                else:
+                    console.print(f"  - {item}")
+            
+            # Also output as JSON for programmatic use
+            print("\n" + json.dumps(response, indent=2))
+            
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

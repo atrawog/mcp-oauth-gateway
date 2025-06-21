@@ -149,9 +149,9 @@ class StreamableHttpToStdioProxy:
         try:
             # Special handling for initialize
             if method == "initialize":
-                # Create new session
-                self.session_id = str(uuid4())
-                logger.info(f"Created new session: {self.session_id}")
+                # Don't include session ID in initialize request
+                self.session_id = None
+                logger.info("Initializing new session...")
             
             # Check if we need to refresh token
             if not self.settings.has_valid_credentials():
@@ -164,11 +164,18 @@ class StreamableHttpToStdioProxy:
             headers = {
                 "Authorization": f"Bearer {self.access_token}",
                 "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
                 "MCP-Protocol-Version": "2025-06-18"
             }
             
+            logger.debug(f"Request headers: {headers}")
+            
             if self.session_id:
                 headers["Mcp-Session-Id"] = self.session_id
+            
+            logger.info(f"Sending request to {self.settings.mcp_server_url}")
+            logger.info(f"Headers: {headers}")
+            logger.info(f"Request: {request}")
             
             response = await self.http_client.post(
                 self.settings.mcp_server_url,
@@ -195,9 +202,49 @@ class StreamableHttpToStdioProxy:
             # Update session ID if returned
             if "Mcp-Session-Id" in response.headers:
                 self.session_id = response.headers["Mcp-Session-Id"]
+                logger.info(f"Got session ID: {self.session_id}")
             
-            # Return response
-            return response.json()
+            # Parse response based on content type
+            content_type = response.headers.get("content-type", "").lower()
+            
+            if "text/event-stream" in content_type:
+                # Parse SSE response
+                for line in response.text.strip().split('\n'):
+                    if line.startswith('data: '):
+                        result = json.loads(line[6:])
+                        break
+                else:
+                    # If no data found, return empty response
+                    result = {"jsonrpc": "2.0", "id": request_id, "result": None}
+            else:
+                # Standard JSON response
+                result = response.json()
+            
+            # Send initialized notification after successful initialize
+            if method == "initialize" and "result" in result and not result.get("error"):
+                logger.info("Sending notifications/initialized")
+                notification = {
+                    "jsonrpc": "2.0",
+                    "method": "notifications/initialized"
+                }
+                # Update headers to include session ID if we have one
+                notif_headers = headers.copy()
+                if self.session_id:
+                    notif_headers["Mcp-Session-Id"] = self.session_id
+                # Send notification without waiting for response
+                try:
+                    notif_resp = await self.http_client.post(
+                        self.settings.mcp_server_url,
+                        json=notification,
+                        headers=notif_headers
+                    )
+                    logger.info(f"Initialized notification response: {notif_resp.status_code}")
+                    if notif_resp.status_code not in (200, 202, 204):
+                        logger.warning(f"Unexpected notification response: {notif_resp.status_code} - {notif_resp.text}")
+                except Exception as e:
+                    logger.warning(f"Failed to send initialized notification: {e}")
+            
+            return result
             
         except HTTPError as e:
             logger.error(f"HTTP error: {e}")
