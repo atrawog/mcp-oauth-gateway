@@ -9,6 +9,8 @@ include:
   - mcp-fetchs/docker-compose.yml
   - mcp-everything/docker-compose.yml
   - mcp-memory/docker-compose.yml
+  - mcp-sequentialthinking/docker-compose.yml
+  - mcp-time/docker-compose.yml
 
 networks:
   public:

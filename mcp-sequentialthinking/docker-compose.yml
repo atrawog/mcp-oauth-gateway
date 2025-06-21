@@ -1,0 +1,69 @@
+services:
+  mcp-sequentialthinking:
+    build:
+      context: ../
+      dockerfile: mcp-sequentialthinking/Dockerfile
+    container_name: mcp-sequentialthinking
+    restart: unless-stopped
+    networks:
+      - public
+    ports:
+      - "3000"
+    environment:
+      - MCP_CORS_ORIGINS=*
+      - MCP_PROTOCOL_VERSION=2025-06-18
+    labels:
+      # OAuth Discovery Route - Priority 10 (Highest!)
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-sequentialthinking-oauth-discovery.rule=Host(`mcp-sequentialthinking.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-sequentialthinking-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-sequentialthinking-oauth-discovery.service=auth@docker"
+      - "traefik.http.routers.mcp-sequentialthinking-oauth-discovery.tls=true"
+      - "traefik.http.routers.mcp-sequentialthinking-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.mcp-sequentialthinking-oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
+      - "traefik.http.routers.mcp-sequentialthinking-oauth-discovery.middlewares=mcp-sequentialthinking-oauth-discovery-rewrite"
+
+      # Health Check Route - Priority 8
+      - "traefik.http.routers.mcp-sequentialthinking-health.rule=Host(`mcp-sequentialthinking.${BASE_DOMAIN}`) && PathPrefix(`/health`)"
+      - "traefik.http.routers.mcp-sequentialthinking-health.priority=8"
+      - "traefik.http.routers.mcp-sequentialthinking-health.service=mcp-sequentialthinking"
+      - "traefik.http.routers.mcp-sequentialthinking-health.tls=true"
+      - "traefik.http.routers.mcp-sequentialthinking-health.tls.certresolver=letsencrypt"
+
+      # CORS Preflight Route - Priority 6
+      - "traefik.http.routers.mcp-sequentialthinking-cors.rule=Host(`mcp-sequentialthinking.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.mcp-sequentialthinking-cors.priority=6"
+      - "traefik.http.routers.mcp-sequentialthinking-cors.service=mcp-sequentialthinking"
+      - "traefik.http.routers.mcp-sequentialthinking-cors.tls=true"
+      - "traefik.http.routers.mcp-sequentialthinking-cors.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-sequentialthinking-cors.middlewares=cors-headers"
+
+      # MCP Route with Auth - Priority 2
+      - "traefik.http.routers.mcp-sequentialthinking.rule=Host(`mcp-sequentialthinking.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-sequentialthinking.priority=2"
+      - "traefik.http.routers.mcp-sequentialthinking.service=mcp-sequentialthinking"
+      - "traefik.http.routers.mcp-sequentialthinking.tls=true"
+      - "traefik.http.routers.mcp-sequentialthinking.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-sequentialthinking.middlewares=mcp-auth"
+
+      # Catch-all Route with Auth - Priority 1 (Lowest!)
+      - "traefik.http.routers.mcp-sequentialthinking-catchall.rule=Host(`mcp-sequentialthinking.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-sequentialthinking-catchall.priority=1"
+      - "traefik.http.routers.mcp-sequentialthinking-catchall.service=mcp-sequentialthinking"
+      - "traefik.http.routers.mcp-sequentialthinking-catchall.tls=true"
+      - "traefik.http.routers.mcp-sequentialthinking-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-sequentialthinking-catchall.middlewares=mcp-auth"
+
+      # Service definition
+      - "traefik.http.services.mcp-sequentialthinking.loadbalancer.server.port=3000"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  public:
+    external: true

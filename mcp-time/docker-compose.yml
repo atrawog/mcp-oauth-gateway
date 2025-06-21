@@ -1,0 +1,69 @@
+services:
+  mcp-time:
+    build:
+      context: ../
+      dockerfile: mcp-time/Dockerfile
+    container_name: mcp-time
+    restart: unless-stopped
+    networks:
+      - public
+    ports:
+      - "3000"
+    environment:
+      - MCP_CORS_ORIGINS=*
+      - MCP_PROTOCOL_VERSION=2025-06-18
+    labels:
+      # OAuth Discovery Route - Priority 10 (Highest!)
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-time-oauth-discovery.rule=Host(`mcp-time.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-time-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-time-oauth-discovery.service=auth@docker"
+      - "traefik.http.routers.mcp-time-oauth-discovery.tls=true"
+      - "traefik.http.routers.mcp-time-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.mcp-time-oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
+      - "traefik.http.routers.mcp-time-oauth-discovery.middlewares=mcp-time-oauth-discovery-rewrite"
+
+      # Health Check Route - Priority 8
+      - "traefik.http.routers.mcp-time-health.rule=Host(`mcp-time.${BASE_DOMAIN}`) && PathPrefix(`/health`)"
+      - "traefik.http.routers.mcp-time-health.priority=8"
+      - "traefik.http.routers.mcp-time-health.service=mcp-time"
+      - "traefik.http.routers.mcp-time-health.tls=true"
+      - "traefik.http.routers.mcp-time-health.tls.certresolver=letsencrypt"
+
+      # CORS Preflight Route - Priority 6
+      - "traefik.http.routers.mcp-time-cors.rule=Host(`mcp-time.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.mcp-time-cors.priority=6"
+      - "traefik.http.routers.mcp-time-cors.service=mcp-time"
+      - "traefik.http.routers.mcp-time-cors.tls=true"
+      - "traefik.http.routers.mcp-time-cors.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-time-cors.middlewares=cors-headers"
+
+      # MCP Route with Auth - Priority 2
+      - "traefik.http.routers.mcp-time.rule=Host(`mcp-time.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-time.priority=2"
+      - "traefik.http.routers.mcp-time.service=mcp-time"
+      - "traefik.http.routers.mcp-time.tls=true"
+      - "traefik.http.routers.mcp-time.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-time.middlewares=mcp-auth"
+
+      # Catch-all Route with Auth - Priority 1 (Lowest!)
+      - "traefik.http.routers.mcp-time-catchall.rule=Host(`mcp-time.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-time-catchall.priority=1"
+      - "traefik.http.routers.mcp-time-catchall.service=mcp-time"
+      - "traefik.http.routers.mcp-time-catchall.tls=true"
+      - "traefik.http.routers.mcp-time-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-time-catchall.middlewares=mcp-auth"
+
+      # Service definition
+      - "traefik.http.services.mcp-time.loadbalancer.server.port=3000"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  public:
+    external: true
