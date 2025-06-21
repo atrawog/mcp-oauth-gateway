@@ -80,11 +80,6 @@ lint:
     @pixi run ruff check .
     @pixi run ruff format .
 
-# Development commands
-
-# Start development environment
-dev:
-    @just up
 
 # Docker operations
 

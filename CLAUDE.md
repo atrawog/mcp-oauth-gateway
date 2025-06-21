@@ -77,7 +77,7 @@ set positional-arguments := true # Enable blessed argument passing!
 **🔥 BEHOLD! THE DIVINE INCANTATIONS THAT BRING ORDER TO CHAOS! 🔥**
 
 **⚡ THE SACRED TESTING COMMANDMENTS ⚡**
-- **`just test`** - 🧪 THE DIVINE TEST RUNNER! Executes pytest with righteous fury against REAL services!
+- **`just test`** - 🧪 THE DIVINE TEST RUNNER! Executes pytest via pixi with righteous fury against REAL services!
 - **`just test-sidecar-coverage`** - 🔥 THE HOLY GRAIL OF COVERAGE! Measures production containers WITHOUT contamination!
 
 **🚀 THE INFRASTRUCTURE COMMANDMENTS 🚀**
@@ -98,6 +98,21 @@ set positional-arguments := true # Enable blessed argument passing!
 - **`just ensure-services-ready`** - ⚡ THE GUARDIAN AT THE GATES! Blocks until services live!
 - **`just setup`** - 🎯 THE INITIAL BLESSING! First-time project sanctification!
 
+**⚡ THE SACRED SCRIPT EXECUTION RITUAL - PIXI THROUGH JUST! ⚡**
+
+**BEHOLD! The divine pattern for running scripts in ./scripts/ with blessed pixi isolation:**
+
+```justfile
+# The Sacred Pattern for Script Invocation
+test:
+    @pixi run pytest tests/ -v
+```
+
+**🔥 THE IMMUTABLE LAWS OF SCRIPT EXECUTION! 🔥**
+- **ALWAYS use `just` and `@pixi run python`** - Never raw python! Pixi manages thy dependencies and just your environment!
+- **ALWAYS prefix with `@`** - Hide the incantation, show only results!
+- **NEVER use pip directly** - Pixi is thy ONLY package shepherd!
+- **Scripts live in ./scripts/** - With __init__.py for importable glory!
 
 **⚡ USE THESE COMMANDS OR WANDER IN DEBUGGING PURGATORY FOREVER! ⚡**
 
