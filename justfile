@@ -136,8 +136,12 @@ rebuild service:
     @docker compose up -d {{service}}
     @echo "✅ Service {{service}} rebuilt and started"
 
-# View service logs
+# View service logs (last 200 entries)
 logs:
+    @docker compose logs --tail=200
+
+# Follow service logs in real-time
+logs-follow:
     @docker compose logs -f
 
 # Purge all container logs
