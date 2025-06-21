@@ -3,6 +3,12 @@
 
 services:
   auth:
+    # Override to use the original dockerfile and run with PYTHONPATH
+    command: |
+      bash -c "
+        export PYTHONPATH=/src:$PYTHONPATH &&
+        python -m coverage run --source=/src -m mcp_oauth_dynamicclient.server --host 0.0.0.0 --port 8000
+      "
     # Run as root for coverage data writing
     user: root
     environment:
@@ -22,16 +28,15 @@ services:
       - ALLOWED_GITHUB_USERS=${ALLOWED_GITHUB_USERS}
       - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION}
       - MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}
-      # Add coverage-specific environment variables
-      - PYTHONPATH=/coverage-spy:${PYTHONPATH:-}
-      - COVERAGE_PROCESS_START=/coverage-config/.coveragerc
+      # Coverage environment
       - COVERAGE_FILE=/coverage-data/.coverage
+      - PYTHONPATH=/src:${PYTHONPATH:-}
     volumes:
-      - ./coverage-spy:/coverage-spy:ro
-      - ./coverage-spy/.coveragerc:/coverage-config/.coveragerc:ro
+      # Mount source code directly
+      - ./mcp-oauth-dynamicclient/src:/src:ro
       - coverage-data:/coverage-data:rw
-      # Mount source code for coverage mapping
-      - ./mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient:/src/mcp_oauth_dynamicclient:ro
+      # Mount .coveragerc
+      - ./coverage-spy/.coveragerc:/app/.coveragerc:ro
     # Ensure graceful shutdown for coverage collection
     stop_grace_period: 10s
 
@@ -42,12 +47,13 @@ services:
     networks:
       - public
     volumes:
-      - ./mcp-oauth-dynamicclient/src:/src:ro  # CRITICAL: Mount source for path alignment!
+      - ./mcp-oauth-dynamicclient/src:/src:ro
       - coverage-data:/coverage-data:rw
       - ./htmlcov:/htmlcov:rw
       - ./coverage-spy/.coveragerc:/.coveragerc:ro
       - ./scripts:/scripts:ro
-    working_dir: /
+      - .:/workspace:ro  # For proper path mapping
+    working_dir: /workspace
     environment:
       - COVERAGE_FILE=/coverage-data/.coverage
     entrypoint: ["/bin/bash", "-c"]
@@ -59,11 +65,21 @@ services:
         # Wait for coverage data to be written
         python /scripts/wait_for_coverage.py
         
-        # Copy coverage data to host mount for processing
-        cd /coverage-data
-        if [ -f .coverage ]; then
-            cp .coverage* /htmlcov/ 2>/dev/null || true
-            echo "✅ Coverage data copied to host"
+        # Copy coverage data and process
+        cd /workspace
+        if [ -f /coverage-data/.coverage ]; then
+            cp /coverage-data/.coverage .coverage
+            
+            # Fix paths in database
+            pixi run python -m coverage combine || true
+            
+            # Generate report with proper paths
+            pixi run python -m coverage report --include="mcp-oauth-dynamicclient/src/*" || true
+            
+            # Generate HTML report
+            pixi run python -m coverage html --include="mcp-oauth-dynamicclient/src/*" -d htmlcov || true
+            
+            echo "✅ Coverage report generated"
         else
             echo "❌ No coverage data found"
         fi

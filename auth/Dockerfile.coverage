@@ -1,0 +1,34 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies including coverage
+RUN pip install --no-cache-dir \
+    fastapi \
+    uvicorn[standard] \
+    authlib \
+    httpx \
+    redis \
+    pydantic-settings \
+    PyJWT \
+    cryptography \
+    coverage
+
+# Create keys directory for RS256
+RUN mkdir -p /app/keys
+
+# Create non-root user (will be overridden in coverage mode)
+RUN useradd -m -u 1000 authuser && chown -R authuser:authuser /app
+
+# The sacred OAuth service port
+EXPOSE 8000
+
+# For coverage mode, we'll mount the source and run directly
+# This ensures coverage tracks the actual source files
+COPY scripts/run_coverage_service.py /app/run_coverage_service.py
+CMD ["python", "/app/run_coverage_service.py"]
