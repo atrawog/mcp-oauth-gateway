@@ -31,7 +31,7 @@ services:
       # MCP endpoint with auth - lower priority catches all non-OPTIONS
       - "traefik.http.routers.mcp-fetchs.rule=Host(`mcp-fetchs.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.mcp-fetchs.priority=2"
-      - "traefik.http.routers.mcp-fetchs.middlewares=mcp-auth"
+      - "traefik.http.routers.mcp-fetchs.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetchs.service=mcp-fetchs"
       - "traefik.http.routers.mcp-fetchs.tls=true"
       - "traefik.http.routers.mcp-fetchs.tls.certresolver=letsencrypt"

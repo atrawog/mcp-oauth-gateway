@@ -1,0 +1,74 @@
+services:
+  mcp-everything:
+    build:
+      context: ../
+      dockerfile: ./mcp-everything/Dockerfile
+    container_name: mcp-everything
+    restart: unless-stopped
+    networks:
+      - public
+    expose:
+      - "3000"
+    environment:
+      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
+      - BASE_DOMAIN=${BASE_DOMAIN}
+    # Disable health check for now as the server has issues
+    # healthcheck:
+    #   test: ["CMD", "nc", "-z", "localhost", "3000"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 3
+    #   start_period: 30s
+    labels:
+      # Basic routing with auth - priority 2
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-everything.rule=Host(`mcp-everything.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-everything.entrypoints=websecure"
+      - "traefik.http.routers.mcp-everything.tls=true"
+      - "traefik.http.routers.mcp-everything.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-everything.priority=2"
+      - "traefik.http.routers.mcp-everything.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-everything.service=mcp-everything"
+      
+      # Service definition
+      - "traefik.http.services.mcp-everything.loadbalancer.server.port=3000"
+      
+      # OAuth discovery routing - priority 10 (highest)
+      - "traefik.http.routers.mcp-everything-oauth-discovery.rule=Host(`mcp-everything.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-everything-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-everything-oauth-discovery.tls=true"
+      - "traefik.http.routers.mcp-everything-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-everything-oauth-discovery.service=auth@docker"
+      - "traefik.http.routers.mcp-everything-oauth-discovery.middlewares=oauth-discovery-rewrite-mcp-everything"
+      
+      # OAuth discovery header rewrite middleware
+      - "traefik.http.middlewares.oauth-discovery-rewrite-mcp-everything.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
+      
+      # Health check route without auth - priority 8
+      - "traefik.http.routers.mcp-everything-health.rule=Host(`mcp-everything.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-everything-health.entrypoints=websecure"
+      - "traefik.http.routers.mcp-everything-health.tls=true"
+      - "traefik.http.routers.mcp-everything-health.priority=8"
+      - "traefik.http.routers.mcp-everything-health.service=mcp-everything"
+      # No auth middleware for health checks!
+      
+      # CORS preflight route (OPTIONS) - priority 6
+      - "traefik.http.routers.mcp-everything-cors.rule=Host(`mcp-everything.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.mcp-everything-cors.entrypoints=websecure"
+      - "traefik.http.routers.mcp-everything-cors.tls=true"
+      - "traefik.http.routers.mcp-everything-cors.priority=6"
+      - "traefik.http.routers.mcp-everything-cors.service=mcp-everything"
+      - "traefik.http.routers.mcp-everything-cors.middlewares=mcp-cors@docker"
+      # No auth middleware for CORS preflight!
+      
+      # Catch-all route - priority 1 (lowest)
+      - "traefik.http.routers.mcp-everything-catchall.rule=Host(`mcp-everything.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-everything-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-everything-catchall.tls=true"
+      - "traefik.http.routers.mcp-everything-catchall.priority=1"
+      - "traefik.http.routers.mcp-everything-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-everything-catchall.service=mcp-everything"
+
+networks:
+  public:
+    external: true

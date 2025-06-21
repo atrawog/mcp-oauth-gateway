@@ -49,7 +49,7 @@ services:
       - "traefik.http.routers.mcp-filesystem.priority=2"
       - "traefik.http.routers.mcp-filesystem.entrypoints=websecure"
       - "traefik.http.routers.mcp-filesystem.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-filesystem.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-filesystem.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-filesystem.service=mcp-filesystem"
       
       # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
@@ -57,7 +57,7 @@ services:
       - "traefik.http.routers.mcp-filesystem-catchall.priority=1"
       - "traefik.http.routers.mcp-filesystem-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-filesystem-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-filesystem-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-filesystem-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-filesystem-catchall.service=mcp-filesystem"
       
       # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)

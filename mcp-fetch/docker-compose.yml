@@ -46,7 +46,7 @@ services:
       - "traefik.http.routers.mcp-fetch.priority=2"
       - "traefik.http.routers.mcp-fetch.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch.service=mcp-fetch"
       
       # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
@@ -54,7 +54,7 @@ services:
       - "traefik.http.routers.mcp-fetch-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-catchall.service=mcp-fetch"
       
       # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)
@@ -89,7 +89,7 @@ services:
       - "traefik.http.routers.mcp-fetch-aria.priority=2"
       - "traefik.http.routers.mcp-fetch-aria.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-aria.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-aria.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-aria.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-aria.service=mcp-fetch"
       
       # Catch-all route with auth - Priority 1 (lowest)
@@ -97,7 +97,7 @@ services:
       - "traefik.http.routers.mcp-fetch-aria-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-aria-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-aria-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-aria-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-aria-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-aria-catchall.service=mcp-fetch"
       
       # Atlas
@@ -123,7 +123,7 @@ services:
       - "traefik.http.routers.mcp-fetch-atlas.priority=2"
       - "traefik.http.routers.mcp-fetch-atlas.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-atlas.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-atlas.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-atlas.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-atlas.service=mcp-fetch"
       
       # Catch-all route with auth - Priority 1 (lowest)
@@ -131,7 +131,7 @@ services:
       - "traefik.http.routers.mcp-fetch-atlas-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-atlas-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-atlas-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-atlas-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-atlas-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-atlas-catchall.service=mcp-fetch"
       
       # Cipher
@@ -157,7 +157,7 @@ services:
       - "traefik.http.routers.mcp-fetch-cipher.priority=2"
       - "traefik.http.routers.mcp-fetch-cipher.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-cipher.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-cipher.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-cipher.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-cipher.service=mcp-fetch"
       
       # Catch-all route with auth - Priority 1 (lowest)
@@ -165,7 +165,7 @@ services:
       - "traefik.http.routers.mcp-fetch-cipher-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-cipher-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-cipher-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-cipher-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-cipher-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-cipher-catchall.service=mcp-fetch"
       
       # Echo
@@ -191,7 +191,7 @@ services:
       - "traefik.http.routers.mcp-fetch-echo.priority=2"
       - "traefik.http.routers.mcp-fetch-echo.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-echo.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-echo.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-echo.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-echo.service=mcp-fetch"
       
       # Catch-all route with auth - Priority 1 (lowest)
@@ -199,7 +199,7 @@ services:
       - "traefik.http.routers.mcp-fetch-echo-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-echo-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-echo-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-echo-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-echo-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-echo-catchall.service=mcp-fetch"
       
       # Lyra
@@ -225,7 +225,7 @@ services:
       - "traefik.http.routers.mcp-fetch-lyra.priority=2"
       - "traefik.http.routers.mcp-fetch-lyra.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-lyra.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-lyra.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-lyra.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-lyra.service=mcp-fetch"
       
       # Catch-all route with auth - Priority 1 (lowest)
@@ -233,7 +233,7 @@ services:
       - "traefik.http.routers.mcp-fetch-lyra-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-lyra-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-lyra-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-lyra-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-lyra-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-lyra-catchall.service=mcp-fetch"
       
       # Nova
@@ -259,7 +259,7 @@ services:
       - "traefik.http.routers.mcp-fetch-nova.priority=2"
       - "traefik.http.routers.mcp-fetch-nova.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-nova.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-nova.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-nova.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-nova.service=mcp-fetch"
       
       # Catch-all route with auth - Priority 1 (lowest)
@@ -267,7 +267,7 @@ services:
       - "traefik.http.routers.mcp-fetch-nova-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-nova-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-nova-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-nova-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-nova-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-nova-catchall.service=mcp-fetch"
       
       # Prism
@@ -293,7 +293,7 @@ services:
       - "traefik.http.routers.mcp-fetch-prism.priority=2"
       - "traefik.http.routers.mcp-fetch-prism.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-prism.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-prism.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-prism.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-prism.service=mcp-fetch"
       
       # Catch-all route with auth - Priority 1 (lowest)
@@ -301,7 +301,7 @@ services:
       - "traefik.http.routers.mcp-fetch-prism-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-prism-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-prism-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-prism-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-prism-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-prism-catchall.service=mcp-fetch"
       
       # Sage
@@ -327,7 +327,7 @@ services:
       - "traefik.http.routers.mcp-fetch-sage.priority=2"
       - "traefik.http.routers.mcp-fetch-sage.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-sage.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-sage.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-sage.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-sage.service=mcp-fetch"
       
       # Catch-all route with auth - Priority 1 (lowest)
@@ -335,7 +335,7 @@ services:
       - "traefik.http.routers.mcp-fetch-sage-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-sage-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-sage-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-sage-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-sage-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-sage-catchall.service=mcp-fetch"
       
       # Verse
@@ -361,7 +361,7 @@ services:
       - "traefik.http.routers.mcp-fetch-verse.priority=2"
       - "traefik.http.routers.mcp-fetch-verse.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-verse.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-verse.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-verse.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-verse.service=mcp-fetch"
       
       # Catch-all route with auth - Priority 1 (lowest)
@@ -369,7 +369,7 @@ services:
       - "traefik.http.routers.mcp-fetch-verse-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-verse-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-verse-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-verse-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-verse-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-verse-catchall.service=mcp-fetch"
       
       # Zenith
@@ -395,7 +395,7 @@ services:
       - "traefik.http.routers.mcp-fetch-zenith.priority=2"
       - "traefik.http.routers.mcp-fetch-zenith.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-zenith.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-zenith.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-zenith.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-zenith.service=mcp-fetch"
       
       # Catch-all route with auth - Priority 1 (lowest)
@@ -403,7 +403,7 @@ services:
       - "traefik.http.routers.mcp-fetch-zenith-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-zenith-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-zenith-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-zenith-catchall.middlewares=mcp-auth@docker"
+      - "traefik.http.routers.mcp-fetch-zenith-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetch-zenith-catchall.service=mcp-fetch"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]

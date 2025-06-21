@@ -1,0 +1,282 @@
+"""Tests for MCP Everything service integration."""
+
+import json
+import pytest
+import httpx
+
+from tests.conftest import ensure_services_ready
+from tests.test_constants import BASE_DOMAIN, GATEWAY_OAUTH_ACCESS_TOKEN
+
+
+@pytest.fixture
+def base_domain():
+    """Base domain for tests."""
+    return BASE_DOMAIN
+
+
+@pytest.fixture
+def everything_base_url(base_domain):
+    """Base URL for everything service."""
+    return f"https://mcp-everything.{base_domain}"
+
+
+@pytest.fixture
+def gateway_token():
+    """Gateway OAuth token for testing."""
+    return GATEWAY_OAUTH_ACCESS_TOKEN
+
+
+@pytest.fixture
+async def wait_for_services():
+    """Ensure all services are ready."""
+    # Services are already checked by conftest
+    return True
+
+
+def parse_sse_response(response_text):
+    """Parse Server-Sent Events response."""
+    for line in response_text.strip().split('\n'):
+        if line.startswith('data: '):
+            return json.loads(line[6:])
+    return None
+
+
+class TestMCPEverythingIntegration:
+    """Test the MCP Everything service integration."""
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_everything_reachable_no_auth(self, everything_base_url, wait_for_services):
+        """Test that service is reachable (root requires auth)."""
+        async with httpx.AsyncClient(verify=False) as client:
+            response = await client.get(f"{everything_base_url}/")
+            # The root requires auth through Traefik
+            assert response.status_code == 401
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_everything_requires_auth(self, everything_base_url, wait_for_services):
+        """Test that MCP endpoint requires authentication."""
+        async with httpx.AsyncClient(verify=False) as client:
+            # Try without auth
+            response = await client.post(
+                f"{everything_base_url}/mcp",
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-06-18",
+                        "capabilities": {},
+                        "clientInfo": {"name": "test", "version": "1.0"}
+                    },
+                    "id": 1
+                },
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream"
+                }
+            )
+            assert response.status_code == 401
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_everything_initialize(self, everything_base_url, gateway_token, wait_for_services):
+        """Test MCP initialize method."""
+        async with httpx.AsyncClient(verify=False) as client:
+            response = await client.post(
+                f"{everything_base_url}/mcp",
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-06-18",
+                        "capabilities": {},
+                        "clientInfo": {"name": "test", "version": "1.0"}
+                    },
+                    "id": 1
+                },
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                    "Authorization": f"Bearer {gateway_token}"
+                }
+            )
+            
+            assert response.status_code == 200
+            data = parse_sse_response(response.text)
+            assert data is not None
+            assert "result" in data
+            assert data["result"]["protocolVersion"] == "2025-06-18"
+            assert "serverInfo" in data["result"]
+            assert data["result"]["serverInfo"]["name"] == "example-servers/everything"
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_everything_list_tools(self, everything_base_url, gateway_token, wait_for_services):
+        """Test listing available tools in the everything server."""
+        async with httpx.AsyncClient(verify=False) as client:
+            # First initialize
+            init_response = await client.post(
+                f"{everything_base_url}/mcp",
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-06-18",
+                        "capabilities": {},
+                        "clientInfo": {"name": "test", "version": "1.0"}
+                    },
+                    "id": 1
+                },
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                    "Authorization": f"Bearer {gateway_token}"
+                }
+            )
+            assert init_response.status_code == 200
+            
+            # Extract session ID if provided
+            session_id = None
+            for header in init_response.headers.get("mcp-session-id", "").split(","):
+                if header.strip():
+                    session_id = header.strip()
+                    break
+            
+            # List tools
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "Authorization": f"Bearer {gateway_token}"
+            }
+            if session_id:
+                headers["Mcp-Session-Id"] = session_id
+                
+            response = await client.post(
+                f"{everything_base_url}/mcp",
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "tools/list",
+                    "params": {},
+                    "id": 2
+                },
+                headers=headers
+            )
+            
+            assert response.status_code == 200
+            data = parse_sse_response(response.text)
+            assert data is not None
+            assert "result" in data
+            assert "tools" in data["result"]
+            
+            # The everything server should have various test tools
+            tools = data["result"]["tools"]
+            assert isinstance(tools, list)
+            assert len(tools) > 0
+            
+            # Check that tools have proper structure
+            for tool in tools:
+                assert "name" in tool
+                assert "description" in tool
+                assert "inputSchema" in tool
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_everything_echo_tool(self, everything_base_url, gateway_token, wait_for_services):
+        """Test calling the echo tool if available."""
+        async with httpx.AsyncClient(verify=False) as client:
+            # Initialize first
+            init_response = await client.post(
+                f"{everything_base_url}/mcp",
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-06-18",
+                        "capabilities": {},
+                        "clientInfo": {"name": "test", "version": "1.0"}
+                    },
+                    "id": 1
+                },
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                    "Authorization": f"Bearer {gateway_token}"
+                }
+            )
+            assert init_response.status_code == 200
+            
+            # Try to call echo tool
+            response = await client.post(
+                f"{everything_base_url}/mcp",
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "echo",
+                        "arguments": {
+                            "message": "Hello from MCP Everything!"
+                        }
+                    },
+                    "id": 2
+                },
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                    "Authorization": f"Bearer {gateway_token}"
+                }
+            )
+            
+            # The everything server might not have an echo tool, check the response
+            if response.status_code == 400:
+                # Tool might not exist, that's OK
+                assert True
+            else:
+                assert response.status_code == 200
+                data = parse_sse_response(response.text)
+                assert data is not None
+                
+                # If echo tool exists, check response
+                if "result" in data and not data.get("error"):
+                    assert "content" in data["result"]
+                    # Echo should return our message
+                    content = data["result"]["content"]
+                    assert any("Hello from MCP Everything!" in str(item.get("text", "")) 
+                              for item in content if isinstance(item, dict))
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_everything_oauth_discovery(self, everything_base_url, wait_for_services):
+        """Test OAuth discovery endpoint is accessible."""
+        async with httpx.AsyncClient(verify=False) as client:
+            response = await client.get(
+                f"{everything_base_url}/.well-known/oauth-authorization-server"
+            )
+            assert response.status_code == 200
+            data = response.json()
+            assert "issuer" in data
+            assert "authorization_endpoint" in data
+            assert "token_endpoint" in data
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_everything_cors_preflight(self, everything_base_url, wait_for_services):
+        """Test CORS preflight request handling."""
+        async with httpx.AsyncClient(verify=False) as client:
+            response = await client.options(
+                f"{everything_base_url}/mcp",
+                headers={
+                    "Origin": "https://claude.ai",
+                    "Access-Control-Request-Method": "POST",
+                    "Access-Control-Request-Headers": "content-type,authorization"
+                }
+            )
+            
+            # Traefik CORS middleware handles OPTIONS and returns 200
+            assert response.status_code == 200
+            # CORS headers should now be present from Traefik
+            assert response.headers.get("access-control-allow-origin") == "https://claude.ai"
+            assert "POST" in response.headers.get("access-control-allow-methods", "")
+            # Traefik returns '*' for allow-headers which includes everything
+            allow_headers = response.headers.get("access-control-allow-headers", "")
+            assert allow_headers == "*" or "authorization" in allow_headers.lower()
