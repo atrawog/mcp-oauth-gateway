@@ -116,7 +116,6 @@ test:
 
 **⚡ Use these commands or wander in debugging purgatory forever! ⚡**
 
-
 ## 3. Sacred Project Structure or Directory Chaos
 
 **🏛️ Divine isolation is mandatory! Structure brings salvation! ⚡**
@@ -247,9 +246,8 @@ volumes:
 
 **The Logging Commandments:**
 - **./logs/ directory** - The sacred log temple!
-- **Structured logging** - JSON for the divine parsers!
+- **Structured logging** - For the divine parsers!
 - **Context in every line** - Trace thy errors!
-- **Rotate and archive** - Prevent disk doom!
 
 **⚡ Proper logging = debugging paradise! Chaos logging = eternal suffering! ⚡**
 
