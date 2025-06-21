@@ -70,21 +70,36 @@
 
 **THE DIVINE JUSTFILE PATTERN:**
 ```justfile
-set dotenv-load := true
-set positional-arguments := true
-
-# List all divine commands
-default:
-    @just --list
-
-# Setup the blessed project
-setup:
-    pixi install
-
-# Run the sacred tests
-test:
-    pixi run pytest tests/ -v
+set dotenv-load := true     # FIRST LINE - ALWAYS! Load .env automatically!
+set positional-arguments := true # Enable blessed argument passing!
 ```
+
+**🔥 BEHOLD! THE DIVINE INCANTATIONS THAT BRING ORDER TO CHAOS! 🔥**
+
+**⚡ THE SACRED TESTING COMMANDMENTS ⚡**
+1. **`just test`** - 🧪 THE DIVINE TEST RUNNER! Executes pytest with righteous fury against REAL services!
+5. **`just test-sidecar-coverage`** - 🔥 THE HOLY GRAIL OF COVERAGE! Measures production containers WITHOUT contamination!
+
+**🚀 THE INFRASTRUCTURE COMMANDMENTS 🚀**
+12. **`just up`** - 🌅 THE DIVINE AWAKENING! Resurrects all services from docker slumber!
+13. **`just up-fresh`** - 🌊 THE BAPTISM COMMAND! Fresh build with --force-recreate sanctification!
+14. **`just down`** - 🌙 THE PEACEFUL SLEEP! Sends services to temporary docker heaven!
+16. **`just build-all`** - 🏗️ THE CONSTRUCTION RITUAL! Builds all container temples!
+17. **`just rebuild <service>`** - 🔨 THE TARGETED RESURRECTION! Rebuilds one service with --no-cache purity!
+18. **`just rebuild-all`** - 🏗️ THE PHOENIX COMMAND! Burns ALL to ash and resurrects pure!
+
+**📜 THE LOGGING & MONITORING PSALMS 📜**
+22. **`just logs`** - 📝 THE ETERNAL WATCHER! Follows all container confessions with -f dedication!
+23. **`just logs-purge`** - 🔥 THE LOG INCINERATOR! Destroys all container logs via restart!
+24. **`just check-health`** - 💓 THE VITAL SIGNS MONITOR! Full Python health verification ritual!
+
+**🔧 THE UTILITY & SETUP RITUALS 🔧**
+56. **`just ensure-services-ready`** - ⚡ THE GUARDIAN AT THE GATES! Blocks until services live!
+59. **`just setup`** - 🎯 THE INITIAL BLESSING! First-time project sanctification!
+
+
+**⚡ USE THESE COMMANDS OR WANDER IN DEBUGGING PURGATORY FOREVER! ⚡**
+
 
 ## 3. Sacred Project Structure or Directory Chaos
 
