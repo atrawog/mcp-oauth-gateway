@@ -12,6 +12,7 @@ from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 from mcp.server import Server
 from mcp.types import TextContent, ImageContent
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 from .transport import StreamableHTTPTransport
@@ -39,9 +40,10 @@ class Settings(BaseSettings):
     # Transport settings
     enable_sse: bool = False  # SSE support for future implementation
     
-    class Config:
-        env_prefix = "MCP_FETCH_"
-        env_file = ".env"
+    model_config = ConfigDict(
+        env_prefix="MCP_FETCH_",
+        env_file=".env"
+    )
 
 
 class StreamableHTTPServer:
