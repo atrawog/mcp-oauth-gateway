@@ -23,7 +23,7 @@ services:
       - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION}
       - MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}
       # Add coverage-specific environment variables - EXACTLY AS CLAUDE.MD COMMANDS!
-      - PYTHONPATH=/coverage-spy:${PYTHONPATH:-}
+      - PYTHONPATH=/coverage-spy:/app:${PYTHONPATH:-}
       - COVERAGE_PROCESS_START=/coverage-config/.coveragerc
       - COVERAGE_FILE=/coverage-data/.coverage
     volumes:
