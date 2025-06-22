@@ -2,8 +2,8 @@
 
 # Sacred Environment Configuration - NEVER commit\!
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # Analysis outputs stay local - Sacred reports directory
 /reports/
