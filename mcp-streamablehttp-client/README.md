@@ -1,4 +1,4 @@
-# MCP Streamable HTTP-to-stdio Client
+# MCP Streamable HTTP Client
 
 A client-side tool that enables stdio-based MCP clients (like Claude Desktop) to connect to streamable HTTP-based MCP servers that require OAuth authentication.
 
@@ -246,8 +246,8 @@ mcp-streamablehttp-client --delete-client
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `MCP_SERVER_URL` | MCP server endpoint URL | Required |
-| `OAUTH_AUTHORIZATION_URL` | OAuth authorization endpoint | Required |
-| `OAUTH_TOKEN_URL` | OAuth token endpoint | Required |
+| `OAUTH_AUTHORIZATION_URL` | OAuth authorization endpoint | Optional |
+| `OAUTH_TOKEN_URL` | OAuth token endpoint | Optional |
 | `OAUTH_REGISTRATION_URL` | OAuth client registration endpoint | Optional |
 | `OAUTH_DEVICE_AUTH_URL` | OAuth device authorization endpoint | Optional |
 | `OAUTH_METADATA_URL` | OAuth metadata discovery URL | Optional |

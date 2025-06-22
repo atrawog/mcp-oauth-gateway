@@ -65,10 +65,6 @@ just test-oauth-flow         # Test OAuth flow
 just test-mcp-protocol       # Test MCP protocol compliance
 just test-claude-integration # Test Claude.ai integration
 
-# Development
-just dev                     # Start development environment
-just lint                    # Run linting and formatting
-
 # Documentation
 just docs-build              # Build Jupyter Book documentation
 
