@@ -98,12 +98,12 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     pytest.fail("Failed to find fetched content in response!")
 
 @pytest.mark.asyncio
-async def test_mcp_fetch_unauthorized_fails(http_client, wait_for_services):
+async def test_mcp_fetch_unauthorized_fails(http_client, wait_for_services, mcp_test_url):
     """Verify that MCP fetch REQUIRES proper authentication"""
     
     # Try to access without token
     response = await http_client.post(
-        f"{mcp_fetch_url}/mcp",
+        f"{mcp_test_url}/mcp",
         json={"jsonrpc": "2.0", "method": "test", "id": 1}
     )
     

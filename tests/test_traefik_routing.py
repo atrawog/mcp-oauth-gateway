@@ -82,13 +82,8 @@ class TestTraefikRouting:
         # Should get 401 from auth middleware before any redirect
         assert response.status_code == 401
     
-    @pytest.mark.asyncio
-    async def test_mcp_health_endpoint_available(self, http_client, wait_for_services):
-        """Test that /health endpoint is available (FastAPI implementation provides it)"""
-        response = await http_client.get(f"{MCP_FETCH_URL}/health")
-        # The FastAPI implementation provides a health endpoint
-        # The specific route for /health takes priority over catch-all
-        assert response.status_code == 200
+    # Removed test_mcp_health_endpoint_available - /health endpoints are deprecated
+    # per CLAUDE.md - use MCP protocol health checks instead
     
     @pytest.mark.asyncio 
     async def test_all_mcp_paths_require_auth(self, http_client, wait_for_services):

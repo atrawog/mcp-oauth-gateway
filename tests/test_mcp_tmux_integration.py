@@ -384,7 +384,7 @@ class TestMCPTmuxIntegration:
         
         # Test without token
         response = requests.post(
-            f"{tmux_url}/mcp",
+            f"{mcp_tmux_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "id": 1,

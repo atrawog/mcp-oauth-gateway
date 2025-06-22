@@ -142,10 +142,10 @@ class TestMCPSequentialThinkingIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_initialize(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_initialize(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
-            url=sequentialthinking_url,
+            url=mcp_sequentialthinking_url,
             token=client_token,
             method="initialize",
             params={
@@ -186,7 +186,7 @@ class TestMCPSequentialThinkingIntegration:
         
         # List tools
         response = self.run_mcp_client(
-            url=sequentialthinking_url,
+            url=mcp_sequentialthinking_url,
             token=client_token,
             method="tools/list",
             params={}
@@ -221,7 +221,7 @@ class TestMCPSequentialThinkingIntegration:
         
         # List resources
         response = self.run_mcp_client(
-            url=sequentialthinking_url,
+            url=mcp_sequentialthinking_url,
             token=client_token,
             method="resources/list",
             params={}
@@ -256,7 +256,7 @@ class TestMCPSequentialThinkingIntegration:
         
         # List tools to see what's available
         list_response = self.run_mcp_client(
-            url=sequentialthinking_url,
+            url=mcp_sequentialthinking_url,
             token=client_token,
             method="tools/list",
             params={}
@@ -290,7 +290,7 @@ class TestMCPSequentialThinkingIntegration:
             
             # Call the tool
             response = self.run_mcp_client(
-                url=sequentialthinking_url,
+                url=mcp_sequentialthinking_url,
                 token=client_token,
                 method="tools/call",
                 params={
@@ -311,14 +311,14 @@ class TestMCPSequentialThinkingIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_health_check(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_health_check(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test that the sequential thinking service health endpoint is accessible."""
         # This test verifies the service is running and accessible
         # The actual health check is done via the docker health check
         
         # Just verify we can initialize - this proves the service is healthy
         response = self.run_mcp_client(
-            url=sequentialthinking_url,
+            url=mcp_sequentialthinking_url,
             token=client_token,
             method="initialize",
             params={

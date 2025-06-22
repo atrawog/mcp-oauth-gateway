@@ -439,10 +439,23 @@ class TestProxyAuthenticationFlows:
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
-        # Test with valid token
-        response = await http_client.get(
-            f"{MCP_FETCH_URL}/health",
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
+        # Test with valid token using MCP protocol
+        response = await http_client.post(
+            f"{MCP_FETCH_URL}/mcp",
+            json={
+                "jsonrpc": "2.0",
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-03-26",
+                    "capabilities": {},
+                    "clientInfo": {"name": "auth-test", "version": "1.0.0"}
+                },
+                "id": 1
+            },
+            headers={
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json"
+            }
         )
         
         assert response.status_code == 200
@@ -544,11 +557,20 @@ class TestProxyPerformance:
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
         
-        # Make multiple requests with same client
+        # Make multiple requests with same client using MCP protocol
         for i in range(3):
-            response = await http_client.get(
-                f"{MCP_FETCH_URL}/health",
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
+            response = await http_client.post(
+                f"{MCP_FETCH_URL}/mcp",
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "tools/list",
+                    "params": {},
+                    "id": i + 1
+                },
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json"
+                }
             )
             assert response.status_code == 200
         

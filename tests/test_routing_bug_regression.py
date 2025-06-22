@@ -74,7 +74,6 @@ class TestRoutingBugRegression:
         """
         routes_to_test = [
             # (path, expected_status, description)
-            ("/health", 200, "Health endpoint (provided by FastAPI implementation)"),
             ("/mcp", 401, "MCP endpoint requires auth"),
             ("/mcp/", 401, "MCP endpoint with slash requires auth"),
             ("/", 401, "Root path caught by catch-all route"),
@@ -93,15 +92,11 @@ class TestRoutingBugRegression:
     async def test_routing_priorities_correct(self, http_client, wait_for_services):
         """
         Verify routing priorities are set correctly:
-        - Health route: Priority 3 (highest)
+        - OAuth discovery: Priority 10 (highest)
+        - CORS preflight: Priority 4
         - MCP route: Priority 2 
         - Catch-all: Priority 1 (lowest)
         """
-        # The /health path should go to the specific route (priority 3)
-        # even though catch-all would also match
-        response = await http_client.get(f"{MCP_FETCH_URL}/health")
-        assert response.status_code == 200  # FastAPI implementation provides health endpoint
-        
         # The /mcp path should go to MCP route (priority 2)
         # not the catch-all (priority 1)
         response = await http_client.post(

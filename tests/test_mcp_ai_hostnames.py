@@ -20,25 +20,37 @@ class TestMCPAIHostnames:
     
     @classmethod
     def setup_class(cls):
-        """Parse the MCP_FETCH_AI_URLS environment variable"""
-        mcp_urls = os.getenv("MCP_FETCH_AI_URLS", "")
+        """Parse the MCP_FETCH_URLS environment variable"""
+        mcp_urls = os.getenv("MCP_FETCH_URLS", "")
         urls = [url.strip() for url in mcp_urls.split(",") if url.strip()]
         
         cls.HOSTNAMES = []
         for url in urls:
-            # Extract model name from URL like https://mcp-fetch-aria.atradev.org/mcp
-            if "mcp-fetch-" in url:
-                parts = url.split("mcp-fetch-")[1].split(".")[0]
-                name = parts.capitalize()
-                hostname = f"mcp-fetch-{parts}"
-                cls.HOSTNAMES.append((name, url, hostname))
+            # Handle URLs with or without /mcp suffix
+            if url.endswith("/mcp"):
+                base_url = url[:-4]
+            else:
+                base_url = url
+            
+            # Extract hostname from URL
+            if "://" in base_url:
+                hostname = base_url.split("://")[1].split("/")[0]
+                # Extract service name from hostname
+                if "." in hostname:
+                    service_part = hostname.split(".")[0]
+                    name = service_part.replace("-", " ").title()
+                else:
+                    name = hostname
+                    service_part = hostname
+                
+                cls.HOSTNAMES.append((name, base_url, service_part))
     
     @pytest.mark.asyncio
     async def test_hostname_connectivity(self, http_client: httpx.AsyncClient):
         """Test that each AI hostname is reachable and responds correctly"""
         
         if not self.HOSTNAMES:
-            pytest.skip("No MCP AI URLs found in MCP_FETCH_AI_URLS - skipping AI hostname tests")
+            pytest.skip("No MCP URLs found in MCP_FETCH_URLS - skipping hostname tests")
         
         successful = 0
         failed = 0
@@ -48,7 +60,8 @@ class TestMCPAIHostnames:
             
             try:
                 # First test without auth - should get 401
-                response = await http_client.post(url)
+                test_url = f"{url}/mcp" if not url.endswith("/mcp") else url
+                response = await http_client.post(test_url)
                 assert response.status_code == 401, f"{name} should require authentication"
                 
                 # Test with auth - initialize request
@@ -69,7 +82,7 @@ class TestMCPAIHostnames:
                 }
                 
                 response = await http_client.post(
-                    url,
+                    test_url,
                     json=init_request,
                     headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
                 )
@@ -87,7 +100,7 @@ class TestMCPAIHostnames:
                 session_id = response.headers.get("Mcp-Session-Id")
                 assert session_id, f"{name} should provide session ID"
                 
-                print(f"✅ {name} hostname working at {url}")
+                print(f"✅ {name} hostname working at {test_url}")
                 successful += 1
                 
             except httpx.ConnectError as e:
@@ -107,23 +120,21 @@ class TestMCPAIHostnames:
     
     @pytest.mark.asyncio
     async def test_health_endpoints(self, http_client: httpx.AsyncClient):
-        """Test that health endpoints work for all hostnames"""
+        """Test that MCP endpoints are accessible (health via MCP protocol per CLAUDE.md)"""
+        
+        if not self.HOSTNAMES:
+            pytest.skip("No MCP URLs found in MCP_FETCH_URLS - skipping hostname tests")
         
         for name, url, _ in self.HOSTNAMES:
-            
-            # Replace /mcp with /health
-            health_url = url.replace("/mcp", "/health")
-            
             try:
-                # Health endpoint should not require auth
-                response = await http_client.get(health_url)
-                assert response.status_code == 200, f"{name} health check failed"
+                # Per CLAUDE.md, health is checked via MCP protocol, not /health endpoint
+                # Test that endpoint requires auth (returns 401)
+                test_url = f"{url}/mcp" if not url.endswith("/mcp") else url
+                response = await http_client.get(test_url)
+                assert response.status_code == 401, f"{name} should require authentication"
+                assert "WWW-Authenticate" in response.headers
                 
-                health_data = response.json()
-                assert health_data["status"] == "healthy"
-                assert "service" in health_data
-                
-                print(f"✅ {name} health endpoint working")
+                print(f"✅ {name} MCP endpoint properly secured")
             except httpx.ConnectError as e:
                 print(f"⚠️  {name} connection error (certificate might not be ready): {e}")
                 # This is expected if Let's Encrypt hasn't issued certificates for new hostnames yet
@@ -135,12 +146,8 @@ class TestMCPAIHostnames:
         
         for name, url, _ in self.HOSTNAMES:
             
-            # Extract base URL and construct discovery endpoint
-            if url.endswith("/mcp"):
-                base_url = url[:-4]  # Remove "/mcp"
-            else:
-                base_url = url
-            discovery_url = f"{base_url}/.well-known/oauth-authorization-server"
+            # Construct discovery endpoint
+            discovery_url = f"{url}/.well-known/oauth-authorization-server"
             
             try:
                 # Discovery endpoint should be public
@@ -165,8 +172,9 @@ class TestMCPAIHostnames:
         
         # Use the first available hostname for this test
         if not self.HOSTNAMES:
-            pytest.skip("No MCP AI URLs found in MCP_FETCH_AI_URLS - skipping AI hostname tests")
-        name, url, _ = self.HOSTNAMES[0]
+            pytest.skip("No MCP URLs found in MCP_FETCH_URLS - skipping hostname tests")
+        name, base_url, _ = self.HOSTNAMES[0]
+        url = f"{base_url}/mcp" if not base_url.endswith("/mcp") else base_url
         print(f"\nTesting fetch capability on {name}")
         
         # Initialize session
@@ -221,7 +229,7 @@ class TestMCPAIHostnames:
         """Summary test that verifies all hostnames are configured"""
         
         if not self.HOSTNAMES:
-            pytest.skip("No MCP AI URLs found in MCP_FETCH_AI_URLS - skipping AI hostname tests")
+            pytest.skip("No MCP URLs found in MCP_FETCH_URLS - skipping hostname tests")
             
         configured = [(name, url) for name, url, _ in self.HOSTNAMES]
         accessible = []
@@ -233,7 +241,8 @@ class TestMCPAIHostnames:
         # Test actual accessibility
         for name, url, _ in self.HOSTNAMES:
             try:
-                response = await http_client.post(url)
+                test_url = f"{url}/mcp" if not url.endswith("/mcp") else url
+                response = await http_client.post(test_url)
                 if response.status_code == 401:  # Expected when no auth
                     accessible.append((name, url))
                 else:

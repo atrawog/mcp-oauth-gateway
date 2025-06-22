@@ -81,7 +81,7 @@ class TestMCPFetchRealContent:
         
     
     @pytest.mark.asyncio
-    async def test_mcp_fetch_without_token(self, http_client, wait_for_services):
+    async def test_mcp_fetch_without_token(self, http_client, wait_for_services, mcp_fetch_url):
         """Verify that mcp-fetch properly rejects unauthenticated requests"""
         
         mcp_request = {
