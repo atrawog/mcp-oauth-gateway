@@ -611,3 +611,16 @@ def mcp_memory_url():
     
     # Return first URL from the list
     return MCP_MEMORY_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+
+@pytest.fixture
+def mcp_playwright_url():
+    """Base URL for mcp-playwright service, with test skip logic."""
+    from .test_constants import MCP_PLAYWRIGHT_TESTS_ENABLED, MCP_PLAYWRIGHT_URLS
+    
+    if not MCP_PLAYWRIGHT_TESTS_ENABLED:
+        pytest.skip("MCP Playwright tests are disabled. Set MCP_PLAYWRIGHT_TESTS_ENABLED=true to enable.")
+    if not MCP_PLAYWRIGHT_URLS:
+        pytest.skip("MCP_PLAYWRIGHT_URLS environment variable not set")
+    
+    # Return first URL from the list
+    return MCP_PLAYWRIGHT_URLS[0].replace('/mcp', '')  # Remove /mcp path if present

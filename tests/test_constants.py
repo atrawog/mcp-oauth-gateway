@@ -41,6 +41,7 @@ MCP_FETCH_URL = f"https://fetch.{BASE_DOMAIN}"
 MCP_FETCHS_URL = f"https://fetchs.{BASE_DOMAIN}"
 MCP_FILESYSTEM_URL = f"https://filesystem.{BASE_DOMAIN}"
 MCP_MEMORY_URL = f"https://memory.{BASE_DOMAIN}"
+MCP_PLAYWRIGHT_URL = f"https://playwright.{BASE_DOMAIN}"
 
 # Redis Configuration - From main .env 
 REDIS_PASSWORD = _get_env_or_fail("REDIS_PASSWORD")
@@ -119,3 +120,7 @@ MCP_FILESYSTEM_URLS = os.getenv("MCP_FILESYSTEM_URLS", "").split(",") if os.gete
 # MCP Memory Configuration - From main .env
 MCP_MEMORY_TESTS_ENABLED = os.getenv("MCP_MEMORY_TESTS_ENABLED", "false").lower() == "true"
 MCP_MEMORY_URLS = os.getenv("MCP_MEMORY_URLS", "").split(",") if os.getenv("MCP_MEMORY_URLS") else []
+
+# MCP Playwright Configuration - From main .env
+MCP_PLAYWRIGHT_TESTS_ENABLED = os.getenv("MCP_PLAYWRIGHT_TESTS_ENABLED", "false").lower() == "true"
+MCP_PLAYWRIGHT_URLS = os.getenv("MCP_PLAYWRIGHT_URLS", "").split(",") if os.getenv("MCP_PLAYWRIGHT_URLS") else []

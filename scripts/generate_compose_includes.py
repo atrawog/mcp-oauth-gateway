@@ -15,7 +15,6 @@ def main():
         "mcp-sequentialthinking/docker-compose.yml",
         "mcp-time/docker-compose.yml",
         "mcp-tmux/docker-compose.yml",
-        "mcp-playwright/docker-compose.yml",
     ]
     
     # Conditionally add mcp-fetch
@@ -33,6 +32,10 @@ def main():
     # Conditionally add mcp-memory
     if os.getenv("MCP_MEMORY_ENABLED", "true").lower() == "true":
         includes.append("mcp-memory/docker-compose.yml")
+    
+    # Conditionally add mcp-playwright
+    if os.getenv("MCP_PLAYWRIGHT_ENABLED", "true").lower() == "true":
+        includes.append("mcp-playwright/docker-compose.yml")
     
     # Conditionally add mcp-everything
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
@@ -90,6 +93,11 @@ def main():
         print("✅ mcp-memory is ENABLED")
     else:
         print("❌ mcp-memory is DISABLED")
+    
+    if os.getenv("MCP_PLAYWRIGHT_ENABLED", "true").lower() == "true":
+        print("✅ mcp-playwright is ENABLED")
+    else:
+        print("❌ mcp-playwright is DISABLED")
     
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
         print("✅ mcp-everything is ENABLED")
