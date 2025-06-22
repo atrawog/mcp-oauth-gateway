@@ -142,7 +142,7 @@ class TestMCPCORS:
                     raise e
                 
     def test_mcp_health_endpoint_cors(self):
-        """Test that health endpoint also has CORS headers"""
+        """Test that health endpoint requires auth per divine CLAUDE.md"""
         health_url = f"{MCP_FETCH_URL}/health"
         
         # Use the first configured origin
@@ -161,10 +161,11 @@ class TestMCPCORS:
                 headers={"Origin": test_origin}
             )
             
-            assert response.status_code == 200, "Health check failed"
+            # Per divine CLAUDE.md, health checks use /mcp and require auth
+            assert response.status_code == 401, "Health endpoint must require authentication per divine CLAUDE.md"
             
-            # Health endpoint should also have CORS headers
-            assert "access-control-allow-origin" in response.headers, "Health endpoint missing CORS headers"
+            # Even 401 responses should have CORS headers
+            assert "access-control-allow-origin" in response.headers, "401 response should still have CORS headers"
             
             # When wildcard is configured, the response may be "*" instead of the specific origin
             allowed_origin = response.headers["access-control-allow-origin"]
@@ -277,8 +278,9 @@ class TestMCPCORS:
                     headers={"Origin": test_origin}
                 )
                 
-                assert response.status_code == 200, f"Service {service} health check failed"
-                assert "access-control-allow-origin" in response.headers, f"Service {service} missing CORS headers"
+                # Per divine CLAUDE.md, health checks use /mcp and require auth
+                assert response.status_code == 401, f"Service {service} health endpoint must require authentication per divine CLAUDE.md"
+                assert "access-control-allow-origin" in response.headers, f"Service {service} missing CORS headers on 401 response"
                 
                 # When wildcard is configured, verify CORS works
                 allowed_origin = response.headers["access-control-allow-origin"]

@@ -24,14 +24,14 @@ class TestMCPProtocolVersionNegotiation:
     """Test MCP protocol version negotiation per 2025-06-18 spec"""
     
     @pytest.mark.asyncio
-    async def test_protocol_version_negotiation(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_protocol_version_negotiation(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that server negotiates protocol version correctly"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         # Request current protocol version
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -54,14 +54,14 @@ class TestMCPProtocolVersionNegotiation:
         assert "protocolVersion" in data["result"]
     
     @pytest.mark.asyncio
-    async def test_unsupported_protocol_version(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_unsupported_protocol_version(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test server behavior with unsupported protocol version"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         # Request an old/unsupported version
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -95,14 +95,14 @@ class TestMCPJSONRPCCompliance:
     """Test JSON-RPC 2.0 compliance as required by MCP spec"""
     
     @pytest.mark.asyncio
-    async def test_json_rpc_request_format(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_json_rpc_request_format(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that server accepts proper JSON-RPC 2.0 requests"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         # Valid JSON-RPC 2.0 request
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -126,14 +126,14 @@ class TestMCPJSONRPCCompliance:
         assert not ("result" in data and "error" in data)  # Can't have both
     
     @pytest.mark.asyncio
-    async def test_json_rpc_error_format(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_json_rpc_error_format(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that errors follow JSON-RPC 2.0 error format"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         # Initialize first to get session ID
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -151,7 +151,7 @@ class TestMCPJSONRPCCompliance:
         
         # Send invalid method to trigger error
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "invalid/method/name",
@@ -177,14 +177,14 @@ class TestMCPJSONRPCCompliance:
         assert data["error"]["code"] in [-32601, -32602]
     
     @pytest.mark.asyncio
-    async def test_json_rpc_notification(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_json_rpc_notification(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test JSON-RPC notifications (no id field)"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         # Initialize first
         await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -200,7 +200,7 @@ class TestMCPJSONRPCCompliance:
         
         # Send notification (no id)
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialized",
@@ -214,14 +214,14 @@ class TestMCPJSONRPCCompliance:
         assert response.status_code in [200, 202, 204]
     
     @pytest.mark.asyncio
-    async def test_json_rpc_id_types(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_json_rpc_id_types(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that both string and number IDs are supported"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         # Test with number ID
         response1 = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -240,7 +240,7 @@ class TestMCPJSONRPCCompliance:
         
         # Test with string ID
         response2 = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/list",
@@ -258,13 +258,13 @@ class TestMCPLifecycleCompliance:
     """Test MCP lifecycle requirements per 2025-06-18 spec"""
     
     @pytest.mark.asyncio
-    async def test_initialization_required_fields(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_initialization_required_fields(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that initialization response contains all required fields"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -292,7 +292,7 @@ class TestMCPLifecycleCompliance:
         assert "version" in result["serverInfo"]
     
     @pytest.mark.asyncio
-    async def test_operations_before_initialization(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_operations_before_initialization(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that operations fail before initialization"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
@@ -300,7 +300,7 @@ class TestMCPLifecycleCompliance:
         # Fresh client with no initialization
         async with httpx.AsyncClient() as fresh_client:
             response = await fresh_client.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{mcp_test_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -319,14 +319,14 @@ class TestMCPLifecycleCompliance:
                     assert "initializ" in data["error"]["message"].lower()
     
     @pytest.mark.asyncio
-    async def test_capability_negotiation(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_capability_negotiation(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that server reports capabilities correctly"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         # Request specific capabilities
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -362,14 +362,14 @@ class TestMCPTransportCompliance:
     """Test MCP Streamable HTTP transport compliance"""
     
     @pytest.mark.asyncio
-    async def test_content_type_header(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_content_type_header(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that Content-Type header is required"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         # Send without Content-Type
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             content=json.dumps({
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -390,14 +390,14 @@ class TestMCPTransportCompliance:
         assert response.status_code in [200, 400, 415]
     
     @pytest.mark.asyncio
-    async def test_mcp_protocol_version_header(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_mcp_protocol_version_header(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test MCP-Protocol-Version header handling"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         # Send with MCP-Protocol-Version header
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -418,11 +418,11 @@ class TestMCPTransportCompliance:
         # Header should be accepted
     
     @pytest.mark.asyncio
-    async def test_authorization_header_required(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_authorization_header_required(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that Authorization header is required for protected endpoints"""
         # No auth header
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -444,14 +444,14 @@ class TestMCPSecurityCompliance:
     """Test MCP security requirements per 2025-06-18 spec"""
     
     @pytest.mark.asyncio
-    async def test_origin_header_validation(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_origin_header_validation(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that Origin header is validated to prevent DNS rebinding"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         # Send with suspicious Origin
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -472,11 +472,11 @@ class TestMCPSecurityCompliance:
         assert response.status_code in [200, 403]
     
     @pytest.mark.asyncio
-    async def test_token_validation(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_token_validation(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that tokens are properly validated"""
         # Invalid token format
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -495,7 +495,7 @@ class TestMCPSecurityCompliance:
         assert response.status_code == 401
     
     @pytest.mark.asyncio
-    async def test_secure_session_ids(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_secure_session_ids(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that session IDs are secure and non-deterministic"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
@@ -506,7 +506,7 @@ class TestMCPSecurityCompliance:
         for i in range(3):
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"{MCP_FETCH_URL}/mcp",
+                    f"{mcp_test_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": "initialize",
@@ -530,7 +530,7 @@ class TestMCPErrorHandling:
     """Test MCP error handling per spec"""
     
     @pytest.mark.asyncio
-    async def test_standard_error_codes(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_standard_error_codes(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that standard JSON-RPC error codes are used"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
@@ -553,7 +553,7 @@ class TestMCPErrorHandling:
         
         for request, expected_code in test_cases:
             response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{mcp_test_url}/mcp",
                 json=request,
                 headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
                 timeout=60.0  # Increase timeout for error handling tests
@@ -566,14 +566,14 @@ class TestMCPErrorHandling:
                     assert isinstance(data["error"]["code"], int)
     
     @pytest.mark.asyncio
-    async def test_graceful_error_recovery(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_graceful_error_recovery(self, http_client: httpx.AsyncClient, wait_for_services, mcp_test_url):
         """Test that errors don't break the session"""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         # Initialize
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -591,7 +591,7 @@ class TestMCPErrorHandling:
         
         # Send bad request
         bad_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "bad_method",
@@ -606,7 +606,7 @@ class TestMCPErrorHandling:
         
         # Now send good request - session should still work
         good_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_test_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/list",

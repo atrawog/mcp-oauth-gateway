@@ -37,14 +37,43 @@ def _get_env_float_or_fail(key: str) -> float:
 # Domain Configuration - From main .env
 BASE_DOMAIN = _get_env_or_fail("BASE_DOMAIN")
 AUTH_BASE_URL = f"https://auth.{BASE_DOMAIN}"
-MCP_FETCH_URL = f"https://fetch.{BASE_DOMAIN}"
-MCP_FETCHS_URL = f"https://fetchs.{BASE_DOMAIN}"
-MCP_FILESYSTEM_URL = f"https://filesystem.{BASE_DOMAIN}"
-MCP_MEMORY_URL = f"https://memory.{BASE_DOMAIN}"
-MCP_PLAYWRIGHT_URL = f"https://playwright.{BASE_DOMAIN}"
-MCP_SEQUENTIALTHINKING_URL = f"https://sequentialthinking.{BASE_DOMAIN}"
-MCP_TIME_URL = f"https://time.{BASE_DOMAIN}"
-MCP_TMUX_URL = f"https://tmux.{BASE_DOMAIN}"
+
+# MCP Testing URL - Use this if provided for general testing
+MCP_TESTING_URL = os.getenv("MCP_TESTING_URL")
+
+# Helper function to get MCP service URLs
+def _get_mcp_service_urls(service_name: str, default_subdomain: str) -> list:
+    """Get MCP service URLs with fallback to single URL or MCP_TESTING_URL"""
+    # First check for MCP_<SERVICE>_URLS (plural)
+    urls_env = os.getenv(f"MCP_{service_name.upper()}_URLS")
+    if urls_env:
+        urls = [url.strip() for url in urls_env.split(",") if url.strip()]
+        # Ensure URLs don't have /mcp suffix (will be added by tests)
+        return [url.rstrip('/').rstrip('/mcp') for url in urls]
+    
+    # Then check for MCP_<SERVICE>_URL (singular) 
+    url_env = os.getenv(f"MCP_{service_name.upper()}_URL")
+    if url_env:
+        url = url_env.strip().rstrip('/').rstrip('/mcp')
+        return [url]
+    
+    # Fall back to MCP_TESTING_URL if provided
+    if MCP_TESTING_URL:
+        url = MCP_TESTING_URL.strip().rstrip('/').rstrip('/mcp')
+        return [url]
+    
+    # Finally, construct from BASE_DOMAIN
+    return [f"https://{default_subdomain}.{BASE_DOMAIN}"]
+
+# Get the first URL for backwards compatibility (old single URL variables)
+MCP_FETCH_URL = _get_mcp_service_urls("fetch", "fetch")[0]
+MCP_FETCHS_URL = _get_mcp_service_urls("fetchs", "fetchs")[0]
+MCP_FILESYSTEM_URL = _get_mcp_service_urls("filesystem", "filesystem")[0]
+MCP_MEMORY_URL = _get_mcp_service_urls("memory", "memory")[0]
+MCP_PLAYWRIGHT_URL = _get_mcp_service_urls("playwright", "playwright")[0]
+MCP_SEQUENTIALTHINKING_URL = _get_mcp_service_urls("sequentialthinking", "sequentialthinking")[0]
+MCP_TIME_URL = _get_mcp_service_urls("time", "time")[0]
+MCP_TMUX_URL = _get_mcp_service_urls("tmux", "tmux")[0]
 
 # Redis Configuration - From main .env 
 REDIS_PASSWORD = _get_env_or_fail("REDIS_PASSWORD")
@@ -106,36 +135,36 @@ ALLOWED_GITHUB_USERS = _get_env_or_fail("ALLOWED_GITHUB_USERS").split(",")
 
 # MCP Everything Configuration - From main .env
 MCP_EVERYTHING_TESTS_ENABLED = os.getenv("MCP_EVERYTHING_TESTS_ENABLED", "false").lower() == "true"
-MCP_EVERYTHING_URLS = os.getenv("MCP_EVERYTHING_URLS", "").split(",") if os.getenv("MCP_EVERYTHING_URLS") else []
+MCP_EVERYTHING_URLS = _get_mcp_service_urls("everything", "everything")
 
 # MCP Fetch Configuration - From main .env
 MCP_FETCH_TESTS_ENABLED = os.getenv("MCP_FETCH_TESTS_ENABLED", "false").lower() == "true"
-MCP_FETCH_URLS = os.getenv("MCP_FETCH_URLS", "").split(",") if os.getenv("MCP_FETCH_URLS") else []
+MCP_FETCH_URLS = _get_mcp_service_urls("fetch", "fetch")
 
 # MCP Fetchs Configuration - From main .env
 MCP_FETCHS_TESTS_ENABLED = os.getenv("MCP_FETCHS_TESTS_ENABLED", "false").lower() == "true"
-MCP_FETCHS_URLS = os.getenv("MCP_FETCHS_URLS", "").split(",") if os.getenv("MCP_FETCHS_URLS") else []
+MCP_FETCHS_URLS = _get_mcp_service_urls("fetchs", "fetchs")
 
 # MCP Filesystem Configuration - From main .env
 MCP_FILESYSTEM_TESTS_ENABLED = os.getenv("MCP_FILESYSTEM_TESTS_ENABLED", "false").lower() == "true"
-MCP_FILESYSTEM_URLS = os.getenv("MCP_FILESYSTEM_URLS", "").split(",") if os.getenv("MCP_FILESYSTEM_URLS") else []
+MCP_FILESYSTEM_URLS = _get_mcp_service_urls("filesystem", "filesystem")
 
 # MCP Memory Configuration - From main .env
 MCP_MEMORY_TESTS_ENABLED = os.getenv("MCP_MEMORY_TESTS_ENABLED", "false").lower() == "true"
-MCP_MEMORY_URLS = os.getenv("MCP_MEMORY_URLS", "").split(",") if os.getenv("MCP_MEMORY_URLS") else []
+MCP_MEMORY_URLS = _get_mcp_service_urls("memory", "memory")
 
 # MCP Playwright Configuration - From main .env
 MCP_PLAYWRIGHT_TESTS_ENABLED = os.getenv("MCP_PLAYWRIGHT_TESTS_ENABLED", "false").lower() == "true"
-MCP_PLAYWRIGHT_URLS = os.getenv("MCP_PLAYWRIGHT_URLS", "").split(",") if os.getenv("MCP_PLAYWRIGHT_URLS") else []
+MCP_PLAYWRIGHT_URLS = _get_mcp_service_urls("playwright", "playwright")
 
 # MCP Sequential Thinking Configuration - From main .env
 MCP_SEQUENTIALTHINKING_TESTS_ENABLED = os.getenv("MCP_SEQUENTIALTHINKING_TESTS_ENABLED", "false").lower() == "true"
-MCP_SEQUENTIALTHINKING_URLS = os.getenv("MCP_SEQUENTIALTHINKING_URLS", "").split(",") if os.getenv("MCP_SEQUENTIALTHINKING_URLS") else []
+MCP_SEQUENTIALTHINKING_URLS = _get_mcp_service_urls("sequentialthinking", "sequentialthinking")
 
 # MCP Time Configuration - From main .env
 MCP_TIME_TESTS_ENABLED = os.getenv("MCP_TIME_TESTS_ENABLED", "false").lower() == "true"
-MCP_TIME_URLS = os.getenv("MCP_TIME_URLS", "").split(",") if os.getenv("MCP_TIME_URLS") else []
+MCP_TIME_URLS = _get_mcp_service_urls("time", "time")
 
 # MCP Tmux Configuration - From main .env
 MCP_TMUX_TESTS_ENABLED = os.getenv("MCP_TMUX_TESTS_ENABLED", "false").lower() == "true"
-MCP_TMUX_URLS = os.getenv("MCP_TMUX_URLS", "").split(",") if os.getenv("MCP_TMUX_URLS") else []
+MCP_TMUX_URLS = _get_mcp_service_urls("tmux", "tmux")

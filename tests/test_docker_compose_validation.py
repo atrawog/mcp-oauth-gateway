@@ -47,10 +47,6 @@ class TestDockerComposeValidation:
                 'needs_auth': True,
                 'path_rule': ['PathPrefix(`/mcp`)', '(Path(`/mcp`) || PathPrefix(`/mcp/`))']
             },
-            'mcp-fetch-health': {
-                'needs_auth': False,
-                'path_rule': ['Path(`/health`)']
-            },
             'mcp-fetch-catchall': {
                 'needs_auth': True,
                 'path_rule': None  # Host-only rule
@@ -197,7 +193,6 @@ class TestDockerComposeValidation:
         
         # Check priorities
         priorities = {
-            'mcp-fetch-health': 3,    # Highest - specific path
             'mcp-fetch': 2,           # Middle - path prefix
             'mcp-fetch-catchall': 1   # Lowest - host only
         }

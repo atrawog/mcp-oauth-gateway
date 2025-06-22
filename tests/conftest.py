@@ -473,18 +473,27 @@ async def refresh_and_validate_tokens(ensure_services_ready):
 @pytest.fixture
 async def wait_for_services(http_client: httpx.AsyncClient):
     """Wait for all services to be healthy before running tests"""
-    services = [
-        (AUTH_BASE_URL, "/health", 200),
-        (MCP_FETCH_URL, "/mcp", 401)  # MCP endpoint returns 401 when auth is required
+    # Always check auth service
+    services_to_check = [
+        (AUTH_BASE_URL, "/health", 200)
     ]
+    
+    # Check if we have MCP_TESTING_URL for general MCP testing
+    mcp_testing_url = os.getenv("MCP_TESTING_URL")
+    if mcp_testing_url:
+        # Use MCP_TESTING_URL if provided
+        services_to_check.append((mcp_testing_url, "/mcp", 401))
+    else:
+        # Otherwise check the default MCP_FETCH_URL
+        services_to_check.append((MCP_FETCH_URL, "/mcp", 401))
     
     # Use retry configuration from test_constants - already validated!
     
-    for base_url, health_path, expected_status in services:
+    for base_url, health_path, expected_status in services_to_check:
         url = f"{base_url}{health_path}"
         for attempt in range(TEST_MAX_RETRIES):
             try:
-                response = await http_client.get(url)
+                response = await http_client.get(url, timeout=5.0)  # Short timeout for health checks
                 if response.status_code == expected_status:
                     print(f"✓ Service {base_url} is responding correctly (status: {expected_status})")
                     break
@@ -492,6 +501,43 @@ async def wait_for_services(http_client: httpx.AsyncClient):
                 if attempt == TEST_MAX_RETRIES - 1:
                     pytest.fail(f"Service {base_url} failed to become healthy: {e}")
                 await asyncio.sleep(TEST_RETRY_DELAY)
+
+@pytest.fixture
+def mcp_test_url():
+    """Get the MCP URL to use for testing - supports MCP_TESTING_URL and MCP_*_URLS"""
+    # First check for MCP_TESTING_URL
+    testing_url = os.getenv("MCP_TESTING_URL")
+    if testing_url:
+        return testing_url.rstrip('/').rstrip('/mcp')  # Remove trailing slash and /mcp if present
+    
+    # Otherwise return the default MCP_FETCH_URL
+    return MCP_FETCH_URL
+
+@pytest.fixture
+def mcp_test_urls():
+    """Get all MCP URLs to test - supports testing multiple URLs"""
+    urls = []
+    
+    # Check for service-specific URLs first
+    for service in ['FETCH', 'FETCHS', 'FILESYSTEM', 'MEMORY', 'PLAYWRIGHT', 
+                    'SEQUENTIALTHINKING', 'TIME', 'TMUX', 'EVERYTHING']:
+        urls_env = os.getenv(f"MCP_{service}_URLS")
+        if urls_env and os.getenv(f"MCP_{service}_TESTS_ENABLED", "false").lower() == "true":
+            service_urls = [url.strip().rstrip('/').rstrip('/mcp') 
+                           for url in urls_env.split(",") if url.strip()]
+            urls.extend(service_urls)
+    
+    # If no URLs found, check MCP_TESTING_URL
+    if not urls:
+        testing_url = os.getenv("MCP_TESTING_URL")
+        if testing_url:
+            urls.append(testing_url.rstrip('/').rstrip('/mcp'))
+    
+    # If still no URLs, use default MCP_FETCH_URL
+    if not urls:
+        urls.append(MCP_FETCH_URL)
+    
+    return urls
 
 @pytest.fixture
 async def registered_client(http_client: httpx.AsyncClient, wait_for_services) -> dict:

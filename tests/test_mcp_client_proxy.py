@@ -505,13 +505,13 @@ class TestProxyPerformance:
         
         import time
         
-        # Measure health check (no MCP processing)
+        # Measure auth check (minimal processing)
         start = time.time()
-        response = await http_client.get(f"{MCP_FETCH_URL}/health")
-        health_time = time.time() - start
+        response = await http_client.get(f"{MCP_FETCH_URL}/mcp")
+        auth_check_time = time.time() - start
         
-        assert response.status_code == 200
-        assert health_time < 1.0  # Should be fast
+        assert response.status_code == 401  # Should require auth
+        assert auth_check_time < 1.0  # Should be fast
         
         # Measure MCP request
         start = time.time()
@@ -535,7 +535,7 @@ class TestProxyPerformance:
         assert mcp_time < 5.0  # Reasonable timeout
         
         print(f"✅ Response times acceptable")
-        print(f"   Health check: {health_time*1000:.0f}ms")
+        print(f"   Auth check: {auth_check_time*1000:.0f}ms")
         print(f"   MCP request: {mcp_time*1000:.0f}ms")
     
     @pytest.mark.asyncio
