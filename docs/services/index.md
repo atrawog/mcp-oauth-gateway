@@ -106,6 +106,33 @@ Combined functionality from multiple services. One-stop solution for diverse nee
 
 **Capabilities:** All-in-one MCP operations, unified interface
 ```
+
+```{grid-item-card} 🔧 MCP Fetchs
+:link: mcp-fetchs
+:link-type: doc
+
+Alternative web fetching implementation with enhanced features. Extended HTTP capabilities.
+
+**Capabilities:** Advanced HTTP operations, content processing, header management
+```
+
+```{grid-item-card} 💻 MCP Tmux
+:link: mcp-tmux
+:link-type: doc
+
+Terminal multiplexer control and automation. Perfect for managing terminal sessions programmatically.
+
+**Capabilities:** Session management, window control, pane operations, command execution
+```
+
+```{grid-item-card} 🎭 MCP Playwright
+:link: mcp-playwright
+:link-type: doc
+
+Browser automation and web testing. Ideal for web scraping, testing, and browser interactions.
+
+**Capabilities:** Browser control, page automation, screenshot capture, web testing
+```
 ```
 
 ## Service URLs
@@ -120,6 +147,9 @@ Each service is accessible via its dedicated subdomain:
 | MCP Sequential Thinking | `https://mcp-sequentialthinking.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
 | MCP Filesystem | `https://mcp-filesystem.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
 | MCP Everything | `https://mcp-everything.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
+| MCP Fetchs | `https://mcp-fetchs.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
+| MCP Tmux | `https://mcp-tmux.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
+| MCP Playwright | `https://mcp-playwright.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
 
 ## Common Endpoints
 

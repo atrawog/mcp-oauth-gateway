@@ -64,6 +64,10 @@ graph TB
         M3[MCP Time]
         M4[MCP Sequential Thinking]
         M5[MCP Filesystem]
+        M6[MCP Everything]
+        M7[MCP Fetchs]
+        M8[MCP Tmux]
+        M9[MCP Playwright]
     end
     
     Client --> T
@@ -73,6 +77,10 @@ graph TB
     T --> M3
     T --> M4
     T --> M5
+    T --> M6
+    T --> M7
+    T --> M8
+    T --> M9
     A --> R
 ```
 
@@ -113,6 +121,9 @@ just generate-oauth-token
 | **mcp-sequentialthinking** | Structured reasoning | Multi-step problem solving |
 | **mcp-filesystem** | File operations | Read, write, directory management |
 | **mcp-everything** | Combined functionality | All-in-one MCP capabilities |
+| **mcp-fetchs** | Enhanced web fetching | Advanced HTTP operations, content processing |
+| **mcp-tmux** | Terminal multiplexer | Session management, command execution |
+| **mcp-playwright** | Browser automation | Web testing, screenshot capture, page interactions |
 
 ## 🐍 Python Packages
 

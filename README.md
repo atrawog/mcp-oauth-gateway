@@ -94,6 +94,18 @@ just rebuild-auth            # Rebuild auth service
 just rebuild-mcp-fetch       # Rebuild MCP fetch service
 just rebuild-traefik         # Rebuild Traefik
 
+# Rebuild any other service
+just rebuild <service>       # E.g., just rebuild mcp-memory
+                            # Available services:
+                            # - mcp-filesystem
+                            # - mcp-fetchs
+                            # - mcp-everything
+                            # - mcp-memory
+                            # - mcp-sequentialthinking
+                            # - mcp-time
+                            # - mcp-tmux
+                            # - mcp-playwright
+
 # Analysis
 just analyze-oauth-logs      # Analyze OAuth flow logs
 ```

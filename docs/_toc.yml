@@ -35,6 +35,8 @@ parts:
           - file: services/mcp-filesystem
           - file: services/mcp-everything
           - file: services/mcp-fetchs
+          - file: services/mcp-tmux
+          - file: services/mcp-playwright
 
   - caption: "Python Packages"
     chapters:
