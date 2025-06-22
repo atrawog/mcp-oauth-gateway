@@ -105,7 +105,7 @@ class StreamableHTTPServer:
                 headers={
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Mcp-Session-Id, MCP-Protocol-Version",
+                    "Access-Control-Allow-Headers": "Content-Type, Mcp-Session-Id, MCP-Protocol-Version",
                     "Access-Control-Max-Age": "86400",
                 }
             )
@@ -114,14 +114,10 @@ class StreamableHTTPServer:
         if method == "GET" and path == "/health":
             return JSONResponse({"status": "healthy", "version": self.settings.server_version})
             
-        # Handle authentication for other requests
-        auth_header = headers.get("authorization", "")
-        if not auth_header.startswith("Bearer "):
-            return JSONResponse(
-                status_code=401,
-                headers={"WWW-Authenticate": "Bearer"},
-                content={"error": "Unauthorized", "message": "Bearer token required"}
-            )
+        # ⚡ DIVINE DECREE: NO AUTHENTICATION IN MCP SERVICES! ⚡
+        # Authentication is handled by Traefik via ForwardAuth middleware
+        # MCP services must maintain "pure protocol innocence" per CLAUDE.md
+        # The holy trinity separation demands it!
             
         # Check MCP protocol version header if provided
         mcp_version = headers.get("mcp-protocol-version", headers.get("MCP-Protocol-Version"))
