@@ -254,6 +254,7 @@ test-mcp-hostnames: ensure-services-ready
     @echo "\n🧹 Cleaning up test registrations..."
     @pixi run python scripts/cleanup_test_data.py --execute
 
+
 # Quick hostname connectivity check
 check-mcp-hostnames:
     @pixi run python scripts/test_mcp_hostnames.py
