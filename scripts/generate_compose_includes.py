@@ -12,8 +12,6 @@ def main():
     includes = [
         "traefik/docker-compose.yml",
         "auth/docker-compose.yml",
-        "mcp-filesystem/docker-compose.yml",
-        "mcp-fetchs/docker-compose.yml",
         "mcp-memory/docker-compose.yml",
         "mcp-sequentialthinking/docker-compose.yml",
         "mcp-time/docker-compose.yml",
@@ -24,6 +22,14 @@ def main():
     # Conditionally add mcp-fetch
     if os.getenv("MCP_FETCH_ENABLED", "true").lower() == "true":
         includes.append("mcp-fetch/docker-compose.yml")
+    
+    # Conditionally add mcp-fetchs
+    if os.getenv("MCP_FETCHS_ENABLED", "true").lower() == "true":
+        includes.append("mcp-fetchs/docker-compose.yml")
+    
+    # Conditionally add mcp-filesystem
+    if os.getenv("MCP_FILESYSTEM_ENABLED", "true").lower() == "true":
+        includes.append("mcp-filesystem/docker-compose.yml")
     
     # Conditionally add mcp-everything
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
@@ -66,6 +72,16 @@ def main():
         print("✅ mcp-fetch is ENABLED")
     else:
         print("❌ mcp-fetch is DISABLED")
+    
+    if os.getenv("MCP_FETCHS_ENABLED", "true").lower() == "true":
+        print("✅ mcp-fetchs is ENABLED")
+    else:
+        print("❌ mcp-fetchs is DISABLED")
+    
+    if os.getenv("MCP_FILESYSTEM_ENABLED", "true").lower() == "true":
+        print("✅ mcp-filesystem is ENABLED")
+    else:
+        print("❌ mcp-filesystem is DISABLED")
     
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
         print("✅ mcp-everything is ENABLED")

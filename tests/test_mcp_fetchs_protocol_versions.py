@@ -15,12 +15,6 @@ def base_domain():
 
 
 @pytest.fixture
-def fetchs_base_url(base_domain):
-    """Base URL for native fetch service."""
-    return f"https://mcp-fetchs.{base_domain}"
-
-
-@pytest.fixture
 def valid_token():
     """Valid OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
@@ -39,13 +33,13 @@ class TestMCPProtocolVersions:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_supported_version_in_params(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_supported_version_in_params(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test server's protocol version works in initialize params."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Test the server's protocol version
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -68,13 +62,13 @@ class TestMCPProtocolVersions:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_supported_version_in_header(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_supported_version_in_header(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test server's protocol version works in MCP-Protocol-Version header."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Test the server's protocol version
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -93,7 +87,7 @@ class TestMCPProtocolVersions:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_unsupported_versions_rejected(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_unsupported_versions_rejected(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test unsupported versions are properly rejected."""
         
         unsupported_versions = [
@@ -107,7 +101,7 @@ class TestMCPProtocolVersions:
             # Test in params
             for version in unsupported_versions:
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": "initialize",
@@ -133,7 +127,7 @@ class TestMCPProtocolVersions:
             # Test in header
             for version in unsupported_versions:
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/list",
@@ -153,7 +147,7 @@ class TestMCPProtocolVersions:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_response_headers_include_version(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_response_headers_include_version(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test that responses include MCP-Protocol-Version header."""
         
         async with httpx.AsyncClient(verify=False) as client:
@@ -168,7 +162,7 @@ class TestMCPProtocolVersions:
                     params = {"name": "fetch", "arguments": {"url": "https://example.com"}}
                 
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": method,
@@ -187,13 +181,13 @@ class TestMCPProtocolVersions:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_version_negotiation(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_version_negotiation(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test protocol version negotiation behavior."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # When client doesn't specify version, server should use default
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -216,13 +210,13 @@ class TestMCPProtocolVersions:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_case_sensitivity(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_case_sensitivity(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test that version checking is case-sensitive."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Test uppercase header name (should work)
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -238,7 +232,7 @@ class TestMCPProtocolVersions:
             
             # Test lowercase header name (should also work per HTTP spec)
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -254,7 +248,7 @@ class TestMCPProtocolVersions:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_version_in_error_responses(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_version_in_error_responses(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test that error responses still include protocol version header."""
         
         async with httpx.AsyncClient(verify=False) as client:
@@ -281,7 +275,7 @@ class TestMCPProtocolVersions:
             
             for request in error_requests:
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json=request,
                     headers={
                         "Content-Type": "application/json",

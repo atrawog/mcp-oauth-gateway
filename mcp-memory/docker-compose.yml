@@ -7,8 +7,6 @@ services:
     restart: unless-stopped
     networks:
       - public
-    ports:
-      - "3000"
     environment:
       - MCP_CORS_ORIGINS=*
       - MCP_PROTOCOL_VERSION=2025-06-18
@@ -18,7 +16,7 @@ services:
     labels:
       # OAuth Discovery Route - Priority 10 (Highest!)
       - "traefik.enable=true"
-      - "traefik.http.routers.mcp-memory-oauth-discovery.rule=Host(`mcp-memory.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-memory-oauth-discovery.rule=Host(`memory.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
       - "traefik.http.routers.mcp-memory-oauth-discovery.priority=10"
       - "traefik.http.routers.mcp-memory-oauth-discovery.service=auth@docker"
       - "traefik.http.routers.mcp-memory-oauth-discovery.tls=true"
@@ -27,45 +25,49 @@ services:
       - "traefik.http.routers.mcp-memory-oauth-discovery.middlewares=mcp-memory-oauth-discovery-rewrite"
 
       # Health Check Route - Priority 8
-      - "traefik.http.routers.mcp-memory-health.rule=Host(`mcp-memory.${BASE_DOMAIN}`) && PathPrefix(`/health`)"
+      - "traefik.http.routers.mcp-memory-health.rule=Host(`memory.${BASE_DOMAIN}`) && PathPrefix(`/health`)"
       - "traefik.http.routers.mcp-memory-health.priority=8"
       - "traefik.http.routers.mcp-memory-health.service=mcp-memory"
       - "traefik.http.routers.mcp-memory-health.tls=true"
       - "traefik.http.routers.mcp-memory-health.tls.certresolver=letsencrypt"
 
       # CORS Preflight Route - Priority 6
-      - "traefik.http.routers.mcp-memory-cors.rule=Host(`mcp-memory.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.mcp-memory-cors.rule=Host(`memory.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-memory-cors.priority=6"
       - "traefik.http.routers.mcp-memory-cors.service=mcp-memory"
       - "traefik.http.routers.mcp-memory-cors.tls=true"
       - "traefik.http.routers.mcp-memory-cors.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-memory-cors.middlewares=cors-headers"
+      - "traefik.http.routers.mcp-memory-cors.middlewares=mcp-cors@docker"
 
       # MCP Route with Auth - Priority 2
-      - "traefik.http.routers.mcp-memory.rule=Host(`mcp-memory.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-memory.rule=Host(`memory.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.mcp-memory.priority=2"
       - "traefik.http.routers.mcp-memory.service=mcp-memory"
       - "traefik.http.routers.mcp-memory.tls=true"
       - "traefik.http.routers.mcp-memory.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-memory.middlewares=mcp-auth"
+      - "traefik.http.routers.mcp-memory.middlewares=mcp-auth@docker,mcp-cors@docker"
 
       # Catch-all Route with Auth - Priority 1 (Lowest!)
-      - "traefik.http.routers.mcp-memory-catchall.rule=Host(`mcp-memory.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-memory-catchall.rule=Host(`memory.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-memory-catchall.priority=1"
       - "traefik.http.routers.mcp-memory-catchall.service=mcp-memory"
       - "traefik.http.routers.mcp-memory-catchall.tls=true"
       - "traefik.http.routers.mcp-memory-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-memory-catchall.middlewares=mcp-auth"
+      - "traefik.http.routers.mcp-memory-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
 
       # Service definition
       - "traefik.http.services.mcp-memory.loadbalancer.server.port=3000"
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp \
+        -H 'Content-Type: application/json' \
+        -H 'Accept: application/json, text/event-stream' \
+        -d \"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"method\\\":\\\"initialize\\\",\\\"params\\\":{\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION:-2025-06-18}\\\",\\\"capabilities\\\":{},\\\"clientInfo\\\":{\\\"name\\\":\\\"healthcheck\\\",\\\"version\\\":\\\"1.0\\\"}},\\\"id\\\":1}\" \
+        | grep -q \"\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION:-2025-06-18}\\\"\""]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 40s
 
 networks:
   public:

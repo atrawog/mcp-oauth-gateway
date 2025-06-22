@@ -17,10 +17,7 @@ def base_domain():
     return BASE_DOMAIN
 
 
-@pytest.fixture
-def memory_url(base_domain):
-    """Full URL for memory service."""
-    return f"https://mcp-memory.{base_domain}/mcp"
+# Using mcp_memory_url fixture from conftest.py which handles test skipping
 
 
 @pytest.fixture
@@ -133,10 +130,10 @@ class TestMCPMemoryIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_initialize(self, memory_url, client_token, wait_for_services):
+    async def test_memory_initialize(self, mcp_memory_url, client_token, wait_for_services):
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
-            url=memory_url,
+            url=f"{mcp_memory_url}/mcp",
             token=client_token,
             method="initialize",
             params={
@@ -167,11 +164,11 @@ class TestMCPMemoryIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_list_tools(self, memory_url, client_token, wait_for_services):
+    async def test_memory_list_tools(self, mcp_memory_url, client_token, wait_for_services):
         """Test listing available tools."""
         # First initialize
         self.run_mcp_client(
-            url=memory_url,
+            url=f"{mcp_memory_url}/mcp",
             token=client_token,
             method="initialize",
             params={
@@ -183,7 +180,7 @@ class TestMCPMemoryIntegration:
         
         # List tools
         response = self.run_mcp_client(
-            url=memory_url,
+            url=f"{mcp_memory_url}/mcp",
             token=client_token,
             method="tools/list",
             params={}
@@ -210,11 +207,11 @@ class TestMCPMemoryIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_list_resources(self, memory_url, client_token, wait_for_services):
+    async def test_memory_list_resources(self, mcp_memory_url, client_token, wait_for_services):
         """Test listing available resources."""
         # Initialize first
         self.run_mcp_client(
-            url=memory_url,
+            url=f"{mcp_memory_url}/mcp",
             token=client_token,
             method="initialize",
             params={
@@ -226,7 +223,7 @@ class TestMCPMemoryIntegration:
         
         # List resources
         response = self.run_mcp_client(
-            url=memory_url,
+            url=f"{mcp_memory_url}/mcp",
             token=client_token,
             method="resources/list",
             params={}
@@ -253,11 +250,11 @@ class TestMCPMemoryIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_basic_functionality(self, memory_url, client_token, wait_for_services):
+    async def test_memory_basic_functionality(self, mcp_memory_url, client_token, wait_for_services):
         """Test basic memory functionality if tools are available."""
         # Initialize
         self.run_mcp_client(
-            url=memory_url,
+            url=f"{mcp_memory_url}/mcp",
             token=client_token,
             method="initialize",
             params={
@@ -269,7 +266,7 @@ class TestMCPMemoryIntegration:
         
         # List tools to see what's available
         list_response = self.run_mcp_client(
-            url=memory_url,
+            url=f"{mcp_memory_url}/mcp",
             token=client_token,
             method="tools/list",
             params={}
@@ -298,7 +295,7 @@ class TestMCPMemoryIntegration:
             
             # Call the tool
             response = self.run_mcp_client(
-                url=memory_url,
+                url=f"{mcp_memory_url}/mcp",
                 token=client_token,
                 method="tools/call",
                 params={
@@ -317,14 +314,14 @@ class TestMCPMemoryIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_health_check(self, memory_url, client_token, wait_for_services):
+    async def test_memory_health_check(self, mcp_memory_url, client_token, wait_for_services):
         """Test that the memory service health endpoint is accessible."""
         # This test verifies the service is running and accessible
         # The actual health check is done via the docker health check
         
         # Just verify we can initialize - this proves the service is healthy
         response = self.run_mcp_client(
-            url=memory_url,
+            url=f"{mcp_memory_url}/mcp",
             token=client_token,
             method="initialize",
             params={

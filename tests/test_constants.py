@@ -38,6 +38,9 @@ def _get_env_float_or_fail(key: str) -> float:
 BASE_DOMAIN = _get_env_or_fail("BASE_DOMAIN")
 AUTH_BASE_URL = f"https://auth.{BASE_DOMAIN}"
 MCP_FETCH_URL = f"https://fetch.{BASE_DOMAIN}"
+MCP_FETCHS_URL = f"https://fetchs.{BASE_DOMAIN}"
+MCP_FILESYSTEM_URL = f"https://filesystem.{BASE_DOMAIN}"
+MCP_MEMORY_URL = f"https://memory.{BASE_DOMAIN}"
 
 # Redis Configuration - From main .env 
 REDIS_PASSWORD = _get_env_or_fail("REDIS_PASSWORD")
@@ -104,3 +107,15 @@ MCP_EVERYTHING_URLS = os.getenv("MCP_EVERYTHING_URLS", "").split(",") if os.gete
 # MCP Fetch Configuration - From main .env
 MCP_FETCH_TESTS_ENABLED = os.getenv("MCP_FETCH_TESTS_ENABLED", "false").lower() == "true"
 MCP_FETCH_URLS = os.getenv("MCP_FETCH_URLS", "").split(",") if os.getenv("MCP_FETCH_URLS") else []
+
+# MCP Fetchs Configuration - From main .env
+MCP_FETCHS_TESTS_ENABLED = os.getenv("MCP_FETCHS_TESTS_ENABLED", "false").lower() == "true"
+MCP_FETCHS_URLS = os.getenv("MCP_FETCHS_URLS", "").split(",") if os.getenv("MCP_FETCHS_URLS") else []
+
+# MCP Filesystem Configuration - From main .env
+MCP_FILESYSTEM_TESTS_ENABLED = os.getenv("MCP_FILESYSTEM_TESTS_ENABLED", "false").lower() == "true"
+MCP_FILESYSTEM_URLS = os.getenv("MCP_FILESYSTEM_URLS", "").split(",") if os.getenv("MCP_FILESYSTEM_URLS") else []
+
+# MCP Memory Configuration - From main .env
+MCP_MEMORY_TESTS_ENABLED = os.getenv("MCP_MEMORY_TESTS_ENABLED", "false").lower() == "true"
+MCP_MEMORY_URLS = os.getenv("MCP_MEMORY_URLS", "").split(",") if os.getenv("MCP_MEMORY_URLS") else []

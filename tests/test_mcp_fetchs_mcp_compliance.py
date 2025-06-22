@@ -14,12 +14,6 @@ def base_domain():
 
 
 @pytest.fixture
-def fetchs_base_url(base_domain):
-    """Base URL for native fetch service."""
-    return f"https://mcp-fetchs.{base_domain}"
-
-
-@pytest.fixture
 def valid_token():
     """Valid OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
@@ -30,13 +24,13 @@ class TestMCPFetchsCompliance:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_initialize_protocol_negotiation(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_initialize_protocol_negotiation(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test protocol version negotiation per MCP 2025-06-18."""
         
         # Test supported version
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -77,13 +71,13 @@ class TestMCPFetchsCompliance:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_unsupported_protocol_version(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_unsupported_protocol_version(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test rejection of unsupported protocol versions."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Test unsupported version in params
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -107,13 +101,13 @@ class TestMCPFetchsCompliance:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_protocol_version_header(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_protocol_version_header(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test MCP-Protocol-Version header handling."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Test mismatched header version
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -133,13 +127,13 @@ class TestMCPFetchsCompliance:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tools_list_pagination(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_tools_list_pagination(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test tools/list pagination support per MCP 2025-06-18."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Test without cursor
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -159,7 +153,7 @@ class TestMCPFetchsCompliance:
             
             # Test with cursor (should work even if no pagination)
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -176,12 +170,12 @@ class TestMCPFetchsCompliance:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tool_definition_schema(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_tool_definition_schema(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test tool definitions match MCP 2025-06-18 schema."""
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -215,13 +209,13 @@ class TestMCPFetchsCompliance:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tools_call_validation(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_tools_call_validation(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test tools/call parameter validation per MCP 2025-06-18."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Test missing params
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -240,7 +234,7 @@ class TestMCPFetchsCompliance:
             
             # Test missing name
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -261,7 +255,7 @@ class TestMCPFetchsCompliance:
             
             # Test unknown tool
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -284,13 +278,13 @@ class TestMCPFetchsCompliance:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tool_execution_response_format(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_tool_execution_response_format(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test tool execution response format per MCP 2025-06-18."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Successful tool call
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -331,13 +325,13 @@ class TestMCPFetchsCompliance:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tool_execution_error_format(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_tool_execution_error_format(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test tool execution error format per MCP 2025-06-18."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Tool execution error (invalid URL)
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -372,13 +366,13 @@ class TestMCPFetchsCompliance:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_session_id_handling(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_session_id_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test Mcp-Session-Id header handling per MCP 2025-06-18."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # First request should return session ID
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -401,13 +395,13 @@ class TestMCPFetchsCompliance:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_streamable_http_endpoints(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_streamable_http_endpoints(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test Streamable HTTP transport endpoints per MCP 2025-06-18."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # POST /mcp should work
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -422,7 +416,7 @@ class TestMCPFetchsCompliance:
             
             # GET /mcp for SSE (may not be implemented)
             response = await client.get(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 headers={
                     "Authorization": f"Bearer {valid_token}",
                     "Accept": "text/event-stream"

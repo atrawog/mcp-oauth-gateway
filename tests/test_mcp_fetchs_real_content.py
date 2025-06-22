@@ -13,12 +13,6 @@ def base_domain():
 
 
 @pytest.fixture
-def fetchs_base_url(base_domain):
-    """Base URL for native fetch service."""
-    return f"https://mcp-fetchs.{base_domain}"
-
-
-@pytest.fixture
 def gateway_token():
     """Gateway OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
@@ -35,13 +29,13 @@ class TestMCPFetchsRealContent:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_example_com_content(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_example_com_content(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test fetching example.com and verifying content."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Initialize session
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -59,7 +53,7 @@ class TestMCPFetchsRealContent:
             
             # Fetch example.com
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -100,13 +94,13 @@ class TestMCPFetchsRealContent:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_httpbin_endpoints(self, fetchs_base_url, client_token, wait_for_services):
+    async def test_fetchs_httpbin_endpoints(self, mcp_fetchs_url, client_token, wait_for_services):
         """Test various httpbin.org endpoints for different scenarios."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Test JSON response
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -133,7 +127,7 @@ class TestMCPFetchsRealContent:
             
             # Test user agent reflection
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -160,12 +154,12 @@ class TestMCPFetchsRealContent:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_auth_service_health(self, fetchs_base_url, base_domain, gateway_token, wait_for_services):
+    async def test_fetchs_auth_service_health(self, mcp_fetchs_url, base_domain, gateway_token, wait_for_services):
         """Test fetching from our own auth service."""
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -195,13 +189,13 @@ class TestMCPFetchsRealContent:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_redirect_following(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_redirect_following(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test automatic redirect following."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # httpbin.org/redirect/2 redirects twice
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -229,7 +223,7 @@ class TestMCPFetchsRealContent:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_different_content_types(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_different_content_types(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test handling different content types."""
         
         content_type_tests = [
@@ -241,7 +235,7 @@ class TestMCPFetchsRealContent:
         async with httpx.AsyncClient(verify=False) as client:
             for url, expected_type, expected_content in content_type_tests:
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/call",
@@ -268,13 +262,13 @@ class TestMCPFetchsRealContent:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_response_size_handling(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_response_size_handling(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test handling of large responses."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Request 1KB of data
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -305,7 +299,7 @@ class TestMCPFetchsRealContent:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_status_code_handling(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_status_code_handling(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test handling of various HTTP status codes."""
         
         status_codes = [200, 201, 301, 400, 401, 403, 404, 500, 502]
@@ -313,7 +307,7 @@ class TestMCPFetchsRealContent:
         async with httpx.AsyncClient(verify=False) as client:
             for status in status_codes:
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/call",

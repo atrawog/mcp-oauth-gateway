@@ -13,12 +13,6 @@ def base_domain():
 
 
 @pytest.fixture
-def fetchs_base_url(base_domain):
-    """Base URL for native fetch service."""
-    return f"https://mcp-fetchs.{base_domain}"
-
-
-@pytest.fixture
 def valid_token():
     """Valid OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
@@ -29,7 +23,7 @@ class TestMCPFetchsSecurity:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_auth_schemes(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_fetchs_auth_schemes(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test various authentication schemes are properly rejected/accepted."""
         
         test_cases = [
@@ -51,7 +45,7 @@ class TestMCPFetchsSecurity:
                     headers["Authorization"] = auth_header
                 
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": "initialize",
@@ -69,7 +63,7 @@ class TestMCPFetchsSecurity:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_token_validation(self, fetchs_base_url, wait_for_services):
+    async def test_fetchs_token_validation(self, mcp_fetchs_url, wait_for_services):
         """Test token validation with various invalid formats."""
         
         invalid_tokens = [
@@ -82,7 +76,7 @@ class TestMCPFetchsSecurity:
         async with httpx.AsyncClient(verify=False) as client:
             for token in invalid_tokens:
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": "initialize",
@@ -101,7 +95,7 @@ class TestMCPFetchsSecurity:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_endpoint_auth_requirements(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_fetchs_endpoint_auth_requirements(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test which endpoints require authentication."""
         
         endpoints_auth_required = [
@@ -118,7 +112,7 @@ class TestMCPFetchsSecurity:
                 # Test without auth
                 response = await client.request(
                     method,
-                    f"{fetchs_base_url}{path}",
+                    f"{mcp_fetchs_url}{path}",
                     headers={"Content-Type": "application/json"} if method == "POST" else {},
                     json={"jsonrpc": "2.0", "method": "test", "id": 1} if method == "POST" else None
                 )
@@ -132,7 +126,7 @@ class TestMCPFetchsSecurity:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_prevents_ssrf(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_fetchs_prevents_ssrf(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test Server-Side Request Forgery prevention."""
         
         dangerous_urls = [
@@ -147,7 +141,7 @@ class TestMCPFetchsSecurity:
         async with httpx.AsyncClient(verify=False) as client:
             for url in dangerous_urls:
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/call",
@@ -176,7 +170,7 @@ class TestMCPFetchsSecurity:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_header_injection_prevention(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_fetchs_header_injection_prevention(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test prevention of header injection attacks."""
         
         malicious_headers = {
@@ -187,7 +181,7 @@ class TestMCPFetchsSecurity:
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -217,7 +211,7 @@ class TestMCPFetchsSecurity:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_rate_limiting_behavior(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_fetchs_rate_limiting_behavior(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test service behavior under rapid requests."""
         
         async with httpx.AsyncClient(verify=False) as client:
@@ -225,7 +219,7 @@ class TestMCPFetchsSecurity:
             responses = []
             for i in range(10):
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/list",
@@ -243,13 +237,13 @@ class TestMCPFetchsSecurity:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_oauth_discovery_security(self, fetchs_base_url, wait_for_services):
+    async def test_fetchs_oauth_discovery_security(self, mcp_fetchs_url, wait_for_services):
         """Test OAuth discovery endpoint security."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Discovery should be publicly accessible
             response = await client.get(
-                f"{fetchs_base_url}/.well-known/oauth-authorization-server"
+                f"{mcp_fetchs_url}/.well-known/oauth-authorization-server"
             )
             
             assert response.status_code == 200

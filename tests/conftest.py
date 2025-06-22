@@ -572,3 +572,42 @@ def mcp_fetch_url():
     
     # Return first URL from the list
     return MCP_FETCH_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+
+@pytest.fixture
+def mcp_fetchs_url():
+    """Base URL for mcp-fetchs service, with test skip logic."""
+    from .test_constants import MCP_FETCHS_TESTS_ENABLED, MCP_FETCHS_URLS
+    
+    if not MCP_FETCHS_TESTS_ENABLED:
+        pytest.skip("MCP Fetchs tests are disabled. Set MCP_FETCHS_TESTS_ENABLED=true to enable.")
+    if not MCP_FETCHS_URLS:
+        pytest.skip("MCP_FETCHS_URLS environment variable not set")
+    
+    # Return first URL from the list
+    return MCP_FETCHS_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+
+@pytest.fixture
+def mcp_filesystem_url():
+    """Base URL for mcp-filesystem service, with test skip logic."""
+    from .test_constants import MCP_FILESYSTEM_TESTS_ENABLED, MCP_FILESYSTEM_URLS
+    
+    if not MCP_FILESYSTEM_TESTS_ENABLED:
+        pytest.skip("MCP Filesystem tests are disabled. Set MCP_FILESYSTEM_TESTS_ENABLED=true to enable.")
+    if not MCP_FILESYSTEM_URLS:
+        pytest.skip("MCP_FILESYSTEM_URLS environment variable not set")
+    
+    # Return first URL from the list
+    return MCP_FILESYSTEM_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+
+@pytest.fixture
+def mcp_memory_url():
+    """Base URL for mcp-memory service, with test skip logic."""
+    from .test_constants import MCP_MEMORY_TESTS_ENABLED, MCP_MEMORY_URLS
+    
+    if not MCP_MEMORY_TESTS_ENABLED:
+        pytest.skip("MCP Memory tests are disabled. Set MCP_MEMORY_TESTS_ENABLED=true to enable.")
+    if not MCP_MEMORY_URLS:
+        pytest.skip("MCP_MEMORY_URLS environment variable not set")
+    
+    # Return first URL from the list
+    return MCP_MEMORY_URLS[0].replace('/mcp', '')  # Remove /mcp path if present

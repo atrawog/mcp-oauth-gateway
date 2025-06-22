@@ -15,17 +15,12 @@ from .test_constants import (
 class TestMCPFilesystemIntegration:
     """Divine integration tests for MCP Filesystem service."""
 
-    @pytest.fixture
-    def filesystem_url(self):
-        """Get the filesystem service URL."""
-        return f"https://mcp-filesystem.{BASE_DOMAIN}"
-
     @pytest.mark.asyncio
-    async def test_filesystem_health_check_no_auth(self, http_client, wait_for_services, filesystem_url):
+    async def test_filesystem_health_check_no_auth(self, http_client, wait_for_services, mcp_mcp_filesystem_url):
         """Test that health check endpoint works without authentication."""
         # Health check should work without auth
         response = await http_client.get(
-            f"{filesystem_url}/health",
+            f"{mcp_filesystem_url}/health",
             timeout=TEST_HTTP_TIMEOUT
         )
         
@@ -33,11 +28,11 @@ class TestMCPFilesystemIntegration:
             f"Health check failed: {response.status_code} - {response.text}"
 
     @pytest.mark.asyncio
-    async def test_filesystem_requires_auth(self, http_client, filesystem_url):
+    async def test_filesystem_requires_auth(self, http_client, mcp_filesystem_url):
         """Test that MCP endpoint requires authentication."""
         # Request without auth should return 401
         response = await http_client.post(
-            f"{filesystem_url}/mcp",
+            f"{mcp_filesystem_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "filesystem/list",
@@ -52,14 +47,14 @@ class TestMCPFilesystemIntegration:
             f"Expected 401 without auth, got {response.status_code}"
 
     @pytest.mark.asyncio
-    async def test_filesystem_list_directory(self, http_client, filesystem_url):
+    async def test_filesystem_list_directory(self, http_client, mcp_filesystem_url):
         """Test filesystem directory listing with authentication."""
         # Use the gateway token from environment
         token = GATEWAY_OAUTH_ACCESS_TOKEN
         
         # List workspace directory
         response = await http_client.post(
-            f"{filesystem_url}/mcp",
+            f"{mcp_filesystem_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "filesystem/list",
@@ -82,14 +77,14 @@ class TestMCPFilesystemIntegration:
             f"Invalid response format: {result}"
 
     @pytest.mark.asyncio
-    async def test_filesystem_read_file(self, http_client, filesystem_url):
+    async def test_filesystem_read_file(self, http_client, mcp_filesystem_url):
         """Test filesystem file reading with authentication."""
         # Use the gateway token from environment
         token = GATEWAY_OAUTH_ACCESS_TOKEN
         
         # First initialize the session
         init_response = await http_client.post(
-            f"{filesystem_url}/mcp",
+            f"{mcp_filesystem_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -134,7 +129,7 @@ class TestMCPFilesystemIntegration:
             
         # Send notification without expecting a response
         await http_client.post(
-            f"{filesystem_url}/mcp",
+            f"{mcp_filesystem_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "notifications/initialized",
@@ -155,7 +150,7 @@ class TestMCPFilesystemIntegration:
             headers["Mcp-Session-Id"] = session_id
             
         response = await http_client.post(
-            f"{filesystem_url}/mcp",
+            f"{mcp_filesystem_url}/mcp",
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -190,11 +185,11 @@ class TestMCPFilesystemIntegration:
                     f"Test file content not found: {text_content}"
 
     @pytest.mark.asyncio
-    async def test_filesystem_oauth_discovery(self, http_client, filesystem_url):
+    async def test_filesystem_oauth_discovery(self, http_client, mcp_filesystem_url):
         """Test that OAuth discovery endpoint is accessible on filesystem subdomain."""
         # OAuth discovery should be publicly accessible
         response = await http_client.get(
-            f"{filesystem_url}/.well-known/oauth-authorization-server",
+            f"{mcp_filesystem_url}/.well-known/oauth-authorization-server",
             timeout=TEST_HTTP_TIMEOUT,
             follow_redirects=False
         )
@@ -211,11 +206,11 @@ class TestMCPFilesystemIntegration:
             assert "token_endpoint" in metadata, "Missing token_endpoint"
 
     @pytest.mark.asyncio
-    async def test_filesystem_cors_preflight(self, http_client, filesystem_url):
+    async def test_filesystem_cors_preflight(self, http_client, mcp_filesystem_url):
         """Test CORS preflight handling for filesystem service."""
         # OPTIONS request should work without auth
         response = await http_client.options(
-            f"{filesystem_url}/mcp",
+            f"{mcp_filesystem_url}/mcp",
             headers={
                 "Origin": "https://claude.ai",
                 "Access-Control-Request-Method": "POST",

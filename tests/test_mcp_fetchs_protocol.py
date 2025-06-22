@@ -14,12 +14,6 @@ def base_domain():
 
 
 @pytest.fixture
-def fetchs_base_url(base_domain):
-    """Base URL for native fetch service."""
-    return f"https://mcp-fetchs.{base_domain}"
-
-
-@pytest.fixture
 def valid_token():
     """Valid OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
@@ -30,7 +24,7 @@ class TestMCPFetchsProtocol:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_json_rpc_compliance(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_fetchs_json_rpc_compliance(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test JSON-RPC 2.0 compliance."""
         
         test_cases = [
@@ -66,7 +60,7 @@ class TestMCPFetchsProtocol:
         async with httpx.AsyncClient(verify=False) as client:
             for test in test_cases:
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json=test["request"],
                     headers={
                         "Content-Type": "application/json",
@@ -93,7 +87,7 @@ class TestMCPFetchsProtocol:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_method_routing(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_fetchs_method_routing(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test correct routing of different MCP methods."""
         
         methods = [
@@ -114,7 +108,7 @@ class TestMCPFetchsProtocol:
                     params = {"name": "fetch", "arguments": {"url": "https://example.com"}}
                 
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": method,
@@ -138,13 +132,13 @@ class TestMCPFetchsProtocol:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_session_handling(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_fetchs_session_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test MCP session management."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Initialize without session
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -163,7 +157,7 @@ class TestMCPFetchsProtocol:
             
             # Use session for subsequent request
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -182,7 +176,7 @@ class TestMCPFetchsProtocol:
             
             # Try with invalid session
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -200,13 +194,13 @@ class TestMCPFetchsProtocol:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_protocol_headers(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_fetchs_protocol_headers(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test MCP protocol headers."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Test with protocol version header
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -229,7 +223,7 @@ class TestMCPFetchsProtocol:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_error_response_format(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_fetchs_error_response_format(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test error response format compliance."""
         
         error_scenarios = [
@@ -267,7 +261,7 @@ class TestMCPFetchsProtocol:
         async with httpx.AsyncClient(verify=False) as client:
             for scenario in error_scenarios:
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     content=scenario["body"],
                     headers={
                         "Content-Type": "application/json",
@@ -288,7 +282,7 @@ class TestMCPFetchsProtocol:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_content_type_handling(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_fetchs_content_type_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test Content-Type header handling."""
         
         # The service accepts various content types more leniently
@@ -307,7 +301,7 @@ class TestMCPFetchsProtocol:
                     headers["Content-Type"] = content_type
                 
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
                     headers=headers
                 )
@@ -323,7 +317,7 @@ class TestMCPFetchsProtocol:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_request_id_handling(self, fetchs_base_url, valid_token, wait_for_services):
+    async def test_fetchs_request_id_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test proper handling of request IDs."""
         
         id_values = [
@@ -338,7 +332,7 @@ class TestMCPFetchsProtocol:
         async with httpx.AsyncClient(verify=False) as client:
             for request_id in id_values:
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/list",

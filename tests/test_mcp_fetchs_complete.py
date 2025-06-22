@@ -15,12 +15,6 @@ def base_domain():
 
 
 @pytest.fixture
-def fetchs_base_url(base_domain):
-    """Base URL for native fetch service."""
-    return f"https://mcp-fetchs.{base_domain}"
-
-
-@pytest.fixture
 def gateway_token():
     """Gateway OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
@@ -37,13 +31,13 @@ class TestMCPFetchsComplete:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_complete_oauth_flow_integration(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_complete_oauth_flow_integration(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test complete OAuth flow from authentication to content fetching."""
         
         # Step 1: Verify authentication is required
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={"jsonrpc": "2.0", "method": "initialize", "id": 1},
                 headers={"Content-Type": "application/json"}
             )
@@ -53,7 +47,7 @@ class TestMCPFetchsComplete:
         # Step 2: Initialize MCP session with authentication
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -85,7 +79,7 @@ class TestMCPFetchsComplete:
         # Step 3: List available tools
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -113,7 +107,7 @@ class TestMCPFetchsComplete:
         # Step 4: Fetch actual content
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -150,13 +144,13 @@ class TestMCPFetchsComplete:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_with_mcp_client_token(self, fetchs_base_url, client_token, wait_for_services):
+    async def test_fetchs_with_mcp_client_token(self, mcp_fetchs_url, client_token, wait_for_services):
         """Test fetchs using MCP client access token."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Initialize session
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -178,7 +172,7 @@ class TestMCPFetchsComplete:
             
             # Fetch content
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -210,13 +204,13 @@ class TestMCPFetchsComplete:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_url_parameter_validation(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_url_parameter_validation(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test URL parameter validation in fetchs."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Test missing URL
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -242,7 +236,7 @@ class TestMCPFetchsComplete:
             
             # Test invalid URL scheme
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -269,12 +263,12 @@ class TestMCPFetchsComplete:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_max_length_parameter(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_max_length_parameter(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test max_length parameter handling."""
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -307,12 +301,12 @@ class TestMCPFetchsComplete:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_custom_headers_and_user_agent(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_custom_headers_and_user_agent(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test custom headers and user agent support."""
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -350,12 +344,12 @@ class TestMCPFetchsComplete:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_post_method_with_body(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_post_method_with_body(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test POST method with request body."""
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -392,13 +386,13 @@ class TestMCPFetchsComplete:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_error_handling(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_error_handling(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test error handling for various failure scenarios."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Test 404 response
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -425,7 +419,7 @@ class TestMCPFetchsComplete:
             
             # Test invalid domain
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -453,13 +447,13 @@ class TestMCPFetchsComplete:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_protocol_version_negotiation(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_protocol_version_negotiation(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test protocol version negotiation."""
         
         async with httpx.AsyncClient(verify=False) as client:
             # Try with older protocol version
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -488,7 +482,7 @@ class TestMCPFetchsComplete:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_session_management(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_session_management(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test session management behavior."""
         
         async with httpx.AsyncClient(verify=False) as client:
@@ -496,7 +490,7 @@ class TestMCPFetchsComplete:
             responses = []
             for i in range(2):
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": "initialize",
@@ -523,7 +517,7 @@ class TestMCPFetchsComplete:
             # Verify sessions work (regardless of whether they're the same)
             for idx, session_id in enumerate(session_ids):
                 response = await client.post(
-                    f"{fetchs_base_url}/mcp",
+                    f"{mcp_fetchs_url}/mcp",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/list",
@@ -542,13 +536,13 @@ class TestMCPFetchsComplete:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_concurrent_requests(self, fetchs_base_url, gateway_token, wait_for_services):
+    async def test_fetchs_concurrent_requests(self, mcp_fetchs_url, gateway_token, wait_for_services):
         """Test concurrent request handling."""
         import asyncio
         
         async def make_fetch_request(client, request_id):
             response = await client.post(
-                f"{fetchs_base_url}/mcp",
+                f"{mcp_fetchs_url}/mcp",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
