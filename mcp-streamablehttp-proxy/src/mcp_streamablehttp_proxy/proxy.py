@@ -15,10 +15,9 @@ logger = logging.getLogger(__name__)
 class MCPSession:
     """Individual MCP session with its own subprocess."""
     
-    def __init__(self, session_id: str, server_command: List[str], protocol_version: str = None):
+    def __init__(self, session_id: str, server_command: List[str]):
         self.session_id = session_id
         self.server_command = server_command
-        self.protocol_version = protocol_version or os.getenv("MCP_PROTOCOL_VERSION", "2025-06-18")
         self.process: Optional[subprocess.Popen] = None
         self.session_initialized = False
         self.request_id_counter = 0
@@ -111,53 +110,7 @@ class MCPSession:
         
         return {}
         
-    async def _initialize_session(self, requested_version: Optional[str] = None):
-        """Initialize the MCP session."""
-        self.request_id_counter += 1
-        
-        # Use requested version or configured version
-        init_version = requested_version or self.protocol_version
-        
-        init_request = {
-            "jsonrpc": "2.0",
-            "method": "initialize",
-            "params": {
-                "protocolVersion": init_version,
-                "capabilities": {
-                    "tools": {}
-                },
-                "clientInfo": {
-                    "name": "mcp-streamablehttp-proxy",
-                    "version": "1.0.0"
-                }
-            },
-            "id": self.request_id_counter
-        }
-        
-        response = await self._send_request(init_request)
-        
-        if "error" in response:
-            raise RuntimeError(f"Session {self.session_id}: Initialization failed: {response['error']}")
-            
-        result = response.get("result", {})
-        self.server_capabilities = result.get("capabilities", {})
-        self.server_info = result.get("serverInfo", {})
-        
-        # Send initialized notification
-        initialized_notification = {
-            "jsonrpc": "2.0",
-            "method": "notifications/initialized",
-            "params": {}
-        }
-        
-        await self._send_request(initialized_notification)
-        
-        # Get available tools
-        await self._list_tools()
-        
-        self.session_initialized = True
-        logger.info(f"Session {self.session_id} initialized with server: {self.server_info}")
-        
+    # _initialize_session method removed - initialization is handled directly in handle_request
     async def _list_tools(self):
         """Get list of available tools from the server."""
         self.request_id_counter += 1
@@ -272,8 +225,7 @@ class MCPSessionManager:
         self.sessions: Dict[str, MCPSession] = {}
         self.session_timeout = session_timeout  # Default 5 minutes
         self._cleanup_task: Optional[asyncio.Task] = None
-        # Read protocol version from environment - MUST match .env!
-        self.protocol_version = os.getenv("MCP_PROTOCOL_VERSION", "2025-06-18")
+        # Proxy is protocol-agnostic - it forwards whatever the client requests
         
     async def start(self):
         """Start the session manager."""
@@ -300,7 +252,7 @@ class MCPSessionManager:
             return session
             
         # Create new session
-        session = MCPSession(session_id, self.server_command, self.protocol_version)
+        session = MCPSession(session_id, self.server_command)
         await session.start_server()
         self.sessions[session_id] = session
         
@@ -332,7 +284,7 @@ class MCPSessionManager:
             
             # Create new session
             new_session_id = str(uuid4())
-            session = MCPSession(new_session_id, self.server_command, self.protocol_version)
+            session = MCPSession(new_session_id, self.server_command)
             
             # Start the subprocess
             await session.start_server()
