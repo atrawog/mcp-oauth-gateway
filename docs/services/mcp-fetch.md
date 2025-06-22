@@ -5,8 +5,8 @@ The MCP Fetch service provides comprehensive web content retrieval capabilities,
 ```{image} https://img.shields.io/badge/Status-Production%20Ready-green
 :alt: Production Ready
 ```
-```{image} https://img.shields.io/badge/Protocol-MCP%202025--06--18-blue
-:alt: MCP Protocol Version
+```{image} https://img.shields.io/badge/Protocol-MCP-blue
+:alt: MCP Protocol
 ```
 
 ## Overview
@@ -173,7 +173,7 @@ The fetch service implements multiple security layers:
 
 ```bash
 # Protocol configuration
-MCP_PROTOCOL_VERSION=2025-06-18
+MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
 MCP_CORS_ORIGINS=*
 PORT=3000
 
@@ -197,7 +197,7 @@ services:
       dockerfile: mcp-fetch/Dockerfile
     environment:
       - MCP_CORS_ORIGINS=*
-      - MCP_PROTOCOL_VERSION=2025-06-18
+      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
       - MAX_CONTENT_SIZE=10485760
     labels:
       # Traefik routing configuration
@@ -211,7 +211,7 @@ The MCP Fetch service includes comprehensive testing:
 
 ### Test Categories
 
-1. **Protocol Compliance** - MCP 2025-06-18 validation
+1. **Protocol Compliance** - MCP protocol validation
 2. **Authentication** - OAuth token validation
 3. **Fetch Operations** - HTTP request functionality
 4. **Error Handling** - Network and protocol errors
@@ -236,7 +236,7 @@ pytest tests/test_mcp_fetch_real_content.py -v
 
 ### Test Results
 
-✅ **Protocol Compliance** - MCP 2025-06-18 verified  
+✅ **Protocol Compliance** - MCP protocol verified  
 ✅ **Authentication** - OAuth 2.1 integration working  
 ✅ **HTTP Operations** - All methods (GET, POST, PUT, DELETE) tested  
 ✅ **Content Types** - HTML, JSON, XML, binary content supported  
@@ -248,17 +248,10 @@ pytest tests/test_mcp_fetch_real_content.py -v
 ### Health Checks
 
 ```bash
-# Container health
-curl https://mcp-fetch.yourdomain.com/health
-
-# Response format
-{
-  "status": "healthy",
-  "timestamp": "2025-06-21T23:38:12Z",
-  "service": "mcp-fetch",
-  "version": "1.0.0",
-  "capabilities": ["fetch"]
-}
+# Protocol health check via MCP initialization
+curl -X POST https://mcp-fetch.yourdomain.com/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
 
 ### Metrics
@@ -381,8 +374,10 @@ mcp-streamablehttp-client \\
   --server-url https://mcp-fetch.yourdomain.com/mcp \\
   --command "fetch url='https://httpbin.org/status/200'"
 
-# Health check
-curl https://mcp-fetch.yourdomain.com/health
+# Protocol health check
+curl -X POST https://mcp-fetch.yourdomain.com/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
 
 ## 🔗 Integration
