@@ -624,3 +624,29 @@ def mcp_playwright_url():
     
     # Return first URL from the list
     return MCP_PLAYWRIGHT_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+
+@pytest.fixture
+def mcp_sequentialthinking_url():
+    """Base URL for mcp-sequentialthinking service, with test skip logic."""
+    from .test_constants import MCP_SEQUENTIALTHINKING_TESTS_ENABLED, MCP_SEQUENTIALTHINKING_URLS
+    
+    if not MCP_SEQUENTIALTHINKING_TESTS_ENABLED:
+        pytest.skip("MCP Sequential Thinking tests are disabled. Set MCP_SEQUENTIALTHINKING_TESTS_ENABLED=true to enable.")
+    if not MCP_SEQUENTIALTHINKING_URLS:
+        pytest.skip("MCP_SEQUENTIALTHINKING_URLS environment variable not set")
+    
+    # Return first URL from the list
+    return MCP_SEQUENTIALTHINKING_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+
+@pytest.fixture
+def mcp_time_url():
+    """Base URL for mcp-time service, with test skip logic."""
+    from .test_constants import MCP_TIME_TESTS_ENABLED, MCP_TIME_URLS
+    
+    if not MCP_TIME_TESTS_ENABLED:
+        pytest.skip("MCP Time tests are disabled. Set MCP_TIME_TESTS_ENABLED=true to enable.")
+    if not MCP_TIME_URLS:
+        pytest.skip("MCP_TIME_URLS environment variable not set")
+    
+    # Return first URL from the list
+    return MCP_TIME_URLS[0].replace('/mcp', '')  # Remove /mcp path if present

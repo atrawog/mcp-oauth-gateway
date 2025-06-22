@@ -13,18 +13,6 @@ from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN, MCP_PROTO
 
 
 @pytest.fixture
-def base_domain():
-    """Base domain for tests."""
-    return BASE_DOMAIN
-
-
-@pytest.fixture
-def sequentialthinking_url(base_domain):
-    """Full URL for sequential thinking service."""
-    return f"https://mcp-sequentialthinking.{base_domain}/mcp"
-
-
-@pytest.fixture
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
@@ -196,8 +184,9 @@ class TestMCPSequentialThinkingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_tool_discovery(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_tool_discovery(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test discovering available sequential thinking tools."""
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
         # Initialize session
         self.initialize_session(sequentialthinking_url, client_token)
         
@@ -237,8 +226,9 @@ class TestMCPSequentialThinkingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_simple_problem(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_simple_problem(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test solving a simple problem with sequential thinking."""
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
         # Initialize session
         self.initialize_session(sequentialthinking_url, client_token)
         
@@ -272,8 +262,9 @@ class TestMCPSequentialThinkingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_multi_step_process(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_multi_step_process(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test a multi-step thinking process."""
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
         # Initialize session
         self.initialize_session(sequentialthinking_url, client_token)
         
@@ -319,8 +310,9 @@ class TestMCPSequentialThinkingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_revision_process(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_revision_process(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test the revision capability of sequential thinking."""
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
         # Initialize session
         self.initialize_session(sequentialthinking_url, client_token)
         
@@ -366,8 +358,9 @@ class TestMCPSequentialThinkingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_branching_logic(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_branching_logic(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test branching logic in sequential thinking."""
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
         # Initialize session
         self.initialize_session(sequentialthinking_url, client_token)
         
@@ -414,8 +407,9 @@ class TestMCPSequentialThinkingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_dynamic_scaling(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_dynamic_scaling(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test dynamic scaling of thought process."""
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
         # Initialize session
         self.initialize_session(sequentialthinking_url, client_token)
         
@@ -442,8 +436,9 @@ class TestMCPSequentialThinkingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_hypothesis_testing(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_hypothesis_testing(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test hypothesis generation and testing."""
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
         # Initialize session
         self.initialize_session(sequentialthinking_url, client_token)
         
@@ -488,7 +483,7 @@ class TestMCPSequentialThinkingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_error_handling(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_error_handling(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test error handling with invalid parameters."""
         # Initialize session
         self.initialize_session(sequentialthinking_url, client_token)
@@ -526,7 +521,7 @@ class TestMCPSequentialThinkingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_complete_workflow(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_complete_workflow(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test a complete sequential thinking workflow from start to finish."""
         # Initialize session
         self.initialize_session(sequentialthinking_url, client_token)
@@ -632,8 +627,9 @@ class TestMCPSequentialThinkingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_protocol_compliance(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_protocol_compliance(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test MCP protocol compliance for sequential thinking service."""
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
         # Test initialization
         init_response = self.run_mcp_client_raw(
             url=sequentialthinking_url,

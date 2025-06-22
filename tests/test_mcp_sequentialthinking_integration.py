@@ -13,18 +13,6 @@ from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN, MCP_PROTO
 
 
 @pytest.fixture
-def base_domain():
-    """Base domain for tests."""
-    return BASE_DOMAIN
-
-
-@pytest.fixture
-def sequentialthinking_url(base_domain):
-    """Full URL for sequential thinking service."""
-    return f"https://mcp-sequentialthinking.{base_domain}/mcp"
-
-
-@pytest.fixture
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
@@ -190,8 +178,9 @@ class TestMCPSequentialThinkingIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_list_tools(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_list_tools(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test listing available tools."""
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
         # First initialize
         self.initialize_session(sequentialthinking_url, client_token)
         
@@ -224,8 +213,9 @@ class TestMCPSequentialThinkingIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_list_resources(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_list_resources(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test listing available resources."""
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
         # Initialize first
         self.initialize_session(sequentialthinking_url, client_token)
         
@@ -258,8 +248,9 @@ class TestMCPSequentialThinkingIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_basic_functionality(self, sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_basic_functionality(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test basic sequential thinking functionality if tools are available."""
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
         # Initialize
         self.initialize_session(sequentialthinking_url, client_token)
         

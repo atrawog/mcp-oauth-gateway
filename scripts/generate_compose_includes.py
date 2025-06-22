@@ -12,8 +12,6 @@ def main():
     includes = [
         "traefik/docker-compose.yml",
         "auth/docker-compose.yml",
-        "mcp-sequentialthinking/docker-compose.yml",
-        "mcp-time/docker-compose.yml",
         "mcp-tmux/docker-compose.yml",
     ]
     
@@ -36,6 +34,14 @@ def main():
     # Conditionally add mcp-playwright
     if os.getenv("MCP_PLAYWRIGHT_ENABLED", "true").lower() == "true":
         includes.append("mcp-playwright/docker-compose.yml")
+    
+    # Conditionally add mcp-sequentialthinking
+    if os.getenv("MCP_SEQUENTIALTHINKING_ENABLED", "true").lower() == "true":
+        includes.append("mcp-sequentialthinking/docker-compose.yml")
+    
+    # Conditionally add mcp-time
+    if os.getenv("MCP_TIME_ENABLED", "true").lower() == "true":
+        includes.append("mcp-time/docker-compose.yml")
     
     # Conditionally add mcp-everything
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
@@ -98,6 +104,16 @@ def main():
         print("✅ mcp-playwright is ENABLED")
     else:
         print("❌ mcp-playwright is DISABLED")
+    
+    if os.getenv("MCP_SEQUENTIALTHINKING_ENABLED", "true").lower() == "true":
+        print("✅ mcp-sequentialthinking is ENABLED")
+    else:
+        print("❌ mcp-sequentialthinking is DISABLED")
+    
+    if os.getenv("MCP_TIME_ENABLED", "true").lower() == "true":
+        print("✅ mcp-time is ENABLED")
+    else:
+        print("❌ mcp-time is DISABLED")
     
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
         print("✅ mcp-everything is ENABLED")

@@ -13,18 +13,6 @@ from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN, MCP_PROTO
 
 
 @pytest.fixture
-def base_domain():
-    """Base domain for tests."""
-    return BASE_DOMAIN
-
-
-@pytest.fixture
-def time_url(base_domain):
-    """Full URL for time service."""
-    return f"https://mcp-time.{base_domain}/mcp"
-
-
-@pytest.fixture
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
@@ -153,7 +141,8 @@ class TestMCPTimeIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_initialize(self, time_url, client_token, wait_for_services):
+    async def test_time_initialize(self, mcp_time_url, client_token, wait_for_services):
+        time_url = f"{mcp_time_url}/mcp"
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
             url=time_url,
@@ -189,7 +178,8 @@ class TestMCPTimeIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_list_tools(self, time_url, client_token, wait_for_services):
+    async def test_time_list_tools(self, mcp_time_url, client_token, wait_for_services):
+        time_url = f"{mcp_time_url}/mcp"
         """Test listing available tools."""
         # First initialize
         self.initialize_session(time_url, client_token)
@@ -224,7 +214,8 @@ class TestMCPTimeIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_list_resources(self, time_url, client_token, wait_for_services):
+    async def test_time_list_resources(self, mcp_time_url, client_token, wait_for_services):
+        time_url = f"{mcp_time_url}/mcp"
         """Test listing available resources."""
         # Initialize first
         self.initialize_session(time_url, client_token)
@@ -258,7 +249,8 @@ class TestMCPTimeIntegration:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_health_check(self, time_url, client_token, wait_for_services):
+    async def test_time_health_check(self, mcp_time_url, client_token, wait_for_services):
+        time_url = f"{mcp_time_url}/mcp"
         """Test that the time service health endpoint is accessible."""
         # This test verifies the service is running and accessible
         # The actual health check is done via the docker health check

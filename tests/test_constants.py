@@ -42,6 +42,8 @@ MCP_FETCHS_URL = f"https://fetchs.{BASE_DOMAIN}"
 MCP_FILESYSTEM_URL = f"https://filesystem.{BASE_DOMAIN}"
 MCP_MEMORY_URL = f"https://memory.{BASE_DOMAIN}"
 MCP_PLAYWRIGHT_URL = f"https://playwright.{BASE_DOMAIN}"
+MCP_SEQUENTIALTHINKING_URL = f"https://sequentialthinking.{BASE_DOMAIN}"
+MCP_TIME_URL = f"https://time.{BASE_DOMAIN}"
 
 # Redis Configuration - From main .env 
 REDIS_PASSWORD = _get_env_or_fail("REDIS_PASSWORD")
@@ -124,3 +126,11 @@ MCP_MEMORY_URLS = os.getenv("MCP_MEMORY_URLS", "").split(",") if os.getenv("MCP_
 # MCP Playwright Configuration - From main .env
 MCP_PLAYWRIGHT_TESTS_ENABLED = os.getenv("MCP_PLAYWRIGHT_TESTS_ENABLED", "false").lower() == "true"
 MCP_PLAYWRIGHT_URLS = os.getenv("MCP_PLAYWRIGHT_URLS", "").split(",") if os.getenv("MCP_PLAYWRIGHT_URLS") else []
+
+# MCP Sequential Thinking Configuration - From main .env
+MCP_SEQUENTIALTHINKING_TESTS_ENABLED = os.getenv("MCP_SEQUENTIALTHINKING_TESTS_ENABLED", "false").lower() == "true"
+MCP_SEQUENTIALTHINKING_URLS = os.getenv("MCP_SEQUENTIALTHINKING_URLS", "").split(",") if os.getenv("MCP_SEQUENTIALTHINKING_URLS") else []
+
+# MCP Time Configuration - From main .env
+MCP_TIME_TESTS_ENABLED = os.getenv("MCP_TIME_TESTS_ENABLED", "false").lower() == "true"
+MCP_TIME_URLS = os.getenv("MCP_TIME_URLS", "").split(",") if os.getenv("MCP_TIME_URLS") else []

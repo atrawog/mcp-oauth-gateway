@@ -14,18 +14,6 @@ from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN, MCP_PROTO
 
 
 @pytest.fixture
-def base_domain():
-    """Base domain for tests."""
-    return BASE_DOMAIN
-
-
-@pytest.fixture
-def time_url(base_domain):
-    """Full URL for time service."""
-    return f"https://mcp-time.{base_domain}/mcp"
-
-
-@pytest.fixture
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
@@ -197,8 +185,9 @@ class TestMCPTimeComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_tool_discovery(self, time_url, client_token, wait_for_services):
+    async def test_time_tool_discovery(self, mcp_time_url, client_token, wait_for_services):
         """Test discovering available time tools."""
+        time_url = f"{mcp_time_url}/mcp"
         # Initialize session
         self.initialize_session(time_url, client_token)
         
@@ -244,8 +233,9 @@ class TestMCPTimeComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_get_current_time_utc(self, time_url, client_token, wait_for_services):
+    async def test_get_current_time_utc(self, mcp_time_url, client_token, wait_for_services):
         """Test getting current time in UTC."""
+        time_url = f"{mcp_time_url}/mcp"
         # Initialize session
         self.initialize_session(time_url, client_token)
         
@@ -277,8 +267,9 @@ class TestMCPTimeComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_get_current_time_major_timezones(self, time_url, client_token, wait_for_services):
+    async def test_get_current_time_major_timezones(self, mcp_time_url, client_token, wait_for_services):
         """Test getting current time in major global timezones."""
+        time_url = f"{mcp_time_url}/mcp"
         # Initialize session
         self.initialize_session(time_url, client_token)
         
@@ -323,8 +314,9 @@ class TestMCPTimeComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_convert_time_basic(self, time_url, client_token, wait_for_services):
+    async def test_convert_time_basic(self, mcp_time_url, client_token, wait_for_services):
         """Test basic time conversion between timezones."""
+        time_url = f"{mcp_time_url}/mcp"
         # Initialize session
         self.initialize_session(time_url, client_token)
         
@@ -360,8 +352,9 @@ class TestMCPTimeComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_convert_time_global_business_hours(self, time_url, client_token, wait_for_services):
+    async def test_convert_time_global_business_hours(self, mcp_time_url, client_token, wait_for_services):
         """Test time conversion for global business hours coordination."""
+        time_url = f"{mcp_time_url}/mcp"
         # Initialize session
         self.initialize_session(time_url, client_token)
         
@@ -420,8 +413,9 @@ class TestMCPTimeComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_convert_time_edge_cases(self, time_url, client_token, wait_for_services):
+    async def test_convert_time_edge_cases(self, mcp_time_url, client_token, wait_for_services):
         """Test time conversion edge cases."""
+        time_url = f"{mcp_time_url}/mcp"
         # Initialize session
         self.initialize_session(time_url, client_token)
         
@@ -473,8 +467,9 @@ class TestMCPTimeComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_error_handling(self, time_url, client_token, wait_for_services):
+    async def test_time_error_handling(self, mcp_time_url, client_token, wait_for_services):
         """Test error handling with invalid parameters."""
+        time_url = f"{mcp_time_url}/mcp"
         # Initialize session
         self.initialize_session(time_url, client_token)
         
@@ -528,8 +523,9 @@ class TestMCPTimeComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_timezone_detection(self, time_url, client_token, wait_for_services):
+    async def test_time_timezone_detection(self, mcp_time_url, client_token, wait_for_services):
         """Test timezone detection and handling."""
+        time_url = f"{mcp_time_url}/mcp"
         # Initialize session
         self.initialize_session(time_url, client_token)
         
@@ -573,8 +569,9 @@ class TestMCPTimeComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_complete_workflow(self, time_url, client_token, wait_for_services):
+    async def test_time_complete_workflow(self, mcp_time_url, client_token, wait_for_services):
         """Test a complete time-related workflow."""
+        time_url = f"{mcp_time_url}/mcp"
         # Initialize session
         self.initialize_session(time_url, client_token)
         
@@ -649,8 +646,9 @@ class TestMCPTimeComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_protocol_compliance(self, time_url, client_token, wait_for_services):
+    async def test_time_protocol_compliance(self, mcp_time_url, client_token, wait_for_services):
         """Test MCP protocol compliance for time service."""
+        time_url = f"{mcp_time_url}/mcp"
         # Test initialization
         init_response = self.run_mcp_client_raw(
             url=time_url,
@@ -687,8 +685,9 @@ class TestMCPTimeComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_performance_batch(self, time_url, client_token, wait_for_services):
+    async def test_time_performance_batch(self, mcp_time_url, client_token, wait_for_services):
         """Test time service performance with multiple requests."""
+        time_url = f"{mcp_time_url}/mcp"
         # Initialize session
         self.initialize_session(time_url, client_token)
         
