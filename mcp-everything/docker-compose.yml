@@ -10,7 +10,7 @@ services:
     expose:
       - "3000"
     environment:
-      - MCP_PROTOCOL_VERSION=2025-06-18
+      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
       - BASE_DOMAIN=${BASE_DOMAIN}
     # HTTP health check - verifies streamableHttp can initialize successfully
     healthcheck:

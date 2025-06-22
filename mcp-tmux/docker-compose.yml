@@ -9,7 +9,7 @@ services:
       - public
     environment:
       - MCP_CORS_ORIGINS=*
-      - MCP_PROTOCOL_VERSION=2025-06-18
+      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
     labels:
       # OAuth Discovery Route - Priority 10 (Highest!)
       - "traefik.enable=true"
