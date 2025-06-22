@@ -237,8 +237,9 @@ volumes:
 - **Dependencies must be ready** - Full chain verified!
 - **Check actual functionality** - Not just port open!
 - **Check production endpoints** - FQDN or death!
+- **For MCP services** - See "The Sacred Art of StreamableHTTP Health Checks" in Part II!
 
-**⚡ sleep = random production failures! ⚡**
+**⚡ sleep = random production failures! Protocol checks = eternal reliability! ⚡**
 
 ## 8. Centralized Logging or Debugging Chaos
 
@@ -295,9 +296,10 @@ volumes:
 │    MCP Services (The Pure Protocol Servants of Glory)       │
 │  • Run mcp-streamablehttp-proxy wrapping official servers!  │
 │  • Bridge stdio MCP servers to HTTP endpoints with glory!   │
-│  • Expose /mcp and /health through blessed transcendence!   │
+│  • Expose /mcp through blessed transcendence!               │
 │  • Receive pre-authenticated requests only - no exceptions! │
 │  • Know nothing of OAuth - pure protocol innocence!         │
+│  • Health verified via StreamableHTTP protocol checks!      │
 └─────────────────────────────────────────────────────────────┘
 
 **⚡ Violate separation = monolithic damnation! ⚡**
@@ -320,14 +322,12 @@ volumes:
 
 **Divine Benefits of mcp-streamablehttp-proxy Architecture:**
 - **Official Server Wrapping** - Uses real MCP implementations!
-- **Automatic Health Checks** - Built-in `/health` endpoint for Docker orchestration!
 - **Subprocess Isolation** - Each MCP server runs in isolated process space!
 - **OAuth Integration** - Ready for Bearer token authentication via Traefik!
 - **Traefik Compatible** - Standard HTTP endpoints for reverse proxy routing!
 
 **Actual Server Endpoint Structure:**
 - **Primary Endpoint**: `https://mcp-service.yourdomain.com/mcp` (via proxy bridge)
-- **Health Check**: `https://mcp-service.yourdomain.com/health` (direct HTTP)
 - **Authentication**: Bearer token via Authorization header (handled by Traefik)
 - **Transport**: Streamable HTTP wrapping stdio MCP servers
 
@@ -380,6 +380,45 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
   - **Divine warning**: This token serves external clients only!
   - **Never** confuse with gateway's own `GATEWAY_OAUTH_ACCESS_TOKEN`!
   - **Separate realms** = **Separate tokens** = **Eternal security**!
+
+## The Sacred Art of StreamableHTTP Health Checks - Divine Protocol Verification!
+
+**🔥 Behold! The divine prophecy of health checking MCP StreamableHTTP services! ⚡**
+
+### The Divine StreamableHTTP Protocol Health Check Prophecy
+
+**🌟 The Supreme Pattern for Native StreamableHTTP Services: 🌟**
+```yaml
+healthcheck:
+  test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp \
+    -H 'Content-Type: application/json' \
+    -H 'Accept: application/json, text/event-stream' \
+    -d \"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"method\\\":\\\"initialize\\\",\\\"params\\\":{\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION:-2025-06-18}\\\",\\\"capabilities\\\":{},\\\"clientInfo\\\":{\\\"name\\\":\\\"healthcheck\\\",\\\"version\\\":\\\"1.0\\\"}},\\\"id\\\":1}\" \
+    | grep -q \"\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION:-2025-06-18}\\\"\""]
+  interval: 30s
+  timeout: 5s
+  retries: 3
+  start_period: 40s
+```
+
+**⚡ This divine incantation performs a blessed initialization handshake! ⚡**
+
+### The Sacred Truths Revealed by This Holy Pattern
+
+**🔥 The Divine Health Check Accomplishes These Supreme Miracles:**
+1. **Performs Full Protocol Handshake** - Executes sacred `initialize` method!
+2. **Validates StreamableHTTP Transport** - Event-stream responses flow with divine grace!
+3. **Confirms Protocol Version Match** - Sacred `${MCP_PROTOCOL_VERSION}` verified dynamically!
+4. **Proves Server Readiness** - Successful initialization demonstrates full vitality!
+5. **Tests Complete MCP Flow** - From request to event-stream response perfection!
+
+**⚡ The Blessed Success Response Pattern:**
+```
+event: message
+data: {"result":{"protocolVersion":"${MCP_PROTOCOL_VERSION}","capabilities":{...},"serverInfo":{...}},"jsonrpc":"2.0","id":1}
+```
+**This divine response confirms the server speaks perfect MCP protocol! ⚡**
+
 
 ## OAuth 2.1 + RFC 7591
 
@@ -593,7 +632,7 @@ Each MCP service channels the universal docker-compose.yml pattern enhanced with
 
 **The Divine Benefits of mcp-streamablehttp-proxy Architecture:**
 - **Official functionality** - Wraps real MCP servers, never uses fakes!
-- **HTTP transport** - Provides `/mcp` and `/health` endpoints for web access!
+- **HTTP transport** - Provides `/mcp` endpoints for web access!
 - **Process isolation** - Each MCP server runs in separate process space!
 - **OAuth ready** - Bearer token authentication handled by Traefik layer!
 - **Production tested** - Battle-tested proxy architecture with proven reliability!

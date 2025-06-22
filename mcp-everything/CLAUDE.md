@@ -18,31 +18,26 @@ The mcp-everything service wraps the official Model Context Protocol "everything
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Traefik (Divine Router)                   │
-│  Routes: /health (no auth), /mcp (auth), /.well-known/*     │
+│  Routes: /mcp (auth), /.well-known/* (no auth)             │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│         mcp-streamablehttp-proxy (Protocol Bridge)          │
-│  • Spawns official mcp-server-everything as subprocess      │
-│  • Bridges stdio ↔ HTTP with session management             │
-│  • Provides /health and /mcp endpoints                      │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│      mcp-server-everything (Official MCP Test Server)       │
+│    mcp-server-everything (Official MCP Test Server)         │
+│  • Native streamableHttp mode - no proxy wrapper            │
 │  • TypeScript/Node.js implementation                        │
-│  • Protocol version: 2025-03-26                             │
+│  • Protocol version: 2025-06-18                             │
 │  • Server name: example-servers/everything                  │
+│  • Health: TCP port check (nc -z localhost 3000)           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## Divine Configuration
 
 ### Docker Build
-- **Base image**: node:20-slim (TypeScript server)
-- **Python**: Installed for mcp-streamablehttp-proxy
-- **Installation**: Clones and npm links from official repo
+- **Base image**: node:22-alpine (TypeScript server)
+- **Installation**: npm install @modelcontextprotocol/server-everything
 - **Port**: 3000 (blessed MCP port)
+- **Health Check**: TCP port check using netcat
 
 ### Traefik Routing (Priority Hierarchy)
 1. **Priority 10** - OAuth discovery (/.well-known/*)
@@ -55,21 +50,40 @@ The mcp-everything service wraps the official Model Context Protocol "everything
 - `MCP_PROTOCOL_VERSION` - Protocol version (defaults to 2025-06-18)
 - `BASE_DOMAIN` - Base domain for service URLs
 
+### Health Check Configuration
+The service uses an HTTP-based health check that verifies the streamableHttp server can successfully initialize:
+```yaml
+healthcheck:
+  test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp \\
+    -H 'Content-Type: application/json' \\
+    -H 'Accept: application/json, text/event-stream' \\
+    -d \"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"method\\\":\\\"initialize\\\",\\\"params\\\":{\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION:-2025-06-18}\\\",\\\"capabilities\\\":{},\\\"clientInfo\\\":{\\\"name\\\":\\\"healthcheck\\\",\\\"version\\\":\\\"1.0\\\"}},\\\"id\\\":1}\" \\
+    | grep -q \"\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION:-2025-06-18}\\\"\""]
+  interval: 30s
+  timeout: 5s
+  retries: 3
+  start_period: 40s
+```
+
+This approach:
+- **Performs full protocol handshake** - Uses the `initialize` method
+- **Tests StreamableHTTP transport** - Validates event-stream responses
+- **Verifies protocol version match** - Uses `${MCP_PROTOCOL_VERSION}` dynamically
+- **Checks server readiness** - Successful initialization proves full functionality
+- **Tests complete MCP flow** - From request to response with session management
+
 ## Testing the Everything Server
 
-### Health Check (No Auth Required)
+### Health Check Status
 ```bash
-curl -k https://mcp-everything.${BASE_DOMAIN}/health
+# Check Docker health status
+docker ps --filter name=mcp-everything --format "table {{.Names}}\t{{.Status}}"
+
+# Check detailed health info
+docker inspect mcp-everything --format='{{json .State.Health}}' | jq
 ```
 
-Expected response:
-```json
-{
-  "status": "healthy",
-  "active_sessions": 0,
-  "server_command": "mcp-server-everything"
-}
-```
+Note: This service doesn't expose a dedicated /health endpoint. Instead, the healthcheck verifies the MCP streamableHttp server is functioning by sending a JSON-RPC request to `/mcp` and confirming it receives a valid JSON-RPC response (even if it's an error).
 
 ### Initialize Session (Auth Required)
 ```bash
