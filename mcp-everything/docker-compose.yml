@@ -1,9 +1,9 @@
 services:
-  everything:
+  mcp-everything:
     build:
       context: ../
-      dockerfile: ./everything/Dockerfile
-    container_name: everything
+      dockerfile: ./mcp-everything/Dockerfile
+    container_name: mcp-everything
     restart: unless-stopped
     networks:
       - public
@@ -14,7 +14,7 @@ services:
       - BASE_DOMAIN=${BASE_DOMAIN}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.services.everything.loadbalancer.server.port=3000"
+      - "traefik.http.services.mcp-everything.loadbalancer.server.port=3000"
       
       # OAuth discovery route - Priority 10 (ABSOLUTE HIGHEST - must work without auth!)
       - "traefik.http.routers.everything-oauth-discovery.rule=Host(`everything.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
@@ -33,7 +33,7 @@ services:
       - "traefik.http.routers.everything-cors.priority=6"
       - "traefik.http.routers.everything-cors.entrypoints=websecure"
       - "traefik.http.routers.everything-cors.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.everything-cors.service=everything"
+      - "traefik.http.routers.everything-cors.service=mcp-everything"
       # No auth middleware for CORS preflight!
       
       # MCP route with auth - Priority 2
@@ -43,7 +43,7 @@ services:
       - "traefik.http.routers.everything.entrypoints=websecure"
       - "traefik.http.routers.everything.tls.certresolver=letsencrypt"
       - "traefik.http.routers.everything.middlewares=mcp-auth@docker,mcp-cors@docker"
-      - "traefik.http.routers.everything.service=everything"
+      - "traefik.http.routers.everything.service=mcp-everything"
       
       # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
       - "traefik.http.routers.everything-catchall.rule=Host(`everything.${BASE_DOMAIN}`)"
@@ -51,14 +51,14 @@ services:
       - "traefik.http.routers.everything-catchall.entrypoints=websecure"
       - "traefik.http.routers.everything-catchall.tls.certresolver=letsencrypt"
       - "traefik.http.routers.everything-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
-      - "traefik.http.routers.everything-catchall.service=everything"
+      - "traefik.http.routers.everything-catchall.service=mcp-everything"
       
       # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)
       - "traefik.http.routers.everything-redirect.rule=Host(`everything.${BASE_DOMAIN}`)"
       - "traefik.http.routers.everything-redirect.entrypoints=web"
       - "traefik.http.routers.everything-redirect.middlewares=redirect-to-https"
       - "traefik.http.routers.everything-redirect.priority=1"
-      - "traefik.http.routers.everything-redirect.service=everything"
+      - "traefik.http.routers.everything-redirect.service=mcp-everything"
     # HTTP health check - verifies streamableHttp can initialize successfully
     healthcheck:
       test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"'$$MCP_PROTOCOL_VERSION'\",\"capabilities\":{},\"clientInfo\":{\"name\":\"healthcheck\",\"version\":\"1.0\"}},\"id\":1}' | grep -q '\"protocolVersion\":\"'$$MCP_PROTOCOL_VERSION'\"'"]
