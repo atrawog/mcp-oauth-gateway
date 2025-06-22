@@ -55,7 +55,7 @@ test-sidecar-coverage:
     @echo ""
     @echo "Copying coverage data locally..."
     @docker cp coverage-harvester:/coverage-data/.coverage . 2>/dev/null || echo "No coverage file to copy"
-    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml down
+    @docker compose -f docker-compose.includes.yml -f docker-compose.coverage.yml down
     @echo "Attempting local report generation..."
     @pixi run python scripts/generate_coverage_report.py || echo "Local report generation had issues"
 
@@ -69,7 +69,7 @@ debug-coverage: ensure-services-ready
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml exec auth python /scripts/debug_coverage.py || echo "Debug script failed"
     @echo "=== Auth container environment ==="
     @docker compose -f docker-compose.yml -f docker-compose.coverage.yml exec auth env | grep -E "PYTHON|COVERAGE" || echo "No coverage env vars"
-    @docker compose -f docker-compose.yml -f docker-compose.coverage.yml down
+    @docker compose -f docker-compose.includes.yml -f docker-compose.coverage.yml down
 
 # Build documentation with Jupyter Book
 docs-build:
@@ -95,15 +95,19 @@ volumes-create:
     @docker volume create auth-keys || true
     @docker volume create mcp-memory-data || true
 
+# Generate docker-compose includes based on enabled services
+generate-includes:
+    @pixi run python scripts/generate_compose_includes.py
+
 # Build all services
-build-all: network-create volumes-create
+build-all: network-create volumes-create generate-includes
     @echo "Building all services..."
-    @docker compose build
+    @docker compose -f docker-compose.includes.yml build
     @echo "✅ All services built successfully"
 
 # Start all services
-up: network-create volumes-create
-    @docker compose up -d
+up: network-create volumes-create generate-includes
+    @docker compose -f docker-compose.includes.yml up -d
     @echo "Waiting for services to be healthy..."
     @pixi run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
 

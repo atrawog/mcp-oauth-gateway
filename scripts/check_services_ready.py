@@ -25,7 +25,12 @@ def run_command(cmd: List[str]) -> Tuple[int, str, str]:
 
 def check_docker_service(service_name: str) -> bool:
     """Check if a Docker service is running"""
-    cmd = ["docker", "compose", "ps", service_name, "--format", "json"]
+    # Skip mcp-everything if it's disabled
+    if service_name == "mcp-everything" and os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() != "true":
+        print(f"{YELLOW}⊝ Service {service_name} is disabled via MCP_EVERYTHING_ENABLED{RESET}")
+        return True  # Consider it "passing" since it's intentionally disabled
+    
+    cmd = ["docker", "compose", "-f", "docker-compose.includes.yml", "ps", service_name, "--format", "json"]
     code, stdout, stderr = run_command(cmd)
     
     if code != 0:
@@ -92,7 +97,7 @@ def check_volumes_exist() -> bool:
 def build_services() -> bool:
     """Build all services"""
     print(f"\n{YELLOW}Building all services...{RESET}")
-    cmd = ["docker", "compose", "build"]
+    cmd = ["docker", "compose", "-f", "docker-compose.includes.yml", "build"]
     code, stdout, stderr = run_command(cmd)
     
     if code != 0:
@@ -105,7 +110,7 @@ def build_services() -> bool:
 def start_services() -> bool:
     """Start all services"""
     print(f"\n{YELLOW}Starting all services...{RESET}")
-    cmd = ["docker", "compose", "up", "-d"]
+    cmd = ["docker", "compose", "-f", "docker-compose.includes.yml", "up", "-d"]
     code, stdout, stderr = run_command(cmd)
     
     if code != 0:
@@ -120,6 +125,10 @@ async def wait_for_services(max_wait: int = 60) -> bool:
     print(f"\n{YELLOW}Waiting for Docker health checks (max {max_wait}s)...{RESET}")
     
     services_to_check = ["traefik", "auth", "redis", "mcp-fetch"]
+    
+    # Add mcp-everything if enabled
+    if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
+        services_to_check.append("mcp-everything")
     
     start_time = time.time()
     
@@ -194,6 +203,14 @@ async def main():
     print(f"{YELLOW}Pre-test Service Check{RESET}")
     print(f"{YELLOW}{'='*60}{RESET}")
     
+    # First, generate the docker-compose includes file
+    print(f"\n{YELLOW}Generating docker-compose includes...{RESET}")
+    gen_cmd = ["python", "scripts/generate_compose_includes.py"]
+    code, stdout, stderr = run_command(gen_cmd)
+    if code != 0:
+        print(f"{RED}✗ Failed to generate docker-compose includes: {stderr}{RESET}")
+        return 1
+    
     checks = []
     
     # Check network and volumes
@@ -202,13 +219,17 @@ async def main():
     checks.append(("Volumes", check_volumes_exist()))
     
     # Build services if needed
-    if not all(check_docker_service(s) for s in ["traefik", "auth", "redis", "mcp-fetch"]):
+    base_services = ["traefik", "auth", "redis", "mcp-fetch"]
+    if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
+        base_services.append("mcp-everything")
+    
+    if not all(check_docker_service(s) for s in base_services):
         checks.append(("Build", build_services()))
         checks.append(("Start", start_services()))
     
     # Check running services
     print(f"\n{YELLOW}Checking service status...{RESET}")
-    for service in ["traefik", "auth", "redis", "mcp-fetch"]:
+    for service in base_services:
         checks.append((f"Service {service}", check_docker_service(service)))
     
     # Wait for health

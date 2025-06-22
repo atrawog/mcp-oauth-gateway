@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""
+Generate docker-compose includes based on enabled services.
+"""
+import os
+import yaml
+from pathlib import Path
+
+def main():
+    """Generate docker-compose.includes.yml based on enabled services."""
+    # Base includes that are always present
+    includes = [
+        "traefik/docker-compose.yml",
+        "auth/docker-compose.yml",
+        "mcp-fetch/docker-compose.yml",
+        "mcp-filesystem/docker-compose.yml",
+        "mcp-fetchs/docker-compose.yml",
+        "mcp-memory/docker-compose.yml",
+        "mcp-sequentialthinking/docker-compose.yml",
+        "mcp-time/docker-compose.yml",
+        "mcp-tmux/docker-compose.yml",
+        "mcp-playwright/docker-compose.yml",
+    ]
+    
+    # Conditionally add mcp-everything
+    if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
+        includes.append("mcp-everything/docker-compose.yml")
+    
+    # Generate the includes file
+    compose_data = {
+        "include": includes,
+        "networks": {
+            "public": {
+                "external": True
+            }
+        },
+        "volumes": {
+            "traefik-certificates": {
+                "external": True
+            },
+            "redis-data": {
+                "external": True
+            },
+            "coverage-data": {
+                "external": True
+            },
+            "auth-keys": {
+                "external": True
+            },
+            "mcp-memory-data": {
+                "external": True
+            }
+        }
+    }
+    
+    # Write the generated file
+    output_path = Path(__file__).parent.parent / "docker-compose.includes.yml"
+    with open(output_path, "w") as f:
+        yaml.dump(compose_data, f, default_flow_style=False, sort_keys=False)
+    
+    print(f"Generated {output_path}")
+    if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
+        print("✅ mcp-everything is ENABLED")
+    else:
+        print("❌ mcp-everything is DISABLED")
+
+if __name__ == "__main__":
+    main()

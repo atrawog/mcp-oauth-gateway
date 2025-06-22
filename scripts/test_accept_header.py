@@ -12,7 +12,19 @@ with open('.env') as f:
             token = line.strip().split('=', 1)[1]
             break
 
-url = 'https://mcp-everything.atradev.org/mcp'
+# Get MCP Everything URL from environment
+mcp_everything_enabled = os.getenv('MCP_EVERYTHING_TESTS_ENABLED', 'false').lower() == 'true'
+mcp_everything_urls = os.getenv('MCP_EVERYTHING_URLS', '').split(',') if os.getenv('MCP_EVERYTHING_URLS') else []
+
+if not mcp_everything_enabled:
+    print("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
+    exit(0)
+
+if not mcp_everything_urls:
+    print("MCP_EVERYTHING_URLS environment variable not set")
+    exit(1)
+
+url = mcp_everything_urls[0]
 data = {
     'jsonrpc': '2.0',
     'method': 'initialize',

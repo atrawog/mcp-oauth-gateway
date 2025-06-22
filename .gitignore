@@ -102,3 +102,6 @@ credentials.json
 backups/
 *.backup.json
 oauth-backup-*.json
+
+# Generated docker-compose includes
+docker-compose.includes.yml

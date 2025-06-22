@@ -3,13 +3,17 @@
 import subprocess
 import os
 import sys
+import pytest
 
-from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN
+from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN, MCP_EVERYTHING_TESTS_ENABLED, MCP_EVERYTHING_URLS
 
 
+@pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
 def test_echo_tool():
     """Test the echo tool directly."""
-    url = f"https://mcp-everything.{BASE_DOMAIN}/mcp"
+    if not MCP_EVERYTHING_URLS:
+        pytest.skip("MCP_EVERYTHING_URLS environment variable not set")
+    url = MCP_EVERYTHING_URLS[0]
     
     env = os.environ.copy()
     env["MCP_SERVER_URL"] = url

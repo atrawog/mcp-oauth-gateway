@@ -96,3 +96,7 @@ HEALTH_CHECK_INTERVAL = _get_env_int_or_fail("HEALTH_CHECK_INTERVAL")
 
 # Access Control Configuration - From main .env
 ALLOWED_GITHUB_USERS = _get_env_or_fail("ALLOWED_GITHUB_USERS").split(",")
+
+# MCP Everything Configuration - From main .env
+MCP_EVERYTHING_TESTS_ENABLED = os.getenv("MCP_EVERYTHING_TESTS_ENABLED", "false").lower() == "true"
+MCP_EVERYTHING_URLS = os.getenv("MCP_EVERYTHING_URLS", "").split(",") if os.getenv("MCP_EVERYTHING_URLS") else []

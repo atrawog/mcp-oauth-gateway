@@ -7,7 +7,7 @@ import asyncio
 from typing import Dict, Any, Optional
 
 from tests.conftest import ensure_services_ready
-from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN
+from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN, MCP_EVERYTHING_TESTS_ENABLED, MCP_EVERYTHING_URLS
 
 
 @pytest.fixture
@@ -17,9 +17,13 @@ def base_domain():
 
 
 @pytest.fixture
-def everything_url(base_domain):
+def everything_url():
     """Full URL for everything service."""
-    return f"https://mcp-everything.{base_domain}/mcp"
+    if not MCP_EVERYTHING_TESTS_ENABLED:
+        pytest.skip("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
+    if not MCP_EVERYTHING_URLS:
+        pytest.skip("MCP_EVERYTHING_URLS environment variable not set")
+    return MCP_EVERYTHING_URLS[0]
 
 
 @pytest.fixture
@@ -60,6 +64,7 @@ class TestMCPEverythingDirect:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_server_capabilities(self, everything_url, client_token):
         """Test the everything server's capabilities directly."""
         headers = {

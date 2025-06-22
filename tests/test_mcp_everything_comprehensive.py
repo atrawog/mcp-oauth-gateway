@@ -6,7 +6,7 @@ import pytest
 import json
 
 from tests.conftest import ensure_services_ready
-from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN
+from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN, MCP_EVERYTHING_TESTS_ENABLED, MCP_EVERYTHING_URLS
 
 
 @pytest.fixture
@@ -16,9 +16,13 @@ def base_domain():
 
 
 @pytest.fixture
-def everything_url(base_domain):
+def everything_url():
     """Full URL for everything service."""
-    return f"https://mcp-everything.{base_domain}/mcp"
+    if not MCP_EVERYTHING_TESTS_ENABLED:
+        pytest.skip("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
+    if not MCP_EVERYTHING_URLS:
+        pytest.skip("MCP_EVERYTHING_URLS environment variable not set")
+    return MCP_EVERYTHING_URLS[0]
 
 
 @pytest.fixture
@@ -64,6 +68,7 @@ class TestMCPEverythingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_echo_tool(self, everything_url, client_token, wait_for_services):
         """Test the echo tool with a message."""
         returncode, stdout, stderr = self.run_client_command(
@@ -81,6 +86,7 @@ class TestMCPEverythingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_add_tool(self, everything_url, client_token, wait_for_services):
         """Test the add tool with two numbers."""
         # Test with JSON format
@@ -99,6 +105,7 @@ class TestMCPEverythingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_add_tool_key_value(self, everything_url, client_token, wait_for_services):
         """Test the add tool with key=value format."""
         returncode, stdout, stderr = self.run_client_command(
@@ -116,6 +123,7 @@ class TestMCPEverythingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_printenv_tool(self, everything_url, client_token, wait_for_services):
         """Test the printEnv tool."""
         returncode, stdout, stderr = self.run_client_command(
@@ -134,6 +142,7 @@ class TestMCPEverythingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_annotated_message_tool(self, everything_url, client_token, wait_for_services):
         """Test the annotatedMessage tool with different message types."""
         # Test error message
@@ -166,6 +175,7 @@ class TestMCPEverythingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_get_resource_reference(self, everything_url, client_token, wait_for_services):
         """Test the getResourceReference tool."""
         returncode, stdout, stderr = self.run_client_command(
@@ -184,6 +194,7 @@ class TestMCPEverythingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_invalid_tool_parameters(self, everything_url, client_token, wait_for_services):
         """Test error handling for invalid tool parameters."""
         # Try echo without required message
@@ -203,6 +214,7 @@ class TestMCPEverythingComprehensive:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_multiple_tools_sequence(self, everything_url, client_token, wait_for_services):
         """Test running multiple tools in sequence."""
         print("\n=== Testing Multiple Tools in Sequence ===")
