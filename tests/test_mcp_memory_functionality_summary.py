@@ -3,6 +3,8 @@
 import json
 import pytest
 
+# Using mcp_memory_url fixture from conftest.py which handles test skipping
+
 # This file documents all the MCP Memory server functionalities
 # that have been comprehensively tested using mcp-streamablehttp-client
 
