@@ -9,7 +9,7 @@ services:
       - public
     environment:
       - MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}
-      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION}
+      - MCP_PROTOCOL_VERSION=2025-03-26
     volumes:
       # Mount workspace directory for filesystem access
       - ./workspace:/workspace:rw

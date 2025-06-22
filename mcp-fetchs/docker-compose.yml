@@ -10,7 +10,7 @@ services:
       - PORT=3000
       - MCP_SERVER_NAME=mcp-fetch-streamablehttp
       - MCP_SERVER_VERSION=0.1.0
-      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION}
+      - MCP_PROTOCOL_VERSION=2025-06-18
       - MCP_FETCH_DEFAULT_USER_AGENT=ModelContextProtocol/1.0 (Fetch Server)
     networks:
       - public
