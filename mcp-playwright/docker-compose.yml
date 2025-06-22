@@ -35,13 +35,6 @@ services:
       # Service Definition
       - "traefik.http.services.mcp-playwright.loadbalancer.server.port=3000"
 
-      # Health Check Route (No Auth Required)
-      - "traefik.http.routers.mcp-playwright-health.rule=Host(`playwright.${BASE_DOMAIN}`) && Path(`/health`)"
-      - "traefik.http.routers.mcp-playwright-health.priority=3"
-      - "traefik.http.routers.mcp-playwright-health.service=mcp-playwright"
-      - "traefik.http.routers.mcp-playwright-health.tls=true"
-      - "traefik.http.routers.mcp-playwright-health.tls.certresolver=letsencrypt"
-
       # CORS preflight route (OPTIONS) - Priority 4 (HIGHEST for OPTIONS)
       - "traefik.http.routers.mcp-playwright-cors.rule=Host(`playwright.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-playwright-cors.priority=4"

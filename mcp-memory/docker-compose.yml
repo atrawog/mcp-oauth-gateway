@@ -24,13 +24,6 @@ services:
       - "traefik.http.middlewares.mcp-memory-oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
       - "traefik.http.routers.mcp-memory-oauth-discovery.middlewares=mcp-memory-oauth-discovery-rewrite"
 
-      # Health Check Route - Priority 8
-      - "traefik.http.routers.mcp-memory-health.rule=Host(`memory.${BASE_DOMAIN}`) && PathPrefix(`/health`)"
-      - "traefik.http.routers.mcp-memory-health.priority=8"
-      - "traefik.http.routers.mcp-memory-health.service=mcp-memory"
-      - "traefik.http.routers.mcp-memory-health.tls=true"
-      - "traefik.http.routers.mcp-memory-health.tls.certresolver=letsencrypt"
-
       # CORS Preflight Route - Priority 6
       - "traefik.http.routers.mcp-memory-cors.rule=Host(`memory.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-memory-cors.priority=6"

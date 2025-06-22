@@ -42,12 +42,6 @@ services:
       - "traefik.http.routers.mcp-fetchs-oauth-discovery.tls=true"
       - "traefik.http.routers.mcp-fetchs-oauth-discovery.tls.certresolver=letsencrypt"
       
-      # Health check endpoint (no auth)
-      - "traefik.http.routers.mcp-fetchs-health.rule=Host(`fetchs.${BASE_DOMAIN}`) && Path(`/health`)"
-      - "traefik.http.routers.mcp-fetchs-health.priority=5"
-      - "traefik.http.routers.mcp-fetchs-health.service=mcp-fetchs"
-      - "traefik.http.routers.mcp-fetchs-health.tls=true"
-      - "traefik.http.routers.mcp-fetchs-health.tls.certresolver=letsencrypt"
       
       # Service definition
       - "traefik.http.services.mcp-fetchs.loadbalancer.server.port=3000"

@@ -12,12 +12,6 @@ services:
       - MCP_PROTOCOL_VERSION=2025-03-26
     labels:
       - "traefik.enable=true"
-      # Health check route - Priority 3 (HIGHEST for specific path)
-      - "traefik.http.routers.mcp-fetch-health.rule=Host(`fetch.${BASE_DOMAIN}`) && Path(`/health`)"
-      - "traefik.http.routers.mcp-fetch-health.priority=3"
-      - "traefik.http.routers.mcp-fetch-health.entrypoints=websecure"
-      - "traefik.http.routers.mcp-fetch-health.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-health.service=mcp-fetch"
       - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
       
       # OAuth discovery route - Priority 10 (ABSOLUTE HIGHEST - must work without auth!)

@@ -21,13 +21,6 @@ services:
       - "traefik.http.middlewares.mcp-tmux-oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
       - "traefik.http.routers.mcp-tmux-oauth-discovery.middlewares=mcp-tmux-oauth-discovery-rewrite"
 
-      # Health Check Route - Priority 8
-      - "traefik.http.routers.mcp-tmux-health.rule=Host(`tmux.${BASE_DOMAIN}`) && PathPrefix(`/health`)"
-      - "traefik.http.routers.mcp-tmux-health.priority=8"
-      - "traefik.http.routers.mcp-tmux-health.service=mcp-tmux"
-      - "traefik.http.routers.mcp-tmux-health.tls=true"
-      - "traefik.http.routers.mcp-tmux-health.tls.certresolver=letsencrypt"
-
       # CORS Preflight Route - Priority 6
       - "traefik.http.routers.mcp-tmux-cors.rule=Host(`tmux.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-tmux-cors.priority=6"

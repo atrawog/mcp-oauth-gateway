@@ -22,13 +22,13 @@ This service follows the project's standard MCP service pattern:
 - **Transport**: mcp-streamablehttp-proxy wrapping stdio to HTTP
 - **Authentication**: OAuth 2.1 via Traefik ForwardAuth
 - **Isolation**: Stateless operation with no persistent storage needed
-- **Health Monitoring**: Standard HTTP health checks
+- **Health Monitoring**: MCP protocol health checks via initialization
 
 ## Configuration
 
 ### Environment Variables
 
-- `MCP_PROTOCOL_VERSION=2025-06-18` - MCP protocol version
+- `MCP_PROTOCOL_VERSION` - MCP protocol version (defaults to 2025-06-18 if not set)
 - `MCP_CORS_ORIGINS=*` - CORS configuration
 - `PORT=3000` - Service port
 
@@ -39,7 +39,7 @@ The time service is stateless and processes each request independently. No volum
 ## Endpoints
 
 - **Primary**: `https://mcp-time.${BASE_DOMAIN}/mcp`
-- **Health Check**: `https://mcp-time.${BASE_DOMAIN}/health`
+- **Health Check**: Uses MCP protocol initialization
 - **OAuth Discovery**: `https://mcp-time.${BASE_DOMAIN}/.well-known/oauth-authorization-server`
 
 ## Usage
@@ -155,7 +155,9 @@ just logs mcp-time
 mcp-streamablehttp-client --server-url https://mcp-time.yourdomain.com/mcp --test-auth
 
 # Health check
-curl https://mcp-time.yourdomain.com/health
+curl -X POST https://mcp-time.yourdomain.com/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 
 # List available tools
 mcp-streamablehttp-client --server-url https://mcp-time.yourdomain.com/mcp --list-tools

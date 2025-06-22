@@ -21,13 +21,6 @@ services:
       - "traefik.http.middlewares.mcp-time-oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
       - "traefik.http.routers.mcp-time-oauth-discovery.middlewares=mcp-time-oauth-discovery-rewrite"
 
-      # Health Check Route - Priority 8
-      - "traefik.http.routers.mcp-time-health.rule=Host(`time.${BASE_DOMAIN}`) && PathPrefix(`/health`)"
-      - "traefik.http.routers.mcp-time-health.priority=8"
-      - "traefik.http.routers.mcp-time-health.service=mcp-time"
-      - "traefik.http.routers.mcp-time-health.tls=true"
-      - "traefik.http.routers.mcp-time-health.tls.certresolver=letsencrypt"
-
       # CORS Preflight Route - Priority 6
       - "traefik.http.routers.mcp-time-cors.rule=Host(`time.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-time-cors.priority=6"

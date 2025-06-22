@@ -15,12 +15,6 @@ services:
       - ./workspace:/workspace:rw
     labels:
       - "traefik.enable=true"
-      # Health check route - Priority 3 (HIGHEST for specific path)
-      - "traefik.http.routers.mcp-filesystem-health.rule=Host(`filesystem.${BASE_DOMAIN}`) && Path(`/health`)"
-      - "traefik.http.routers.mcp-filesystem-health.priority=3"
-      - "traefik.http.routers.mcp-filesystem-health.entrypoints=websecure"
-      - "traefik.http.routers.mcp-filesystem-health.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-filesystem-health.service=mcp-filesystem"
       - "traefik.http.services.mcp-filesystem.loadbalancer.server.port=3000"
       
       # OAuth discovery route - Priority 10 (ABSOLUTE HIGHEST - must work without auth!)

@@ -93,7 +93,7 @@ The MCP Playwright service enables secure browser automation through the Model C
 ### Container Features
 - **Browser Installation**: Pre-configured Playwright browsers
 - **Shared Memory**: 2GB shared memory for browser processes
-- **Health Monitoring**: HTTP health checks on `/health` endpoint
+- **Health Monitoring**: MCP protocol health checks via initialization
 - **Process Management**: Automatic browser cleanup and resource management
 - **Font Support**: Liberation fonts and emoji support for rendering
 
@@ -114,7 +114,7 @@ The MCP Playwright service enables secure browser automation through the Model C
 
 ### Endpoint Configuration
 - **Primary**: `https://mcp-playwright.${BASE_DOMAIN}/mcp`
-- **Health**: `https://mcp-playwright.${BASE_DOMAIN}/health`
+- **Health**: Uses MCP protocol initialization
 - **Discovery**: `https://mcp-playwright.${BASE_DOMAIN}/.well-known/oauth-authorization-server`
 
 ## Usage Examples
@@ -275,7 +275,7 @@ CMD ["/app/start.sh", "--headed"]
 
 ### Environment Variables
 - **`PORT`**: HTTP server port (default: 3000)
-- **`MCP_PROTOCOL_VERSION`**: MCP protocol version (2025-06-18)
+- **`MCP_PROTOCOL_VERSION`**: MCP protocol version (defaults to 2025-06-18 if not set)
 - **`PLAYWRIGHT_BROWSERS_PATH`**: Browser installation path
 - **`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD`**: Skip browser downloads if already installed
 
@@ -315,21 +315,15 @@ CMD ["/app/start.sh", "--headed"]
 
 ### Health Check Endpoint
 ```bash
-curl https://mcp-playwright.${BASE_DOMAIN}/health
+curl -X POST https://mcp-playwright.${BASE_DOMAIN}/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
 
 **Response**:
-```json
-{
-  "status": "healthy",
-  "browsers": {
-    "chromium": "available",
-    "firefox": "available",
-    "webkit": "available"
-  },
-  "mcp_version": "2025-06-18",
-  "active_contexts": 0
-}
+```
+event: message
+data: {"result":{"protocolVersion":"${MCP_PROTOCOL_VERSION}","capabilities":{...},"serverInfo":{...}},"jsonrpc":"2.0","id":1}
 ```
 
 ### Container Health
@@ -346,7 +340,9 @@ curl https://mcp-playwright.${BASE_DOMAIN}/health
 just rebuild mcp-playwright
 
 # Check health
-curl https://mcp-playwright.${BASE_DOMAIN}/health
+curl -X POST https://mcp-playwright.${BASE_DOMAIN}/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 
 # Test with MCP client
 just mcp-client-token
@@ -364,7 +360,7 @@ just mcp-client-token
         "--oauth2"
       ],
       "env": {
-        "MCP_PROTOCOL_VERSION": "2025-06-18"
+        "MCP_PROTOCOL_VERSION": "${MCP_PROTOCOL_VERSION:-2025-06-18}"
       }
     }
   }
@@ -425,7 +421,7 @@ shm_size: '4gb'
 curl -X POST https://mcp-playwright.${BASE_DOMAIN}/mcp \
   -H "Authorization: Bearer $GATEWAY_OAUTH_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
-  -H "MCP-Protocol-Version: 2025-06-18" \
+  -H "MCP-Protocol-Version: ${MCP_PROTOCOL_VERSION:-2025-06-18}" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
 

@@ -22,13 +22,13 @@ This service follows the project's standard MCP service pattern:
 - **Transport**: Direct streamableHttp mode (no proxy needed)
 - **Authentication**: OAuth 2.1 via Traefik ForwardAuth
 - **Storage**: Persistent volume for memory.json file
-- **Health Monitoring**: Standard HTTP health checks
+- **Health Monitoring**: MCP protocol health checks via initialization
 
 ## Configuration
 
 ### Environment Variables
 
-- `MCP_PROTOCOL_VERSION=2025-06-18` - MCP protocol version
+- `MCP_PROTOCOL_VERSION` - MCP protocol version (defaults to 2025-06-18 if not set)
 - `MCP_CORS_ORIGINS=*` - CORS configuration
 - `MEMORY_FILE_PATH=/data/memory.json` - Memory storage location
 - `PORT=3000` - Service port
@@ -43,7 +43,7 @@ The service uses a Docker volume `mcp-memory-data` to persist memory data:
 ## Endpoints
 
 - **Primary**: `https://mcp-memory.${BASE_DOMAIN}/mcp`
-- **Health Check**: `https://mcp-memory.${BASE_DOMAIN}/health`
+- **Health Check**: Uses MCP protocol initialization
 - **OAuth Discovery**: `https://mcp-memory.${BASE_DOMAIN}/.well-known/oauth-authorization-server`
 
 ## Usage
@@ -138,7 +138,9 @@ just logs mcp-memory
 mcp-streamablehttp-client --server-url https://mcp-memory.yourdomain.com/mcp --test-auth
 
 # Health check
-curl https://mcp-memory.yourdomain.com/health
+curl -X POST https://mcp-memory.yourdomain.com/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
 
 ## Integration

@@ -26,7 +26,7 @@ mcp-fetch-streamablehttp-server/  # Python package
 
 - **FQDN**: `mcp-fetchs.${BASE_DOMAIN}`
 - **MCP Protocol**: `https://mcp-fetchs.${BASE_DOMAIN}/mcp`
-- **Health Check**: `https://mcp-fetchs.${BASE_DOMAIN}/health`
+- **Health Check**: Uses MCP protocol initialization
 - **OAuth Discovery**: `https://mcp-fetchs.${BASE_DOMAIN}/.well-known/oauth-authorization-server`
 
 ## Configuration Commandments
@@ -36,7 +36,7 @@ mcp-fetch-streamablehttp-server/  # Python package
 HOST: 0.0.0.0
 PORT: 3000
 MCP_FETCH_SERVER_NAME: mcp-fetch-streamablehttp
-MCP_FETCH_PROTOCOL_VERSION: 2025-06-18
+MCP_FETCH_PROTOCOL_VERSION: ${MCP_PROTOCOL_VERSION:-2025-06-18}
 MCP_FETCH_DEFAULT_USER_AGENT: ModelContextProtocol/1.0 (Fetch Server)
 ```
 
@@ -51,7 +51,9 @@ just up
 just rebuild mcp-fetchs
 
 # Check health
-curl https://mcp-fetchs.yourdomain.com/health
+curl -X POST https://mcp-fetchs.yourdomain.com/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
 
 ## Testing Prophecies

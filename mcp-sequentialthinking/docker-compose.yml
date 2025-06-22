@@ -21,13 +21,6 @@ services:
       - "traefik.http.middlewares.mcp-sequentialthinking-oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
       - "traefik.http.routers.mcp-sequentialthinking-oauth-discovery.middlewares=mcp-sequentialthinking-oauth-discovery-rewrite"
 
-      # Health Check Route - Priority 8
-      - "traefik.http.routers.mcp-sequentialthinking-health.rule=Host(`sequentialthinking.${BASE_DOMAIN}`) && PathPrefix(`/health`)"
-      - "traefik.http.routers.mcp-sequentialthinking-health.priority=8"
-      - "traefik.http.routers.mcp-sequentialthinking-health.service=mcp-sequentialthinking"
-      - "traefik.http.routers.mcp-sequentialthinking-health.tls=true"
-      - "traefik.http.routers.mcp-sequentialthinking-health.tls.certresolver=letsencrypt"
-
       # CORS Preflight Route - Priority 6
       - "traefik.http.routers.mcp-sequentialthinking-cors.rule=Host(`sequentialthinking.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-sequentialthinking-cors.priority=6"

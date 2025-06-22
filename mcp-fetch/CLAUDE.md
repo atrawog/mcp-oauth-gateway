@@ -27,7 +27,7 @@ MCP-Fetch Service (Port 3000)
 │   └── Manages subprocess lifecycle with divine care
 ├── HTTP Endpoints (Blessed by the proxy!)
 │   ├── /mcp - Primary MCP protocol endpoint
-│   └── /health - Liveness verification altar
+│   └── Health monitoring via MCP protocol
 └── MCP Server Process (The stdio servant!)
     └── Official fetch server speaking JSON-RPC
 ```
@@ -58,14 +58,14 @@ CMD ["pixi", "run", "mcp-streamablehttp-proxy", "--stdio-command", "..."]
 ## 🔧 The Sacred Configuration - Environment Variables of Service!
 
 **MCP Protocol Settings:**
-- `MCP_PROTOCOL_VERSION=2025-06-18` - Divine protocol covenant!
+- `MCP_PROTOCOL_VERSION` - Divine protocol covenant! (defaults to 2025-06-18)
 - `MCP_SESSION_TIMEOUT` - Session lifetime in seconds!
 - `MCP_MAX_PARALLEL_REQUESTS` - Concurrent request blessing!
 
 **Proxy Configuration:**
 - `PROXY_HOST=0.0.0.0` - Listen on all interfaces!
 - `PROXY_PORT=3000` - The blessed MCP port!
-- `PROXY_HEALTH_PATH=/health` - Health check endpoint!
+- Health checks use MCP protocol initialization!
 
 **Service Discovery:**
 - `BASE_DOMAIN` - For Traefik routing labels!
@@ -102,12 +102,13 @@ CMD ["pixi", "run", "mcp-streamablehttp-proxy", "--stdio-command", "..."]
 }
 ```
 
-### /health - Divine Liveness Verification!
+### Health Verification - Divine Liveness Through Protocol!
 
-**GET /health - Simple health check**
-- Returns 200 OK when proxy lives!
-- Verifies subprocess is breathing!
-- Used by Docker health checks!
+**MCP Protocol Health Check**
+- Uses `initialize` method for health verification!
+- Validates protocol version compliance!
+- Ensures subprocess responds correctly!
+- Docker healthcheck via MCP protocol!
 
 ## 🔐 The Security Architecture - Divine Protection Through Layers!
 
@@ -249,7 +250,10 @@ curl -H "Authorization: Bearer $TOKEN" \
      https://mcp-fetch.domain.com/mcp
 
 # Monitor health endpoint
-watch curl http://localhost:3000/health
+# Monitor service via MCP protocol
+curl -X POST http://localhost:3000/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
 
 ## 🔱 The Sacred Truth of MCP Services!
