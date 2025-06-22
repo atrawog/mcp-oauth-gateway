@@ -44,7 +44,7 @@ All services share these capabilities:
 
 ### 🧪 Testing
 - **100% Real Testing** - No mocking, production validation
-- **Protocol Compliance** - MCP 2025-06-18 verified
+- **Protocol Compliance** - MCP protocol verified
 - **Integration Tests** - End-to-end functionality
 - **Performance Tests** - Load and stress testing
 
@@ -141,15 +141,15 @@ Each service is accessible via its dedicated subdomain:
 
 | Service | URL | Protocol |
 |---------|-----|----------|
-| MCP Fetch | `https://mcp-fetch.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
-| MCP Memory | `https://mcp-memory.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
-| MCP Time | `https://mcp-time.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
-| MCP Sequential Thinking | `https://mcp-sequentialthinking.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
-| MCP Filesystem | `https://mcp-filesystem.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
-| MCP Everything | `https://mcp-everything.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
-| MCP Fetchs | `https://mcp-fetchs.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
-| MCP Tmux | `https://mcp-tmux.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
-| MCP Playwright | `https://mcp-playwright.${BASE_DOMAIN}/mcp` | MCP 2025-06-18 |
+| MCP Fetch | `https://mcp-fetch.${BASE_DOMAIN}/mcp` | MCP Protocol |
+| MCP Memory | `https://mcp-memory.${BASE_DOMAIN}/mcp` | MCP Protocol |
+| MCP Time | `https://mcp-time.${BASE_DOMAIN}/mcp` | MCP Protocol |
+| MCP Sequential Thinking | `https://mcp-sequentialthinking.${BASE_DOMAIN}/mcp` | MCP Protocol |
+| MCP Filesystem | `https://mcp-filesystem.${BASE_DOMAIN}/mcp` | MCP Protocol |
+| MCP Everything | `https://mcp-everything.${BASE_DOMAIN}/mcp` | MCP Protocol |
+| MCP Fetchs | `https://mcp-fetchs.${BASE_DOMAIN}/mcp` | MCP Protocol |
+| MCP Tmux | `https://mcp-tmux.${BASE_DOMAIN}/mcp` | MCP Protocol |
+| MCP Playwright | `https://mcp-playwright.${BASE_DOMAIN}/mcp` | MCP Protocol |
 
 ## Common Endpoints
 
@@ -157,17 +157,14 @@ All services provide standard endpoints:
 
 ### Primary Endpoints
 - **`/mcp`** - Main MCP protocol endpoint (requires authentication)
-- **`/health`** - Health check endpoint (public)
 - **`/.well-known/oauth-authorization-server`** - OAuth discovery (public)
+- **Health Checks** - Via MCP protocol initialization
 
-### Health Check Response
-```json
-{
-  "status": "healthy",
-  "timestamp": "2025-06-21T23:38:12Z",
-  "service": "mcp-fetch",
-  "version": "1.0.0"
-}
+### Health Check via MCP Protocol
+```bash
+curl -X POST https://mcp-service.yourdomain.com/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
 
 ## Authentication Flow
@@ -231,7 +228,7 @@ Standard environment variables for all services:
 
 ```bash
 # Protocol configuration
-MCP_PROTOCOL_VERSION=2025-06-18
+MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
 MCP_CORS_ORIGINS=*
 PORT=3000
 
@@ -242,8 +239,8 @@ BASE_DOMAIN=yourdomain.com
 ## Monitoring and Observability
 
 ### Health Monitoring
-- **Docker Health Checks** - Container-level monitoring
-- **HTTP Health Endpoints** - Application-level monitoring
+- **Docker Health Checks** - Container-level monitoring via MCP protocol
+- **Protocol Health Checks** - Application-level monitoring via initialization
 - **Traefik Dashboard** - Traffic and routing monitoring
 
 ### Logging
@@ -265,8 +262,10 @@ BASE_DOMAIN=yourdomain.com
    # Check container logs
    docker logs mcp-servicename
    
-   # Check health status
-   curl https://mcp-servicename.yourdomain.com/health
+   # Check health status via MCP protocol
+   curl -X POST https://mcp-servicename.yourdomain.com/mcp \
+     -H 'Content-Type: application/json' \
+     -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
    ```
 
 2. **Authentication Failures**

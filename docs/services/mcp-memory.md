@@ -5,8 +5,11 @@ The MCP Memory service provides a sophisticated knowledge graph storage system, 
 ```{image} https://img.shields.io/badge/Status-Production%20Ready-green
 :alt: Production Ready
 ```
-```{image} https://img.shields.io/badge/Protocol-MCP%202025--06--18-blue
-:alt: MCP Protocol Version
+```{image} https://img.shields.io/badge/Protocol-MCP-blue
+:alt: MCP Protocol
+```
+```{image} https://img.shields.io/badge/Version-Dynamic-green
+:alt: Protocol Version
 ```
 
 ## Overview
@@ -370,7 +373,7 @@ await add_observations("OAuth 2.1", [
 
 ```bash
 # Protocol configuration
-MCP_PROTOCOL_VERSION=2025-06-18
+MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
 MCP_CORS_ORIGINS=*
 PORT=3000
 
@@ -395,7 +398,7 @@ services:
     volumes:
       - mcp-memory-data:/data
     environment:
-      - MCP_PROTOCOL_VERSION=2025-06-18
+      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
       - MEMORY_FILE_PATH=/data/memory.json
     labels:
       - "traefik.http.routers.mcp-memory.rule=Host(`mcp-memory.${BASE_DOMAIN}`)"
@@ -452,8 +455,10 @@ pytest tests/test_mcp_memory_performance.py -v
 ### Health Checks
 
 ```bash
-# Service health
-curl https://mcp-memory.yourdomain.com/health
+# Protocol health check via MCP initialization
+curl -X POST https://mcp-memory.yourdomain.com/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 
 # Response format
 {
@@ -527,7 +532,10 @@ Track knowledge graph growth:
 2. **Performance Issues**
    ```bash
    # Check graph size
-   curl https://mcp-memory.yourdomain.com/health
+   # Protocol health check
+curl -X POST https://mcp-memory.yourdomain.com/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
    
    # Consider graph cleanup or partitioning
    ```
@@ -568,7 +576,10 @@ Track knowledge graph growth:
 2. **Graph Performance Issues**
    ```bash
    # Check graph size
-   curl https://mcp-memory.yourdomain.com/health
+   # Protocol health check
+curl -X POST https://mcp-memory.yourdomain.com/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
    
    # Monitor memory usage
    docker stats mcp-memory

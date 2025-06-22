@@ -183,10 +183,29 @@ class TestMCPServiceIntegration:
     def client_token(self, oauth_client):
         return oauth_client.get_access_token()
     
-    def test_service_health(self, service_url):
-        """Test service health endpoint."""
-        response = requests.get(f"{service_url}/health")
+    def test_service_health(self, service_url, client_token):
+        """Test service health via MCP protocol initialization."""
+        response = requests.post(
+            f"{service_url}/mcp",
+            headers={
+                "Authorization": f"Bearer {client_token}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream"
+            },
+            json={
+                "jsonrpc": "2.0",
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "test", "version": "1.0"}
+                },
+                "id": 1
+            }
+        )
         assert response.status_code == 200
+        # Verify successful initialization response
+        assert "protocolVersion" in response.text
     
     def test_mcp_protocol(self, service_url, client_token):
         """Test MCP protocol compliance."""
@@ -313,7 +332,9 @@ class ClientRegistrationRequest(BaseModel):
 #### Response Times
 - **API Endpoints**: < 100ms for simple operations
 - **OAuth Flows**: < 2s for complete authorization
-- **Health Checks**: < 50ms response time
+- **Health Checks**: 
+  - Auth service HTTP health: < 50ms response time
+  - MCP service protocol init: < 100ms response time
 
 #### Resource Usage
 - **Memory**: < 512MB per service container

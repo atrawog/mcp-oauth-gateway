@@ -66,7 +66,7 @@ Complete reference for all configuration options in the MCP OAuth Gateway.
 **Type**: String  
 **Default**: `2025-06-18`  
 **Description**: MCP protocol version to use  
-**Example**: `MCP_PROTOCOL_VERSION=2025-06-18`
+**Example**: `MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}`
 
 ### Service Configuration
 
@@ -161,7 +161,7 @@ oauth:user_tokens:{user}     # User token index
 environment:
   - PORT=3000
   - MCP_COMMAND=python -m mcp_server_time
-  - MCP_PROTOCOL_VERSION=2025-06-18
+  - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
 ```
 
 #### Health Check Configuration
@@ -262,7 +262,7 @@ Services validate configuration at startup:
 {
   "status": "healthy",
   "mcp_server": "running",
-  "protocol_version": "2025-06-18"
+  "protocol_version": "${MCP_PROTOCOL_VERSION:-2025-06-18}"
 }
 ```
 

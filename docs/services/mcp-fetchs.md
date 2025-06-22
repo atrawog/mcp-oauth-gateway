@@ -45,7 +45,7 @@ curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 
 ### Primary Endpoints
 - **`/mcp`** - Main MCP protocol endpoint
-- **`/health`** - Health check endpoint (public)
+- **`/mcp`** - Main MCP protocol endpoint (health checks via protocol initialization)
 - **`/.well-known/oauth-authorization-server`** - OAuth discovery
 
 ## Usage Examples
@@ -145,7 +145,7 @@ curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
 
 ```bash
 # From .env file
-MCP_PROTOCOL_VERSION=2025-06-18
+MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
 BASE_DOMAIN=yourdomain.com
 
 # Fetchs specific
@@ -301,8 +301,10 @@ docker ps | grep mcp-fetchs
 # View logs
 docker logs mcp-fetchs
 
-# Test health endpoint
-curl https://mcp-fetchs.yourdomain.com/health
+# Protocol health check via MCP initialization
+curl -X POST https://mcp-fetchs.yourdomain.com/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
 
 ### Request Debugging

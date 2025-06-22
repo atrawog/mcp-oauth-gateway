@@ -25,7 +25,7 @@ graph TD
 - **Purpose**: Request routing and traffic management
 - **Responsibilities**:
   - Routes OAuth paths (`/register`, `/authorize`, `/token`) to Auth Service
-  - Routes MCP paths (`/mcp`, `/health`) to appropriate MCP services
+  - Routes MCP paths (`/mcp`) to appropriate MCP services
   - Enforces authentication via ForwardAuth middleware
   - Provides HTTPS with Let's Encrypt certificates
   - Priority-based routing to prevent conflicts
@@ -44,8 +44,8 @@ graph TD
 - **Responsibilities**:
   - Run official MCP servers via mcp-streamablehttp-proxy
   - Bridge stdio MCP servers to HTTP endpoints
-  - Provide `/mcp` and `/health` endpoints
-  - Handle MCP protocol version 2025-06-18
+  - Provide `/mcp` endpoints
+  - Handle MCP protocol (configurable version)
   - Maintain session state and message handling
 
 ## Component Interaction
@@ -87,7 +87,7 @@ The system implements two separate authentication realms:
 
 ## Protocol Flow
 
-### MCP Protocol 2025-06-18 Implementation
+### MCP Protocol Implementation
 ```{mermaid}
 sequenceDiagram
     participant C as Claude.ai
@@ -118,7 +118,9 @@ sequenceDiagram
 ```
 
 ### Service Health and Monitoring
-- **Health Checks**: Every service exposes `/health` endpoint
+- **Health Checks**: 
+  - Auth service exposes `/health` endpoint for HTTP health checks
+  - MCP services verified via MCP protocol initialization
 - **Dependency Verification**: Services check upstream dependencies
 - **Graceful Degradation**: Services handle partial failures
 - **Centralized Logging**: All logs flow to `./logs/` directory
@@ -134,3 +136,5 @@ sequenceDiagram
 - **Connection Pooling**: Efficient resource utilization
 - **Caching Strategy**: Redis for session and token caching
 - **Health Check Optimization**: Fast startup and readiness detection
+  - Auth service: HTTP `/health` endpoint
+  - MCP services: Protocol initialization handshake

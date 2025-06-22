@@ -91,11 +91,18 @@ docker logs mcp-oauth-gateway-auth-1
 
 **Solutions**:
 ```bash
-# Check specific service health endpoint
+# Check auth service health endpoint
 curl -f https://auth.${BASE_DOMAIN}/health
 
-# Check internal health (bypass Traefik)
+# Check auth internal health (bypass Traefik)
 docker exec mcp-oauth-gateway-auth-1 curl -f http://localhost:8000/health
+
+# Check MCP service health via protocol initialization
+curl -X POST https://mcp-fetch.${BASE_DOMAIN}/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -H "Authorization: Bearer ${GATEWAY_OAUTH_ACCESS_TOKEN}" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 
 # Rebuild problematic service
 just rebuild auth
@@ -231,8 +238,12 @@ curl -X POST https://mcp-fetch.${BASE_DOMAIN}/mcp \
   -H "MCP-Protocol-Version: 2025-06-18" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}'
 
-# Check MCP service health
-curl https://mcp-fetch.${BASE_DOMAIN}/health
+# Check MCP service health via protocol initialization
+curl -X POST https://mcp-fetch.${BASE_DOMAIN}/mcp \
+  -H "Authorization: Bearer ${GATEWAY_OAUTH_ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -H "MCP-Protocol-Version: ${MCP_PROTOCOL_VERSION:-2025-06-18}" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}}}'
 ```
 
 **Solutions**:
@@ -271,7 +282,7 @@ docker network ls
 docker network inspect public
 
 # Test inter-service communication
-docker exec mcp-oauth-gateway-auth-1 curl http://redis:6379
+docker exec mcp-oauth-gateway-auth-1 redis-cli -h redis ping
 docker exec mcp-oauth-gateway-traefik-1 curl http://auth:8000/health
 ```
 
@@ -500,11 +511,17 @@ docker exec mcp-oauth-gateway-redis-1 redis-cli monitor
 #### Network Latency
 ```bash
 # Test internal latency
-docker exec mcp-oauth-gateway-auth-1 ping redis
-docker exec mcp-oauth-gateway-traefik-1 ping auth
+docker exec mcp-oauth-gateway-auth-1 redis-cli -h redis ping
+docker exec mcp-oauth-gateway-traefik-1 curl -w "@curl-format.txt" -o /dev/null -s http://auth:8000/health
 
-# Test external latency
+# Test external latency for auth service
 curl -w "@curl-format.txt" -o /dev/null -s https://auth.${BASE_DOMAIN}/health
+
+# Test external latency for MCP service (protocol init)
+curl -w "@curl-format.txt" -o /dev/null -s -X POST https://mcp-fetch.${BASE_DOMAIN}/mcp \
+  -H "Authorization: Bearer ${GATEWAY_OAUTH_ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'"}}'
 ```
 
 ## Recovery Procedures

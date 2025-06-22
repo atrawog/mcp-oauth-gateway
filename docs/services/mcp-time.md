@@ -5,8 +5,11 @@ The MCP Time service provides comprehensive temporal operations and timezone man
 ```{image} https://img.shields.io/badge/Status-Production%20Ready-green
 :alt: Production Ready
 ```
-```{image} https://img.shields.io/badge/Protocol-MCP%202025--06--18-blue
-:alt: MCP Protocol Version
+```{image} https://img.shields.io/badge/Protocol-MCP-blue
+:alt: MCP Protocol
+```
+```{image} https://img.shields.io/badge/Version-Dynamic-green
+:alt: Protocol Version
 ```
 
 ## Overview
@@ -222,7 +225,7 @@ graph TB
 
 ```bash
 # Protocol configuration
-MCP_PROTOCOL_VERSION=2025-06-18
+MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
 MCP_CORS_ORIGINS=*
 PORT=3000
 
@@ -245,7 +248,7 @@ services:
       context: ../
       dockerfile: mcp-time/Dockerfile
     environment:
-      - MCP_PROTOCOL_VERSION=2025-06-18
+      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
       - MCP_CORS_ORIGINS=*
       - DEFAULT_TIMEZONE=UTC
     labels:
@@ -329,8 +332,10 @@ pytest tests/test_mcp_time_performance.py -v
 ### Health Checks
 
 ```bash
-# Service health
-curl https://mcp-time.yourdomain.com/health
+# Protocol health check via MCP initialization
+curl -X POST https://mcp-time.yourdomain.com/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 
 # Response format
 {
@@ -482,7 +487,10 @@ mcp-streamablehttp-client \\
   --command "convert_time source_timezone='UTC' time='12:00' target_timezone='America/New_York'"
 
 # Health check
-curl https://mcp-time.yourdomain.com/health
+# Protocol health check
+curl -X POST https://mcp-time.yourdomain.com/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
 
 ## 📈 Performance Optimization

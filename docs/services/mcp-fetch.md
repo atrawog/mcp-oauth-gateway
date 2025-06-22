@@ -8,6 +8,9 @@ The MCP Fetch service provides comprehensive web content retrieval capabilities,
 ```{image} https://img.shields.io/badge/Protocol-MCP-blue
 :alt: MCP Protocol
 ```
+```{image} https://img.shields.io/badge/Version-Dynamic-green
+:alt: Protocol Version
+```
 
 ## Overview
 
@@ -251,7 +254,7 @@ pytest tests/test_mcp_fetch_real_content.py -v
 # Protocol health check via MCP initialization
 curl -X POST https://mcp-fetch.yourdomain.com/mcp \
   -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
 
 ### Metrics
@@ -377,7 +380,7 @@ mcp-streamablehttp-client \\
 # Protocol health check
 curl -X POST https://mcp-fetch.yourdomain.com/mcp \
   -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"${MCP_PROTOCOL_VERSION:-2025-06-18}"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
 
 ## 🔗 Integration
