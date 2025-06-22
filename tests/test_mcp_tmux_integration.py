@@ -9,18 +9,8 @@ import os
 from tests.test_constants import BASE_DOMAIN
 
 
-@pytest.fixture(scope="class")
-def base_domain():
-    """Base domain for tests."""
-    return BASE_DOMAIN
-
-
 class TestMCPTmuxIntegration:
     """Test MCP Tmux service integration with OAuth authentication."""
-    
-    @pytest.fixture(scope="class")
-    def tmux_url(self, base_domain):
-        return f"https://mcp-tmux.{base_domain}"
     
     def run_mcp_client_raw(self, url, token, method, params=None):
         """Run mcp-streamablehttp-client with raw MCP protocol."""
@@ -109,10 +99,10 @@ class TestMCPTmuxIntegration:
         except Exception as e:
             pytest.fail(f"Failed to parse JSON response: {e}\nOutput: {result.stdout}")
 
-    def test_tmux_service_health(self, tmux_url):
+    def test_tmux_service_health(self, mcp_tmux_url):
         """Test tmux service health endpoint."""
         import requests
-        response = requests.get(f"{tmux_url}/health", timeout=10)
+        response = requests.get(f"{mcp_tmux_url}/health", timeout=10)
         assert response.status_code == 200
         
         health_data = response.json()
@@ -120,10 +110,10 @@ class TestMCPTmuxIntegration:
         assert "active_sessions" in health_data
         assert health_data["server_command"] == "npx tmux-mcp"
 
-    def test_tmux_oauth_discovery(self, tmux_url):
+    def test_tmux_oauth_discovery(self, mcp_tmux_url):
         """Test OAuth discovery endpoint routing."""
         import requests
-        response = requests.get(f"{tmux_url}/.well-known/oauth-authorization-server", timeout=10)
+        response = requests.get(f"{mcp_tmux_url}/.well-known/oauth-authorization-server", timeout=10)
         assert response.status_code == 200
         
         oauth_config = response.json()
@@ -132,10 +122,10 @@ class TestMCPTmuxIntegration:
         assert oauth_config["token_endpoint"]
         assert oauth_config["registration_endpoint"]
 
-    def test_tmux_mcp_initialize(self, tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_mcp_initialize(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test MCP protocol initialization."""
         response = self.run_mcp_client_raw(
-            url=tmux_url,
+            url=mcp_tmux_url,
             token=mcp_client_token,
             method="initialize",
             params={
@@ -157,10 +147,10 @@ class TestMCPTmuxIntegration:
         assert "capabilities" in result
         assert "serverInfo" in result
 
-    def test_tmux_list_tools(self, tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_list_tools(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test listing available tmux tools."""
         response = self.run_mcp_client_raw(
-            url=tmux_url,
+            url=mcp_tmux_url,
             token=mcp_client_token,
             method="tools/list"
         )
@@ -183,10 +173,10 @@ class TestMCPTmuxIntegration:
         found_basic = basic_tools.intersection(tool_names)
         assert len(found_basic) > 0, f"No basic tmux tools found. Available: {tool_names}"
 
-    def test_tmux_list_sessions(self, tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_list_sessions(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test listing tmux sessions."""
         response = self.run_mcp_client_raw(
-            url=tmux_url,
+            url=mcp_tmux_url,
             token=mcp_client_token,
             method="tools/call",
             params={
@@ -206,11 +196,11 @@ class TestMCPTmuxIntegration:
             if "text" in session_info:
                 assert "default" in session_info["text"] or len(session_info["text"]) > 0
 
-    def test_tmux_capture_pane(self, tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_capture_pane(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test capturing pane content."""
         # First list sessions to get a valid session
         sessions_response = self.run_mcp_client_raw(
-            url=tmux_url,
+            url=mcp_tmux_url,
             token=mcp_client_token,
             method="tools/call",
             params={
@@ -223,7 +213,7 @@ class TestMCPTmuxIntegration:
         
         # Try to capture from the default session/pane
         response = self.run_mcp_client_raw(
-            url=tmux_url,
+            url=mcp_tmux_url,
             token=mcp_client_token,
             method="tools/call",
             params={
@@ -240,10 +230,10 @@ class TestMCPTmuxIntegration:
             result = response["result"]
             assert "content" in result
 
-    def test_tmux_execute_command(self, tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_execute_command(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test executing a command in tmux."""
         response = self.run_mcp_client_raw(
-            url=tmux_url,
+            url=mcp_tmux_url,
             token=mcp_client_token,
             method="tools/call",
             params={
@@ -261,12 +251,12 @@ class TestMCPTmuxIntegration:
             result = response["result"]
             assert "content" in result
 
-    def test_tmux_new_session(self, tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_new_session(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test creating a new tmux session."""
         session_name = "test-session-123"
         
         response = self.run_mcp_client_raw(
-            url=tmux_url,
+            url=mcp_tmux_url,
             token=mcp_client_token,
             method="tools/call",
             params={
@@ -284,10 +274,10 @@ class TestMCPTmuxIntegration:
             result = response["result"]
             assert "content" in result
 
-    def test_tmux_list_resources(self, tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_list_resources(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test listing available tmux resources."""
         response = self.run_mcp_client_raw(
-            url=tmux_url,
+            url=mcp_tmux_url,
             token=mcp_client_token,
             method="resources/list"
         )
@@ -302,10 +292,10 @@ class TestMCPTmuxIntegration:
         tmux_resources = [uri for uri in resource_uris if uri.startswith("tmux://")]
         assert len(tmux_resources) > 0, f"No tmux:// resources found. Available: {resource_uris}"
 
-    def test_tmux_read_sessions_resource(self, tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_read_sessions_resource(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test reading tmux sessions resource."""
         response = self.run_mcp_client_raw(
-            url=tmux_url,
+            url=mcp_tmux_url,
             token=mcp_client_token,
             method="resources/read",
             params={
@@ -319,10 +309,10 @@ class TestMCPTmuxIntegration:
             result = response["result"]
             assert "contents" in result
 
-    def test_tmux_send_keys(self, tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_send_keys(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test sending keys to a tmux pane."""
         response = self.run_mcp_client_raw(
-            url=tmux_url,
+            url=mcp_tmux_url,
             token=mcp_client_token,
             method="tools/call",
             params={
@@ -340,11 +330,11 @@ class TestMCPTmuxIntegration:
             result = response["result"]
             assert "content" in result
 
-    def test_tmux_protocol_version_compliance(self, tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_protocol_version_compliance(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test MCP protocol version compliance."""
         # Test with correct protocol version
         response = self.run_mcp_client_raw(
-            url=tmux_url,
+            url=mcp_tmux_url,
             token=mcp_client_token,
             method="initialize",
             params={
@@ -358,11 +348,11 @@ class TestMCPTmuxIntegration:
         result = response["result"]
         assert result["protocolVersion"] == "2025-06-18"
 
-    def test_tmux_error_handling(self, tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_error_handling(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test error handling for invalid operations."""
         # Test invalid method
         response = self.run_mcp_client_raw(
-            url=tmux_url,
+            url=mcp_tmux_url,
             token=mcp_client_token,
             method="invalid/method"
         )
@@ -371,7 +361,7 @@ class TestMCPTmuxIntegration:
         error = response["error"]
         assert error["code"] == -32601  # Method not found
 
-    def test_tmux_authentication_required(self, tmux_url):
+    def test_tmux_authentication_required(self, mcp_tmux_url):
         """Test that MCP endpoint requires authentication."""
         import requests
         

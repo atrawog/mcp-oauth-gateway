@@ -12,7 +12,6 @@ def main():
     includes = [
         "traefik/docker-compose.yml",
         "auth/docker-compose.yml",
-        "mcp-tmux/docker-compose.yml",
     ]
     
     # Conditionally add mcp-fetch
@@ -42,6 +41,10 @@ def main():
     # Conditionally add mcp-time
     if os.getenv("MCP_TIME_ENABLED", "true").lower() == "true":
         includes.append("mcp-time/docker-compose.yml")
+    
+    # Conditionally add mcp-tmux
+    if os.getenv("MCP_TMUX_ENABLED", "true").lower() == "true":
+        includes.append("mcp-tmux/docker-compose.yml")
     
     # Conditionally add mcp-everything
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
@@ -114,6 +117,11 @@ def main():
         print("✅ mcp-time is ENABLED")
     else:
         print("❌ mcp-time is DISABLED")
+    
+    if os.getenv("MCP_TMUX_ENABLED", "true").lower() == "true":
+        print("✅ mcp-tmux is ENABLED")
+    else:
+        print("❌ mcp-tmux is DISABLED")
     
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
         print("✅ mcp-everything is ENABLED")

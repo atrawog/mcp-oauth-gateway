@@ -44,6 +44,7 @@ MCP_MEMORY_URL = f"https://memory.{BASE_DOMAIN}"
 MCP_PLAYWRIGHT_URL = f"https://playwright.{BASE_DOMAIN}"
 MCP_SEQUENTIALTHINKING_URL = f"https://sequentialthinking.{BASE_DOMAIN}"
 MCP_TIME_URL = f"https://time.{BASE_DOMAIN}"
+MCP_TMUX_URL = f"https://tmux.{BASE_DOMAIN}"
 
 # Redis Configuration - From main .env 
 REDIS_PASSWORD = _get_env_or_fail("REDIS_PASSWORD")
@@ -134,3 +135,7 @@ MCP_SEQUENTIALTHINKING_URLS = os.getenv("MCP_SEQUENTIALTHINKING_URLS", "").split
 # MCP Time Configuration - From main .env
 MCP_TIME_TESTS_ENABLED = os.getenv("MCP_TIME_TESTS_ENABLED", "false").lower() == "true"
 MCP_TIME_URLS = os.getenv("MCP_TIME_URLS", "").split(",") if os.getenv("MCP_TIME_URLS") else []
+
+# MCP Tmux Configuration - From main .env
+MCP_TMUX_TESTS_ENABLED = os.getenv("MCP_TMUX_TESTS_ENABLED", "false").lower() == "true"
+MCP_TMUX_URLS = os.getenv("MCP_TMUX_URLS", "").split(",") if os.getenv("MCP_TMUX_URLS") else []

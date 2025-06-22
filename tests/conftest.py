@@ -650,3 +650,16 @@ def mcp_time_url():
     
     # Return first URL from the list
     return MCP_TIME_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+
+@pytest.fixture
+def mcp_tmux_url():
+    """Base URL for mcp-tmux service, with test skip logic."""
+    from .test_constants import MCP_TMUX_TESTS_ENABLED, MCP_TMUX_URLS
+    
+    if not MCP_TMUX_TESTS_ENABLED:
+        pytest.skip("MCP Tmux tests are disabled. Set MCP_TMUX_TESTS_ENABLED=true to enable.")
+    if not MCP_TMUX_URLS:
+        pytest.skip("MCP_TMUX_URLS environment variable not set")
+    
+    # Return first URL from the list
+    return MCP_TMUX_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
