@@ -9,7 +9,6 @@ import json
 import os
 from .test_constants import (
     AUTH_BASE_URL,
-    MCP_FETCH_URL,
     TEST_REDIRECT_URI,
     TEST_CLIENT_NAME,
     TEST_CLIENT_SCOPE,
@@ -23,7 +22,7 @@ class TestMCPFetchComplete:
     """Test actual MCP fetch functionality - no shortcuts allowed!"""
     
     @pytest.mark.asyncio
-    async def test_mcp_fetch_actually_fetches_content(self, http_client, wait_for_services):
+    async def test_mcp_fetch_actually_fetches_content(self, http_client, wait_for_services, mcp_fetch_url):
         """
         This test MUST:
         1. Complete the FULL OAuth flow (no fake tokens!)
@@ -72,14 +71,14 @@ class TestMCPFetchComplete:
             # Step 3: Initialize MCP session properly
             try:
                 session_id, init_result = await initialize_mcp_session(
-                    http_client, MCP_FETCH_URL, oauth_token
+                    http_client, mcp_fetch_url, oauth_token
                 )
             except RuntimeError:
                 # Try with alternative supported version if available
                 if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
                     alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
                     session_id, init_result = await initialize_mcp_session(
-                        http_client, MCP_FETCH_URL, oauth_token, alt_version
+                        http_client, mcp_fetch_url, oauth_token, alt_version
                     )
                 else:
                     raise
@@ -87,7 +86,7 @@ class TestMCPFetchComplete:
             # Step 4: Make the MCP request to fetch actual content
             try:
                 response_data = await call_mcp_tool(
-                    http_client, MCP_FETCH_URL, oauth_token, session_id,
+                    http_client, mcp_fetch_url, oauth_token, session_id,
                     "fetch", {"url": "https://example.com"}, "complete-test-1"
                 )
                 
@@ -198,14 +197,14 @@ class TestMCPFetchComplete:
         # Initialize MCP session properly first
         try:
             session_id, init_result = await initialize_mcp_session(
-                http_client, MCP_FETCH_URL, oauth_token
+                http_client, mcp_fetch_url, oauth_token
             )
         except RuntimeError:
             # Try with alternative supported version if available
             if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
                 alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
                 session_id, init_result = await initialize_mcp_session(
-                    http_client, MCP_FETCH_URL, oauth_token, alt_version
+                    http_client, mcp_fetch_url, oauth_token, alt_version
                 )
             else:
                 raise
@@ -213,7 +212,7 @@ class TestMCPFetchComplete:
         # Test with missing URL parameter using proper tool call
         try:
             response_data = await call_mcp_tool(
-                http_client, MCP_FETCH_URL, oauth_token, session_id,
+                http_client, mcp_fetch_url, oauth_token, session_id,
                 "fetch", {}, "validation-test-1"  # Missing url argument
             )
             
@@ -247,14 +246,14 @@ class TestMCPFetchComplete:
         # Initialize MCP session properly first
         try:
             session_id, init_result = await initialize_mcp_session(
-                http_client, MCP_FETCH_URL, oauth_token
+                http_client, mcp_fetch_url, oauth_token
             )
         except RuntimeError:
             # Try with alternative supported version if available
             if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
                 alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
                 session_id, init_result = await initialize_mcp_session(
-                    http_client, MCP_FETCH_URL, oauth_token, alt_version
+                    http_client, mcp_fetch_url, oauth_token, alt_version
                 )
             else:
                 raise
@@ -270,7 +269,7 @@ class TestMCPFetchComplete:
         for invalid_url in invalid_urls:
             try:
                 response_data = await call_mcp_tool(
-                    http_client, MCP_FETCH_URL, oauth_token, session_id,
+                    http_client, mcp_fetch_url, oauth_token, session_id,
                     "fetch", {"url": invalid_url}, f"invalid-url-{invalid_url[:10]}"
                 )
                 
@@ -304,14 +303,14 @@ class TestMCPFetchComplete:
         # Initialize MCP session properly first
         try:
             session_id, init_result = await initialize_mcp_session(
-                http_client, MCP_FETCH_URL, oauth_token
+                http_client, mcp_fetch_url, oauth_token
             )
         except RuntimeError:
             # Try with alternative supported version if available
             if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
                 alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
                 session_id, init_result = await initialize_mcp_session(
-                    http_client, MCP_FETCH_URL, oauth_token, alt_version
+                    http_client, mcp_fetch_url, oauth_token, alt_version
                 )
             else:
                 raise
@@ -319,7 +318,7 @@ class TestMCPFetchComplete:
         # Test with small max_length using proper tool call
         try:
             response_data = await call_mcp_tool(
-                http_client, MCP_FETCH_URL, oauth_token, session_id,
+                http_client, mcp_fetch_url, oauth_token, session_id,
                 "fetch", {"url": "https://example.com", "max_length": 100}, "size-test-1"
             )
             
@@ -358,7 +357,7 @@ class TestMCPFetchComplete:
         
         # Test 1: No auth header at all
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_fetch_url}/mcp",
             json=mcp_request
         )
         
@@ -377,7 +376,7 @@ class TestMCPFetchComplete:
         
         # Test 3: Invalid bearer token
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_fetch_url}/mcp",
             json=mcp_request,
             headers={"Authorization": "Bearer completely-invalid-token"}
         )
@@ -389,7 +388,7 @@ class TestMCPFetchComplete:
         
         # Test 4: Wrong auth scheme
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_fetch_url}/mcp",
             json=mcp_request,
             headers={"Authorization": "Basic dXNlcjpwYXNz"}  # Basic auth
         )
@@ -435,7 +434,7 @@ async def test_complete_oauth_flow_integration(http_client, wait_for_services):
     
     # 2. Verify MCP endpoint requires auth
     mcp_response = await http_client.post(
-        f"{MCP_FETCH_URL}/mcp",
+        f"{mcp_fetch_url}/mcp",
         json={"jsonrpc": "2.0", "method": "ping", "id": 1}
     )
     assert mcp_response.status_code == 401, "MCP not enforcing auth!"
@@ -443,14 +442,14 @@ async def test_complete_oauth_flow_integration(http_client, wait_for_services):
     # 3. Initialize MCP session properly first
     try:
         session_id, init_result = await initialize_mcp_session(
-            http_client, MCP_FETCH_URL, oauth_token
+            http_client, mcp_fetch_url, oauth_token
         )
     except RuntimeError:
         # Try with alternative supported version if available
         if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
             alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
             session_id, init_result = await initialize_mcp_session(
-                http_client, MCP_FETCH_URL, oauth_token, alt_version
+                http_client, mcp_fetch_url, oauth_token, alt_version
             )
         else:
             raise
@@ -458,7 +457,7 @@ async def test_complete_oauth_flow_integration(http_client, wait_for_services):
     # 4. Make authenticated MCP tool call
     try:
         response_data = await call_mcp_tool(
-            http_client, MCP_FETCH_URL, oauth_token, session_id,
+            http_client, mcp_fetch_url, oauth_token, session_id,
             "fetch", {"url": "https://example.com"}, "integration-1"
         )
         

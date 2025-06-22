@@ -6,18 +6,18 @@ import httpx
 import os
 import json
 
-from .test_constants import MCP_FETCH_URL, MCP_PROTOCOL_VERSION
+from .test_constants import MCP_PROTOCOL_VERSION
 
 MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
 
 
 @pytest.mark.asyncio
-async def test_simple_initialize(http_client: httpx.AsyncClient, wait_for_services, capfd):
+async def test_simple_initialize(http_client: httpx.AsyncClient, wait_for_services, capfd, mcp_fetch_url):
     """Simple test to debug initialize issue"""
     if not MCP_CLIENT_ACCESS_TOKEN:
         pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
     
-    print(f"\nMCP_FETCH_URL: {MCP_FETCH_URL}")
+    print(f"\nMCP_FETCH_URL: {mcp_fetch_url}")
     print(f"MCP_PROTOCOL_VERSION: {MCP_PROTOCOL_VERSION}")
     print(f"Token: {MCP_CLIENT_ACCESS_TOKEN[:20]}...")
     
@@ -35,7 +35,7 @@ async def test_simple_initialize(http_client: httpx.AsyncClient, wait_for_servic
     print(f"\nRequest: {json.dumps(request_data, indent=2)}")
     
     response = await http_client.post(
-        f"{MCP_FETCH_URL}/mcp",
+        f"{mcp_fetch_url}/mcp",
         json=request_data,
         headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
     )
@@ -59,7 +59,7 @@ async def test_simple_initialize(http_client: httpx.AsyncClient, wait_for_servic
             if session_id:
                 # Try tools/list with session ID
                 tools_response = await http_client.post(
-                    f"{MCP_FETCH_URL}/mcp",
+                    f"{mcp_fetch_url}/mcp",
                     json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
                     headers={
                         "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",

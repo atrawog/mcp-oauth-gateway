@@ -4,18 +4,17 @@ Following CLAUDE.md - NO MOCKING, real services only!
 """
 import pytest
 import httpx
-from .test_constants import MCP_FETCH_URL
 
 class TestMCPAuthWorking:
     """Verify MCP OAuth authentication is properly enforced"""
     
     @pytest.mark.asyncio
-    async def test_mcp_requires_authentication(self, http_client, wait_for_services):
+    async def test_mcp_requires_authentication(self, http_client, wait_for_services, mcp_fetch_url):
         """Test that MCP endpoints properly require authentication"""
         
         # Test 1: Request without auth should fail
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_fetch_url}/mcp",
             json={"jsonrpc": "2.0", "method": "test", "id": 1},
             headers={
                 "Content-Type": "application/json",
@@ -35,7 +34,7 @@ class TestMCPAuthWorking:
         
         # Test 2: Request with invalid token should fail
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_fetch_url}/mcp",
             json={"jsonrpc": "2.0", "method": "test", "id": 1},
             headers={
                 "Authorization": "Bearer invalid_token_12345",
@@ -60,7 +59,7 @@ class TestMCPAuthWorking:
         
         for auth_header in invalid_auth_headers:
             response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{mcp_fetch_url}/mcp",
                 json={"jsonrpc": "2.0", "method": "test", "id": 1},
                 headers={
                     "Authorization": auth_header,
@@ -90,7 +89,7 @@ class TestMCPAuthWorking:
                 test_origin = f"https://app.{domain_parts[1]}"
         
         response = await http_client.options(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_fetch_url}/mcp",
             headers={
                 "Origin": test_origin,
                 "Access-Control-Request-Method": "POST",

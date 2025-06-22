@@ -5,10 +5,9 @@ import pytest
 import httpx
 import os
 import json
-from .test_constants import MCP_FETCH_URL
 
 @pytest.mark.asyncio
-async def test_debug_mcp_fetch_with_real_oauth(http_client, wait_for_services):
+async def test_debug_mcp_fetch_with_real_oauth(http_client, wait_for_services, mcp_fetch_url):
     """Debug test to see what's happening with real OAuth token"""
     
     oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
@@ -17,7 +16,7 @@ async def test_debug_mcp_fetch_with_real_oauth(http_client, wait_for_services):
     
     print(f"\n=== DEBUGGING MCP FETCH WITH REAL OAUTH ===")
     print(f"OAuth token (first 20 chars): {oauth_token[:20]}...")
-    print(f"MCP Fetch URL: {MCP_FETCH_URL}")
+    print(f"MCP Fetch URL: {mcp_fetch_url}")
     
     # Try different endpoints
     endpoints = [
@@ -31,7 +30,7 @@ async def test_debug_mcp_fetch_with_real_oauth(http_client, wait_for_services):
         # First try a simple GET
         try:
             response = await http_client.get(
-                f"{MCP_FETCH_URL}{endpoint}",
+                f"{mcp_fetch_url}{endpoint}",
                 headers={
                     "Authorization": f"Bearer {oauth_token}"
                 },
@@ -60,7 +59,7 @@ async def test_debug_mcp_fetch_with_real_oauth(http_client, wait_for_services):
             }
             
             response = await http_client.post(
-                f"{MCP_FETCH_URL}{endpoint}",
+                f"{mcp_fetch_url}{endpoint}",
                 json=init_request,
                 headers={
                     "Authorization": f"Bearer {oauth_token}",
@@ -92,7 +91,7 @@ async def test_debug_mcp_fetch_with_real_oauth(http_client, wait_for_services):
                     }
                     
                     fetch_response = await http_client.post(
-                        f"{MCP_FETCH_URL}{endpoint}",
+                        f"{mcp_fetch_url}{endpoint}",
                         json=fetch_request,
                         headers={
                             "Authorization": f"Bearer {oauth_token}",
@@ -109,7 +108,7 @@ async def test_debug_mcp_fetch_with_real_oauth(http_client, wait_for_services):
     # Check if we can access without auth
     print(f"\n--- Testing without auth ---")
     response = await http_client.post(
-        f"{MCP_FETCH_URL}/mcp",
+        f"{mcp_fetch_url}/mcp",
         json={"jsonrpc": "2.0", "method": "test", "id": 1}
     )
     print(f"No auth status: {response.status_code}")

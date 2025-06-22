@@ -66,7 +66,7 @@ class TestDockerComposeValidation:
                 f"Router {router_name} missing rule!"
             
             # Check rule includes Host
-            assert f"Host(`mcp-fetch.${{BASE_DOMAIN}}`)" in label_dict[f"{prefix}.rule"], \
+            assert f"Host(`fetch.${{BASE_DOMAIN}}`)" in label_dict[f"{prefix}.rule"], \
                 f"Router {router_name} rule missing Host!"
             
             # Check path rule if required

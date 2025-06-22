@@ -13,7 +13,7 @@ services:
     labels:
       - "traefik.enable=true"
       # Health check route - Priority 3 (HIGHEST for specific path)
-      - "traefik.http.routers.mcp-fetch-health.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-fetch-health.rule=Host(`fetch.${BASE_DOMAIN}`) && Path(`/health`)"
       - "traefik.http.routers.mcp-fetch-health.priority=3"
       - "traefik.http.routers.mcp-fetch-health.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-health.tls.certresolver=letsencrypt"
@@ -21,7 +21,7 @@ services:
       - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
       
       # OAuth discovery route - Priority 10 (ABSOLUTE HIGHEST - must work without auth!)
-      - "traefik.http.routers.mcp-fetch-oauth-discovery.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-fetch-oauth-discovery.rule=Host(`fetch.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
       - "traefik.http.routers.mcp-fetch-oauth-discovery.priority=10"
       - "traefik.http.routers.mcp-fetch-oauth-discovery.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-oauth-discovery.tls.certresolver=letsencrypt"
@@ -33,7 +33,7 @@ services:
       - "traefik.http.middlewares.oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
       
       # CORS preflight route (OPTIONS) - Priority 4 (HIGHEST for OPTIONS)
-      - "traefik.http.routers.mcp-fetch-cors.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.mcp-fetch-cors.rule=Host(`fetch.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-fetch-cors.priority=4"
       - "traefik.http.routers.mcp-fetch-cors.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-cors.tls.certresolver=letsencrypt"
@@ -42,7 +42,7 @@ services:
       
       # MCP route with auth - Priority 2
       # Use PathPrefix to handle both /mcp and /mcp/
-      - "traefik.http.routers.mcp-fetch.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-fetch.rule=Host(`fetch.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.mcp-fetch.priority=2"
       - "traefik.http.routers.mcp-fetch.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch.tls.certresolver=letsencrypt"
@@ -50,7 +50,7 @@ services:
       - "traefik.http.routers.mcp-fetch.service=mcp-fetch"
       
       # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
-      - "traefik.http.routers.mcp-fetch-catchall.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-catchall.rule=Host(`fetch.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-fetch-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-catchall.tls.certresolver=letsencrypt"
@@ -58,17 +58,21 @@ services:
       - "traefik.http.routers.mcp-fetch-catchall.service=mcp-fetch"
       
       # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)
-      - "traefik.http.routers.mcp-fetch-redirect.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch-redirect.rule=Host(`fetch.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-fetch-redirect.entrypoints=web"
       - "traefik.http.routers.mcp-fetch-redirect.middlewares=redirect-to-https"
       - "traefik.http.routers.mcp-fetch-redirect.priority=1"
       - "traefik.http.routers.mcp-fetch-redirect.service=mcp-fetch"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 10s
+      test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp \
+        -H 'Content-Type: application/json' \
+        -H 'Accept: application/json, text/event-stream' \
+        -d \"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"method\\\":\\\"initialize\\\",\\\"params\\\":{\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION:-2025-06-18}\\\",\\\"capabilities\\\":{},\\\"clientInfo\\\":{\\\"name\\\":\\\"healthcheck\\\",\\\"version\\\":\\\"1.0\\\"}},\\\"id\\\":1}\" \
+        | grep -q \"\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION:-2025-06-18}\\\"\""]
+      interval: 30s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 3
+      start_period: 40s
 
 networks:
   public:

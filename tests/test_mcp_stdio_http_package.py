@@ -1,14 +1,13 @@
 """Test that mcp-fetch service is using the mcp-stdio-http package."""
 import pytest
 import httpx
-from .test_constants import MCP_FETCH_URL
 
 @pytest.mark.asyncio
-async def test_mcp_fetch_uses_package():
+async def test_mcp_fetch_uses_package(mcp_fetch_url):
     """Verify mcp-fetch is running with the mcp-stdio-http package."""
     async with httpx.AsyncClient() as client:
         # Check health endpoint which includes server command info
-        response = await client.get(f"{MCP_FETCH_URL}/health")
+        response = await client.get(f"{mcp_fetch_url}/health")
         assert response.status_code == 200
         
         health_data = response.json()

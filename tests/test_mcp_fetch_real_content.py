@@ -13,7 +13,6 @@ import time
 import redis.asyncio as redis
 from .test_constants import (
     AUTH_BASE_URL,
-    MCP_FETCH_URL,
     TEST_REDIRECT_URI,
     TEST_CLIENT_NAME,
     TEST_CLIENT_SCOPE,
@@ -27,7 +26,7 @@ class TestMCPFetchRealContent:
     """Test fetching real content through MCP with proper authentication"""
     
     @pytest.mark.asyncio
-    async def test_fetch_example_com_content(self, http_client, wait_for_services):
+    async def test_fetch_example_com_content(self, http_client, wait_for_services, mcp_fetch_url):
         """Attempt to fetch https://example.com and check for 'Example Domain' text"""
         
         import os
@@ -51,7 +50,7 @@ class TestMCPFetchRealContent:
         }
         
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_fetch_url}/mcp",
             json=mcp_request,
             headers={
                 "Authorization": f"Bearer {oauth_token}",
@@ -96,7 +95,7 @@ class TestMCPFetchRealContent:
         
         # Without authentication
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{mcp_fetch_url}/mcp",
             json=mcp_request
         )
         

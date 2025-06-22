@@ -12,7 +12,6 @@ import redis.asyncio as redis
 from .jwt_test_helper import encode as jwt_encode
 from .test_constants import (
     AUTH_BASE_URL,
-    MCP_FETCH_URL,
     TEST_REDIRECT_URI,
     GATEWAY_JWT_SECRET,
     ACCESS_TOKEN_LIFETIME,
@@ -24,7 +23,7 @@ class TestMCPFetchSimple:
     """Simple test to verify MCP fetch authentication"""
     
     @pytest.mark.asyncio
-    async def test_mcp_fetch_auth_works(self, http_client, wait_for_services, registered_client):
+    async def test_mcp_fetch_auth_works(self, http_client, wait_for_services, registered_client, mcp_fetch_url):
         """Test that we can authenticate to mcp-fetch service"""
         
         # Connect to Redis
@@ -74,7 +73,7 @@ class TestMCPFetchSimple:
             
             # Test authentication works
             response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{mcp_fetch_url}/mcp",
                 json=mcp_request,
                 headers={
                     "Authorization": f"Bearer {access_token}",
@@ -106,7 +105,7 @@ class TestMCPFetchSimple:
                 }
                 
                 fetch_response = await http_client.post(
-                    f"{MCP_FETCH_URL}/mcp",
+                    f"{mcp_fetch_url}/mcp",
                     json=fetch_request,
                     headers={
                         "Authorization": f"Bearer {access_token}",

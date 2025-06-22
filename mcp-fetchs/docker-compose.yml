@@ -5,8 +5,6 @@ services:
       dockerfile: mcp-fetchs/Dockerfile
     container_name: mcp-fetchs
     restart: unless-stopped
-    ports:
-      - "3001:3000"  # Different port to avoid conflicts
     environment:
       - HOST=0.0.0.0
       - PORT=3000
@@ -56,16 +54,16 @@ services:
       
       # Middleware for OAuth discovery
       - "traefik.http.middlewares.oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
-      
-      # Auth middleware
-      - "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"
-      - "traefik.http.middlewares.mcp-auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name,X-Auth-Token"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp \
+        -H 'Content-Type: application/json' \
+        -H 'Accept: application/json, text/event-stream' \
+        -d \"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"method\\\":\\\"initialize\\\",\\\"params\\\":{\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION:-2025-06-18}\\\",\\\"capabilities\\\":{},\\\"clientInfo\\\":{\\\"name\\\":\\\"healthcheck\\\",\\\"version\\\":\\\"1.0\\\"}},\\\"id\\\":1}\" \
+        | grep -q \"\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION:-2025-06-18}\\\"\""]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 40s
 
 networks:
   public:

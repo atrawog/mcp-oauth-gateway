@@ -7,7 +7,7 @@ import os
 import pytest
 import httpx
 from .mcp_helpers import initialize_mcp_session
-from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
+from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED, MCP_FETCH_URL
 
 class TestMCPCORS:
     """Test that MCP services have proper CORS configuration"""
@@ -29,7 +29,7 @@ class TestMCPCORS:
         
     def test_mcp_preflight_cors_headers(self):
         """Test that MCP endpoints respond correctly to CORS preflight requests"""
-        mcp_url = f"https://mcp-fetch.{self.base_domain}/mcp"
+        mcp_url = f"{MCP_FETCH_URL}/mcp"
         
         # If CORS is set to wildcard, test with a sample origin
         if self.cors_origins == ["*"]:
@@ -72,7 +72,7 @@ class TestMCPCORS:
                 
     async def test_mcp_actual_request_cors_headers(self):
         """Test that actual MCP requests include proper CORS headers"""
-        mcp_url = f"https://mcp-fetch.{self.base_domain}"
+        mcp_url = MCP_FETCH_URL
         
         # Use the first configured origin for testing
         if not self.cors_origins:
@@ -143,7 +143,7 @@ class TestMCPCORS:
                 
     def test_mcp_health_endpoint_cors(self):
         """Test that health endpoint also has CORS headers"""
-        health_url = f"https://mcp-fetch.{self.base_domain}/health"
+        health_url = f"{MCP_FETCH_URL}/health"
         
         # Use the first configured origin
         if not self.cors_origins:
@@ -173,7 +173,7 @@ class TestMCPCORS:
             
     async def test_cors_headers_without_origin(self):
         """Test that requests without Origin header still work"""
-        mcp_url = f"https://mcp-fetch.{self.base_domain}"
+        mcp_url = MCP_FETCH_URL
         
         # Use OAuth token from environment if available
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
@@ -223,7 +223,7 @@ class TestMCPCORS:
         if "*" in self.cors_origins:
             pytest.skip("CORS wildcard (*) allows all origins")
             
-        mcp_url = f"https://mcp-fetch.{self.base_domain}/mcp"
+        mcp_url = f"{MCP_FETCH_URL}/mcp"
         
         # Create an origin that is NOT in the configured list
         # Use a completely different domain that's unlikely to be configured
@@ -255,7 +255,7 @@ class TestMCPCORS:
         # List all MCP services from environment or configuration
         # For now, we know about mcp-fetch
         mcp_services = [
-            f"mcp-fetch.{self.base_domain}",
+            f"fetch.{self.base_domain}",
             # Add other MCP services dynamically as they are configured
         ]
         

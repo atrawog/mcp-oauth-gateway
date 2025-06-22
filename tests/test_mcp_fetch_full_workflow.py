@@ -6,11 +6,11 @@ import pytest
 import httpx
 import os
 import json
-from .test_constants import MCP_FETCH_URL, AUTH_BASE_URL, MCP_PROTOCOL_VERSIONS_SUPPORTED
+from .test_constants import AUTH_BASE_URL, MCP_PROTOCOL_VERSIONS_SUPPORTED
 from .mcp_helpers import initialize_mcp_session, call_mcp_tool, list_mcp_tools
 
 @pytest.mark.asyncio
-async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_services):
+async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_services, mcp_fetch_url):
     """
     Test the COMPLETE MCP fetch workflow:
     1. Use REAL OAuth token
@@ -32,7 +32,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     try:
         # Try with default protocol version first, then fallback to supported versions
         session_id, init_result = await initialize_mcp_session(
-            http_client, MCP_FETCH_URL, oauth_token
+            http_client, mcp_fetch_url, oauth_token
         )
         print(f"✓ MCP session initialized: {session_id}")
         print(f"✓ Server info: {init_result.get('serverInfo', {})}")
@@ -42,7 +42,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
             alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]  # Try the second supported version
             print(f"Retrying with alternative protocol version: {alt_version}")
             session_id, init_result = await initialize_mcp_session(
-                http_client, MCP_FETCH_URL, oauth_token, alt_version
+                http_client, mcp_fetch_url, oauth_token, alt_version
             )
             print(f"✓ MCP session initialized with {alt_version}: {session_id}")
         else:
@@ -51,7 +51,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     # Step 2: List available tools
     print("\nStep 2: Listing available tools...")
     try:
-        tools_result = await list_mcp_tools(http_client, MCP_FETCH_URL, oauth_token, session_id)
+        tools_result = await list_mcp_tools(http_client, mcp_fetch_url, oauth_token, session_id)
         print(f"Tools response: {json.dumps(tools_result, indent=2)}")
     except RuntimeError as e:
         print(f"Warning: Could not list tools: {e}")
@@ -60,7 +60,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     print("\nStep 3: Calling fetch tool to get https://example.com...")
     try:
         fetch_result = await call_mcp_tool(
-            http_client, MCP_FETCH_URL, oauth_token, session_id,
+            http_client, mcp_fetch_url, oauth_token, session_id,
             "fetch", {"url": "https://example.com"}, "fetch-1"
         )
         
@@ -103,7 +103,7 @@ async def test_mcp_fetch_unauthorized_fails(http_client, wait_for_services):
     
     # Try to access without token
     response = await http_client.post(
-        f"{MCP_FETCH_URL}/mcp",
+        f"{mcp_fetch_url}/mcp",
         json={"jsonrpc": "2.0", "method": "test", "id": 1}
     )
     

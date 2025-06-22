@@ -47,7 +47,7 @@ class TestRoutingBugRegression:
         Verify the docker-compose.yml includes PathPrefix in routing rules.
         This test would fail with the old configuration.
         """
-        # Read the mcp-fetch docker-compose.yml
+        # Read the fetch docker-compose.yml
         import os
         compose_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
@@ -64,7 +64,7 @@ class TestRoutingBugRegression:
             "REGRESSION: MCP path routing missing from routing rules!"
         
         # Verify the host rule is present
-        assert 'Host(`mcp-fetch.${BASE_DOMAIN}`)' in content, \
+        assert 'Host(`fetch.${BASE_DOMAIN}`)' in content, \
             "REGRESSION: Host rule not found!"
     
     @pytest.mark.asyncio

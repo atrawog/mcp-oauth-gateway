@@ -559,3 +559,16 @@ async def mcp_authenticated_client(http_client: httpx.AsyncClient, mcp_client_to
     # Create a new client with auth headers
     http_client.headers["Authorization"] = f"Bearer {mcp_client_token}"
     return http_client
+
+@pytest.fixture
+def mcp_fetch_url():
+    """Base URL for mcp-fetch service, with test skip logic."""
+    from .test_constants import MCP_FETCH_TESTS_ENABLED, MCP_FETCH_URLS
+    
+    if not MCP_FETCH_TESTS_ENABLED:
+        pytest.skip("MCP Fetch tests are disabled. Set MCP_FETCH_TESTS_ENABLED=true to enable.")
+    if not MCP_FETCH_URLS:
+        pytest.skip("MCP_FETCH_URLS environment variable not set")
+    
+    # Return first URL from the list
+    return MCP_FETCH_URLS[0].replace('/mcp', '')  # Remove /mcp path if present

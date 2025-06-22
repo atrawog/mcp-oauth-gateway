@@ -37,7 +37,7 @@ def _get_env_float_or_fail(key: str) -> float:
 # Domain Configuration - From main .env
 BASE_DOMAIN = _get_env_or_fail("BASE_DOMAIN")
 AUTH_BASE_URL = f"https://auth.{BASE_DOMAIN}"
-MCP_FETCH_URL = f"https://mcp-fetch.{BASE_DOMAIN}"
+MCP_FETCH_URL = f"https://fetch.{BASE_DOMAIN}"
 
 # Redis Configuration - From main .env 
 REDIS_PASSWORD = _get_env_or_fail("REDIS_PASSWORD")
@@ -100,3 +100,7 @@ ALLOWED_GITHUB_USERS = _get_env_or_fail("ALLOWED_GITHUB_USERS").split(",")
 # MCP Everything Configuration - From main .env
 MCP_EVERYTHING_TESTS_ENABLED = os.getenv("MCP_EVERYTHING_TESTS_ENABLED", "false").lower() == "true"
 MCP_EVERYTHING_URLS = os.getenv("MCP_EVERYTHING_URLS", "").split(",") if os.getenv("MCP_EVERYTHING_URLS") else []
+
+# MCP Fetch Configuration - From main .env
+MCP_FETCH_TESTS_ENABLED = os.getenv("MCP_FETCH_TESTS_ENABLED", "false").lower() == "true"
+MCP_FETCH_URLS = os.getenv("MCP_FETCH_URLS", "").split(",") if os.getenv("MCP_FETCH_URLS") else []

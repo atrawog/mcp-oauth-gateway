@@ -3,7 +3,7 @@ Test Claude.ai Routing Scenario
 Following CLAUDE.md - NO MOCKING, real services only!
 
 This test specifically verifies the scenario that caused the 404 error:
-When Claude.ai tries to access https://mcp-fetch.domain.com/mcp
+When Claude.ai tries to access the MCP endpoint at /mcp
 """
 import pytest
 import httpx
@@ -157,7 +157,7 @@ class TestClaudeAIRoutingScenario:
         This test would FAIL with the old configuration!
         """
         # Simulate Claude.ai's exact request
-        url = f"https://mcp-fetch.{BASE_DOMAIN}/mcp"
+        url = f"https://fetch.{BASE_DOMAIN}/mcp"
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
@@ -190,7 +190,7 @@ class TestClaudeAIRoutingScenario:
             # With proper PathPrefix routing, should get 401
             assert response.status_code != 404, \
                 f"Got 404 - Traefik routing is not configured for /mcp path! " \
-                f"Make sure mcp-fetch router includes PathPrefix(`/mcp`) in the rule."
+                f"Make sure fetch router includes PathPrefix(`/mcp`) in the rule."
             
             assert response.status_code == 401, \
                 f"Expected 401 Unauthorized, got {response.status_code}"

@@ -12,7 +12,6 @@ import redis.asyncio as redis
 from .jwt_test_helper import encode as jwt_encode
 from .test_constants import (
     AUTH_BASE_URL,
-    MCP_FETCH_URL,
     TEST_REDIRECT_URI,
     GATEWAY_JWT_SECRET,
     ACCESS_TOKEN_LIFETIME,
@@ -27,7 +26,7 @@ class TestMCPFetchExampleCom:
     """Test fetching example.com content with proper MCP protocol"""
     
     @pytest.mark.asyncio
-    async def test_fetch_example_com_with_mcp_protocol(self, http_client, wait_for_services):
+    async def test_fetch_example_com_with_mcp_protocol(self, http_client, wait_for_services, mcp_fetch_url):
         """Test fetching https://example.com and verify 'Example Domain' is in content"""
         
         # MUST have MCP client access token - test FAILS if not available
@@ -36,7 +35,7 @@ class TestMCPFetchExampleCom:
         # Step 2: Initialize MCP session properly
         try:
             session_id, init_result = await initialize_mcp_session(
-                http_client, MCP_FETCH_URL, MCP_CLIENT_ACCESS_TOKEN
+                http_client, mcp_fetch_url, MCP_CLIENT_ACCESS_TOKEN
             )
             print(f"✓ MCP session initialized: {session_id}")
             
@@ -45,7 +44,7 @@ class TestMCPFetchExampleCom:
             if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
                 alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
                 session_id, init_result = await initialize_mcp_session(
-                    http_client, MCP_FETCH_URL, MCP_CLIENT_ACCESS_TOKEN, alt_version
+                    http_client, mcp_fetch_url, MCP_CLIENT_ACCESS_TOKEN, alt_version
                 )
                 print(f"✓ MCP session initialized with {alt_version}: {session_id}")
             else:
@@ -54,7 +53,7 @@ class TestMCPFetchExampleCom:
         # Step 3: Fetch example.com using proper tool call
         try:
             response_data = await call_mcp_tool(
-                http_client, MCP_FETCH_URL, MCP_CLIENT_ACCESS_TOKEN, session_id,
+                http_client, mcp_fetch_url, MCP_CLIENT_ACCESS_TOKEN, session_id,
                 "fetch", {"url": "https://example.com"}, "fetch-1"
             )
             

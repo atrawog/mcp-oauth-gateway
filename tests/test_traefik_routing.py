@@ -135,13 +135,13 @@ class TestTraefikRouting:
         
         # MCP subdomain - all paths require auth with catch-all route
         response = await http_client.get(
-            f"https://mcp-fetch.{BASE_DOMAIN}/some-path"
+            f"https://fetch.{BASE_DOMAIN}/some-path"
         )
         assert response.status_code == 401
         
         # MCP API endpoint should require auth
         response = await http_client.post(
-            f"https://mcp-fetch.{BASE_DOMAIN}/mcp",
+            f"https://fetch.{BASE_DOMAIN}/mcp",
             json={"test": "data"},
             headers={"Content-Type": "application/json"}
         )
@@ -186,7 +186,7 @@ class TestTraefikRouting:
         )
         
         # Test HTTP to HTTPS redirect for MCP service
-        http_mcp_url = f"http://mcp-fetch.{BASE_DOMAIN}/health"
+        http_mcp_url = f"http://fetch.{BASE_DOMAIN}/health"
         
         response = await http_client.get(
             http_mcp_url,
@@ -205,7 +205,7 @@ class TestTraefikRouting:
         assert location.startswith("https://"), (
             f"MCP redirect should point to HTTPS, got: {location}"
         )
-        assert f"mcp-fetch.{BASE_DOMAIN}" in location, (
+        assert f"fetch.{BASE_DOMAIN}" in location, (
             f"MCP redirect should preserve hostname, got: {location}"
         )
         

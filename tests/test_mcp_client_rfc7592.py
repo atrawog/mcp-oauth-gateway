@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "mcp-streamablehttp-client
 
 from mcp_streamablehttp_client.config import Settings
 from mcp_streamablehttp_client.oauth import OAuthClient
+from .test_constants import MCP_FETCH_URL
 
 
 @pytest.mark.asyncio
@@ -26,7 +27,7 @@ async def test_mcp_client_rfc7592_lifecycle():
     """Test complete RFC 7592 lifecycle through mcp-streamablehttp-client"""
     
     # Setup test environment
-    test_server = f"https://mcp-fetch.{os.environ.get('BASE_DOMAIN', 'atradev.org')}/mcp"
+    test_server = f"{MCP_FETCH_URL}/mcp"
     
     # Create settings with test server
     settings = Settings(
@@ -143,7 +144,7 @@ async def test_mcp_client_rfc7592_lifecycle():
 async def test_mcp_client_rfc7592_field_validation():
     """Test RFC 7592 field validation in update operations"""
     
-    test_server = f"https://mcp-fetch.{os.environ.get('BASE_DOMAIN', 'atradev.org')}/mcp"
+    test_server = f"{MCP_FETCH_URL}/mcp"
     
     settings = Settings(
         mcp_server_url=test_server,

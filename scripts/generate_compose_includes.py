@@ -12,7 +12,6 @@ def main():
     includes = [
         "traefik/docker-compose.yml",
         "auth/docker-compose.yml",
-        "mcp-fetch/docker-compose.yml",
         "mcp-filesystem/docker-compose.yml",
         "mcp-fetchs/docker-compose.yml",
         "mcp-memory/docker-compose.yml",
@@ -21,6 +20,10 @@ def main():
         "mcp-tmux/docker-compose.yml",
         "mcp-playwright/docker-compose.yml",
     ]
+    
+    # Conditionally add mcp-fetch
+    if os.getenv("MCP_FETCH_ENABLED", "true").lower() == "true":
+        includes.append("mcp-fetch/docker-compose.yml")
     
     # Conditionally add mcp-everything
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
@@ -59,6 +62,11 @@ def main():
         yaml.dump(compose_data, f, default_flow_style=False, sort_keys=False)
     
     print(f"Generated {output_path}")
+    if os.getenv("MCP_FETCH_ENABLED", "true").lower() == "true":
+        print("✅ mcp-fetch is ENABLED")
+    else:
+        print("❌ mcp-fetch is DISABLED")
+    
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
         print("✅ mcp-everything is ENABLED")
     else:
