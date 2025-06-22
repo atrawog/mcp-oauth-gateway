@@ -11,6 +11,9 @@ include:
   - mcp-memory/docker-compose.yml
   - mcp-sequentialthinking/docker-compose.yml
   - mcp-time/docker-compose.yml
+  - mcp-tmux/docker-compose.yml
+  - mcp-playwright/docker-compose.yml
+  - mcp-chroma/docker-compose.yml
 
 networks:
   public:

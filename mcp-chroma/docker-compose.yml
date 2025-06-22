@@ -1,0 +1,68 @@
+services:
+  mcp-chroma:
+    build:
+      context: ../
+      dockerfile: mcp-chroma/Dockerfile
+    container_name: mcp-chroma
+    restart: unless-stopped
+    networks:
+      - public
+    ports:
+      - "3000"
+    environment:
+      - MCP_CORS_ORIGINS=*
+      - MCP_PROTOCOL_VERSION=2025-06-18
+      # Chroma specific environment variables
+      - CHROMA_DATA_PATH=/app/data
+    volumes:
+      # Persist chroma data
+      - chroma-data:/app/data
+    labels:
+      # OAuth Discovery Route (Priority 10 - Highest)
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-chroma-oauth-discovery.rule=Host(`mcp-chroma.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-chroma-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-chroma-oauth-discovery.service=auth@docker"
+      - "traefik.http.routers.mcp-chroma-oauth-discovery.tls=true"
+      - "traefik.http.routers.mcp-chroma-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.chroma-oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
+      - "traefik.http.routers.mcp-chroma-oauth-discovery.middlewares=chroma-oauth-discovery-rewrite"
+
+      # Main MCP Route with Authentication (Priority 2)
+      - "traefik.http.routers.mcp-chroma.rule=Host(`mcp-chroma.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-chroma.priority=2"
+      - "traefik.http.routers.mcp-chroma.service=mcp-chroma"
+      - "traefik.http.routers.mcp-chroma.tls=true"
+      - "traefik.http.routers.mcp-chroma.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-chroma.middlewares=mcp-auth"
+
+      # Service Definition
+      - "traefik.http.services.mcp-chroma.loadbalancer.server.port=3000"
+
+      # Health Check Route (No Auth Required)
+      - "traefik.http.routers.mcp-chroma-health.rule=Host(`mcp-chroma.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-chroma-health.priority=3"
+      - "traefik.http.routers.mcp-chroma-health.service=mcp-chroma"
+      - "traefik.http.routers.mcp-chroma-health.tls=true"
+      - "traefik.http.routers.mcp-chroma-health.tls.certresolver=letsencrypt"
+
+      # CORS Support for MCP Protocol
+      - "traefik.http.middlewares.mcp-chroma-cors.headers.accesscontrolallowmethods=GET,POST,OPTIONS"
+      - "traefik.http.middlewares.mcp-chroma-cors.headers.accesscontrolallowheaders=Content-Type,Authorization,MCP-Protocol-Version,Mcp-Session-Id"
+      - "traefik.http.middlewares.mcp-chroma-cors.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.routers.mcp-chroma.middlewares=mcp-auth,mcp-chroma-cors"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s  # Longer start period for ML model loading
+
+networks:
+  public:
+    external: true
+
+volumes:
+  chroma-data:
+    external: true

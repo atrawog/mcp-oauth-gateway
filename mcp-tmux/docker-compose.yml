@@ -1,0 +1,59 @@
+services:
+  mcp-tmux:
+    build:
+      context: ../
+      dockerfile: mcp-tmux/Dockerfile
+    container_name: mcp-tmux
+    restart: unless-stopped
+    networks:
+      - public
+    ports:
+      - "3000"
+    environment:
+      - MCP_CORS_ORIGINS=*
+      - MCP_PROTOCOL_VERSION=2025-06-18
+    labels:
+      # OAuth Discovery Route (Priority 10 - Highest)
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-tmux-oauth-discovery.rule=Host(`mcp-tmux.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-tmux-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-tmux-oauth-discovery.service=auth@docker"
+      - "traefik.http.routers.mcp-tmux-oauth-discovery.tls=true"
+      - "traefik.http.routers.mcp-tmux-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.tmux-oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
+      - "traefik.http.routers.mcp-tmux-oauth-discovery.middlewares=tmux-oauth-discovery-rewrite"
+
+      # Main MCP Route with Authentication (Priority 2)
+      - "traefik.http.routers.mcp-tmux.rule=Host(`mcp-tmux.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-tmux.priority=2"
+      - "traefik.http.routers.mcp-tmux.service=mcp-tmux"
+      - "traefik.http.routers.mcp-tmux.tls=true"
+      - "traefik.http.routers.mcp-tmux.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-tmux.middlewares=mcp-auth"
+
+      # Service Definition
+      - "traefik.http.services.mcp-tmux.loadbalancer.server.port=3000"
+
+      # Health Check Route (No Auth Required)
+      - "traefik.http.routers.mcp-tmux-health.rule=Host(`mcp-tmux.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-tmux-health.priority=3"
+      - "traefik.http.routers.mcp-tmux-health.service=mcp-tmux"
+      - "traefik.http.routers.mcp-tmux-health.tls=true"
+      - "traefik.http.routers.mcp-tmux-health.tls.certresolver=letsencrypt"
+
+      # CORS Support for MCP Protocol
+      - "traefik.http.middlewares.mcp-tmux-cors.headers.accesscontrolallowmethods=GET,POST,OPTIONS"
+      - "traefik.http.middlewares.mcp-tmux-cors.headers.accesscontrolallowheaders=Content-Type,Authorization,MCP-Protocol-Version,Mcp-Session-Id"
+      - "traefik.http.middlewares.mcp-tmux-cors.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.routers.mcp-tmux.middlewares=mcp-auth,mcp-tmux-cors"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  public:
+    external: true

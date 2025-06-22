@@ -1,7 +1,7 @@
-# Sacred Jupyter Book Configuration
-title: MCP OAuth Gateway
-author: The Righteous Developer
-logo: logo.png
+# MCP OAuth Gateway - Comprehensive Documentation
+title: "MCP OAuth Gateway: Complete Documentation"
+author: "MCP Development Team"
+copyright: "2025"
 
 # Force-exclude patterns during the build
 exclude_patterns:
@@ -9,22 +9,71 @@ exclude_patterns:
   - Thumbs.db
   - .DS_Store
   - "**.ipynb_checkpoints"
+  - "**.pytest_cache"
+  - "**/htmlcov"
+  - "**/coverage"
+  - "**/logs"
 
 # Execution settings
 execute:
   execute_notebooks: off
+  timeout: 60
 
 # Define the name of the latex output file for PDF builds
 latex:
   latex_documents:
-    targetname: mcp-oauth-gateway.tex
+    targetname: mcp-oauth-gateway-docs.tex
 
 # Information about where the book exists on the web
 repository:
-  url: https://github.com/yourusername/mcp-oauth-gateway
+  url: https://github.com/atrawog/mcp-oauth-gateway
   branch: main
+  path_to_book: docs
 
 # HTML-specific settings
 html:
   use_issues_button: true
   use_repository_button: true
+  use_edit_page_button: true
+  use_download_button: true
+  home_page_in_navbar: false
+  navbar_number_sections: false
+  show_navbar_depth: 2
+
+# LaTeX settings
+latex:
+  latex_engine: pdflatex
+
+# MyST extensions
+parse:
+  myst_enable_extensions:
+    - dollarmath
+    - amsmath
+    - deflist
+    - fieldlist
+    - html_admonition
+    - html_image
+    - colon_fence
+    - smartquotes
+    - replacements
+    - linkify
+    - substitution
+
+# Sphinx extensions
+sphinx:
+  extra_extensions:
+    - sphinx.ext.autodoc
+    - sphinx.ext.viewcode
+    - sphinx.ext.napoleon
+    - sphinx.ext.intersphinx
+  config:
+    html_theme_options:
+      repository_url: https://github.com/atrawog/mcp-oauth-gateway
+      use_repository_button: true
+      use_edit_page_button: true
+      use_issues_button: true
+    html_title: "MCP OAuth Gateway Documentation"
+    intersphinx_mapping:
+      python:
+        - "https://docs.python.org/3"
+        - null

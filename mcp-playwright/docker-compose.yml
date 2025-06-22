@@ -1,0 +1,65 @@
+services:
+  mcp-playwright:
+    build:
+      context: ../
+      dockerfile: mcp-playwright/Dockerfile
+    container_name: mcp-playwright
+    restart: unless-stopped
+    networks:
+      - public
+    ports:
+      - "3000"
+    environment:
+      - MCP_CORS_ORIGINS=*
+      - MCP_PROTOCOL_VERSION=2025-06-18
+      # Playwright specific environment variables
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+      - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+    labels:
+      # OAuth Discovery Route (Priority 10 - Highest)
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-playwright-oauth-discovery.rule=Host(`mcp-playwright.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-playwright-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-playwright-oauth-discovery.service=auth@docker"
+      - "traefik.http.routers.mcp-playwright-oauth-discovery.tls=true"
+      - "traefik.http.routers.mcp-playwright-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.playwright-oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
+      - "traefik.http.routers.mcp-playwright-oauth-discovery.middlewares=playwright-oauth-discovery-rewrite"
+
+      # Main MCP Route with Authentication (Priority 2)
+      - "traefik.http.routers.mcp-playwright.rule=Host(`mcp-playwright.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-playwright.priority=2"
+      - "traefik.http.routers.mcp-playwright.service=mcp-playwright"
+      - "traefik.http.routers.mcp-playwright.tls=true"
+      - "traefik.http.routers.mcp-playwright.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-playwright.middlewares=mcp-auth"
+
+      # Service Definition
+      - "traefik.http.services.mcp-playwright.loadbalancer.server.port=3000"
+
+      # Health Check Route (No Auth Required)
+      - "traefik.http.routers.mcp-playwright-health.rule=Host(`mcp-playwright.${BASE_DOMAIN}`) && Path(`/health`)"
+      - "traefik.http.routers.mcp-playwright-health.priority=3"
+      - "traefik.http.routers.mcp-playwright-health.service=mcp-playwright"
+      - "traefik.http.routers.mcp-playwright-health.tls=true"
+      - "traefik.http.routers.mcp-playwright-health.tls.certresolver=letsencrypt"
+
+      # CORS Support for MCP Protocol
+      - "traefik.http.middlewares.mcp-playwright-cors.headers.accesscontrolallowmethods=GET,POST,OPTIONS"
+      - "traefik.http.middlewares.mcp-playwright-cors.headers.accesscontrolallowheaders=Content-Type,Authorization,MCP-Protocol-Version,Mcp-Session-Id"
+      - "traefik.http.middlewares.mcp-playwright-cors.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.routers.mcp-playwright.middlewares=mcp-auth,mcp-playwright-cors"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s  # Longer start period for Playwright browser initialization
+
+    # Add shared memory for Playwright browsers
+    shm_size: '2gb'
+
+networks:
+  public:
+    external: true

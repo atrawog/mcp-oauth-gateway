@@ -1,21 +1,110 @@
-# Table of contents
+# MCP OAuth Gateway - Complete Documentation Structure
 # Learn more at https://jupyterbook.org/customize/toc.html
 
 format: jb-book
 root: index
-chapters:
-  - file: architecture/index
-    sections:
-      - file: architecture/oauth-flow
-      - file: architecture/mcp-protocol
-  - file: api/index
-    sections:
-      - file: api/oauth-endpoints
-      - file: api/mcp-endpoints
-  - file: deployment/index
-    sections:
-      - file: deployment/configuration
-      - file: deployment/troubleshooting
-  - file: claude-ai/index
-    sections:
-      - file: claude-ai/testing
+
+parts:
+  - caption: "Getting Started"
+    chapters:
+      - file: quickstart/index
+        sections:
+          - file: quickstart/installation
+          - file: quickstart/first-setup
+          - file: quickstart/basic-usage
+
+  - caption: "Architecture & Design"
+    chapters:
+      - file: architecture/index
+        sections:
+          - file: architecture/overview
+          - file: architecture/trinity-separation
+          - file: architecture/oauth-flow
+          - file: architecture/mcp-protocol
+          - file: architecture/traefik-routing
+          - file: architecture/security-model
+
+  - caption: "MCP Services"
+    chapters:
+      - file: services/index
+        sections:
+          - file: services/mcp-fetch
+          - file: services/mcp-memory
+          - file: services/mcp-time
+          - file: services/mcp-sequentialthinking
+          - file: services/mcp-filesystem
+          - file: services/mcp-everything
+          - file: services/mcp-fetchs
+
+  - caption: "Python Packages"
+    chapters:
+      - file: packages/index
+        sections:
+          - file: packages/mcp-oauth-dynamicclient
+          - file: packages/mcp-streamablehttp-proxy
+          - file: packages/mcp-streamablehttp-client
+          - file: packages/mcp-fetch-streamablehttp-server
+
+  - caption: "API Reference"
+    chapters:
+      - file: api/index
+        sections:
+          - file: api/oauth-endpoints
+          - file: api/mcp-endpoints
+          - file: api/rfc7591-registration
+          - file: api/rfc7592-management
+          - file: api/authentication
+          - file: api/error-responses
+
+  - caption: "Development & Testing"
+    chapters:
+      - file: development/index
+        sections:
+          - file: development/setup
+          - file: development/testing-strategy
+          - file: development/adding-services
+          - file: development/debugging
+          - file: development/contributing
+
+  - caption: "Deployment & Operations"
+    chapters:
+      - file: deployment/index
+        sections:
+          - file: deployment/configuration
+          - file: deployment/environment-variables
+          - file: deployment/docker-compose
+          - file: deployment/traefik-setup
+          - file: deployment/ssl-certificates
+          - file: deployment/monitoring
+          - file: deployment/troubleshooting
+
+  - caption: "Integration Guides"
+    chapters:
+      - file: integration/index
+        sections:
+          - file: integration/claude-ai
+          - file: integration/mcp-clients
+          - file: integration/custom-clients
+          - file: integration/oauth-flows
+          - file: integration/testing-integration
+
+  - caption: "Advanced Topics"
+    chapters:
+      - file: advanced/index
+        sections:
+          - file: advanced/protocol-compliance
+          - file: advanced/security-considerations
+          - file: advanced/performance-tuning
+          - file: advanced/scaling
+          - file: advanced/custom-extensions
+
+  - caption: "Reference"
+    chapters:
+      - file: reference/index
+        sections:
+          - file: reference/command-reference
+          - file: reference/configuration-reference
+          - file: reference/environment-variables
+          - file: reference/error-codes
+          - file: reference/troubleshooting-guide
+          - file: reference/faq
