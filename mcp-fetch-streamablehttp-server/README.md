@@ -50,7 +50,6 @@ Environment variables:
 ## API Endpoints
 
 - `POST /mcp`: Main MCP endpoint for JSON-RPC requests
-- `GET /health`: Health check endpoint
 - `OPTIONS /mcp`: CORS preflight support
 
 ## Supported MCP Methods

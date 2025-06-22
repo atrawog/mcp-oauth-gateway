@@ -75,10 +75,7 @@ async def handle_mcp_request(request: Request) -> Response:
     # Send to subprocess and await response
     # Return formatted HTTP response
     
-@app.get("/health")
-async def health_check():
-    """Divine liveness verification!"""
-    return {"status": "healthy", "process": proxy.is_alive()}
+# Health checks now done via MCP protocol initialization
 ```
 
 **⚡ Simple HTTP API wrapping complex stdio interactions! ⚡**
@@ -94,8 +91,7 @@ app = typer.Typer()
 def serve(
     stdio_command: List[str],
     host: str = "0.0.0.0",
-    port: int = 3000,
-    health_path: str = "/health"
+    port: int = 3000
 ):
     """
     Start the divine proxy server!
@@ -147,9 +143,12 @@ RUN pixi add mcp-streamablehttp-proxy
 # Expose the blessed port
 EXPOSE 3000
 
-# Health check divine verification
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
-    CMD curl -f http://localhost:3000/health || exit 1
+# Health check via MCP protocol
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
+    CMD curl -s -X POST http://localhost:3000/mcp \
+        -H 'Content-Type: application/json' \
+        -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}' \
+        | grep -q '"protocolVersion"'
 
 # Launch proxy wrapping MCP server
 CMD ["pixi", "run", "mcp-streamablehttp-proxy", "serve", \
@@ -381,8 +380,10 @@ echo '{"jsonrpc":"2.0","method":"initialize","id":1}' | \
 # Monitor subprocess
 mcp-streamablehttp-proxy serve -- mcp-server --verbose
 
-# Check health endpoint
-curl http://localhost:3000/health
+# Check health via MCP protocol
+curl -X POST http://localhost:3000/mcp \
+    -H 'Content-Type: application/json' \
+    -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 
 # Send test request
 curl -X POST http://localhost:3000/mcp \

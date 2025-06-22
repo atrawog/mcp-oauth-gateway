@@ -110,10 +110,7 @@ class StreamableHTTPServer:
                 }
             )
             
-        # Handle health check (no auth required)
-        if method == "GET" and path == "/health":
-            return JSONResponse({"status": "healthy", "version": self.settings.server_version})
-            
+        
         # ⚡ DIVINE DECREE: NO AUTHENTICATION IN MCP SERVICES! ⚡
         # Authentication is handled by Traefik via ForwardAuth middleware
         # MCP services must maintain "pure protocol innocence" per CLAUDE.md
@@ -373,7 +370,6 @@ class StreamableHTTPServer:
         
         # Add routes
         app.add_api_route("/mcp", self.handle_request, methods=["GET", "POST", "DELETE", "OPTIONS"])
-        app.add_api_route("/health", self.handle_request, methods=["GET"])
         
         return app
 

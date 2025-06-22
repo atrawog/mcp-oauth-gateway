@@ -68,7 +68,6 @@
 ### The Sacred Endpoints
 
 - **POST /mcp** - Main MCP protocol endpoint
-- **GET /health** - Health check for Docker
 - **OPTIONS /mcp** - CORS preflight support
 - **GET /.well-known/oauth-authorization-server** - OAuth discovery (routed to auth)
 
@@ -88,7 +87,7 @@ MCP_FETCH_MAX_REDIRECTS=5                       # Redirect limit
 ## Testing Prophecies
 
 **Integration Tests Cover:**
-- ✅ Health check endpoint accessibility
+- ✅ MCP protocol health verification
 - ✅ Authentication requirement enforcement
 - ✅ CORS preflight handling
 - ✅ MCP initialization flow

@@ -8,7 +8,7 @@ A generic stdio-to-streamable-HTTP proxy for MCP (Model Context Protocol) server
 - 🌐 **Streamable HTTP Transport**: Exposes MCP servers via streamable HTTP endpoints following the 2025-06-18 specification
 - 🔐 **Session Management**: Supports multiple concurrent sessions with automatic cleanup
 - 🚀 **Easy Integration**: Simple command-line interface and Python API
-- 📊 **Health Checks**: Built-in health check endpoint for monitoring
+- 📊 **Health Checks**: Health monitoring via MCP protocol initialization
 - 🔧 **Configurable**: Customizable timeouts, ports, and logging
 
 ## Installation
@@ -96,16 +96,13 @@ JSON-RPC 2.0 formatted MCP request
 **Response:**
 JSON-RPC 2.0 formatted MCP response with `Mcp-Session-Id` header
 
-### `/health` (GET)
-Health check endpoint for monitoring.
+### Health Monitoring
+Health checks are performed via MCP protocol initialization:
 
-**Response:**
-```json
-{
-  "status": "healthy",
-  "active_sessions": 2,
-  "server_command": "python -m mcp_server_fetch"
-}
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
 
 ## Session Management

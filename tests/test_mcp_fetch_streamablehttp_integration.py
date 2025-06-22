@@ -21,16 +21,34 @@ def valid_oauth_token():
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_health_check(mcp_fetchs_url, wait_for_services):
-    """Test health check endpoint."""
+async def test_fetch_native_health_check(mcp_fetchs_url, wait_for_services, valid_oauth_token):
+    """Test health check via MCP protocol initialization."""
     
     async with httpx.AsyncClient(verify=False) as client:
-        response = await client.get(f"{mcp_fetchs_url}/health")
+        response = await client.post(
+            f"{mcp_fetchs_url}/mcp",
+            json={
+                "jsonrpc": "2.0",
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "healthcheck", "version": "1.0"}
+                },
+                "id": 1
+            },
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {valid_oauth_token}"
+            }
+        )
         
     assert response.status_code == 200
     data = response.json()
-    assert data["status"] == "healthy"
-    assert "version" in data
+    assert "result" in data
+    assert data["result"]["protocolVersion"] == "2025-06-18"
+    assert "serverInfo" in data["result"]
+    assert data["result"]["serverInfo"]["name"] == "mcp-fetch-streamablehttp"
 
 
 @pytest.mark.integration

@@ -10,10 +10,6 @@ async def test_mcp_server():
     base_url = "http://localhost:3000"
     
     async with httpx.AsyncClient() as client:
-        # Check health
-        print("Checking health...")
-        response = await client.get(f"{base_url}/health")
-        print(f"Health check: {response.json()}")
         
         # Initialize session
         print("\nInitializing MCP session...")

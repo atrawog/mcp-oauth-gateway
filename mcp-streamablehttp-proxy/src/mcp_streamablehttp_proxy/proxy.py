@@ -392,14 +392,7 @@ def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI
         """Clean up on shutdown."""
         await session_manager.stop()
     
-    @app.get("/health")
-    async def health_check():
-        """Health check endpoint."""
-        return {
-            "status": "healthy", 
-            "active_sessions": len(session_manager.sessions),
-            "server_command": " ".join(session_manager.server_command)
-        }
+    # Health checks now done via MCP protocol initialization
     
     @app.options("/mcp")
     async def handle_mcp_options():
