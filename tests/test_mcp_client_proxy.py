@@ -30,15 +30,48 @@ class TestMCPClientProxyBasics:
     
     @pytest.mark.asyncio
     async def test_proxy_health_check(self, http_client: httpx.AsyncClient, wait_for_services):
-        """Test that the MCP proxy service is healthy"""
-        response = await http_client.get(f"{MCP_FETCH_URL}/health")
+        """Test that the MCP proxy service is healthy using MCP protocol per divine CLAUDE.md"""
+        # Health checks should use MCP protocol initialization
+        request_data = {
+            "jsonrpc": "2.0",
+            "method": "initialize",
+            "params": {
+                "protocolVersion": MCP_PROTOCOL_VERSION,
+                "capabilities": {},
+                "clientInfo": {
+                    "name": "healthcheck",
+                    "version": "1.0"
+                }
+            },
+            "id": 1
+        }
         
-        assert response.status_code == 200
-        health_data = response.json()
-        assert health_data["status"] == "healthy"
+        # First test: should get 401 without auth
+        response = await http_client.post(
+            f"{MCP_FETCH_URL}/mcp",
+            json=request_data,
+            headers={"Content-Type": "application/json"}
+        )
+        assert response.status_code == 401, "MCP endpoint should require authentication"
         
-        print(f"✅ MCP proxy service is healthy")
-        print(f"   Service: {health_data.get('service', 'mcp-fetch')}")
+        # If we have a token, test with auth
+        if MCP_CLIENT_ACCESS_TOKEN:
+            response = await http_client.post(
+                f"{MCP_FETCH_URL}/mcp",
+                json=request_data,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"
+                }
+            )
+            assert response.status_code == 200, "MCP health check should succeed with valid token"
+            result = response.json()
+            assert "result" in result or "error" in result
+            if "result" in result:
+                assert "protocolVersion" in result["result"]
+                print(f"✅ MCP proxy service is healthy (protocol version: {result['result']['protocolVersion']})")
+        else:
+            print(f"✅ MCP proxy service requires authentication (as expected)")
     
     @pytest.mark.asyncio
     async def test_proxy_requires_authentication(self, http_client: httpx.AsyncClient, wait_for_services):

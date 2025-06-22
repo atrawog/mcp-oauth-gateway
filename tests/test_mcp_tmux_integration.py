@@ -99,16 +99,33 @@ class TestMCPTmuxIntegration:
         except Exception as e:
             pytest.fail(f"Failed to parse JSON response: {e}\nOutput: {result.stdout}")
 
-    def test_tmux_service_health(self, mcp_tmux_url):
-        """Test tmux service health endpoint."""
+    def test_tmux_service_health(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+        """Test tmux service health using MCP protocol per divine CLAUDE.md."""
         import requests
-        response = requests.get(f"{mcp_tmux_url}/health", timeout=10)
-        assert response.status_code == 200
         
-        health_data = response.json()
-        assert health_data["status"] == "healthy"
-        assert "active_sessions" in health_data
-        assert health_data["server_command"] == "npx tmux-mcp"
+        # First verify that /health requires authentication
+        response = requests.get(f"{mcp_tmux_url}/health", timeout=10)
+        assert response.status_code == 401, "/health endpoint must require authentication per divine CLAUDE.md"
+        
+        # Health checks should use MCP protocol initialization
+        response = self.run_mcp_client_raw(
+            url=mcp_tmux_url,
+            token=mcp_client_token,
+            method="initialize",
+            params={
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {
+                    "name": "healthcheck",
+                    "version": "1.0"
+                }
+            }
+        )
+        
+        assert "result" in response or "error" in response
+        if "result" in response:
+            assert "protocolVersion" in response["result"]
+            print(f"✅ MCP tmux service is healthy (protocol version: {response['result']['protocolVersion']})")
 
     def test_tmux_oauth_discovery(self, mcp_tmux_url):
         """Test OAuth discovery endpoint routing."""

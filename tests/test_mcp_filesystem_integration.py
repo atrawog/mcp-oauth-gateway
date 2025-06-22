@@ -16,16 +16,16 @@ class TestMCPFilesystemIntegration:
     """Divine integration tests for MCP Filesystem service."""
 
     @pytest.mark.asyncio
-    async def test_filesystem_health_check_no_auth(self, http_client, wait_for_services, mcp_mcp_filesystem_url):
-        """Test that health check endpoint works without authentication."""
-        # Health check should work without auth
+    async def test_filesystem_health_check_no_auth(self, http_client, wait_for_services, mcp_filesystem_url):
+        """Test that health check endpoint requires authentication per divine CLAUDE.md."""
+        # Health check must require auth per divine CLAUDE.md
         response = await http_client.get(
             f"{mcp_filesystem_url}/health",
             timeout=TEST_HTTP_TIMEOUT
         )
         
-        assert response.status_code == 200, \
-            f"Health check failed: {response.status_code} - {response.text}"
+        assert response.status_code == 401, \
+            f"Health check must require authentication per divine CLAUDE.md: {response.status_code} - {response.text}"
 
     @pytest.mark.asyncio
     async def test_filesystem_requires_auth(self, http_client, mcp_filesystem_url):

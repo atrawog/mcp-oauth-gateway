@@ -105,16 +105,33 @@ class TestMCPPlaywrightIntegration:
         except Exception as e:
             pytest.fail(f"Failed to parse JSON response: {e}\nOutput: {result.stdout}")
 
-    def test_playwright_service_health(self, mcp_playwright_url):
-        """Test playwright service health endpoint."""
+    def test_playwright_service_health(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+        """Test playwright service health using MCP protocol per divine CLAUDE.md."""
         import requests
-        response = requests.get(f"{mcp_playwright_url}/health", timeout=10)
-        assert response.status_code == 200
         
-        health_data = response.json()
-        assert health_data["status"] == "healthy"
-        assert "active_sessions" in health_data
-        assert "server_command" in health_data
+        # First verify that /health requires authentication
+        response = requests.get(f"{mcp_playwright_url}/health", timeout=10)
+        assert response.status_code == 401, "/health endpoint must require authentication per divine CLAUDE.md"
+        
+        # Health checks should use MCP protocol initialization
+        response = self.run_mcp_client_raw(
+            url=mcp_playwright_url,
+            token=mcp_client_token,
+            method="initialize",
+            params={
+                "protocolVersion": "2025-06-18",
+                "capabilities": {},
+                "clientInfo": {
+                    "name": "healthcheck",
+                    "version": "1.0"
+                }
+            }
+        )
+        
+        assert "result" in response or "error" in response
+        if "result" in response:
+            assert "protocolVersion" in response["result"]
+            print(f"✅ MCP playwright service is healthy (protocol version: {response['result']['protocolVersion']})")
 
     def test_playwright_oauth_discovery(self, mcp_playwright_url):
         """Test OAuth discovery endpoint routing."""

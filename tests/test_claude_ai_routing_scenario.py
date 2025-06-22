@@ -106,8 +106,8 @@ class TestClaudeAIRoutingScenario:
             },
             {
                 "path": "/health",
-                "expected": 200,  # FastAPI implementation provides health endpoint
-                "description": "Health endpoint"
+                "expected": 401,  # Health checks should use /mcp per divine CLAUDE.md
+                "description": "Health endpoint (requires auth like all non-OAuth paths)"
             },
             {
                 "path": "/nonexistent",
