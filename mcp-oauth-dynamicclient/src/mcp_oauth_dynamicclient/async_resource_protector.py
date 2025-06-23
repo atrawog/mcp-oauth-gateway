@@ -3,6 +3,7 @@ Async-compatible ResourceProtector for FastAPI
 Since Authlib's ResourceProtector doesn't support async natively,
 we create a wrapper that works with FastAPI's async handlers.
 """
+
 from typing import Any, Optional
 
 import redis.asyncio as redis
@@ -40,11 +41,8 @@ class AsyncResourceProtector:
         if error:
             raise HTTPException(
                 status_code=401,
-                detail={
-                    "error": "invalid_request",
-                    "error_description": error
-                },
-                headers={"WWW-Authenticate": "Bearer"}
+                detail={"error": "invalid_request", "error_description": error},
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
         # Extract token from Authorization header
@@ -54,9 +52,9 @@ class AsyncResourceProtector:
                 status_code=401,
                 detail={
                     "error": "invalid_request",
-                    "error_description": "Authorization header must use Bearer scheme"
+                    "error_description": "Authorization header must use Bearer scheme",
                 },
-                headers={"WWW-Authenticate": "Bearer"}
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
         token_string = auth_header[7:]  # Remove "Bearer " prefix
@@ -69,15 +67,17 @@ class AsyncResourceProtector:
                 status_code=401,
                 detail={
                     "error": "invalid_token",
-                    "error_description": "The access token is invalid or expired"
+                    "error_description": "The access token is invalid or expired",
                 },
-                headers={"WWW-Authenticate": 'Bearer error="invalid_token"'}
+                headers={"WWW-Authenticate": 'Bearer error="invalid_token"'},
             )
 
         return token_data
 
 
-def create_async_resource_protector(settings: Settings, redis_client: redis.Redis, key_manager: RSAKeyManager) -> AsyncResourceProtector:
+def create_async_resource_protector(
+    settings: Settings, redis_client: redis.Redis, key_manager: RSAKeyManager
+) -> AsyncResourceProtector:
     """
     Create an async-compatible ResourceProtector instance.
 

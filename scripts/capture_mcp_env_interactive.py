@@ -2,6 +2,7 @@
 """Capture MCP client environment variables from command output and save to .env
 This version supports interactive input (e.g., entering authorization codes).
 """
+
 import os
 import re
 import subprocess
@@ -11,6 +12,7 @@ from pathlib import Path
 
 
 ENV_FILE = Path(__file__).parent.parent / ".env"
+
 
 def save_env_var(key: str, value: str):
     """Save or update an environment variable in .env file."""
@@ -32,12 +34,13 @@ def save_env_var(key: str, value: str):
     with open(ENV_FILE, "w") as f:
         f.writelines(lines)
 
+
 def extract_env_vars(output: str):
     """Extract export statements from output."""
     env_vars = {}
-    pattern = r'^export\s+(MCP_CLIENT_[A-Z_]+)=(.+)$'
+    pattern = r"^export\s+(MCP_CLIENT_[A-Z_]+)=(.+)$"
 
-    for line in output.split('\n'):
+    for line in output.split("\n"):
         match = re.match(pattern, line.strip())
         if match:
             key = match.group(1)
@@ -47,6 +50,7 @@ def extract_env_vars(output: str):
                 env_vars[key] = value
 
     return env_vars
+
 
 def main():
     # Get command from arguments
@@ -58,13 +62,13 @@ def main():
     env = os.environ.copy()
 
     # Create a temporary file to capture output
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False) as tmp_file:
+    with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
         tmp_filename = tmp_file.name
 
     try:
         # Run the command with tee to capture output while allowing interaction
         # Use script command to preserve interactivity
-        cmd = ['script', '-q', '-c', ' '.join(sys.argv[1:]), tmp_filename]
+        cmd = ["script", "-q", "-c", " ".join(sys.argv[1:]), tmp_filename]
 
         # Run with full terminal interaction
         result = subprocess.run(cmd, check=False, env=env)
@@ -75,8 +79,9 @@ def main():
 
         # Clean ANSI escape sequences from script output
         import re
-        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-        output = ansi_escape.sub('', output)
+
+        ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+        output = ansi_escape.sub("", output)
 
         # Extract and save environment variables
         env_vars = extract_env_vars(output)
@@ -96,6 +101,7 @@ def main():
         # Clean up temp file
         if os.path.exists(tmp_filename):
             os.unlink(tmp_filename)
+
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,7 @@
 """Test error paths and edge cases in auth service
 Following CLAUDE.md: Real tests against deployed services.
 """
+
 import json
 import time
 
@@ -20,7 +21,9 @@ class TestHealthCheckErrors:
     async def test_oauth_discovery_health_check(self, http_client):
         """Test OAuth discovery endpoint used as health check."""
         # Verify OAuth discovery endpoint is accessible
-        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+        )
         assert response.status_code == 200
 
         # Verify it returns proper OAuth metadata
@@ -30,6 +33,7 @@ class TestHealthCheckErrors:
         assert "token_endpoint" in data
         assert "registration_endpoint" in data
 
+
 class TestSuccessEndpoint:
     """Test the /success endpoint - covers lines 773-834."""
 
@@ -38,7 +42,7 @@ class TestSuccessEndpoint:
         """Test success page with authorization code."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/success",
-            params={"code": "test_auth_code_123", "state": "test_state"}
+            params={"code": "test_auth_code_123", "state": "test_state"},
         )
 
         assert response.status_code == 200
@@ -55,8 +59,8 @@ class TestSuccessEndpoint:
             params={
                 "error": "access_denied",
                 "error_description": "User denied access",
-                "state": "test_state"
-            }
+                "state": "test_state",
+            },
         )
 
         assert response.status_code == 200
@@ -75,6 +79,7 @@ class TestSuccessEndpoint:
         assert "⏳ OAuth Flow" in response.text
         assert "No authorization code received yet" in response.text
 
+
 class TestClientRegistrationErrors:
     """Test client registration error paths."""
 
@@ -86,18 +91,18 @@ class TestClientRegistrationErrors:
 
         registration_data = {
             "redirect_uris": [],  # Empty list should fail
-            "client_name": "TEST test_registration_empty_redirect_uris"
+            "client_name": "TEST test_registration_empty_redirect_uris",
         }
 
         response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json=registration_data
+            f"{AUTH_BASE_URL}/register", json=registration_data
         )
 
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_client_metadata"
         assert "redirect_uris is required" in error["detail"]["error_description"]
+
 
 class TestTokenEndpointEdgeCases:
     """Test token endpoint edge cases."""
@@ -110,9 +115,9 @@ class TestTokenEndpointEdgeCases:
             data={
                 "grant_type": "refresh_token",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
                 # Missing refresh_token
-            }
+            },
         )
 
         assert response.status_code == 400
@@ -129,14 +134,16 @@ class TestTokenEndpointEdgeCases:
                 "grant_type": "refresh_token",
                 "refresh_token": "invalid_refresh_token_xxx",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
 
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
-        assert "Invalid or expired refresh token" in error["detail"]["error_description"]
+        assert (
+            "Invalid or expired refresh token" in error["detail"]["error_description"]
+        )
 
     @pytest.mark.asyncio
     async def test_token_with_redirect_uri_mismatch(self, http_client):
@@ -150,13 +157,14 @@ class TestTokenEndpointEdgeCases:
                 "code": "fake_code_with_different_redirect",
                 "redirect_uri": "https://wrong.example.com/callback",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
 
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
+
 
 class TestPKCEVerification:
     """Test PKCE verification logic."""
@@ -173,15 +181,16 @@ class TestPKCEVerification:
                 "code": "code_requiring_pkce",
                 "redirect_uri": "https://example.com/callback",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
                 # Missing code_verifier
-            }
+            },
         )
 
         # Will fail at code validation, not PKCE check
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
+
 
 class TestTokenRevocationEdgeCases:
     """Test token revocation edge cases."""
@@ -191,13 +200,9 @@ class TestTokenRevocationEdgeCases:
         """Test revocation with wrong client secret - covers line 686."""
         # Create a valid JWT token
         test_token = jwt_encode(
-            {
-                "sub": "12345",
-                "jti": "test_jti_revoke",
-                "exp": int(time.time()) + 3600
-            },
+            {"sub": "12345", "jti": "test_jti_revoke", "exp": int(time.time()) + 3600},
             JWT_SECRET,
-            algorithm="HS256"
+            algorithm="HS256",
         )
 
         response = await http_client.post(
@@ -205,8 +210,8 @@ class TestTokenRevocationEdgeCases:
             data={
                 "token": test_token,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": "wrong_secret_xxx"  # Wrong secret
-            }
+                "client_secret": "wrong_secret_xxx",  # Wrong secret
+            },
         )
 
         # RFC 7009 says to return 200 even on auth failure
@@ -221,12 +226,13 @@ class TestTokenRevocationEdgeCases:
             data={
                 "token": "refresh_token_to_revoke_xxx",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
 
         # Always returns 200
         assert response.status_code == 200
+
 
 class TestTokenIntrospectionEdgeCases:
     """Test token introspection edge cases."""
@@ -241,10 +247,10 @@ class TestTokenIntrospectionEdgeCases:
                 "jti": "not_in_redis_jti",
                 "exp": int(time.time()) + 3600,
                 "username": "testuser",
-                "scope": "openid profile"
+                "scope": "openid profile",
             },
             JWT_SECRET,
-            algorithm="HS256"
+            algorithm="HS256",
         )
 
         response = await http_client.post(
@@ -252,8 +258,8 @@ class TestTokenIntrospectionEdgeCases:
             data={
                 "token": test_token,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
 
         assert response.status_code == 200
@@ -269,13 +275,14 @@ class TestTokenIntrospectionEdgeCases:
             data={
                 "token": "opaque_refresh_token_xxx",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
 
         assert response.status_code == 200
         data = response.json()
         assert data["active"] is False  # Not in Redis
+
 
 class TestJWTTokenCreation:
     """Test JWT token creation helper function."""
@@ -288,8 +295,8 @@ class TestJWTTokenCreation:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["https://test.example.com/callback"],
-                "client_name": "TEST test_create_token_with_user_tracking"
-            }
+                "client_name": "TEST test_create_token_with_user_tracking",
+            },
         )
 
         # Registration should succeed without authentication
@@ -307,8 +314,8 @@ class TestJWTTokenCreation:
                 "code": "fake_authorization_code",
                 "redirect_uri": "https://test.example.com/callback",
                 "client_id": client_data["client_id"],
-                "client_secret": client_data["client_secret"]
-            }
+                "client_secret": client_data["client_secret"],
+            },
         )
 
         # Should fail because the authorization code is invalid
@@ -324,12 +331,15 @@ class TestJWTTokenCreation:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                    headers={
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                    },
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
+
 
 class TestAuthorizationEndpointErrors:
     """Test authorization endpoint error handling."""
@@ -343,9 +353,9 @@ class TestAuthorizationEndpointErrors:
                 "client_id": "unknown_client_xxx",
                 "redirect_uri": "https://example.com/callback",
                 "response_type": "code",
-                "state": "test_state"
+                "state": "test_state",
             },
-            follow_redirects=False
+            follow_redirects=False,
         )
 
         # Should NOT redirect on unknown client (RFC 6749)
@@ -356,7 +366,9 @@ class TestAuthorizationEndpointErrors:
         except json.JSONDecodeError:
             # If response is not JSON, check if it's an HTML error page
             content = response.text
-            assert "invalid_client" in content or "Client authentication failed" in content
+            assert (
+                "invalid_client" in content or "Client authentication failed" in content
+            )
 
     @pytest.mark.asyncio
     async def test_authorize_with_unregistered_redirect_uri(self, http_client):
@@ -368,15 +380,16 @@ class TestAuthorizationEndpointErrors:
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "redirect_uri": "https://unregistered.example.com/callback",
                 "response_type": "code",
-                "state": "test_state"
+                "state": "test_state",
             },
-            follow_redirects=False
+            follow_redirects=False,
         )
 
         # Should NOT redirect on invalid redirect_uri (RFC 6749)
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_redirect_uri"
+
 
 class TestShutdownHandler:
     """Test shutdown event handler."""
@@ -386,7 +399,9 @@ class TestShutdownHandler:
         """Verify app can handle shutdown gracefully - relates to line 119."""
         # We can't actually trigger shutdown in deployed service
         # But we can verify the app is running via OAuth discovery
-        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+        )
         assert response.status_code == 200
 
         # The shutdown handler is tested implicitly when services restart

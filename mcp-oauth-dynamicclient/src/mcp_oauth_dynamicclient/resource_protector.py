@@ -2,6 +2,7 @@
 OAuth 2.0 Resource Protection using Authlib's ResourceProtector
 Following security best practices - NO AD-HOC IMPLEMENTATIONS!
 """
+
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -40,16 +41,19 @@ class JWTBearerTokenValidator(BearerTokenValidator):
         """
         try:
             # Decode and validate token using Authlib
-            if self.settings.jwt_algorithm == 'RS256':
+            if self.settings.jwt_algorithm == "RS256":
                 # Use RSA public key for RS256 verification
                 claims = self.jwt.decode(
                     token_string,
                     self.key_manager.public_key,
                     claims_options={
-                        "iss": {"essential": True, "value": f"https://auth.{self.settings.base_domain}"},
+                        "iss": {
+                            "essential": True,
+                            "value": f"https://auth.{self.settings.base_domain}",
+                        },
                         "exp": {"essential": True},
-                        "jti": {"essential": True}
-                    }
+                        "jti": {"essential": True},
+                    },
                 )
             else:
                 # HS256 fallback during transition period
@@ -57,10 +61,13 @@ class JWTBearerTokenValidator(BearerTokenValidator):
                     token_string,
                     self.settings.jwt_secret,
                     claims_options={
-                        "iss": {"essential": True, "value": f"https://auth.{self.settings.base_domain}"},
+                        "iss": {
+                            "essential": True,
+                            "value": f"https://auth.{self.settings.base_domain}",
+                        },
                         "exp": {"essential": True},
-                        "jti": {"essential": True}
-                    }
+                        "jti": {"essential": True},
+                    },
                 )
 
             # Validate claims
@@ -123,25 +130,31 @@ class IntrospectionBearerTokenValidator(JWTBearerTokenValidator):
         """
         try:
             # Decode without exp validation for introspection
-            if self.settings.jwt_algorithm == 'RS256':
+            if self.settings.jwt_algorithm == "RS256":
                 claims = self.jwt.decode(
                     token_string,
                     self.key_manager.public_key,
                     claims_options={
-                        "iss": {"essential": True, "value": f"https://auth.{self.settings.base_domain}"},
+                        "iss": {
+                            "essential": True,
+                            "value": f"https://auth.{self.settings.base_domain}",
+                        },
                         "jti": {"essential": True},
-                        "exp": {"essential": False}  # Don't require valid exp for introspection
-                    }
+                        "exp": {"essential": False},  # Don't require valid exp for introspection
+                    },
                 )
             else:
                 claims = self.jwt.decode(
                     token_string,
                     self.settings.jwt_secret,
                     claims_options={
-                        "iss": {"essential": True, "value": f"https://auth.{self.settings.base_domain}"},
+                        "iss": {
+                            "essential": True,
+                            "value": f"https://auth.{self.settings.base_domain}",
+                        },
                         "jti": {"essential": True},
-                        "exp": {"essential": False}
-                    }
+                        "exp": {"essential": False},
+                    },
                 )
 
             # Check if token exists in Redis
@@ -161,7 +174,9 @@ class IntrospectionBearerTokenValidator(JWTBearerTokenValidator):
             return {"active": False}
 
 
-def create_resource_protector(settings: Settings, redis_client: redis.Redis, key_manager: RSAKeyManager) -> ResourceProtector:
+def create_resource_protector(
+    settings: Settings, redis_client: redis.Redis, key_manager: RSAKeyManager
+) -> ResourceProtector:
     """
     Create and configure a ResourceProtector instance.
     This replaces the manual token validation with Authlib's secure implementation.
@@ -176,7 +191,9 @@ def create_resource_protector(settings: Settings, redis_client: redis.Redis, key
     return require_oauth
 
 
-def create_introspection_protector(settings: Settings, redis_client: redis.Redis, key_manager: RSAKeyManager) -> ResourceProtector:
+def create_introspection_protector(
+    settings: Settings, redis_client: redis.Redis, key_manager: RSAKeyManager
+) -> ResourceProtector:
     """
     Create a ResourceProtector specifically for token introspection.
     This allows inspection of expired tokens.
@@ -196,8 +213,4 @@ def handle_oauth_error(error: BearerTokenError) -> dict:
     """
     Convert Authlib OAuth errors to our error format.
     """
-    return {
-        "error": error.error,
-        "error_description": error.description,
-        "error_uri": error.uri
-    }
+    return {"error": error.error, "error_description": error.description, "error_uri": error.uri}

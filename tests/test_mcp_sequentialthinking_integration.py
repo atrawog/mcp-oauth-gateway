@@ -28,7 +28,9 @@ async def wait_for_services():
 class TestMCPSequentialThinkingIntegration:
     """Integration tests for mcp-sequentialthinking service using mcp-streamablehttp-client."""
 
-    def run_mcp_client(self, url: str, token: str, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+    def run_mcp_client(
+        self, url: str, token: str, method: str, params: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Run mcp-streamablehttp-client and return the response."""
         # Set environment variables
         env = os.environ.copy()
@@ -36,11 +38,7 @@ class TestMCPSequentialThinkingIntegration:
         env["MCP_CLIENT_ACCESS_TOKEN"] = token
 
         # Build the raw JSON-RPC request
-        request = {
-            "jsonrpc": "2.0",
-            "method": method,
-            "params": params or {}
-        }
+        request = {"jsonrpc": "2.0", "method": method, "params": params or {}}
 
         # Add ID for requests (not notifications)
         if method != "notifications/initialized":
@@ -51,25 +49,27 @@ class TestMCPSequentialThinkingIntegration:
 
         # Build the command
         cmd = [
-            "pixi", "run", "mcp-streamablehttp-client",
-            "--server-url", url,
-            "--raw", raw_request
+            "pixi",
+            "run",
+            "mcp-streamablehttp-client",
+            "--server-url",
+            url,
+            "--raw",
+            raw_request,
         ]
 
         # Run the command
         result = subprocess.run(
-            cmd,
-            check=False, capture_output=True,
-            text=True,
-            timeout=30,
-            env=env
+            cmd, check=False, capture_output=True, text=True, timeout=30, env=env
         )
 
         if result.returncode != 0:
             # Check if it's an expected error
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
-            pytest.fail(f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}")
+            pytest.fail(
+                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"
+            )
 
         # Parse the output - find the JSON response
         try:
@@ -80,16 +80,16 @@ class TestMCPSequentialThinkingIntegration:
             json_objects = []
             i = 0
             while i < len(output):
-                if output[i] == '{':
+                if output[i] == "{":
                     # Found start of JSON, find the matching closing brace
                     brace_count = 0
                     json_start = i
                     json_end = i
 
                     for j in range(i, len(output)):
-                        if output[j] == '{':
+                        if output[j] == "{":
                             brace_count += 1
-                        elif output[j] == '}':
+                        elif output[j] == "}":
                             brace_count -= 1
                             if brace_count == 0:
                                 json_end = j + 1
@@ -131,19 +131,21 @@ class TestMCPSequentialThinkingIntegration:
                 "capabilities": {
                     "tools": {},
                     "resources": {"subscribe": True},
-                    "prompts": {}
+                    "prompts": {},
                 },
                 "clientInfo": {
                     "name": "sequentialthinking-test-client",
-                    "version": "1.0.0"
-                }
-            }
+                    "version": "1.0.0",
+                },
+            },
         )
         assert "result" in response, f"Initialize failed: {response}"
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_initialize(self, mcp_sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_initialize(
+        self, mcp_sequentialthinking_url, client_token, wait_for_services
+    ):
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
             url=mcp_sequentialthinking_url,
@@ -156,30 +158,36 @@ class TestMCPSequentialThinkingIntegration:
                     "resources": {"subscribe": True},
                     "prompts": {},
                     "logging": {},
-                    "completions": {}
+                    "completions": {},
                 },
                 "clientInfo": {
                     "name": "test-sequentialthinking-client",
-                    "version": "1.0.0"
-                }
-            }
+                    "version": "1.0.0",
+                },
+            },
         )
 
         assert "result" in response
         result = response["result"]
         # Sequential thinking server should use one of the officially supported protocol versions
-        assert result["protocolVersion"] in MCP_PROTOCOL_VERSIONS_SUPPORTED, \
+        assert result["protocolVersion"] in MCP_PROTOCOL_VERSIONS_SUPPORTED, (
             f"Sequential thinking server protocol version {result['protocolVersion']} not in supported versions: {MCP_PROTOCOL_VERSIONS_SUPPORTED}"
+        )
         assert "serverInfo" in result
         # Server name should indicate sequential thinking functionality
         server_name = result["serverInfo"]["name"]
-        assert "sequential" in server_name.lower() or "thinking" in server_name.lower(), \
+        assert (
+            "sequential" in server_name.lower() or "thinking" in server_name.lower()
+        ), (
             f"Server name '{server_name}' doesn't indicate sequential thinking functionality"
+        )
         assert "capabilities" in result
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_list_tools(self, mcp_sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_list_tools(
+        self, mcp_sequentialthinking_url, client_token, wait_for_services
+    ):
         """Test listing available tools."""
         sequentialthinking_url = f"{mcp_sequentialthinking_url}"
         # First initialize
@@ -190,7 +198,7 @@ class TestMCPSequentialThinkingIntegration:
             url=mcp_sequentialthinking_url,
             token=client_token,
             method="tools/list",
-            params={}
+            params={},
         )
 
         assert "result" in response
@@ -209,12 +217,21 @@ class TestMCPSequentialThinkingIntegration:
         print(f"Available sequential thinking tools: {tool_names}")
 
         # Sequential thinking server should have thinking-related tools
-        thinking_tools = [name for name in tool_names if any(keyword in name.lower() for keyword in ["think", "sequential", "step", "analyze", "reason"])]
+        thinking_tools = [
+            name
+            for name in tool_names
+            if any(
+                keyword in name.lower()
+                for keyword in ["think", "sequential", "step", "analyze", "reason"]
+            )
+        ]
         assert len(thinking_tools) > 0, f"No thinking tools found in: {tool_names}"
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_list_resources(self, mcp_sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_list_resources(
+        self, mcp_sequentialthinking_url, client_token, wait_for_services
+    ):
         """Test listing available resources."""
         sequentialthinking_url = f"{mcp_sequentialthinking_url}"
         # Initialize first
@@ -225,13 +242,15 @@ class TestMCPSequentialThinkingIntegration:
             url=mcp_sequentialthinking_url,
             token=client_token,
             method="resources/list",
-            params={}
+            params={},
         )
 
         # Sequential thinking server may not support resources/list - check for error
         if "error" in response:
             # Sequential thinking server doesn't support resources - this is acceptable
-            print(f"Sequential thinking server doesn't support resources/list: {response['error']['message']}")
+            print(
+                f"Sequential thinking server doesn't support resources/list: {response['error']['message']}"
+            )
             assert response["error"]["code"] == -32601  # Method not found
         else:
             # If it does support resources, check the structure
@@ -249,7 +268,9 @@ class TestMCPSequentialThinkingIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_basic_functionality(self, mcp_sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_basic_functionality(
+        self, mcp_sequentialthinking_url, client_token, wait_for_services
+    ):
         """Test basic sequential thinking functionality if tools are available."""
         sequentialthinking_url = f"{mcp_sequentialthinking_url}"
         # Initialize
@@ -260,7 +281,7 @@ class TestMCPSequentialThinkingIntegration:
             url=mcp_sequentialthinking_url,
             token=client_token,
             method="tools/list",
-            params={}
+            params={},
         )
 
         tools = list_response["result"]["tools"]
@@ -272,11 +293,18 @@ class TestMCPSequentialThinkingIntegration:
 
             # Build basic arguments based on the input schema
             tool_args = {}
-            if "inputSchema" in first_tool and "properties" in first_tool["inputSchema"]:
+            if (
+                "inputSchema" in first_tool
+                and "properties" in first_tool["inputSchema"]
+            ):
                 # Add some basic arguments for thinking operations
                 for prop, schema in first_tool["inputSchema"]["properties"].items():
                     if schema.get("type") == "string":
-                        if "problem" in prop.lower() or "query" in prop.lower() or "question" in prop.lower():
+                        if (
+                            "problem" in prop.lower()
+                            or "query" in prop.lower()
+                            or "question" in prop.lower()
+                        ):
                             tool_args[prop] = "How can I optimize software performance?"
                         elif "topic" in prop.lower() or "subject" in prop.lower():
                             tool_args[prop] = "software optimization"
@@ -294,10 +322,7 @@ class TestMCPSequentialThinkingIntegration:
                 url=mcp_sequentialthinking_url,
                 token=client_token,
                 method="tools/call",
-                params={
-                    "name": first_tool["name"],
-                    "arguments": tool_args
-                }
+                params={"name": first_tool["name"], "arguments": tool_args},
             )
 
             print(f"Sequential thinking response: {json.dumps(response, indent=2)}")
@@ -306,13 +331,19 @@ class TestMCPSequentialThinkingIntegration:
             assert "result" in response or "error" in response
             if "result" in response:
                 assert "content" in response["result"]
-                print(f"Sequential thinking tool '{first_tool['name']}' executed successfully")
+                print(
+                    f"Sequential thinking tool '{first_tool['name']}' executed successfully"
+                )
             else:
-                print(f"Sequential thinking tool '{first_tool['name']}' returned error (may be expected): {response['error']}")
+                print(
+                    f"Sequential thinking tool '{first_tool['name']}' returned error (may be expected): {response['error']}"
+                )
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_health_check(self, mcp_sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_health_check(
+        self, mcp_sequentialthinking_url, client_token, wait_for_services
+    ):
         """Test that the sequential thinking service health endpoint is accessible."""
         # This test verifies the service is running and accessible
         # The actual health check is done via the docker health check
@@ -325,8 +356,8 @@ class TestMCPSequentialThinkingIntegration:
             params={
                 "protocolVersion": MCP_PROTOCOL_VERSION,
                 "capabilities": {},
-                "clientInfo": {"name": "health-test-client", "version": "1.0.0"}
-            }
+                "clientInfo": {"name": "health-test-client", "version": "1.0.0"},
+            },
         )
 
         assert "result" in response

@@ -2,6 +2,7 @@
 """Sacred MCP Client Token Generation Script
 Uses mcp-streamablehttp-client's --token flag to generate OAuth tokens and saves them to .env.
 """
+
 import os
 import re
 import subprocess
@@ -53,15 +54,19 @@ def extract_oauth_vars_from_output(output: str) -> dict[str, str]:
 
     # Pattern to match environment variable assignments
     # Matches: OAUTH_ACCESS_TOKEN=value or OAUTH_ACCESS_TOKEN = value
-    pattern = r'^(OAUTH_[A-Z_]+)\s*=\s*(.+)$'
+    pattern = r"^(OAUTH_[A-Z_]+)\s*=\s*(.+)$"
 
-    for line in output.split('\n'):
+    for line in output.split("\n"):
         match = re.match(pattern, line.strip())
         if match:
             key = match.group(1)
             value = match.group(2).strip()
             oauth_vars[key] = value
-            print(f"   Found: {key}={value[:20]}..." if len(value) > 20 else f"   Found: {key}={value}")
+            print(
+                f"   Found: {key}={value[:20]}..."
+                if len(value) > 20
+                else f"   Found: {key}={value}"
+            )
 
     return oauth_vars
 
@@ -73,17 +78,14 @@ def ensure_mcp_client_installed() -> bool:
     # Check if module is available
     check_cmd = ["pixi", "run", "python", "-c", "import mcp_streamablehttp_client"]
     check_result = subprocess.run(
-        check_cmd,
-        check=False, capture_output=True,
-        cwd=Path(__file__).parent.parent
+        check_cmd, check=False, capture_output=True, cwd=Path(__file__).parent.parent
     )
 
     if check_result.returncode != 0:
         print("📦 Installing mcp-streamablehttp-client...")
         install_cmd = ["pixi", "run", "install-mcp-client"]
         install_result = subprocess.run(
-            install_cmd,
-            check=False, cwd=Path(__file__).parent.parent
+            install_cmd, check=False, cwd=Path(__file__).parent.parent
         )
 
         if install_result.returncode != 0:
@@ -102,7 +104,9 @@ def main():
     """Main MCP client token generation flow."""
     print("🚀 MCP Client Token Generator")
     print("=============================")
-    print("This uses mcp-streamablehttp-client --token to generate and save OAuth tokens")
+    print(
+        "This uses mcp-streamablehttp-client --token to generate and save OAuth tokens"
+    )
     print()
 
     # Load environment
@@ -132,9 +136,14 @@ def main():
 
     # Run mcp-streamablehttp-client with --token flag using pixi
     cmd = [
-        "pixi", "run", "python", "-m", "mcp_streamablehttp_client.cli",
+        "pixi",
+        "run",
+        "python",
+        "-m",
+        "mcp_streamablehttp_client.cli",
         "--token",
-        "--server-url", mcp_url
+        "--server-url",
+        mcp_url,
     ]
 
     print(f"📋 Running: {' '.join(cmd)}")
@@ -143,10 +152,11 @@ def main():
     # Run the command and capture output
     result = subprocess.run(
         cmd,
-        check=False, env=env,
+        check=False,
+        env=env,
         cwd=Path(__file__).parent.parent,
         capture_output=True,
-        text=True
+        text=True,
     )
 
     # Print output for user to see OAuth flow

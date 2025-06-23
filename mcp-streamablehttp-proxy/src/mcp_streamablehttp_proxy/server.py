@@ -1,4 +1,5 @@
 """Server runner for the MCP stdio-to-HTTP proxy."""
+
 import logging
 from typing import List
 
@@ -14,7 +15,7 @@ def run_server(
     host: str = "0.0.0.0",
     port: int = 3000,
     session_timeout: int = 300,
-    log_level: str = "info"
+    log_level: str = "info",
 ):
     """Run the MCP stdio-to-HTTP proxy server.
 

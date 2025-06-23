@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Test MCP redirect behavior."""
+
 import os
 import sys
 
@@ -21,9 +22,9 @@ response = httpx.post(
     json={"jsonrpc": "2.0", "method": "ping", "id": 1},
     headers={
         "Authorization": f"Bearer {oauth_token}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     },
-    follow_redirects=False
+    follow_redirects=False,
 )
 print(f"  Status: {response.status_code}")
 if response.status_code == 307:
@@ -37,9 +38,9 @@ response = httpx.post(
     json={"jsonrpc": "2.0", "method": "ping", "id": 2},
     headers={
         "Authorization": f"Bearer {oauth_token}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     },
-    follow_redirects=False
+    follow_redirects=False,
 )
 print(f"  Status: {response.status_code}")
 print(f"  Body preview: {response.text[:200]}")
@@ -51,9 +52,9 @@ response = httpx.post(
     json={"jsonrpc": "2.0", "method": "ping", "id": 3},
     headers={
         "Authorization": f"Bearer {oauth_token}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     },
-    follow_redirects=True
+    follow_redirects=True,
 )
 print(f"  Status: {response.status_code}")
 print(f"  Final URL: {response.url}")

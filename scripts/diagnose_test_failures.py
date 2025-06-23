@@ -2,6 +2,7 @@
 """Test failure diagnosis script for MCP OAuth Gateway
 Runs comprehensive diagnostics to find root causes of test failures.
 """
+
 import asyncio
 import os
 import time
@@ -66,7 +67,7 @@ async def test_authentication_flow():
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(
                 f"https://auth.{base_domain}/verify",
-                headers={"Authorization": f"Bearer {oauth_token}"}
+                headers={"Authorization": f"Bearer {oauth_token}"},
             )
 
         if response.status_code == 200:
@@ -91,14 +92,14 @@ async def test_authentication_flow():
                     "params": {
                         "protocolVersion": "2025-06-18",
                         "capabilities": {"tools": {}},
-                        "clientInfo": {"name": "test", "version": "1.0"}
+                        "clientInfo": {"name": "test", "version": "1.0"},
                     },
-                    "id": "test-init"
+                    "id": "test-init",
                 },
                 headers={
                     "Authorization": f"Bearer {oauth_token}",
-                    "Content-Type": "application/json"
-                }
+                    "Content-Type": "application/json",
+                },
             )
 
         if response.status_code == 200:
@@ -139,14 +140,14 @@ async def test_mcp_protocol():
                     "params": {
                         "protocolVersion": "2025-06-18",
                         "capabilities": {"tools": {}},
-                        "clientInfo": {"name": "diagnosis", "version": "1.0"}
+                        "clientInfo": {"name": "diagnosis", "version": "1.0"},
                     },
-                    "id": "diag-init"
+                    "id": "diag-init",
                 },
                 headers={
                     "Authorization": f"Bearer {oauth_token}",
-                    "Content-Type": "application/json"
-                }
+                    "Content-Type": "application/json",
+                },
             )
 
             if init_response.status_code != 200:
@@ -166,13 +167,13 @@ async def test_mcp_protocol():
                 json={
                     "jsonrpc": "2.0",
                     "method": "notifications/initialized",
-                    "params": {}
+                    "params": {},
                 },
                 headers={
                     "Authorization": f"Bearer {oauth_token}",
                     "Content-Type": "application/json",
-                    "Mcp-Session-Id": session_id
-                }
+                    "Mcp-Session-Id": session_id,
+                },
             )
 
             print("✅ Initialized notification sent")
@@ -184,13 +185,13 @@ async def test_mcp_protocol():
                     "jsonrpc": "2.0",
                     "method": "tools/list",
                     "params": {},
-                    "id": "diag-tools"
+                    "id": "diag-tools",
                 },
                 headers={
                     "Authorization": f"Bearer {oauth_token}",
                     "Content-Type": "application/json",
-                    "Mcp-Session-Id": session_id
-                }
+                    "Mcp-Session-Id": session_id,
+                },
             )
 
             if tools_response.status_code == 200:
@@ -209,15 +210,15 @@ async def test_mcp_protocol():
                     "method": "tools/call",
                     "params": {
                         "name": "fetch",
-                        "arguments": {"url": "https://example.com"}
+                        "arguments": {"url": "https://example.com"},
                     },
-                    "id": "diag-fetch"
+                    "id": "diag-fetch",
                 },
                 headers={
                     "Authorization": f"Bearer {oauth_token}",
                     "Content-Type": "application/json",
-                    "Mcp-Session-Id": session_id
-                }
+                    "Mcp-Session-Id": session_id,
+                },
             )
 
             if fetch_response.status_code == 200:
@@ -247,19 +248,21 @@ def analyze_token_issues():
         return False
 
     try:
-        payload = jwt.decode(oauth_token, key="", options={'verify_signature': False})
+        payload = jwt.decode(oauth_token, key="", options={"verify_signature": False})
 
         # Check expiration
-        exp = payload.get('exp')
+        exp = payload.get("exp")
         now = int(time.time())
 
         if exp and exp < now:
             print(f"❌ Token expired {now - exp} seconds ago")
-            print("   Solution: Run 'just refresh-tokens' or 'just generate-github-token'")
+            print(
+                "   Solution: Run 'just refresh-tokens' or 'just generate-github-token'"
+            )
             return False
 
         # Check claims
-        required_claims = ['sub', 'username', 'client_id', 'jti']
+        required_claims = ["sub", "username", "client_id", "jti"]
         missing_claims = [claim for claim in required_claims if not payload.get(claim)]
 
         if missing_claims:
@@ -284,8 +287,12 @@ def check_environment():
     print("-" * 40)
 
     required_vars = [
-        "BASE_DOMAIN", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET",
-        "GATEWAY_JWT_SECRET", "REDIS_PASSWORD", "GATEWAY_OAUTH_ACCESS_TOKEN"
+        "BASE_DOMAIN",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
+        "GATEWAY_JWT_SECRET",
+        "REDIS_PASSWORD",
+        "GATEWAY_OAUTH_ACCESS_TOKEN",
     ]
 
     missing_vars = []
@@ -365,4 +372,5 @@ async def main():
 
 if __name__ == "__main__":
     import time
+
     asyncio.run(main())

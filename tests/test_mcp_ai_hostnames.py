@@ -55,10 +55,14 @@ class TestMCPAIHostnames:
             try:
                 # First test without auth - should get 401
                 response = await http_client.post(url)
-                assert response.status_code == 401, f"{name} should require authentication"
+                assert response.status_code == 401, (
+                    f"{name} should require authentication"
+                )
 
                 # Test with auth - initialize request
-                assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available"
+                assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+                    "GATEWAY_OAUTH_ACCESS_TOKEN not available"
+                )
 
                 init_request = {
                     "jsonrpc": "2.0",
@@ -68,19 +72,21 @@ class TestMCPAIHostnames:
                         "capabilities": {},
                         "clientInfo": {
                             "name": f"TEST test_hostname_connectivity_{hostname}",
-                            "version": "1.0.0"
-                        }
+                            "version": "1.0.0",
+                        },
                     },
-                    "id": 1
+                    "id": 1,
                 }
 
                 response = await http_client.post(
                     url,
                     json=init_request,
-                    headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+                    headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
                 )
 
-                assert response.status_code == 200, f"{name} failed to initialize: {response.text}"
+                assert response.status_code == 200, (
+                    f"{name} failed to initialize: {response.text}"
+                )
 
                 # Verify response structure
                 result = response.json()
@@ -97,7 +103,9 @@ class TestMCPAIHostnames:
                 successful += 1
 
             except httpx.ConnectError as e:
-                print(f"⚠️  {name} connection error (certificate might not be ready): {e}")
+                print(
+                    f"⚠️  {name} connection error (certificate might not be ready): {e}"
+                )
                 failed += 1
                 # This is expected if Let's Encrypt hasn't issued certificates for new hostnames yet
                 continue
@@ -106,7 +114,9 @@ class TestMCPAIHostnames:
                 failed += 1
                 continue
 
-        print(f"\n📊 Connectivity test results: {successful} successful, {failed} failed")
+        print(
+            f"\n📊 Connectivity test results: {successful} successful, {failed} failed"
+        )
 
         # At least some hostnames should work
         assert successful > 0, "No AI hostnames were accessible"
@@ -122,12 +132,16 @@ class TestMCPAIHostnames:
                 # Per CLAUDE.md, health is checked via MCP protocol, not /health endpoint
                 # Test that endpoint requires auth (returns 401)
                 response = await http_client.get(url)
-                assert response.status_code == 401, f"{name} should require authentication"
+                assert response.status_code == 401, (
+                    f"{name} should require authentication"
+                )
                 assert "WWW-Authenticate" in response.headers
 
                 print(f"✅ {name} MCP endpoint properly secured")
             except httpx.ConnectError as e:
-                print(f"⚠️  {name} connection error (certificate might not be ready): {e}")
+                print(
+                    f"⚠️  {name} connection error (certificate might not be ready): {e}"
+                )
                 # This is expected if Let's Encrypt hasn't issued certificates for new hostnames yet
                 continue
 
@@ -135,7 +149,6 @@ class TestMCPAIHostnames:
     async def test_oauth_discovery_endpoints(self, http_client: httpx.AsyncClient):
         """Test OAuth discovery endpoints for all hostnames."""
         for name, url, _ in self.HOSTNAMES:
-
             # Construct discovery endpoint - remove /mcp suffix if present
             base_url = url[:-4] if url.endswith("/mcp") else url
             discovery_url = f"{base_url}/.well-known/oauth-authorization-server"
@@ -153,7 +166,9 @@ class TestMCPAIHostnames:
 
                 print(f"✅ {name} OAuth discovery working")
             except httpx.ConnectError as e:
-                print(f"⚠️  {name} connection error (certificate might not be ready): {e}")
+                print(
+                    f"⚠️  {name} connection error (certificate might not be ready): {e}"
+                )
                 # This is expected if Let's Encrypt hasn't issued certificates for new hostnames yet
                 continue
 
@@ -175,10 +190,10 @@ class TestMCPAIHostnames:
                 "capabilities": {},
                 "clientInfo": {
                     "name": "TEST test_fetch_through_ai_hostname",
-                    "version": "1.0.0"
-                }
+                    "version": "1.0.0",
+                },
             },
-            "id": 1
+            "id": 1,
         }
 
         headers = {"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
@@ -196,10 +211,12 @@ class TestMCPAIHostnames:
             "jsonrpc": "2.0",
             "method": "tools/list",
             "params": {},
-            "id": 2
+            "id": 2,
         }
 
-        tools_response = await http_client.post(url, json=list_tools_request, headers=headers)
+        tools_response = await http_client.post(
+            url, json=list_tools_request, headers=headers
+        )
         assert tools_response.status_code == 200
 
         tools_result = tools_response.json()
@@ -233,7 +250,9 @@ class TestMCPAIHostnames:
                 if response.status_code == 401:  # Expected when no auth
                     accessible.append((name, url))
                 else:
-                    inaccessible.append((name, url, f"Unexpected status: {response.status_code}"))
+                    inaccessible.append(
+                        (name, url, f"Unexpected status: {response.status_code}")
+                    )
             except httpx.ConnectError:
                 inaccessible.append((name, url, "SSL certificate not ready"))
             except Exception as e:
@@ -257,9 +276,15 @@ class TestMCPAIHostnames:
         # Check that we have at least one hostname configured
         assert len(configured) > 0, "Should have at least one AI hostname configured"
 
-        print(f"\n📈 Summary: {len(configured)} configured, {len(accessible)} accessible, {len(inaccessible)} not ready")
+        print(
+            f"\n📈 Summary: {len(configured)} configured, {len(accessible)} accessible, {len(inaccessible)} not ready"
+        )
 
         # At least some should be accessible
         if len(accessible) == 0:
-            print("\n⚠️  No AI hostnames are accessible yet. This is expected if Let's Encrypt hasn't issued certificates.")
-            print("   The hostnames are properly configured in Traefik and will work once certificates are issued.")
+            print(
+                "\n⚠️  No AI hostnames are accessible yet. This is expected if Let's Encrypt hasn't issued certificates."
+            )
+            print(
+                "   The hostnames are properly configured in Traefik and will work once certificates are issued."
+            )

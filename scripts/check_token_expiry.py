@@ -2,6 +2,7 @@
 """Token expiry checker for MCP OAuth Gateway
 Checks if tokens are expired and suggests refresh.
 """
+
 import os
 import sys
 import time
@@ -14,15 +15,15 @@ from jose import jwt
 def check_jwt_expiry(token_name: str, token: str) -> bool:
     """Check JWT token expiry."""
     try:
-        payload = jwt.decode(token, key="", options={'verify_signature': False})
-        exp = payload.get('exp')
+        payload = jwt.decode(token, key="", options={"verify_signature": False})
+        exp = payload.get("exp")
 
         if not exp:
             print(f"⚠️  {token_name}: No expiration claim found")
             return True  # Assume valid if no expiry
 
         now = int(time.time())
-        iat = payload.get('iat', 0)
+        iat = payload.get("iat", 0)
 
         print(f"\n🔍 {token_name}:")
         print(f"   Issued: {datetime.fromtimestamp(iat)}")
@@ -31,7 +32,9 @@ def check_jwt_expiry(token_name: str, token: str) -> bool:
 
         if exp < now:
             expired_for = now - exp
-            print(f"   ❌ EXPIRED {expired_for} seconds ago ({expired_for/3600:.1f} hours)")
+            print(
+                f"   ❌ EXPIRED {expired_for} seconds ago ({expired_for / 3600:.1f} hours)"
+            )
             return False
         remaining = exp - now
         hours_left = remaining / 3600

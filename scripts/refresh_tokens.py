@@ -3,6 +3,7 @@
 Validates all required tokens and fails if any are missing or invalid.
 Does NOT attempt to generate tokens that require manual intervention (like GitHub PAT).
 """
+
 import asyncio
 import json
 import os
@@ -23,8 +24,8 @@ def load_env_file():
     with open(env_file) as f:
         for line in f:
             line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
+            if line and not line.startswith("#") and "=" in line:
+                key, value = line.split("=", 1)
                 os.environ[key] = value
     return True
 
@@ -33,17 +34,18 @@ def check_token_expiry(token: str) -> tuple[bool, int]:
     """Check if JWT token is expired. Returns (is_valid, seconds_until_expiry)."""
     try:
         import base64
-        parts = token.split('.')
+
+        parts = token.split(".")
         if len(parts) != 3:
             return False, 0
 
         # Decode payload
         payload_part = parts[1]
-        payload_part += '=' * (4 - len(payload_part) % 4)
+        payload_part += "=" * (4 - len(payload_part) % 4)
         payload_json = base64.urlsafe_b64decode(payload_part)
         payload = json.loads(payload_json)
 
-        exp = payload.get('exp', 0)
+        exp = payload.get("exp", 0)
         now = int(time.time())
 
         if exp <= now:
@@ -81,9 +83,9 @@ async def refresh_oauth_token():
                     "grant_type": "refresh_token",
                     "refresh_token": refresh_token,
                     "client_id": client_id,
-                    "client_secret": client_secret
+                    "client_secret": client_secret,
                 },
-                headers={"Content-Type": "application/x-www-form-urlencoded"}
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
 
         if response.status_code == 200:
@@ -129,8 +131,8 @@ async def check_github_token():
                 "https://api.github.com/user",
                 headers={
                     "Authorization": f"token {github_pat}",
-                    "Accept": "application/vnd.github.v3+json"
-                }
+                    "Accept": "application/vnd.github.v3+json",
+                },
             )
 
         if response.status_code == 200:
@@ -157,7 +159,7 @@ async def refresh_mcp_client_token():
         # Check if it's valid
         is_valid, ttl = check_token_expiry(mcp_token)
         if is_valid and ttl > 300:  # More than 5 minutes left
-            print(f"✅ MCP client token is valid (expires in {ttl/3600:.1f} hours)")
+            print(f"✅ MCP client token is valid (expires in {ttl / 3600:.1f} hours)")
             return True
 
     # Use gateway token as MCP client token if needed
@@ -190,7 +192,7 @@ def update_env_file(key: str, value: str):
     if not found:
         lines.append(f"{key}={value}\n")
 
-    with open(env_file, 'w') as f:
+    with open(env_file, "w") as f:
         f.writelines(lines)
 
 
@@ -205,7 +207,7 @@ async def validate_all_tokens():
         "BASE_DOMAIN": "Base domain",
         "GITHUB_CLIENT_ID": "GitHub OAuth client ID",
         "GITHUB_CLIENT_SECRET": "GitHub OAuth client secret",
-        "GATEWAY_JWT_SECRET": "JWT signing secret"
+        "GATEWAY_JWT_SECRET": "JWT signing secret",
     }
 
     all_valid = True
@@ -228,7 +230,7 @@ async def validate_all_tokens():
             print(f"⚠️  Gateway token expires soon ({ttl} seconds)")
             all_valid = False
         else:
-            print(f"✅ Gateway token valid for {ttl/3600:.1f} hours")
+            print(f"✅ Gateway token valid for {ttl / 3600:.1f} hours")
 
     return all_valid
 
@@ -257,10 +259,10 @@ async def main():
             print("❌ Gateway token is expired!")
             needs_refresh = True
         elif ttl < 3600:  # Less than 1 hour
-            print(f"⚠️  Gateway token expires in {ttl/60:.1f} minutes")
+            print(f"⚠️  Gateway token expires in {ttl / 60:.1f} minutes")
             needs_refresh = True
         else:
-            print(f"✅ Gateway token valid for {ttl/3600:.1f} hours")
+            print(f"✅ Gateway token valid for {ttl / 3600:.1f} hours")
 
     # Refresh if needed
     if needs_refresh and not await refresh_oauth_token():

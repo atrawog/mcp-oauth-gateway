@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Simulate what happens with different Traefik routing configurations."""
 
+
 def test_traefik_routing(path, rules):
     """Simulate Traefik routing decision."""
     print(f"\nTesting path: {path}")
@@ -35,55 +36,50 @@ def test_traefik_routing(path, rules):
         if total_match:
             print("  ✓ This rule would handle the request!")
 
+
 # Original configuration (missing PathPrefix)
-print("\n" + "="*70)
+print("\n" + "=" * 70)
 print("ORIGINAL CONFIGURATION (BUG)")
-print("="*70)
+print("=" * 70)
 
 original_rules = {
     "mcp-fetch-health": {
         "rule": "Host(`mcp-fetch.domain.com`) && Path(`/health`)",
-        "priority": 3
+        "priority": 3,
     },
     "mcp-fetch": {
         "rule": "Host(`mcp-fetch.domain.com`)",  # Missing PathPrefix!
-        "priority": 2
+        "priority": 2,
     },
-    "mcp-fetch-catchall": {
-        "rule": "Host(`mcp-fetch.domain.com`)",
-        "priority": 1
-    }
+    "mcp-fetch-catchall": {"rule": "Host(`mcp-fetch.domain.com`)", "priority": 1},
 }
 
 # Test the problematic path
 test_traefik_routing("/mcp", original_rules)
 
 # Fixed configuration
-print("\n" + "="*70)
+print("\n" + "=" * 70)
 print("FIXED CONFIGURATION")
-print("="*70)
+print("=" * 70)
 
 fixed_rules = {
     "mcp-fetch-health": {
         "rule": "Host(`mcp-fetch.domain.com`) && Path(`/health`)",
-        "priority": 3
+        "priority": 3,
     },
     "mcp-fetch": {
         "rule": "Host(`mcp-fetch.domain.com`) && PathPrefix(`/mcp`)",  # Fixed!
-        "priority": 2
+        "priority": 2,
     },
-    "mcp-fetch-catchall": {
-        "rule": "Host(`mcp-fetch.domain.com`)",
-        "priority": 1
-    }
+    "mcp-fetch-catchall": {"rule": "Host(`mcp-fetch.domain.com`)", "priority": 1},
 }
 
 test_traefik_routing("/mcp", fixed_rules)
 
 # Test other paths
-print("\n" + "="*70)
+print("\n" + "=" * 70)
 print("TESTING OTHER PATHS WITH FIXED CONFIG")
-print("="*70)
+print("=" * 70)
 
 for path in ["/", "/health", "/mcp/tools/list", "/random"]:
     test_traefik_routing(path, fixed_rules)

@@ -12,6 +12,7 @@ def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
+
 @pytest.fixture
 def valid_oauth_token():
     """Valid OAuth token for testing."""
@@ -20,7 +21,9 @@ def valid_oauth_token():
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_health_check(mcp_fetchs_url, wait_for_services, valid_oauth_token):
+async def test_fetch_native_health_check(
+    mcp_fetchs_url, wait_for_services, valid_oauth_token
+):
     """Test health check via MCP protocol initialization."""
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
@@ -31,14 +34,14 @@ async def test_fetch_native_health_check(mcp_fetchs_url, wait_for_services, vali
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {"name": "healthcheck", "version": "1.0"}
+                    "clientInfo": {"name": "healthcheck", "version": "1.0"},
                 },
-                "id": 1
+                "id": 1,
             },
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {valid_oauth_token}"
-            }
+                "Authorization": f"Bearer {valid_oauth_token}",
+            },
         )
 
     assert response.status_code == 200
@@ -57,7 +60,7 @@ async def test_fetch_native_requires_auth(mcp_fetchs_url, wait_for_services):
         response = await client.post(
             f"{mcp_fetchs_url}",
             json={"jsonrpc": "2.0", "method": "initialize", "id": 1},
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
     assert response.status_code == 401
@@ -74,8 +77,8 @@ async def test_fetch_native_cors_preflight(mcp_fetchs_url, wait_for_services):
             headers={
                 "Origin": "https://claude.ai",
                 "Access-Control-Request-Method": "POST",
-                "Access-Control-Request-Headers": "Content-Type, Authorization"
-            }
+                "Access-Control-Request-Headers": "Content-Type, Authorization",
+            },
         )
 
     assert response.status_code == 200
@@ -88,7 +91,9 @@ async def test_fetch_native_cors_preflight(mcp_fetchs_url, wait_for_services):
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_initialize(mcp_fetchs_url, valid_oauth_token, wait_for_services):
+async def test_fetch_native_initialize(
+    mcp_fetchs_url, valid_oauth_token, wait_for_services
+):
     """Test MCP initialization."""
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
@@ -96,17 +101,14 @@ async def test_fetch_native_initialize(mcp_fetchs_url, valid_oauth_token, wait_f
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
-                "params": {
-                    "protocolVersion": "2025-06-18",
-                    "capabilities": {}
-                },
-                "id": 1
+                "params": {"protocolVersion": "2025-06-18", "capabilities": {}},
+                "id": 1,
             },
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {valid_oauth_token}",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
     assert response.status_code == 200
@@ -128,20 +130,18 @@ async def test_fetch_native_initialize(mcp_fetchs_url, valid_oauth_token, wait_f
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_list_tools(mcp_fetchs_url, valid_oauth_token, wait_for_services):
+async def test_fetch_native_list_tools(
+    mcp_fetchs_url, valid_oauth_token, wait_for_services
+):
     """Test listing available tools."""
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
             f"{mcp_fetchs_url}",
-            json={
-                "jsonrpc": "2.0",
-                "method": "tools/list",
-                "id": 2
-            },
+            json={"jsonrpc": "2.0", "method": "tools/list", "id": 2},
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {valid_oauth_token}"
-            }
+                "Authorization": f"Bearer {valid_oauth_token}",
+            },
         )
 
     assert response.status_code == 200
@@ -163,7 +163,9 @@ async def test_fetch_native_list_tools(mcp_fetchs_url, valid_oauth_token, wait_f
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_call_tool_fetch(mcp_fetchs_url, base_domain, valid_oauth_token, wait_for_services):
+async def test_fetch_native_call_tool_fetch(
+    mcp_fetchs_url, base_domain, valid_oauth_token, wait_for_services
+):
     """Test calling the fetch tool."""
     # Fetch from our own auth service's health endpoint
     async with httpx.AsyncClient(verify=False) as client:
@@ -176,15 +178,15 @@ async def test_fetch_native_call_tool_fetch(mcp_fetchs_url, base_domain, valid_o
                     "name": "fetch",
                     "arguments": {
                         "url": f"https://auth.{base_domain}/.well-known/oauth-authorization-server",
-                        "method": "GET"
-                    }
+                        "method": "GET",
+                    },
                 },
-                "id": 3
+                "id": 3,
             },
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {valid_oauth_token}"
-            }
+                "Authorization": f"Bearer {valid_oauth_token}",
+            },
         )
 
     assert response.status_code == 200
@@ -204,7 +206,9 @@ async def test_fetch_native_call_tool_fetch(mcp_fetchs_url, base_domain, valid_o
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_invalid_json_rpc(mcp_fetchs_url, valid_oauth_token, wait_for_services):
+async def test_fetch_native_invalid_json_rpc(
+    mcp_fetchs_url, valid_oauth_token, wait_for_services
+):
     """Test handling of invalid JSON-RPC requests."""
     async with httpx.AsyncClient(verify=False) as client:
         # Missing jsonrpc version
@@ -213,8 +217,8 @@ async def test_fetch_native_invalid_json_rpc(mcp_fetchs_url, valid_oauth_token, 
             json={"method": "test", "id": 1},
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {valid_oauth_token}"
-            }
+                "Authorization": f"Bearer {valid_oauth_token}",
+            },
         )
 
     assert response.status_code == 400
@@ -227,20 +231,18 @@ async def test_fetch_native_invalid_json_rpc(mcp_fetchs_url, valid_oauth_token, 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_unknown_method(mcp_fetchs_url, valid_oauth_token, wait_for_services):
+async def test_fetch_native_unknown_method(
+    mcp_fetchs_url, valid_oauth_token, wait_for_services
+):
     """Test handling of unknown methods."""
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
             f"{mcp_fetchs_url}",
-            json={
-                "jsonrpc": "2.0",
-                "method": "unknown/method",
-                "id": 1
-            },
+            json={"jsonrpc": "2.0", "method": "unknown/method", "id": 1},
             headers={
                 "Content-Type": "application/json",
-                "Authorization": f"Bearer {valid_oauth_token}"
-            }
+                "Authorization": f"Bearer {valid_oauth_token}",
+            },
         )
 
     assert response.status_code == 200
@@ -256,7 +258,9 @@ async def test_fetch_native_unknown_method(mcp_fetchs_url, valid_oauth_token, wa
 async def test_fetch_native_oauth_discovery(wait_for_services):
     """Test OAuth discovery endpoint routing."""
     # Use base domain for OAuth discovery, not the /mcp endpoint
-    oauth_discovery_url = f"https://fetch.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
+    oauth_discovery_url = (
+        f"https://fetch.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
+    )
 
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.get(oauth_discovery_url)

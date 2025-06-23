@@ -1,6 +1,7 @@
 """Sacred Claude.ai Integration Tests - The Nine Sacred Steps of Connection
 Tests the complete flow as Claude.ai would experience it.
 """
+
 import base64
 import hashlib
 import os
@@ -23,7 +24,9 @@ class TestClaudeIntegration:
     async def test_claude_nine_sacred_steps(self, http_client, wait_for_services):
         """Test the Nine Sacred Steps of Claude.ai Connection."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         client_creds = None
         try:
@@ -35,11 +38,11 @@ class TestClaudeIntegration:
                     "method": "initialize",
                     "params": {
                         "protocolVersion": MCP_PROTOCOL_VERSION,
-                        "clientCapabilities": {}
+                        "clientCapabilities": {},
                     },
-                    "id": 1
+                    "id": 1,
                 },
-                follow_redirects=False
+                follow_redirects=False,
             )
 
             # Step 2: Divine Rejection - 401 with WWW-Authenticate
@@ -66,13 +69,13 @@ class TestClaudeIntegration:
                 "scope": "mcp:access",
                 "grant_types": ["authorization_code", "refresh_token"],
                 "response_types": ["code"],
-                "token_endpoint_auth_method": "client_secret_post"
+                "token_endpoint_auth_method": "client_secret_post",
             }
 
             reg_response = await http_client.post(
                 f"{AUTH_BASE_URL}/register",
                 json=registration_data,
-                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
             )
 
             # Step 5: Client Blessing - Receives credentials
@@ -81,20 +84,30 @@ class TestClaudeIntegration:
             assert "client_id" in client_creds
             assert "client_secret" in client_creds
             # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
-            client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
+            client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
             if client_lifetime == 0:
                 assert client_creds["client_secret_expires_at"] == 0  # Never expires
             else:
                 # Should be created_at + CLIENT_LIFETIME
-                created_at = client_creds.get('client_id_issued_at')
+                created_at = client_creds.get("client_id_issued_at")
                 expected_expiry = created_at + client_lifetime
-                assert abs(client_creds["client_secret_expires_at"] - expected_expiry) <= 5
+                assert (
+                    abs(client_creds["client_secret_expires_at"] - expected_expiry) <= 5
+                )
 
             # Step 6: PKCE Summoning - S256 challenge generated
-            code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8').rstrip('=')
-            code_challenge = base64.urlsafe_b64encode(
-                hashlib.sha256(code_verifier.encode()).digest()
-            ).decode('utf-8').rstrip('=')
+            code_verifier = (
+                base64.urlsafe_b64encode(secrets.token_bytes(32))
+                .decode("utf-8")
+                .rstrip("=")
+            )
+            code_challenge = (
+                base64.urlsafe_b64encode(
+                    hashlib.sha256(code_verifier.encode()).digest()
+                )
+                .decode("utf-8")
+                .rstrip("=")
+            )
 
             # Step 7: GitHub Pilgrimage - User authenticates
             auth_params = {
@@ -104,13 +117,11 @@ class TestClaudeIntegration:
                 "scope": "mcp:access",
                 "state": secrets.token_urlsafe(16),
                 "code_challenge": code_challenge,
-                "code_challenge_method": "S256"
+                "code_challenge_method": "S256",
             }
 
             auth_response = await http_client.get(
-                f"{AUTH_BASE_URL}/authorize",
-                params=auth_params,
-                follow_redirects=False
+                f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
             )
 
             # Should redirect to GitHub
@@ -131,15 +142,23 @@ class TestClaudeIntegration:
 
         finally:
             # Clean up the created client using RFC 7592 DELETE
-            if client_creds and "registration_access_token" in client_creds and "client_id" in client_creds:
+            if (
+                client_creds
+                and "registration_access_token" in client_creds
+                and "client_id" in client_creds
+            ):
                 try:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client_creds['client_id']}",
-                        headers={"Authorization": f"Bearer {client_creds['registration_access_token']}"}
+                        headers={
+                            "Authorization": f"Bearer {client_creds['registration_access_token']}"
+                        },
                     )
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
-                        print(f"Warning: Failed to delete client {client_creds['client_id']}: {delete_response.status_code}")
+                        print(
+                            f"Warning: Failed to delete client {client_creds['client_id']}: {delete_response.status_code}"
+                        )
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
 
@@ -149,7 +168,7 @@ class TestClaudeIntegration:
         # Claude.ai discovers auth is required
         mcp_response = await http_client.get(
             f"{MCP_FETCH_URL}",
-            headers={"Accept": "application/json, text/event-stream"}
+            headers={"Accept": "application/json, text/event-stream"},
         )
 
         assert mcp_response.status_code == 401
@@ -169,7 +188,7 @@ class TestClaudeIntegration:
             "issuer",
             "authorization_endpoint",
             "token_endpoint",
-            "registration_endpoint"
+            "registration_endpoint",
         ]
 
         for endpoint in required_endpoints:
@@ -189,13 +208,14 @@ class TestClaudeIntegration:
             "redirect_uri": registered_client["redirect_uris"][0],
             "client_id": registered_client["client_id"],
             "client_secret": registered_client["client_secret"],
-            "code_verifier": base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8').rstrip('=')  # PKCE verifier
+            "code_verifier": base64.urlsafe_b64encode(secrets.token_bytes(32))
+            .decode("utf-8")
+            .rstrip("="),  # PKCE verifier
         }
 
         # Test that endpoint exists and validates input
         token_response = await http_client.post(
-            f"{AUTH_BASE_URL}/token",
-            data=token_request
+            f"{AUTH_BASE_URL}/token", data=token_request
         )
 
         # Should fail with invalid_grant (not invalid_request)
@@ -207,9 +227,7 @@ class TestClaudeIntegration:
     async def test_claude_mcp_streaming(self, http_client, wait_for_services):
         """Test MCP streaming capabilities for Claude.ai."""
         # Test that MCP endpoint supports streaming headers
-        headers = {
-            "Accept": "text/event-stream"
-        }
+        headers = {"Accept": "text/event-stream"}
 
         # POST with potential for streaming response (no auth)
         response = await http_client.post(
@@ -218,10 +236,10 @@ class TestClaudeIntegration:
                 "jsonrpc": "2.0",
                 "method": "initialize",
                 "params": {"protocolVersion": MCP_PROTOCOL_VERSION},
-                "id": 1
+                "id": 1,
             },
             headers=headers,
-            follow_redirects=False
+            follow_redirects=False,
         )
 
         # Should fail auth but accept the streaming header
@@ -240,8 +258,8 @@ class TestClaudeIntegration:
                 "client_id": registered_client["client_id"],
                 "redirect_uri": "https://evil.com/callback",
                 "response_type": "code",
-                "state": "test"
-            }
+                "state": "test",
+            },
         )
 
         assert response.status_code == 400  # Must not redirect
@@ -255,9 +273,9 @@ class TestClaudeIntegration:
                 "client_id": registered_client["client_id"],
                 "redirect_uri": registered_client["redirect_uris"][0],
                 "response_type": "code",
-                "state": "test"
+                "state": "test",
                 # Missing code_challenge
-            }
+            },
         )
 
         # Should still proceed (PKCE recommended but not required)
@@ -272,14 +290,8 @@ class TestClaudeIntegration:
         # Send request with session ID (no auth)
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
-            json={
-                "jsonrpc": "2.0",
-                "method": "ping",
-                "id": 1
-            },
-            headers={
-                "Mcp-Session-Id": session_id
-            }
+            json={"jsonrpc": "2.0", "method": "ping", "id": 1},
+            headers={"Mcp-Session-Id": session_id},
         )
 
         # Should get 401 but session header is accepted

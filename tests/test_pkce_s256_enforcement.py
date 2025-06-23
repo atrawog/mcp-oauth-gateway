@@ -1,4 +1,5 @@
 """Test PKCE S256 enforcement and plain method rejection per CLAUDE.md sacred laws."""
+
 import base64
 import hashlib
 import secrets
@@ -17,7 +18,9 @@ class TestPKCES256Enforcement:
     async def test_pkce_plain_method_rejected(self, http_client, wait_for_services):
         """Verify that plain PKCE method is rejected per CLAUDE.md commandments."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         # Register a client
         register_response = await http_client.post(
@@ -26,9 +29,9 @@ class TestPKCES256Enforcement:
                 "redirect_uris": [TEST_CALLBACK_URL],
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"],
-                "client_name": "TEST test_pkce_plain_method_rejected"
+                "client_name": "TEST test_pkce_plain_method_rejected",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
         assert register_response.status_code == 201
         client_data = register_response.json()
@@ -41,13 +44,11 @@ class TestPKCES256Enforcement:
             "redirect_uri": TEST_CALLBACK_URL,
             "code_challenge": code_verifier,  # Plain method uses verifier as challenge
             "code_challenge_method": "plain",
-            "state": "test-state"
+            "state": "test-state",
         }
 
         auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize",
-            params=auth_params,
-            follow_redirects=False
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
         )
 
         # Should reject plain method
@@ -55,19 +56,25 @@ class TestPKCES256Enforcement:
         error_data = auth_response.json()
         assert "detail" in error_data
         assert "error" in error_data["detail"]
-        assert "plain" in error_data["detail"].get("error_description", "").lower() or \
-               "s256" in error_data["detail"].get("error_description", "").lower()
+        assert (
+            "plain" in error_data["detail"].get("error_description", "").lower()
+            or "s256" in error_data["detail"].get("error_description", "").lower()
+        )
 
         # Cleanup: Delete the client registration using RFC 7592
         if "registration_access_token" in client_data and "client_id" in client_data:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                    headers={
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                    },
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
-                    print(f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}")
+                    print(
+                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}"
+                    )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
@@ -75,7 +82,9 @@ class TestPKCES256Enforcement:
     async def test_pkce_s256_proper_validation(self, http_client, wait_for_services):
         """Verify S256 PKCE validation actually works correctly."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         # Register a client
         register_response = await http_client.post(
@@ -84,9 +93,9 @@ class TestPKCES256Enforcement:
                 "redirect_uris": [TEST_CALLBACK_URL],
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"],
-                "client_name": "TEST test_pkce_s256_proper_validation"
+                "client_name": "TEST test_pkce_s256_proper_validation",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
         assert register_response.status_code == 201
         client_data = register_response.json()
@@ -103,13 +112,11 @@ class TestPKCES256Enforcement:
             "redirect_uri": TEST_CALLBACK_URL,
             "code_challenge": code_challenge,
             "code_challenge_method": "S256",
-            "state": "test-state"
+            "state": "test-state",
         }
 
         auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize",
-            params=auth_params,
-            follow_redirects=False
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
         )
 
         # For now, we expect 307 redirect to GitHub (no user session)
@@ -122,16 +129,22 @@ class TestPKCES256Enforcement:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                    headers={
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                    },
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
-                    print(f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}")
+                    print(
+                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}"
+                    )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_pkce_s256_wrong_verifier_rejected(self, http_client, wait_for_services):
+    async def test_pkce_s256_wrong_verifier_rejected(
+        self, http_client, wait_for_services
+    ):
         """Verify that incorrect PKCE verifier is rejected through full OAuth flow."""
         # This test verifies PKCE validation by attempting authorization with wrong challenge
         # A full OAuth flow test would require simulating GitHub callback
@@ -139,9 +152,13 @@ class TestPKCES256Enforcement:
         # Covered by other tests
 
     @pytest.mark.asyncio
-    async def test_server_metadata_only_advertises_s256(self, http_client, wait_for_services):
+    async def test_server_metadata_only_advertises_s256(
+        self, http_client, wait_for_services
+    ):
         """Verify server metadata only advertises S256 support."""
-        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+        )
         assert response.status_code == 200
 
         metadata = response.json()

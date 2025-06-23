@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Clean up non-TEST prefix registrations (except MCP OAuth Gateway Client)."""
+
 import asyncio
 import os
 
@@ -13,6 +14,7 @@ load_dotenv()
 AUTH_BASE_URL = f"https://auth.{os.getenv('BASE_DOMAIN')}"
 ADMIN_TOKEN = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
 
+
 async def cleanup_registrations():
     """Clean up test registrations that don't start with TEST."""
     if not ADMIN_TOKEN:
@@ -23,7 +25,7 @@ async def cleanup_registrations():
         # Get all registrations
         response = await client.get(
             f"{AUTH_BASE_URL}/admin/clients",
-            headers={"Authorization": f"Bearer {ADMIN_TOKEN}"}
+            headers={"Authorization": f"Bearer {ADMIN_TOKEN}"},
         )
 
         if response.status_code != 200:
@@ -34,7 +36,7 @@ async def cleanup_registrations():
         to_delete = []
 
         for client_id, client_data in clients.items():
-            name = client_data.get('client_name', '')
+            name = client_data.get("client_name", "")
 
             # Skip MCP OAuth Gateway Client and clients starting with TEST
             if name == "MCP OAuth Gateway Client" or name.startswith("TEST"):
@@ -52,12 +54,13 @@ async def cleanup_registrations():
             # Since we don't have the registration_access_token, we'll use admin endpoint
             response = await client.delete(
                 f"{AUTH_BASE_URL}/admin/clients/{client_id}",
-                headers={"Authorization": f"Bearer {ADMIN_TOKEN}"}
+                headers={"Authorization": f"Bearer {ADMIN_TOKEN}"},
             )
             if response.status_code in (204, 404):
                 print("  ✅ Deleted")
             else:
                 print(f"  ❌ Failed: {response.status_code}")
+
 
 if __name__ == "__main__":
     asyncio.run(cleanup_registrations())

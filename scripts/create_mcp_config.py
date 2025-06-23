@@ -2,6 +2,7 @@
 """Create MCP configuration for Claude Code with OAuth bearer token
 Following CLAUDE.md commandments: Real configuration, no hardcoded values.
 """
+
 import json
 import os
 import sys
@@ -31,10 +32,8 @@ def create_mcp_config():
                 "url": f"https://mcp-fetch.{base_domain}/mcp",
                 "transport": {
                     "type": "streamable-http",
-                    "headers": {
-                        "Authorization": f"Bearer {oauth_access_token}"
-                    }
-                }
+                    "headers": {"Authorization": f"Bearer {oauth_access_token}"},
+                },
             }
         }
     }
@@ -63,7 +62,9 @@ def create_mcp_config():
 
     # Provide instructions
     print("\n🚀 To use this configuration with Claude Code:")
-    print("1. The config has been automatically placed in ~/.config/claude/mcp-config.json")
+    print(
+        "1. The config has been automatically placed in ~/.config/claude/mcp-config.json"
+    )
     print("2. Claude Code should detect it automatically")
     print("3. If not, you can manually specify the config path")
     print("\n⚠️  Important notes:")

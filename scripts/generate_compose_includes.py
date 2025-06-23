@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate docker-compose includes based on enabled services."""
+
 import os
 from pathlib import Path
 
@@ -53,28 +54,14 @@ def main():
     # Generate the includes file
     compose_data = {
         "include": includes,
-        "networks": {
-            "public": {
-                "external": True
-            }
-        },
+        "networks": {"public": {"external": True}},
         "volumes": {
-            "traefik-certificates": {
-                "external": True
-            },
-            "redis-data": {
-                "external": True
-            },
-            "coverage-data": {
-                "external": True
-            },
-            "auth-keys": {
-                "external": True
-            },
-            "mcp-memory-data": {
-                "external": True
-            }
-        }
+            "traefik-certificates": {"external": True},
+            "redis-data": {"external": True},
+            "coverage-data": {"external": True},
+            "auth-keys": {"external": True},
+            "mcp-memory-data": {"external": True},
+        },
     }
 
     # Write the generated file
@@ -127,6 +114,7 @@ def main():
         print("✅ mcp-everything is ENABLED")
     else:
         print("❌ mcp-everything is DISABLED")
+
 
 if __name__ == "__main__":
     main()

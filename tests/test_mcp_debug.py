@@ -1,4 +1,5 @@
 """Debug test for MCP proxy issue."""
+
 import json
 import os
 
@@ -12,10 +13,14 @@ MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
 
 
 @pytest.mark.asyncio
-async def test_simple_initialize(http_client: httpx.AsyncClient, wait_for_services, capfd, mcp_fetch_url):
+async def test_simple_initialize(
+    http_client: httpx.AsyncClient, wait_for_services, capfd, mcp_fetch_url
+):
     """Simple test to debug initialize issue."""
     if not MCP_CLIENT_ACCESS_TOKEN:
-        pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+        pytest.fail(
+            "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+        )
 
     print(f"\nMCP_FETCH_URL: {mcp_fetch_url}")
     print(f"MCP_PROTOCOL_VERSION: {MCP_PROTOCOL_VERSION}")
@@ -27,9 +32,9 @@ async def test_simple_initialize(http_client: httpx.AsyncClient, wait_for_servic
         "params": {
             "protocolVersion": MCP_PROTOCOL_VERSION,
             "capabilities": {},
-            "clientInfo": {"name": "debug-test", "version": "1.0.0"}
+            "clientInfo": {"name": "debug-test", "version": "1.0.0"},
         },
-        "id": 1
+        "id": 1,
     }
 
     print(f"\nRequest: {json.dumps(request_data, indent=2)}")
@@ -37,7 +42,7 @@ async def test_simple_initialize(http_client: httpx.AsyncClient, wait_for_servic
     response = await http_client.post(
         f"{mcp_fetch_url}",
         json=request_data,
-        headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
+        headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
     )
 
     print(f"\nResponse status: {response.status_code}")
@@ -62,8 +67,8 @@ async def test_simple_initialize(http_client: httpx.AsyncClient, wait_for_servic
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Mcp-Session-Id": session_id
-                }
+                    "Mcp-Session-Id": session_id,
+                },
             )
             print(f"\nTools response status: {tools_response.status_code}")
             print(f"Tools response: {tools_response.text}")

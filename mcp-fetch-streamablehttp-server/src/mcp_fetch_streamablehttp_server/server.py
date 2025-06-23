@@ -26,6 +26,7 @@ asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 logger = logging.getLogger(__name__)
 
+
 class Settings(BaseSettings):
     """Server configuration."""
 
@@ -35,18 +36,20 @@ class Settings(BaseSettings):
     protocol_version: str = Field(..., description="Protocol version")
 
     # Fetch settings
-    fetch_allowed_schemes: list[str] = Field(default=["http", "https"], description="Allowed URL schemes")
+    fetch_allowed_schemes: list[str] = Field(
+        default=["http", "https"], description="Allowed URL schemes"
+    )
     fetch_max_redirects: int = Field(default=5, description="Max redirects")
-    fetch_default_user_agent: str = Field(default="ModelContextProtocol/1.0 (Fetch Server)", description="User agent")
+    fetch_default_user_agent: str = Field(
+        default="ModelContextProtocol/1.0 (Fetch Server)", description="User agent"
+    )
 
     # Transport settings
-    fetch_enable_sse: bool = Field(default=False, description="SSE support for future implementation")
-
-    model_config = ConfigDict(
-        env_prefix="MCP_",
-        env_file=".env",
-        extra="allow"
+    fetch_enable_sse: bool = Field(
+        default=False, description="SSE support for future implementation"
     )
+
+    model_config = ConfigDict(env_prefix="MCP_", env_file=".env", extra="allow")
 
 
 class StreamableHTTPServer:
@@ -57,7 +60,7 @@ class StreamableHTTPServer:
         self.transport = StreamableHTTPTransport()
         self.fetch_handler = FetchHandler(
             allowed_schemes=self.settings.fetch_allowed_schemes,
-            max_redirects=self.settings.fetch_max_redirects
+            max_redirects=self.settings.fetch_max_redirects,
         )
 
         # Create MCP server
@@ -73,7 +76,9 @@ class StreamableHTTPServer:
         """Register fetch tool with MCP server."""
 
         @self.server.call_tool()
-        async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent | ImageContent]:
+        async def call_tool(
+            name: str, arguments: dict[str, Any]
+        ) -> list[TextContent | ImageContent]:
             """Handle tool calls."""
             if name == "fetch":
                 return await self.fetch_handler.handle_fetch(arguments)
@@ -105,11 +110,12 @@ class StreamableHTTPServer:
                 headers={
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type, Mcp-Session-Id, MCP-Protocol-Version",
+                    "Access-Control-Allow-Headers": (
+                        "Content-Type, Mcp-Session-Id, MCP-Protocol-Version"
+                    ),
                     "Access-Control-Max-Age": "86400",
-                }
+                },
             )
-
 
         # ⚡ DIVINE DECREE: NO AUTHENTICATION IN MCP SERVICES! ⚡
         # Authentication is handled by Traefik via ForwardAuth middleware
@@ -117,11 +123,19 @@ class StreamableHTTPServer:
         # The holy trinity separation demands it!
 
         # Check MCP protocol version header if provided
-        mcp_version = headers.get("mcp-protocol-version", headers.get("MCP-Protocol-Version"))
+        mcp_version = headers.get(
+            "mcp-protocol-version", headers.get("MCP-Protocol-Version")
+        )
         if mcp_version and mcp_version != self.settings.protocol_version:
             return JSONResponse(
                 status_code=400,
-                content={"error": "Unsupported protocol version", "message": f"Server only supports MCP version: {self.settings.protocol_version}, got {mcp_version}"}
+                content={
+                    "error": "Unsupported protocol version",
+                    "message": (
+                        f"Server only supports MCP version: "
+                        f"{self.settings.protocol_version}, got {mcp_version}"
+                    ),
+                },
             )
 
         # For stateless operation, process request directly
@@ -131,230 +145,211 @@ class StreamableHTTPServer:
             # SSE endpoint - not implemented yet
             return JSONResponse(
                 status_code=501,
-                content={"error": "Not implemented", "message": "Server-Sent Events not yet supported"}
+                content={
+                    "error": "Not implemented",
+                    "message": "Server-Sent Events not yet supported",
+                },
             )
         return JSONResponse(
             status_code=404,
-            content={"error": "Not found", "message": f"Path {path} not found"}
+            content={"error": "Not found", "message": f"Path {path} not found"},
         )
 
-    async def _handle_stateless_request(self, headers: dict[str, str], body: bytes) -> Response:
+    async def _handle_stateless_request(
+        self,
+        headers: dict[str, str],
+        body: bytes,  # noqa: ARG002
+    ) -> Response:
         """Handle stateless JSON-RPC request."""
         # Note: Be lenient with content type as long as body is valid JSON
         # This allows clients that may send incorrect content types
 
-        # Parse JSON-RPC request
+        # Parse and validate JSON-RPC request
+        data, error_response = self._parse_json_rpc_request(body)
+        if error_response:
+            return error_response
+
+        # Handle the request
+        method = data.get("method")
+        request_id = data.get("id")
+        params = data.get("params", {})
+
+        try:
+            result = await self._dispatch_method(method, params, request_id)
+            if isinstance(result, JSONResponse):
+                return result
+
+            # Return success response
+            return self._create_json_rpc_response(result, request_id)
+
+        except Exception as e:
+            # Return error response
+            return self._create_json_rpc_error(
+                -32603, "Internal error", str(e), request_id
+            )
+
+    def _parse_json_rpc_request(
+        self, body: bytes
+    ) -> tuple[dict[str, Any] | None, JSONResponse | None]:
+        """Parse and validate JSON-RPC request."""
         try:
             data = json.loads(body)
         except json.JSONDecodeError as e:
-            return JSONResponse(
+            return None, JSONResponse(
                 status_code=400,
                 content={
                     "jsonrpc": "2.0",
-                    "error": {
-                        "code": -32700,
-                        "message": "Parse error",
-                        "data": str(e)
-                    },
-                    "id": None
-                }
+                    "error": {"code": -32700, "message": "Parse error", "data": str(e)},
+                    "id": None,
+                },
             )
 
         # Validate JSON-RPC structure
         if "jsonrpc" not in data or data["jsonrpc"] != "2.0":
-            return JSONResponse(
+            return None, JSONResponse(
                 status_code=400,
                 content={
                     "jsonrpc": "2.0",
                     "error": {
                         "code": -32600,
                         "message": "Invalid Request",
-                        "data": "Missing or invalid jsonrpc version"
+                        "data": "Missing or invalid jsonrpc version",
                     },
-                    "id": data.get("id")
-                }
-            )
-
-        # Handle different methods
-        method = data.get("method")
-        request_id = data.get("id")
-        params = data.get("params", {})
-
-        try:
-            if method == "initialize":
-                # Handle initialization per MCP 2025-06-18
-                # Client should provide protocolVersion in params
-                client_protocol = params.get("protocolVersion", self.settings.protocol_version)
-
-                # Check if client protocol matches server version
-                if client_protocol != self.settings.protocol_version:
-                    return JSONResponse(
-                        content={
-                            "jsonrpc": "2.0",
-                            "error": {
-                                "code": -32602,
-                                "message": "Invalid params",
-                                "data": f"Unsupported protocol version: {client_protocol}. Server supports: {self.settings.protocol_version}"
-                            },
-                            "id": request_id
-                        },
-                        status_code=200,
-                        headers={
-                            "Content-Type": "application/json",
-                            "Mcp-Session-Id": self.transport.session_id,
-                            "MCP-Protocol-Version": self.settings.protocol_version,
-                        }
-                    )
-
-                result = {
-                    "protocolVersion": self.settings.protocol_version,
-                    "capabilities": {
-                        "tools": {},  # We support tools
-                        "prompts": None,
-                        "resources": None,
-                        "logging": None
-                    },
-                    "serverInfo": {
-                        "name": self.settings.server_name,
-                        "version": self.settings.server_version
-                    }
-                }
-            elif method == "tools/list":
-                # List available tools per MCP 2025-06-18
-                # Support pagination via cursor parameter
-                params.get("cursor")
-
-                tools = self.fetch_handler.get_tools()
-                # For now, return all tools (no pagination)
-                result = {
-                    "tools": [tool.model_dump() for tool in tools]
-                    # "nextCursor" would be included if we had more tools
-                }
-            elif method == "tools/call":
-                # Call a tool per MCP 2025-06-18
-                if not params:
-                    return JSONResponse(
-                        content={
-                            "jsonrpc": "2.0",
-                            "error": {
-                                "code": -32602,
-                                "message": "Invalid params",
-                                "data": "Missing params for tools/call"
-                            },
-                            "id": request_id
-                        },
-                        headers={
-                            "Content-Type": "application/json",
-                            "Mcp-Session-Id": self.transport.session_id,
-                            "MCP-Protocol-Version": self.settings.protocol_version,
-                        }
-                    )
-
-                tool_name = params.get("name")
-                if not tool_name:
-                    return JSONResponse(
-                        content={
-                            "jsonrpc": "2.0",
-                            "error": {
-                                "code": -32602,
-                                "message": "Invalid params",
-                                "data": "Missing required parameter: name"
-                            },
-                            "id": request_id
-                        },
-                        headers={
-                            "Content-Type": "application/json",
-                            "Mcp-Session-Id": self.transport.session_id,
-                            "MCP-Protocol-Version": self.settings.protocol_version,
-                        }
-                    )
-
-                tool_args = params.get("arguments", {})
-
-                if tool_name == "fetch":
-                    try:
-                        contents = await self.fetch_handler.handle_fetch(tool_args)
-                        result = {
-                            "content": [content.model_dump() for content in contents],
-                            "isError": False
-                        }
-                    except Exception as tool_error:
-                        # Tool execution error (not protocol error)
-                        result = {
-                            "content": [{
-                                "type": "text",
-                                "text": f"Tool execution failed: {tool_error!s}"
-                            }],
-                            "isError": True
-                        }
-                else:
-                    return JSONResponse(
-                        content={
-                            "jsonrpc": "2.0",
-                            "error": {
-                                "code": -32602,
-                                "message": "Invalid params",
-                                "data": f"Unknown tool: {tool_name}"
-                            },
-                            "id": request_id
-                        },
-                        headers={
-                            "Content-Type": "application/json",
-                            "Mcp-Session-Id": self.transport.session_id,
-                            "MCP-Protocol-Version": self.settings.protocol_version,
-                        }
-                    )
-            else:
-                # Unknown method
-                return JSONResponse(
-                    content={
-                        "jsonrpc": "2.0",
-                        "error": {
-                            "code": -32601,
-                            "message": "Method not found",
-                            "data": f"Unknown method: {method}"
-                        },
-                        "id": request_id
-                    },
-                    headers={
-                        "Content-Type": "application/json",
-                        "Mcp-Session-Id": self.transport.session_id,
-                        "MCP-Protocol-Version": self.settings.protocol_version,
-                    }
-                )
-
-            # Return success response
-            return JSONResponse(
-                content={
-                    "jsonrpc": "2.0",
-                    "result": result,
-                    "id": request_id
+                    "id": data.get("id"),
                 },
-                headers={
-                    "Content-Type": "application/json",
-                    "Mcp-Session-Id": self.transport.session_id,
-                    "MCP-Protocol-Version": self.settings.protocol_version,
-                }
             )
 
-        except Exception as e:
-            # Return error response
-            return JSONResponse(
-                content={
-                    "jsonrpc": "2.0",
-                    "error": {
-                        "code": -32603,
-                        "message": "Internal error",
-                        "data": str(e)
-                    },
-                    "id": request_id
-                },
-                headers={
-                    "Content-Type": "application/json",
-                    "Mcp-Session-Id": self.transport.session_id,
-                    "MCP-Protocol-Version": self.settings.protocol_version,
-                }
+        return data, None
+
+    async def _dispatch_method(
+        self, method: str, params: dict[str, Any], request_id: Any
+    ) -> dict[str, Any] | JSONResponse:
+        """Dispatch method to appropriate handler."""
+        if method == "initialize":
+            return self._handle_initialize(params, request_id)
+        if method == "tools/list":
+            return self._handle_tools_list(params)
+        if method == "tools/call":
+            return await self._handle_tools_call(params, request_id)
+        return self._create_json_rpc_error(
+            -32601, "Method not found", f"Unknown method: {method}", request_id
+        )
+
+    def _handle_initialize(
+        self, params: dict[str, Any], request_id: Any
+    ) -> dict[str, Any] | JSONResponse:
+        """Handle initialize method."""
+        client_protocol = params.get("protocolVersion", self.settings.protocol_version)
+
+        # Check if client protocol matches server version
+        if client_protocol != self.settings.protocol_version:
+            return self._create_json_rpc_error(
+                -32602,
+                "Invalid params",
+                f"Unsupported protocol version: {client_protocol}. "
+                f"Server supports: {self.settings.protocol_version}",
+                request_id,
             )
+
+        return {
+            "protocolVersion": self.settings.protocol_version,
+            "capabilities": {
+                "tools": {},  # We support tools
+                "prompts": None,
+                "resources": None,
+                "logging": None,
+            },
+            "serverInfo": {
+                "name": self.settings.server_name,
+                "version": self.settings.server_version,
+            },
+        }
+
+    def _handle_tools_list(self, params: dict[str, Any]) -> dict[str, Any]:
+        """Handle tools/list method."""
+        # Support pagination via cursor parameter
+        params.get("cursor")  # For future use
+
+        tools = self.fetch_handler.get_tools()
+        # For now, return all tools (no pagination)
+        return {
+            "tools": [tool.model_dump() for tool in tools]
+            # "nextCursor" would be included if we had more tools
+        }
+
+    async def _handle_tools_call(
+        self, params: dict[str, Any], request_id: Any
+    ) -> dict[str, Any] | JSONResponse:
+        """Handle tools/call method."""
+        if not params:
+            return self._create_json_rpc_error(
+                -32602, "Invalid params", "Missing params for tools/call", request_id
+            )
+
+        tool_name = params.get("name")
+        if not tool_name:
+            return self._create_json_rpc_error(
+                -32602, "Invalid params", "Missing required parameter: name", request_id
+            )
+
+        tool_args = params.get("arguments", {})
+
+        if tool_name == "fetch":
+            try:
+                contents = await self.fetch_handler.handle_fetch(tool_args)
+                return {
+                    "content": [content.model_dump() for content in contents],
+                    "isError": False,
+                }
+            except Exception as tool_error:
+                # Tool execution error (not protocol error)
+                return {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"Tool execution failed: {tool_error!s}",
+                        }
+                    ],
+                    "isError": True,
+                }
+        else:
+            return self._create_json_rpc_error(
+                -32602, "Invalid params", f"Unknown tool: {tool_name}", request_id
+            )
+
+    def _create_json_rpc_response(
+        self, result: dict[str, Any], request_id: Any
+    ) -> JSONResponse:
+        """Create a JSON-RPC success response."""
+        return JSONResponse(
+            content={"jsonrpc": "2.0", "result": result, "id": request_id},
+            headers={
+                "Content-Type": "application/json",
+                "Mcp-Session-Id": self.transport.session_id,
+                "MCP-Protocol-Version": self.settings.protocol_version,
+            },
+        )
+
+    def _create_json_rpc_error(
+        self, code: int, message: str, data: str, request_id: Any
+    ) -> JSONResponse:
+        """Create a JSON-RPC error response."""
+        return JSONResponse(
+            content={
+                "jsonrpc": "2.0",
+                "error": {
+                    "code": code,
+                    "message": message,
+                    "data": data,
+                },
+                "id": request_id,
+            },
+            headers={
+                "Content-Type": "application/json",
+                "Mcp-Session-Id": self.transport.session_id,
+                "MCP-Protocol-Version": self.settings.protocol_version,
+            },
+        )
 
     def create_app(self) -> FastAPI:
         """Create FastAPI application."""
@@ -366,7 +361,9 @@ class StreamableHTTPServer:
         )
 
         # Add routes
-        app.add_api_route("/mcp", self.handle_request, methods=["GET", "POST", "DELETE", "OPTIONS"])
+        app.add_api_route(
+            "/mcp", self.handle_request, methods=["GET", "POST", "DELETE", "OPTIONS"]
+        )
 
         return app
 

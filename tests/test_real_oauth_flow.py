@@ -5,6 +5,7 @@ These tests use REAL GitHub OAuth credentials and REAL API calls.
 If credentials are missing or invalid, tests FAIL with clear errors.
 NEVER skip due to timeouts - fail fast with meaningful messages.
 """
+
 import base64
 import hashlib
 import secrets
@@ -60,9 +61,7 @@ class TestRealOAuthFlow:
         }
 
         auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize",
-            params=auth_params,
-            follow_redirects=False
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
         )
 
         if auth_response.status_code == 400:
@@ -81,15 +80,17 @@ class TestRealOAuthFlow:
         # Step 2: Test that our stored access token is still valid
         # Use REAL GitHub API call with REAL token
         if not GITHUB_PAT:
-            pytest.fail("GITHUB_PAT not set - TESTS MUST NOT BE SKIPPED! GitHub PAT is REQUIRED!")
+            pytest.fail(
+                "GITHUB_PAT not set - TESTS MUST NOT BE SKIPPED! GitHub PAT is REQUIRED!"
+            )
 
         async with httpx.AsyncClient() as github_client:
             user_response = await github_client.get(
                 "https://api.github.com/user",
                 headers={
                     "Authorization": f"Bearer {GITHUB_PAT}",
-                    "Accept": "application/vnd.github.v3+json"
-                }
+                    "Accept": "application/vnd.github.v3+json",
+                },
             )
 
             if user_response.status_code != 200:
@@ -111,8 +112,8 @@ class TestRealOAuthFlow:
                 "code": "invalid_code_for_testing",  # Will fail but validates client
                 "redirect_uri": TEST_CALLBACK_URL,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
 
         # Should get invalid_grant (not invalid_client) proving client is valid
@@ -128,8 +129,8 @@ class TestRealOAuthFlow:
                     "grant_type": "refresh_token",
                     "refresh_token": GATEWAY_OAUTH_REFRESH_TOKEN,
                     "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                    "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-                }
+                    "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+                },
             )
 
             if refresh_response.status_code == 200:
@@ -143,8 +144,8 @@ class TestRealOAuthFlow:
                     data={
                         "token": new_tokens["access_token"],
                         "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                        "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-                    }
+                        "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+                    },
                 )
 
                 assert introspect_response.status_code == 200
@@ -158,8 +159,8 @@ class TestRealOAuthFlow:
                     data={
                         "token": new_tokens["access_token"],
                         "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                        "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-                    }
+                        "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+                    },
                 )
 
                 assert revoke_response.status_code == 200
@@ -168,15 +169,18 @@ class TestRealOAuthFlow:
                 # Verify token is now revoked
                 verify_response = await http_client.get(
                     f"{AUTH_BASE_URL}/verify",
-                    headers={"Authorization": f"Bearer {new_tokens['access_token']}"}
+                    headers={"Authorization": f"Bearer {new_tokens['access_token']}"},
                 )
 
                 assert verify_response.status_code == 401
                 print("✓ Token revocation verified")
             else:
-                print(f"Refresh token expired or invalid: {refresh_response.status_code}")
+                print(
+                    f"Refresh token expired or invalid: {refresh_response.status_code}"
+                )
         else:
             print("No refresh token available - run: just generate-github-token")
+
 
 class TestRealPKCEFlow:
     """Test REAL PKCE flow with REAL OAuth client."""
@@ -192,10 +196,14 @@ class TestRealPKCEFlow:
             )
 
         # Create REAL PKCE challenge
-        code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=")
-        code_challenge = base64.urlsafe_b64encode(
-            hashlib.sha256(code_verifier.encode()).digest()
-        ).decode().rstrip("=")
+        code_verifier = (
+            base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=")
+        )
+        code_challenge = (
+            base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest())
+            .decode()
+            .rstrip("=")
+        )
 
         # Start REAL auth flow with PKCE
         auth_params = {
@@ -205,13 +213,11 @@ class TestRealPKCEFlow:
             "scope": "openid profile",
             "state": secrets.token_urlsafe(16),
             "code_challenge": code_challenge,
-            "code_challenge_method": "S256"
+            "code_challenge_method": "S256",
         }
 
         auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize",
-            params=auth_params,
-            follow_redirects=False
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
         )
 
         if auth_response.status_code == 400:
@@ -236,6 +242,7 @@ class TestRealPKCEFlow:
         # The OAuth state now contains our PKCE challenge data
         assert oauth_state is not None
         print(f"✓ PKCE flow initialized with state: {oauth_state}")
+
 
 class TestRealJWTTokens:
     """Test REAL JWT token operations with REAL credentials."""
@@ -263,7 +270,7 @@ class TestRealJWTTokens:
             "jti": jti,
             "iat": now,
             "exp": now + 3600,
-            "iss": f"https://auth.{BASE_DOMAIN}"
+            "iss": f"https://auth.{BASE_DOMAIN}",
         }
 
         # Sign with REAL JWT secret from .env
@@ -275,8 +282,8 @@ class TestRealJWTTokens:
             data={
                 "token": real_token,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
 
         assert introspect_response.status_code == 200
@@ -288,14 +295,16 @@ class TestRealJWTTokens:
         expired_claims = {
             **real_claims,
             "exp": now - 3600,  # Expired 1 hour ago
-            "jti": secrets.token_urlsafe(16)  # Different JTI
+            "jti": secrets.token_urlsafe(16),  # Different JTI
         }
 
-        expired_token = jwt_encode(expired_claims, GATEWAY_JWT_SECRET, algorithm="HS256")
+        expired_token = jwt_encode(
+            expired_claims, GATEWAY_JWT_SECRET, algorithm="HS256"
+        )
 
         verify_response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": f"Bearer {expired_token}"}
+            headers={"Authorization": f"Bearer {expired_token}"},
         )
 
         assert verify_response.status_code == 401
@@ -308,8 +317,8 @@ class TestRealJWTTokens:
             data={
                 "token": real_token,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
 
         # Always returns 200 per RFC 7009

@@ -9,11 +9,19 @@ import sys
 def test_mcp_client():
     """Test the MCP client with the everything server."""
     # Get MCP Everything URL from environment
-    mcp_everything_enabled = os.getenv('MCP_EVERYTHING_TESTS_ENABLED', 'false').lower() == 'true'
-    mcp_everything_urls = os.getenv('MCP_EVERYTHING_URLS', '').split(',') if os.getenv('MCP_EVERYTHING_URLS') else []
+    mcp_everything_enabled = (
+        os.getenv("MCP_EVERYTHING_TESTS_ENABLED", "false").lower() == "true"
+    )
+    mcp_everything_urls = (
+        os.getenv("MCP_EVERYTHING_URLS", "").split(",")
+        if os.getenv("MCP_EVERYTHING_URLS")
+        else []
+    )
 
     if not mcp_everything_enabled:
-        print("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
+        print(
+            "MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable."
+        )
         return 0
 
     if not mcp_everything_urls:
@@ -34,9 +42,12 @@ def test_mcp_client():
     # Test the authentication first
     print("\n1. Testing authentication...")
     cmd = [
-        "pixi", "run", "mcp-streamablehttp-client",
-        "--server-url", server_url,
-        "--test-auth"
+        "pixi",
+        "run",
+        "mcp-streamablehttp-client",
+        "--server-url",
+        server_url,
+        "--test-auth",
     ]
 
     env = os.environ.copy()
@@ -52,9 +63,12 @@ def test_mcp_client():
     # Test with --token flag
     print("\n2. Testing token status...")
     cmd = [
-        "pixi", "run", "mcp-streamablehttp-client",
-        "--server-url", server_url,
-        "--token"
+        "pixi",
+        "run",
+        "mcp-streamablehttp-client",
+        "--server-url",
+        server_url,
+        "--token",
     ]
 
     result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env)
@@ -66,9 +80,13 @@ def test_mcp_client():
     # Try a simple command
     print("\n3. Testing a command...")
     cmd = [
-        "pixi", "run", "mcp-streamablehttp-client",
-        "--server-url", server_url,
-        "--command", "echo test"
+        "pixi",
+        "run",
+        "mcp-streamablehttp-client",
+        "--server-url",
+        server_url,
+        "--command",
+        "echo test",
     ]
 
     result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env)
@@ -78,6 +96,7 @@ def test_mcp_client():
         print(f"Stderr: {result.stderr}")
 
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(test_mcp_client())

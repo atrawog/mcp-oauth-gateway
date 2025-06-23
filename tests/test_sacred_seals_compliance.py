@@ -1,6 +1,7 @@
 """Test all Twenty-Five Sacred Seals of Divine Integration per CLAUDE.md
 This ensures 100% compliance with all divine requirements!
 """
+
 import os
 from pathlib import Path
 
@@ -19,7 +20,9 @@ class TestSacredSealsCompliance:
     async def test_redis_key_patterns_and_ttls(self, http_client, wait_for_services):
         """Test SEAL OF REDIS PATTERNS - Sacred key hierarchies preserve all state."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         # Connect to Redis
         redis_client = await redis.from_url(REDIS_URL)
@@ -32,9 +35,9 @@ class TestSacredSealsCompliance:
                     "redirect_uris": ["https://example.com/callback"],
                     "grant_types": ["authorization_code"],
                     "response_types": ["code"],
-                    "client_name": "TEST test_redis_key_patterns_and_ttls"
+                    "client_name": "TEST test_redis_key_patterns_and_ttls",
                 },
-                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
             )
             assert register_response.status_code == 201
             client_data = register_response.json()
@@ -46,7 +49,7 @@ class TestSacredSealsCompliance:
             assert client_exists == 1
 
             # Client keys TTL depends on CLIENT_LIFETIME setting
-            client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
+            client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
             client_ttl = await redis_client.ttl(client_key)
             if client_lifetime == 0:
                 assert client_ttl == -1  # -1 means no expiration
@@ -61,13 +64,11 @@ class TestSacredSealsCompliance:
                 "response_type": "code",
                 "state": "test-state",
                 "code_challenge": "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
-                "code_challenge_method": "S256"
+                "code_challenge_method": "S256",
             }
 
             auth_response = await http_client.get(
-                f"{AUTH_BASE_URL}/authorize",
-                params=auth_params,
-                follow_redirects=False
+                f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
             )
             assert auth_response.status_code == 307  # Redirect to GitHub
 
@@ -90,7 +91,9 @@ class TestSacredSealsCompliance:
                     # Clean it up to prevent test pollution
                     await redis_client.delete(state_key)
                     continue  # Skip this key as it's likely from a previous test
-                assert 1 <= state_ttl <= 300, f"State key TTL {state_ttl} not in expected range"
+                assert 1 <= state_ttl <= 300, (
+                    f"State key TTL {state_ttl} not in expected range"
+                )
 
             # Test token key patterns when we have a valid token
             # The existing OAuth token should be stored with proper pattern
@@ -100,26 +103,35 @@ class TestSacredSealsCompliance:
 
             # Verify sacred key hierarchy patterns
             expected_patterns = [
-                "oauth:state:",      # 5 minute TTL
-                "oauth:code:",       # 1 year TTL
-                "oauth:token:",      # 30 days TTL
-                "oauth:refresh:",    # 1 year TTL
-                "oauth:client:",     # Eternal storage
-                "oauth:user_tokens:", # Index of user's tokens
-                "redis:session:",    # MCP session state
+                "oauth:state:",  # 5 minute TTL
+                "oauth:code:",  # 1 year TTL
+                "oauth:token:",  # 30 days TTL
+                "oauth:refresh:",  # 1 year TTL
+                "oauth:client:",  # Eternal storage
+                "oauth:user_tokens:",  # Index of user's tokens
+                "redis:session:",  # MCP session state
             ]
 
             # Just verify the patterns exist in our implementation
             all_keys = await self._get_all_keys(redis_client)
             for pattern in expected_patterns:
                 # Some patterns may not exist in test environment
-                if pattern in ["oauth:code:", "oauth:refresh:", "oauth:user_tokens:", "redis:session:"]:
+                if pattern in [
+                    "oauth:code:",
+                    "oauth:refresh:",
+                    "oauth:user_tokens:",
+                    "redis:session:",
+                ]:
                     continue  # These are created in specific flows
                 # At minimum, client and state patterns should exist from our test
                 if pattern in ["oauth:client:", "oauth:state:"]:
                     # Redis returns bytes, need to decode
-                    assert any((key.decode() if isinstance(key, bytes) else key).startswith(pattern) for key in all_keys), \
-                        f"Pattern {pattern} not found in Redis keys!"
+                    assert any(
+                        (key.decode() if isinstance(key, bytes) else key).startswith(
+                            pattern
+                        )
+                        for key in all_keys
+                    ), f"Pattern {pattern} not found in Redis keys!"
 
         finally:
             await redis_client.aclose()
@@ -129,7 +141,9 @@ class TestSacredSealsCompliance:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                    headers={
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                    },
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
@@ -139,7 +153,9 @@ class TestSacredSealsCompliance:
     async def test_dual_realms_architecture(self, http_client, wait_for_services):
         """Test SEAL OF DUAL REALMS - Client auth and user auth never intermingle."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         # Test 1: MCP Gateway Client Realm - External systems authenticate
         client_register = await http_client.post(
@@ -148,9 +164,9 @@ class TestSacredSealsCompliance:
                 "redirect_uris": ["https://claude.ai/callback"],
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"],
-                "client_name": "TEST test_seal_of_dual_realms"
+                "client_name": "TEST test_seal_of_dual_realms",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
         assert client_register.status_code == 201
         client_data = client_register.json()
@@ -159,12 +175,12 @@ class TestSacredSealsCompliance:
         assert "client_id" in client_data
         assert "client_secret" in client_data
         # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
-        client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
+        client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
         if client_lifetime == 0:
             assert client_data["client_secret_expires_at"] == 0  # Never expires
         else:
             # Should be created_at + CLIENT_LIFETIME
-            created_at = client_data.get('client_id_issued_at')
+            created_at = client_data.get("client_id_issued_at")
             expected_expiry = created_at + client_lifetime
             assert abs(client_data["client_secret_expires_at"] - expected_expiry) <= 5
 
@@ -174,13 +190,11 @@ class TestSacredSealsCompliance:
             "client_id": client_data["client_id"],
             "redirect_uri": "https://claude.ai/callback",
             "response_type": "code",
-            "state": "test-dual-realms"
+            "state": "test-dual-realms",
         }
 
         auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize",
-            params=auth_params,
-            follow_redirects=False
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
         )
 
         # Should redirect to GitHub for USER authentication
@@ -200,8 +214,8 @@ class TestSacredSealsCompliance:
                 "token": "fake-user-token",
                 "token_type_hint": "access_token",
                 "client_id": client_data["client_id"],
-                "client_secret": client_data["client_secret"]
-            }
+                "client_secret": client_data["client_secret"],
+            },
         )
 
         # Client can introspect but token is invalid (different realm)
@@ -219,7 +233,9 @@ class TestSacredSealsCompliance:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                    headers={
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                    },
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
@@ -271,7 +287,9 @@ class TestSacredSealsCompliance:
         ]
 
         for compose_file in service_compose_files:
-            assert Path(compose_file).exists(), f"Service isolation violated! {compose_file} missing!"
+            assert Path(compose_file).exists(), (
+                f"Service isolation violated! {compose_file} missing!"
+            )
 
         # Check .gitignore properly ignores sacred directories
         gitignore_content = Path(".gitignore").read_text()
@@ -287,8 +305,9 @@ class TestSacredSealsCompliance:
             # Skip pixi environment files
             if ".pixi" in str(py_file):
                 continue  # These are installed packages, not our tests
-            assert py_file.parent.name == "tests" or "tests" in str(py_file.parent), \
+            assert py_file.parent.name == "tests" or "tests" in str(py_file.parent), (
                 f"Test file {py_file} violates sacred structure - must be in ./tests/!"
+            )
 
     @pytest.mark.asyncio
     async def test_sidecar_coverage_collection(self):
@@ -305,23 +324,27 @@ class TestSacredSealsCompliance:
 
         # Check sitecustomize.py has proper coverage initialization
         sitecustomize_content = Path("./coverage-spy/sitecustomize.py").read_text()
-        assert "coverage.process_startup()" in sitecustomize_content, \
+        assert "coverage.process_startup()" in sitecustomize_content, (
             "sitecustomize.py must call coverage.process_startup()!"
+        )
 
         # Check docker-compose.coverage.yml has proper setup
         coverage_compose = Path("./docker-compose.coverage.yml").read_text()
 
         # Verify PYTHONPATH injection
-        assert "PYTHONPATH=/coverage-spy" in coverage_compose, \
+        assert "PYTHONPATH=/coverage-spy" in coverage_compose, (
             "Coverage must be injected via PYTHONPATH!"
+        )
 
         # Verify COVERAGE_PROCESS_START
-        assert "COVERAGE_PROCESS_START=" in coverage_compose, \
+        assert "COVERAGE_PROCESS_START=" in coverage_compose, (
             "COVERAGE_PROCESS_START must be set for subprocess coverage!"
+        )
 
         # Verify read-only mounts
-        assert ":ro" in coverage_compose, \
+        assert ":ro" in coverage_compose, (
             "Source mounts must be read-only - observer pattern!"
+        )
 
         # Check .coveragerc configuration
         coveragerc_content = Path("./coverage-spy/.coveragerc").read_text()
@@ -334,8 +357,9 @@ class TestSacredSealsCompliance:
 
         for setting in required_settings:
             # Check case-insensitive since parallel = True vs parallel = true
-            assert setting.lower() in coveragerc_content.lower(), \
+            assert setting.lower() in coveragerc_content.lower(), (
                 f"Coverage config missing required setting: {setting}"
+            )
 
         # Verify path mapping for coverage
         assert "[paths]" in coveragerc_content, "Coverage must have path mapping!"
@@ -362,19 +386,22 @@ class TestSacredSealsCompliance:
 
         # Verify _toc.yml has proper structure
         toc_content = Path("./docs/_toc.yml").read_text()
-        assert "root:" in toc_content or "format:" in toc_content, \
+        assert "root:" in toc_content or "format:" in toc_content, (
             "Table of contents must define root or format!"
+        )
 
         # Check that just command exists for building docs
         justfile_content = Path("./justfile").read_text()
-        assert "docs-build" in justfile_content, \
+        assert "docs-build" in justfile_content, (
             "justfile must have docs-build command!"
+        )
 
         # Verify the docs use MyST markdown
         index_content = Path("./docs/index.md").read_text()
         # MyST uses standard markdown, check for markdown syntax
-        assert "#" in index_content or "```" in index_content, \
+        assert "#" in index_content or "```" in index_content, (
             "Documentation must use MyST markdown format!"
+        )
 
     async def _get_all_keys(self, redis_client):
         """Helper to get all Redis keys."""

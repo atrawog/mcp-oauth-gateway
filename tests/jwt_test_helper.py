@@ -1,11 +1,14 @@
 """JWT test helper using Authlib instead of jose."""
+
 import time
 from typing import Any
 
 from authlib.jose import jwt
 
 
-def create_test_jwt(payload: dict[str, Any], secret: str, algorithm: str = "HS256") -> str:
+def create_test_jwt(
+    payload: dict[str, Any], secret: str, algorithm: str = "HS256"
+) -> str:
     """Create a test JWT token using Authlib."""
     # Add standard claims if not present
     if "iat" not in payload:
@@ -20,7 +23,8 @@ def create_test_jwt(payload: dict[str, Any], secret: str, algorithm: str = "HS25
     token = jwt.encode(header, payload, secret)
 
     # Authlib returns bytes, convert to string
-    return token.decode('utf-8') if isinstance(token, bytes) else token
+    return token.decode("utf-8") if isinstance(token, bytes) else token
+
 
 # Alias for compatibility
 encode = create_test_jwt

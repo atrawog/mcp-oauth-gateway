@@ -1,6 +1,7 @@
 """
 Redis client management for OAuth state storage
 """
+
 from typing import Optional
 
 import redis.asyncio as redis
@@ -21,7 +22,7 @@ class RedisManager:
             self.settings.redis_url,
             encoding="utf-8",
             decode_responses=True,
-            password=self.settings.redis_password
+            password=self.settings.redis_password,
         )
         # Test connection
         await self._pool.ping()

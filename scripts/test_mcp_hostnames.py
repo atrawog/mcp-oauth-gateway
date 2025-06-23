@@ -28,7 +28,9 @@ for url in urls:
         MCP_HOSTNAMES[name] = url
 
 # Get auth token - try MCP_CLIENT_ACCESS_TOKEN first, then GATEWAY_OAUTH_ACCESS_TOKEN
-MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN") or os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
+MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN") or os.getenv(
+    "GATEWAY_OAUTH_ACCESS_TOKEN"
+)
 
 
 async def test_mcp_hostname(name: str, url: str) -> tuple[str, bool, str]:
@@ -46,12 +48,9 @@ async def test_mcp_hostname(name: str, url: str) -> tuple[str, bool, str]:
         "params": {
             "protocolVersion": "2025-06-18",
             "capabilities": {},
-            "clientInfo": {
-                "name": f"test-client-{name.lower()}",
-                "version": "1.0.0"
-            }
+            "clientInfo": {"name": f"test-client-{name.lower()}", "version": "1.0.0"},
         },
-        "id": 1
+        "id": 1,
     }
 
     # Use mcp-streamablehttp-client to test the connection
@@ -61,7 +60,8 @@ async def test_mcp_hostname(name: str, url: str) -> tuple[str, bool, str]:
 
     # Create a simple test by sending an initialize request
     cmd = [
-        "python", "-c",
+        "python",
+        "-c",
         f"""
 import httpx
 import json
@@ -89,16 +89,13 @@ try:
             print(f"HTTP {{response.status_code}}: {{response.text}}")
 except Exception as e:
     print(f"EXCEPTION: {{e}}")
-"""
+""",
     ]
 
     try:
         # Run the test
         result = subprocess.run(
-            cmd,
-            check=False, capture_output=True,
-            text=True,
-            timeout=10
+            cmd, check=False, capture_output=True, text=True, timeout=10
         )
 
         output = result.stdout.strip() or result.stderr.strip()
@@ -170,17 +167,13 @@ async def test_fetch_capability(name: str, url: str):
     request = {
         "jsonrpc": "2.0",
         "method": "tools/call",
-        "params": {
-            "name": "fetch",
-            "arguments": {
-                "url": "https://example.com"
-            }
-        },
-        "id": 2
+        "params": {"name": "fetch", "arguments": {"url": "https://example.com"}},
+        "id": 2,
     }
 
     cmd = [
-        "python", "-c",
+        "python",
+        "-c",
         f"""
 import httpx
 import json
@@ -231,7 +224,7 @@ try:
 
 except Exception as e:
     print(f"❌ Exception: {{e}}")
-"""
+""",
     ]
 
     result = subprocess.run(cmd, check=False, capture_output=True, text=True)

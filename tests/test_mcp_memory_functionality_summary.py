@@ -8,6 +8,7 @@ import pytest
 # This file documents all the MCP Memory server functionalities
 # that have been comprehensively tested using mcp-streamablehttp-client
 
+
 class MCPMemoryFunctionalitySummary:
     """Summary of all MCP Memory service functionalities tested with mcp-streamablehttp-client.
 
@@ -127,7 +128,7 @@ class MCPMemoryFunctionalitySummary:
             "open_nodes",
             "delete_entities",
             "delete_relations",
-            "delete_observations"
+            "delete_observations",
         ]
 
     def get_test_coverage_report(self):
@@ -141,5 +142,5 @@ class MCPMemoryFunctionalitySummary:
             "transport": "Streamable HTTP",
             "persistence": "Docker volume",
             "error_handling": "JSON-RPC compliant",
-            "integration_status": "Production ready"
+            "integration_status": "Production ready",
         }

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Simple HTTP server to receive OAuth callbacks using standard library only."""
+
 import threading
 import time
 from http.server import BaseHTTPRequestHandler
@@ -17,20 +18,22 @@ class CallbackHandler(BaseHTTPRequestHandler):
         parsed_url = urlparse(self.path)
         query_params = parse_qs(parsed_url.query)
 
-        if parsed_url.path == '/callback':
-            if 'error' in query_params:
-                CallbackHandler.error = query_params['error'][0]
+        if parsed_url.path == "/callback":
+            if "error" in query_params:
+                CallbackHandler.error = query_params["error"][0]
                 response = f"❌ OAuth Error: {CallbackHandler.error}\n\nYou can close this window."
-            elif 'code' in query_params:
-                CallbackHandler.auth_code = query_params['code'][0]
+            elif "code" in query_params:
+                CallbackHandler.auth_code = query_params["code"][0]
                 response = f"✅ Authorization code received!\n\nCode: {CallbackHandler.auth_code[:10]}...\n\nYou can close this window."
             else:
-                response = "❌ No authorization code received\n\nYou can close this window."
+                response = (
+                    "❌ No authorization code received\n\nYou can close this window."
+                )
         else:
             response = "❌ Invalid callback path\n\nYou can close this window."
 
         self.send_response(200)
-        self.send_header('Content-type', 'text/plain')
+        self.send_header("Content-type", "text/plain")
         self.end_headers()
         self.wfile.write(response.encode())
 
@@ -40,7 +43,7 @@ class CallbackHandler(BaseHTTPRequestHandler):
 
 def start_callback_server(port=8080):
     """Start callback server in a thread."""
-    server = HTTPServer(('localhost', port), CallbackHandler)
+    server = HTTPServer(("localhost", port), CallbackHandler)
     thread = threading.Thread(target=server.serve_forever)
     thread.daemon = True
     thread.start()

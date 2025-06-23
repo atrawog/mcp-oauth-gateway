@@ -2,6 +2,7 @@
 """OAuth token refresh script for MCP OAuth Gateway
 Automatically refreshes expired tokens using refresh token.
 """
+
 import asyncio
 import json
 import os
@@ -35,24 +36,38 @@ def update_env_file(token_data: dict):
 
         for line in lines:
             line = line.strip()
-            if line.startswith('GATEWAY_OAUTH_ACCESS_TOKEN='):
-                updated_lines.append(f"GATEWAY_OAUTH_ACCESS_TOKEN={token_data['access_token']}\n")
-                updated_vars.add('GATEWAY_OAUTH_ACCESS_TOKEN')
-            elif line.startswith('GATEWAY_OAUTH_REFRESH_TOKEN=') and 'refresh_token' in token_data:
-                updated_lines.append(f"GATEWAY_OAUTH_REFRESH_TOKEN={token_data['refresh_token']}\n")
-                updated_vars.add('GATEWAY_OAUTH_REFRESH_TOKEN')
+            if line.startswith("GATEWAY_OAUTH_ACCESS_TOKEN="):
+                updated_lines.append(
+                    f"GATEWAY_OAUTH_ACCESS_TOKEN={token_data['access_token']}\n"
+                )
+                updated_vars.add("GATEWAY_OAUTH_ACCESS_TOKEN")
+            elif (
+                line.startswith("GATEWAY_OAUTH_REFRESH_TOKEN=")
+                and "refresh_token" in token_data
+            ):
+                updated_lines.append(
+                    f"GATEWAY_OAUTH_REFRESH_TOKEN={token_data['refresh_token']}\n"
+                )
+                updated_vars.add("GATEWAY_OAUTH_REFRESH_TOKEN")
             else:
-                updated_lines.append(line + '\n' if line else '\n')
+                updated_lines.append(line + "\n" if line else "\n")
 
         # Add any missing variables
-        if 'GATEWAY_OAUTH_ACCESS_TOKEN' not in updated_vars:
-            updated_lines.append(f"GATEWAY_OAUTH_ACCESS_TOKEN={token_data['access_token']}\n")
+        if "GATEWAY_OAUTH_ACCESS_TOKEN" not in updated_vars:
+            updated_lines.append(
+                f"GATEWAY_OAUTH_ACCESS_TOKEN={token_data['access_token']}\n"
+            )
 
-        if 'refresh_token' in token_data and 'GATEWAY_OAUTH_REFRESH_TOKEN' not in updated_vars:
-            updated_lines.append(f"GATEWAY_OAUTH_REFRESH_TOKEN={token_data['refresh_token']}\n")
+        if (
+            "refresh_token" in token_data
+            and "GATEWAY_OAUTH_REFRESH_TOKEN" not in updated_vars
+        ):
+            updated_lines.append(
+                f"GATEWAY_OAUTH_REFRESH_TOKEN={token_data['refresh_token']}\n"
+            )
 
         # Write back to file
-        with open(env_file, 'w') as f:
+        with open(env_file, "w") as f:
             f.writelines(updated_lines)
 
         print(f"✅ Updated {env_file} with new tokens")
@@ -61,7 +76,7 @@ def update_env_file(token_data: dict):
         print(f"❌ Failed to update .env file: {e}")
         print("You may need to manually update the tokens:")
         print(f"GATEWAY_OAUTH_ACCESS_TOKEN={token_data['access_token']}")
-        if 'refresh_token' in token_data:
+        if "refresh_token" in token_data:
             print(f"GATEWAY_OAUTH_REFRESH_TOKEN={token_data['refresh_token']}")
 
 
@@ -85,31 +100,30 @@ async def refresh_token() -> bool:
                     "grant_type": "refresh_token",
                     "refresh_token": refresh_token,
                     "client_id": client_id,
-                    "client_secret": client_secret
+                    "client_secret": client_secret,
                 },
-                headers={
-                    "Content-Type": "application/x-www-form-urlencoded"
-                }
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
 
         if response.status_code == 200:
             token_data = response.json()
 
             # Decode new token to check validity
-            new_token = token_data.get('access_token')
+            new_token = token_data.get("access_token")
             if new_token:
                 try:
                     # Decode without verification for inspection only
                     import base64
-                    parts = new_token.split('.')
+
+                    parts = new_token.split(".")
                     if len(parts) == 3:
                         payload_part = parts[1]
-                        payload_part += '=' * (4 - len(payload_part) % 4)
+                        payload_part += "=" * (4 - len(payload_part) % 4)
                         payload_json = base64.urlsafe_b64decode(payload_part)
                         payload = json.loads(payload_json)
                     else:
                         raise ValueError("Invalid JWT format")
-                    exp = payload.get('exp', 0)
+                    exp = payload.get("exp", 0)
                     now = int(time.time())
 
                     print("✅ Token refresh successful!")
@@ -132,7 +146,9 @@ async def refresh_token() -> bool:
             try:
                 error_data = response.json()
                 print(f"   Error: {error_data.get('error', 'Unknown error')}")
-                print(f"   Description: {error_data.get('error_description', 'No description')}")
+                print(
+                    f"   Description: {error_data.get('error_description', 'No description')}"
+                )
             except:
                 print(f"   Response: {response.text}")
             return False
@@ -153,20 +169,23 @@ async def main():
         try:
             # Decode without verification for inspection only
             import base64
-            parts = oauth_token.split('.')
+
+            parts = oauth_token.split(".")
             if len(parts) == 3:
                 payload_part = parts[1]
-                payload_part += '=' * (4 - len(payload_part) % 4)
+                payload_part += "=" * (4 - len(payload_part) % 4)
                 payload_json = base64.urlsafe_b64decode(payload_part)
                 payload = json.loads(payload_json)
             else:
                 raise ValueError("Invalid JWT format")
-            exp = payload.get('exp', 0)
+            exp = payload.get("exp", 0)
             now = int(time.time())
 
             if exp > now:
                 remaining = exp - now
-                print(f"ℹ️  Current token is still valid for {remaining/3600:.1f} hours")
+                print(
+                    f"ℹ️  Current token is still valid for {remaining / 3600:.1f} hours"
+                )
                 print("   Refresh not needed, but proceeding anyway...")
         except:
             print("⚠️  Cannot decode current token, proceeding with refresh...")

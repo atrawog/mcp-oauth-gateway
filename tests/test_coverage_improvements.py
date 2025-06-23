@@ -1,6 +1,7 @@
 """Comprehensive tests to improve code coverage
 Focusing on error handling, edge cases, and uncovered branches.
 """
+
 import asyncio
 import base64
 import hashlib
@@ -39,45 +40,45 @@ class TestAuthAuthlibErrorHandling:
         """Get RSA private key from base64 encoded string."""
         private_key_pem = base64.b64decode(JWT_PRIVATE_KEY_B64)
         return serialization.load_pem_private_key(
-            private_key_pem,
-            password=None,
-            backend=default_backend()
+            private_key_pem, password=None, backend=default_backend()
         )
 
     @pytest.mark.asyncio
-    async def test_verify_jwt_token_invalid_signature(self, http_client, wait_for_services):
+    async def test_verify_jwt_token_invalid_signature(
+        self, http_client, wait_for_services
+    ):
         """Test JWT verification with invalid signature."""
         # Create a token with wrong key
         wrong_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=2048,
-            backend=default_backend()
+            public_exponent=65537, key_size=2048, backend=default_backend()
         )
         wrong_key_pem = wrong_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
         payload = {
             "sub": "testuser",
             "exp": int((datetime.now(UTC) + timedelta(hours=1)).timestamp()),
-            "iss": f"https://auth.{BASE_DOMAIN}"
+            "iss": f"https://auth.{BASE_DOMAIN}",
         }
         wrong_token = jwt_encode(payload, wrong_key_pem, algorithm="RS256")
 
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": f"Bearer {wrong_token}"}
+            headers={"Authorization": f"Bearer {wrong_token}"},
         )
         assert response.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_verify_jwt_token_unexpected_error(self, http_client, wait_for_services):
+    async def test_verify_jwt_token_unexpected_error(
+        self, http_client, wait_for_services
+    ):
         """Test JWT verification with malformed token causing unexpected error."""
         # Send a completely malformed token
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": "Bearer not.a.jwt.token.at.all"}
+            headers={"Authorization": "Bearer not.a.jwt.token.at.all"},
         )
         assert response.status_code == 401
 
@@ -90,7 +91,9 @@ class TestAuthAuthlibErrorHandling:
         pytest.skip("Refresh token creation is tested via integration tests")
 
     @pytest.mark.asyncio
-    async def test_exchange_github_code_error_scenarios(self, http_client, wait_for_services):
+    async def test_exchange_github_code_error_scenarios(
+        self, http_client, wait_for_services
+    ):
         """Test GitHub code exchange error scenarios."""
         # These have already been tested in TestRoutesErrorHandling
         pytest.skip("GitHub callback error scenarios tested elsewhere")
@@ -103,29 +106,32 @@ class TestResourceProtectorErrorHandling:
         """Get RSA private key from base64 encoded string."""
         private_key_pem = base64.b64decode(JWT_PRIVATE_KEY_B64)
         return serialization.load_pem_private_key(
-            private_key_pem,
-            password=None,
-            backend=default_backend()
+            private_key_pem, password=None, backend=default_backend()
         )
 
     @pytest.mark.asyncio
-    async def test_bearer_token_validator_missing_token(self, http_client, wait_for_services):
+    async def test_bearer_token_validator_missing_token(
+        self, http_client, wait_for_services
+    ):
         """Test bearer token validation with missing token."""
         response = await http_client.get(f"{AUTH_BASE_URL}/verify")
         assert response.status_code == 401
-        assert response.headers["WWW-Authenticate"] == 'Bearer'
+        assert response.headers["WWW-Authenticate"] == "Bearer"
 
     @pytest.mark.asyncio
-    async def test_bearer_token_validator_invalid_format(self, http_client, wait_for_services):
+    async def test_bearer_token_validator_invalid_format(
+        self, http_client, wait_for_services
+    ):
         """Test bearer token validation with invalid format."""
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": "NotBearer token"}
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": "NotBearer token"}
         )
         assert response.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_bearer_token_validator_expired_token(self, http_client, wait_for_services):
+    async def test_bearer_token_validator_expired_token(
+        self, http_client, wait_for_services
+    ):
         """Test bearer token validation with expired token."""
         # Create an expired token
         private_key = self.get_rsa_private_key()
@@ -133,23 +139,25 @@ class TestResourceProtectorErrorHandling:
             "sub": "testuser",
             "exp": int((datetime.now(UTC) - timedelta(hours=1)).timestamp()),
             "jti": "expired_token_id",
-            "iss": f"https://auth.{BASE_DOMAIN}"  # Required issuer claim
+            "iss": f"https://auth.{BASE_DOMAIN}",  # Required issuer claim
         }
         private_key_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
         expired_token = jwt_encode(payload, private_key_pem, algorithm="RS256")
 
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": f"Bearer {expired_token}"}
+            headers={"Authorization": f"Bearer {expired_token}"},
         )
         assert response.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_bearer_token_validator_revoked_token(self, http_client, wait_for_services):
+    async def test_bearer_token_validator_revoked_token(
+        self, http_client, wait_for_services
+    ):
         """Test bearer token validation with revoked token."""
         # Create a fresh test token that we can safely revoke
         private_key = self.get_rsa_private_key()
@@ -162,12 +170,12 @@ class TestResourceProtectorErrorHandling:
             "jti": jti,
             "scope": "read write",
             "username": "test_revoke_user",
-            "iss": f"https://auth.{BASE_DOMAIN}"  # Required issuer claim
+            "iss": f"https://auth.{BASE_DOMAIN}",  # Required issuer claim
         }
         private_key_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
         test_token = jwt_encode(payload, private_key_pem, algorithm="RS256")
 
@@ -180,18 +188,15 @@ class TestResourceProtectorErrorHandling:
             "exp": payload["exp"],
             "iat": payload["iat"],
             "jti": payload["jti"],
-            "username": payload["username"]
+            "username": payload["username"],
         }
         await redis_client.setex(
-            f"oauth:token:{jti}",
-            int(ACCESS_TOKEN_LIFETIME),
-            json.dumps(token_data)
+            f"oauth:token:{jti}", int(ACCESS_TOKEN_LIFETIME), json.dumps(token_data)
         )
 
         # First verify the token works
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": f"Bearer {test_token}"}
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {test_token}"}
         )
         if response.status_code != 200:
             print(f"Token verification failed: {response.status_code}")
@@ -205,8 +210,7 @@ class TestResourceProtectorErrorHandling:
 
         # Try to use the revoked token
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": f"Bearer {test_token}"}
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {test_token}"}
         )
         assert response.status_code == 401
 
@@ -218,9 +222,7 @@ class TestRoutesErrorHandling:
         """Get RSA private key from base64 encoded string."""
         private_key_pem = base64.b64decode(JWT_PRIVATE_KEY_B64)
         return serialization.load_pem_private_key(
-            private_key_pem,
-            password=None,
-            backend=default_backend()
+            private_key_pem, password=None, backend=default_backend()
         )
 
     @pytest.mark.asyncio
@@ -231,7 +233,9 @@ class TestRoutesErrorHandling:
         assert response.status_code == 422
         json_response = response.json()
         assert "detail" in json_response
-        assert any(error["loc"] == ["query", "state"] for error in json_response["detail"])
+        assert any(
+            error["loc"] == ["query", "state"] for error in json_response["detail"]
+        )
 
     @pytest.mark.asyncio
     async def test_callback_invalid_state(self, http_client, wait_for_services):
@@ -243,7 +247,9 @@ class TestRoutesErrorHandling:
         assert response.status_code == 400
         json_response = response.json()
         assert json_response["detail"]["error"] == "invalid_request"
-        assert "Invalid or expired state" in json_response["detail"]["error_description"]
+        assert (
+            "Invalid or expired state" in json_response["detail"]["error_description"]
+        )
 
     @pytest.mark.asyncio
     async def test_callback_github_error(self, http_client, wait_for_services):
@@ -253,8 +259,8 @@ class TestRoutesErrorHandling:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_REDIRECT_URI],
-                "client_name": TEST_CLIENT_NAME
-            }
+                "client_name": TEST_CLIENT_NAME,
+            },
         )
         client_data = client_response.json()
 
@@ -264,8 +270,8 @@ class TestRoutesErrorHandling:
                 "response_type": "code",
                 "client_id": client_data["client_id"],
                 "redirect_uri": client_data["redirect_uris"][0],
-                "state": "test_state"
-            }
+                "state": "test_state",
+            },
         )
         location = auth_response.headers["location"]
         state = location.split("state=")[1].split("&")[0]
@@ -273,9 +279,7 @@ class TestRoutesErrorHandling:
         # The callback endpoint requires a 'code' parameter, so GitHub errors
         # would be handled differently (likely at the GitHub OAuth side)
         # Test that callback without code parameter fails
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/callback?state={state}"
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/callback?state={state}")
         # FastAPI returns 422 for missing required parameter
         assert response.status_code == 422
 
@@ -287,8 +291,8 @@ class TestRoutesErrorHandling:
             data={
                 "token": "not.a.valid.jwt",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
         assert response.status_code == 200
         data = response.json()
@@ -303,12 +307,12 @@ class TestRoutesErrorHandling:
             "sub": "testuser",
             "exp": int((datetime.now(UTC) + timedelta(hours=1)).timestamp()),
             "jti": "not_in_redis",
-            "iss": f"https://auth.{BASE_DOMAIN}"  # Required issuer claim
+            "iss": f"https://auth.{BASE_DOMAIN}",  # Required issuer claim
         }
         private_key_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
         token = jwt_encode(payload, private_key_pem, algorithm="RS256")
 
@@ -317,8 +321,8 @@ class TestRoutesErrorHandling:
             data={
                 "token": token,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
         assert response.status_code == 200
         data = response.json()
@@ -331,11 +335,13 @@ class TestKeysModuleCoverage:
     def test_rs256_key_generation(self, monkeypatch):
         """Test RS256 key generation."""
         # Import the keys module directly avoiding __init__.py
-        sys.path.insert(0, '/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-oauth-dynamicclient/src')
+        sys.path.insert(
+            0, "/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-oauth-dynamicclient/src"
+        )
         from mcp_oauth_dynamicclient.keys import RSAKeyManager
 
         # Remove JWT_PRIVATE_KEY_B64 from environment to test the error case
-        monkeypatch.delenv('JWT_PRIVATE_KEY_B64', raising=False)
+        monkeypatch.delenv("JWT_PRIVATE_KEY_B64", raising=False)
 
         # RSAKeyManager requires keys to exist - it doesn't generate them
         # Test that it raises an error when no keys are present
@@ -351,23 +357,23 @@ class TestKeysModuleCoverage:
 
     def test_rs256_key_loading_from_env(self, monkeypatch):
         """Test RS256 key loading from environment."""
-        sys.path.insert(0, '/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-oauth-dynamicclient/src')
+        sys.path.insert(
+            0, "/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-oauth-dynamicclient/src"
+        )
         import base64
 
         from mcp_oauth_dynamicclient.keys import RSAKeyManager
 
         # Generate a test RSA key
         private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=2048,
-            backend=default_backend()
+            public_exponent=65537, key_size=2048, backend=default_backend()
         )
 
         # Serialize to PEM
         private_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
 
         # Base64 encode
@@ -388,62 +394,66 @@ class TestKeysModuleCoverage:
 
         # Test JWK generation
         jwk = key_manager.get_jwk()
-        assert jwk['use'] == 'sig'
-        assert jwk['alg'] == 'RS256'
-        assert jwk['kid'] == 'blessed-key-1'
+        assert jwk["use"] == "sig"
+        assert jwk["alg"] == "RS256"
+        assert jwk["kid"] == "blessed-key-1"
 
     def test_rs256_key_file_operations(self, monkeypatch):
         """Test RS256 key file save and load operations."""
-        sys.path.insert(0, '/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-oauth-dynamicclient/src')
+        sys.path.insert(
+            0, "/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-oauth-dynamicclient/src"
+        )
         import tempfile
 
         from mcp_oauth_dynamicclient.keys import RSAKeyManager
 
         # Remove JWT_PRIVATE_KEY_B64 from environment to test file loading
-        monkeypatch.delenv('JWT_PRIVATE_KEY_B64', raising=False)
+        monkeypatch.delenv("JWT_PRIVATE_KEY_B64", raising=False)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Generate a test RSA key
             private_key = rsa.generate_private_key(
-                public_exponent=65537,
-                key_size=2048,
-                backend=default_backend()
+                public_exponent=65537, key_size=2048, backend=default_backend()
             )
 
             # Serialize keys to PEM
             private_pem = private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.PKCS8,
-                encryption_algorithm=serialization.NoEncryption()
+                encryption_algorithm=serialization.NoEncryption(),
             )
             public_pem = private_key.public_key().public_bytes(
                 encoding=serialization.Encoding.PEM,
-                format=serialization.PublicFormat.SubjectPublicKeyInfo
+                format=serialization.PublicFormat.SubjectPublicKeyInfo,
             )
 
             # Save keys to files
             private_path = os.path.join(tmpdir, "private_key.pem")
             public_path = os.path.join(tmpdir, "public_key.pem")
 
-            with open(private_path, 'wb') as f:
+            with open(private_path, "wb") as f:
                 f.write(private_pem)
-            with open(public_path, 'wb') as f:
+            with open(public_path, "wb") as f:
                 f.write(public_pem)
 
             # Mock the paths for RSAKeyManager
-            monkeypatch.setattr('os.path.exists', lambda path:
-                path in {"/app/keys/private_key.pem", "/app/keys/public_key.pem"})
+            monkeypatch.setattr(
+                "os.path.exists",
+                lambda path: path
+                in {"/app/keys/private_key.pem", "/app/keys/public_key.pem"},
+            )
 
             # Mock open to return our test keys
             original_open = open
+
             def mock_open(path, mode):
-                if path == "/app/keys/private_key.pem" and 'r' in mode:
+                if path == "/app/keys/private_key.pem" and "r" in mode:
                     return original_open(private_path, mode)
-                if path == "/app/keys/public_key.pem" and 'r' in mode:
+                if path == "/app/keys/public_key.pem" and "r" in mode:
                     return original_open(public_path, mode)
                 return original_open(path, mode)
 
-            monkeypatch.setattr('builtins.open', mock_open)
+            monkeypatch.setattr("builtins.open", mock_open)
 
             # Create key manager and load from files
             key_manager = RSAKeyManager()
@@ -465,7 +475,7 @@ class TestRFC7592ErrorHandling:
         response = await http_client.put(
             f"{AUTH_BASE_URL}/register/non_existent_client",
             headers={"Authorization": "Bearer fake_token"},
-            json={"redirect_uris": ["https://example.com/new"]}
+            json={"redirect_uris": ["https://example.com/new"]},
         )
         # Should return 404 when client doesn't exist
         assert response.status_code == 404
@@ -479,8 +489,8 @@ class TestRFC7592ErrorHandling:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_REDIRECT_URI],
-                "client_name": TEST_CLIENT_NAME
-            }
+                "client_name": TEST_CLIENT_NAME,
+            },
         )
         client_data = client_response.json()
 
@@ -488,7 +498,7 @@ class TestRFC7592ErrorHandling:
         response = await http_client.put(
             f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
             headers={"Authorization": "Bearer wrong_token"},
-            json={"redirect_uris": ["https://example.com/new"]}
+            json={"redirect_uris": ["https://example.com/new"]},
         )
         # Should return 403 when token is invalid
         assert response.status_code == 403
@@ -499,7 +509,7 @@ class TestRFC7592ErrorHandling:
         """Test deleting non-existent client."""
         response = await http_client.delete(
             f"{AUTH_BASE_URL}/register/non_existent_client",
-            headers={"Authorization": "Bearer fake_token"}
+            headers={"Authorization": "Bearer fake_token"},
         )
         # Should return 404 when client doesn't exist
         assert response.status_code == 404
@@ -513,15 +523,17 @@ class TestRFC7592ErrorHandling:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_REDIRECT_URI],
-                "client_name": TEST_CLIENT_NAME
-            }
+                "client_name": TEST_CLIENT_NAME,
+            },
         )
         client_data = client_response.json()
 
         # Get client info
         response = await http_client.get(
             f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-            headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+            headers={
+                "Authorization": f"Bearer {client_data['registration_access_token']}"
+            },
         )
         assert response.status_code == 200
         data = response.json()
@@ -540,10 +552,19 @@ class TestMainModuleIntegration:
         """Test that __main__.py can show help."""
         # Test running the module with --help using just exec
         result = subprocess.run(
-            ["just", "exec", "auth", "python", "-m", "mcp_oauth_dynamicclient", "--help"],
-            check=False, capture_output=True,
+            [
+                "just",
+                "exec",
+                "auth",
+                "python",
+                "-m",
+                "mcp_oauth_dynamicclient",
+                "--help",
+            ],
+            check=False,
+            capture_output=True,
             text=True,
-            cwd="/home/atrawog/AI/atrawog/mcp-oauth-gateway"
+            cwd="/home/atrawog/AI/atrawog/mcp-oauth-gateway",
         )
 
         assert result.returncode == 0
@@ -554,7 +575,9 @@ class TestEdgeCasesAndBranches:
     """Test remaining edge cases and branches."""
 
     @pytest.mark.asyncio
-    async def test_token_refresh_with_invalid_refresh_token(self, http_client, wait_for_services):
+    async def test_token_refresh_with_invalid_refresh_token(
+        self, http_client, wait_for_services
+    ):
         """Test token refresh with invalid refresh token."""
         response = await http_client.post(
             f"{AUTH_BASE_URL}/token",
@@ -562,8 +585,8 @@ class TestEdgeCasesAndBranches:
                 "grant_type": "refresh_token",
                 "refresh_token": "invalid_refresh_token",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
         # The actual response is 400 for invalid refresh token
         assert response.status_code == 400
@@ -575,15 +598,17 @@ class TestEdgeCasesAndBranches:
             assert json_response["error"] == "invalid_grant"
 
     @pytest.mark.asyncio
-    async def test_authorize_with_unsupported_response_type(self, http_client, wait_for_services):
+    async def test_authorize_with_unsupported_response_type(
+        self, http_client, wait_for_services
+    ):
         """Test authorize with unsupported response type."""
         # Register a client first
         client_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_REDIRECT_URI],
-                "client_name": TEST_CLIENT_NAME
-            }
+                "client_name": TEST_CLIENT_NAME,
+            },
         )
         client_data = client_response.json()
 
@@ -592,8 +617,8 @@ class TestEdgeCasesAndBranches:
             params={
                 "response_type": "token",  # We don't support implicit flow
                 "client_id": client_data["client_id"],
-                "redirect_uri": client_data["redirect_uris"][0]
-            }
+                "redirect_uri": client_data["redirect_uris"][0],
+            },
         )
         # FastAPI returns 422 for invalid enum values
         assert response.status_code == 422
@@ -608,18 +633,24 @@ class TestEdgeCasesAndBranches:
                 "redirect_uris": [TEST_REDIRECT_URI],
                 "client_name": f"{TEST_CLIENT_NAME}_concurrent",
                 "grant_types": ["authorization_code"],
-                "response_types": ["code"]
-            }
+                "response_types": ["code"],
+            },
         )
         client_data = client_response.json()
 
         # Create multiple authorization requests concurrently
         async def get_auth_code():
             # Generate unique PKCE values for each request
-            verifier = base64.urlsafe_b64encode(os.urandom(32)).decode('utf-8').rstrip('=')
-            challenge = base64.urlsafe_b64encode(
-                hashlib.sha256(verifier.encode('utf-8')).digest()
-            ).decode('utf-8').rstrip('=')
+            verifier = (
+                base64.urlsafe_b64encode(os.urandom(32)).decode("utf-8").rstrip("=")
+            )
+            challenge = (
+                base64.urlsafe_b64encode(
+                    hashlib.sha256(verifier.encode("utf-8")).digest()
+                )
+                .decode("utf-8")
+                .rstrip("=")
+            )
 
             auth_response = await http_client.get(
                 f"{AUTH_BASE_URL}/authorize",
@@ -629,8 +660,8 @@ class TestEdgeCasesAndBranches:
                     "redirect_uri": client_data["redirect_uris"][0],
                     "state": f"state_{secrets.token_urlsafe(8)}",
                     "code_challenge": challenge,
-                    "code_challenge_method": "S256"
-                }
+                    "code_challenge_method": "S256",
+                },
             )
             assert auth_response.status_code in [302, 307]  # Both are valid redirects
             return auth_response.headers["location"]
@@ -659,8 +690,8 @@ class TestEdgeCasesAndBranches:
             data={
                 "grant_type": "client_credentials",
                 "client_id": "",  # Empty client ID
-                "client_secret": "secret"
-            }
+                "client_secret": "secret",
+            },
         )
         assert response.status_code == 401
         assert "WWW-Authenticate" in response.headers
@@ -670,18 +701,22 @@ class TestEdgeCasesAndBranches:
             f"{AUTH_BASE_URL}/token",
             data={
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
         # FastAPI returns 422 for missing required fields
         assert response.status_code == 422
         json_response = response.json()
         assert "detail" in json_response
-        assert any(error["loc"] == ["body", "grant_type"] for error in json_response["detail"])
+        assert any(
+            error["loc"] == ["body", "grant_type"] for error in json_response["detail"]
+        )
 
     def test_server_lifecycle(self):
         """Test server can start and handle signals gracefully."""
-        sys.path.insert(0, '/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-oauth-dynamicclient/src')
+        sys.path.insert(
+            0, "/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-oauth-dynamicclient/src"
+        )
 
         # Skip this test as it requires full environment setup
         # The server module is already being tested via integration tests

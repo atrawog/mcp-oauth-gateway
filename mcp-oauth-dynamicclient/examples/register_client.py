@@ -1,6 +1,7 @@
 """
 Example of registering a new OAuth client
 """
+
 import asyncio
 import json
 
@@ -13,17 +14,14 @@ async def register_client():
 
     # Client registration data
     registration_data = {
-        "redirect_uris": [
-            "https://your-app.com/callback",
-            "http://localhost:8080/callback"
-        ],
+        "redirect_uris": ["https://your-app.com/callback", "http://localhost:8080/callback"],
         "client_name": "My Test Application",
         "client_uri": "https://your-app.com",
         "logo_uri": "https://your-app.com/logo.png",
         "scope": "openid profile email",
         "contacts": ["admin@your-app.com"],
         "tos_uri": "https://your-app.com/terms",
-        "policy_uri": "https://your-app.com/privacy"
+        "policy_uri": "https://your-app.com/privacy",
     }
 
     async with httpx.AsyncClient() as client:
@@ -32,7 +30,7 @@ async def register_client():
             response = await client.post(
                 f"{base_url}/register",
                 json=registration_data,
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json"},
             )
 
             if response.status_code == 201:
@@ -53,6 +51,7 @@ async def register_client():
 
         except Exception as e:
             print(f"❌ Error: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(register_client())

@@ -21,7 +21,7 @@ def main():
         print(f"Using default: {server_url}")
 
     # Create temporary .env file with just the server URL
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
         f.write(f"MCP_SERVER_URL={server_url}\n")
         env_file = f.name
 
@@ -33,12 +33,20 @@ def main():
     try:
         # Test authentication discovery
         print("\n1️⃣ Testing authentication...")
-        result = subprocess.run([
-            "mcp-http-stdio",
-            "--test-auth",
-            "--env-file", env_file,
-            "--log-level", "INFO"
-        ], check=False, capture_output=True, text=True, timeout=30)
+        result = subprocess.run(
+            [
+                "mcp-http-stdio",
+                "--test-auth",
+                "--env-file",
+                env_file,
+                "--log-level",
+                "INFO",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
 
         if result.returncode == 0:
             print("✅ OAuth configuration discovered successfully!")
@@ -46,12 +54,20 @@ def main():
 
             # Test token management
             print("\n2️⃣ Testing token management...")
-            token_result = subprocess.run([
-                "mcp-http-stdio",
-                "--token",
-                "--env-file", env_file,
-                "--log-level", "INFO"
-            ], check=False, capture_output=True, text=True, timeout=30)
+            token_result = subprocess.run(
+                [
+                    "mcp-http-stdio",
+                    "--token",
+                    "--env-file",
+                    env_file,
+                    "--log-level",
+                    "INFO",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
 
             if token_result.returncode == 0:
                 print("✅ Token management working!")
@@ -62,12 +78,21 @@ def main():
 
             # Test command execution
             print("\n3️⃣ Testing command execution...")
-            cmd_result = subprocess.run([
-                "mcp-http-stdio",
-                "--command", "fetch https://httpbin.org/json",
-                "--env-file", env_file,
-                "--log-level", "INFO"
-            ], check=False, capture_output=True, text=True, timeout=30)
+            cmd_result = subprocess.run(
+                [
+                    "mcp-http-stdio",
+                    "--command",
+                    "fetch https://httpbin.org/json",
+                    "--env-file",
+                    env_file,
+                    "--log-level",
+                    "INFO",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
 
             if cmd_result.returncode == 0:
                 print("✅ Command execution successful!")
@@ -102,6 +127,7 @@ def main():
     print("   mcp-http-stdio --command 'fetch https://example.com'")
     print("   mcp-http-stdio -c 'search my query'")
     print("   mcp-http-stdio -t  # Short form for token check")
+
 
 if __name__ == "__main__":
     main()

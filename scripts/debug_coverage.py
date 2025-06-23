@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Debug script to verify coverage configuration in the auth container."""
+
 import os
 import sys
 
@@ -14,6 +15,7 @@ print(f"COVERAGE_FILE: {os.environ.get('COVERAGE_FILE', 'Not set')}")
 # Check if sitecustomize can be imported
 try:
     import sitecustomize
+
     print("✓ sitecustomize module found and imported")
 except ImportError as e:
     print(f"✗ Failed to import sitecustomize: {e}")
@@ -21,12 +23,13 @@ except ImportError as e:
 # Check if coverage is available
 try:
     import coverage
+
     print(f"✓ Coverage version: {coverage.__version__}")
 except ImportError:
     print("✗ Coverage module not found")
 
 # Check if coverage config exists
-config_path = os.environ.get('COVERAGE_PROCESS_START', '')
+config_path = os.environ.get("COVERAGE_PROCESS_START", "")
 if config_path and os.path.exists(config_path):
     print(f"✓ Coverage config found at: {config_path}")
     with open(config_path) as f:

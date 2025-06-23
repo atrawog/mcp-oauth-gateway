@@ -20,34 +20,45 @@ class DeprecationHunter:
     def setup(self):
         """Setup the hunter to capture warnings."""
         # Configure warnings to be captured
-        warnings.filterwarnings('default', category=DeprecationWarning)
-        warnings.filterwarnings('default', category=PendingDeprecationWarning)
+        warnings.filterwarnings("default", category=DeprecationWarning)
+        warnings.filterwarnings("default", category=PendingDeprecationWarning)
 
         # Install our custom warning handler
         warnings.showwarning = self.capture_warning
 
-    def capture_warning(self, message, category, filename, lineno, file=None, line=None):
+    def capture_warning(
+        self, message, category, filename, lineno, file=None, line=None
+    ):
         """Capture deprecation warnings for analysis."""
         if issubclass(category, DeprecationWarning | PendingDeprecationWarning):
             # Check if this is a Pydantic deprecation
-            is_pydantic_warning = any(keyword in str(message).lower() for keyword in [
-                'pydantic', 'config', 'basemodel', 'basesettings', 'configdict'
-            ])
+            is_pydantic_warning = any(
+                keyword in str(message).lower()
+                for keyword in [
+                    "pydantic",
+                    "config",
+                    "basemodel",
+                    "basesettings",
+                    "configdict",
+                ]
+            )
 
             warning_info = {
-                'message': str(message),
-                'category': category.__name__,
-                'filename': filename,
-                'lineno': lineno,
-                'is_pydantic': is_pydantic_warning,
-                'severity': 'critical' if is_pydantic_warning else 'warning'
+                "message": str(message),
+                "category": category.__name__,
+                "filename": filename,
+                "lineno": lineno,
+                "is_pydantic": is_pydantic_warning,
+                "severity": "critical" if is_pydantic_warning else "warning",
             }
 
             self.captured_warnings.append(warning_info)
 
             # Still show the warning using original handler
             if self.original_showwarning:
-                self.original_showwarning(message, category, filename, lineno, file, line)
+                self.original_showwarning(
+                    message, category, filename, lineno, file, line
+                )
         # Non-deprecation warnings use original handler
         elif self.original_showwarning:
             self.original_showwarning(message, category, filename, lineno, file, line)
@@ -58,7 +69,7 @@ class DeprecationHunter:
 
     def get_pydantic_warnings(self) -> list[dict[str, Any]]:
         """Get captured Pydantic-related warnings."""
-        return [w for w in self.captured_warnings if w['is_pydantic']]
+        return [w for w in self.captured_warnings if w["is_pydantic"]]
 
     def get_all_warnings(self) -> list[dict[str, Any]]:
         """Get all captured deprecation warnings."""
@@ -69,7 +80,7 @@ class DeprecationHunter:
 deprecation_hunter = DeprecationHunter()
 
 
-@pytest.fixture(autouse=True, scope='session')
+@pytest.fixture(autouse=True, scope="session")
 def setup_deprecation_hunting():
     """Setup deprecation hunting for the entire test session."""
     deprecation_hunter.setup()
@@ -94,9 +105,11 @@ def pytest_runtest_teardown(item, nextitem):
         # Format warning messages
         warning_messages = []
         for warning in pydantic_warnings:
-            msg = (f"🔥 PYDANTIC DEPRECATION in {item.nodeid}: "
-                  f"{warning['message']} "
-                  f"({warning['filename']}:{warning['lineno']}) ⚡")
+            msg = (
+                f"🔥 PYDANTIC DEPRECATION in {item.nodeid}: "
+                f"{warning['message']} "
+                f"({warning['filename']}:{warning['lineno']}) ⚡"
+            )
             warning_messages.append(msg)
 
         # Print warnings
@@ -122,15 +135,19 @@ def pytest_sessionfinish(session, exitstatus):
             print("\n🚨 CRITICAL PYDANTIC WARNINGS:")
             print("-" * 40)
             for warning in pydantic_warnings:
-                print(f"  {warning['filename']}:{warning['lineno']} - {warning['message']}")
+                print(
+                    f"  {warning['filename']}:{warning['lineno']} - {warning['message']}"
+                )
             print("\n⚡ Fix these Pydantic warnings immediately! ⚡")
 
-        other_warnings = [w for w in all_warnings if not w['is_pydantic']]
+        other_warnings = [w for w in all_warnings if not w["is_pydantic"]]
         if other_warnings:
             print("\n⚠️  OTHER DEPRECATION WARNINGS:")
             print("-" * 40)
             for warning in other_warnings:
-                print(f"  {warning['filename']}:{warning['lineno']} - {warning['message']}")
+                print(
+                    f"  {warning['filename']}:{warning['lineno']} - {warning['message']}"
+                )
     else:
         print("\n✅ NO DEPRECATION WARNINGS FOUND! Divine compliance achieved! ⚡")
 
@@ -140,9 +157,10 @@ def pytest_configure(config):
     """Configure pytest with deprecation hunting."""
     # Add custom markers
     config.addinivalue_line(
-        "markers", "deprecation_sensitive: mark test as sensitive to deprecation warnings"
+        "markers",
+        "deprecation_sensitive: mark test as sensitive to deprecation warnings",
     )
 
     # Configure warnings to be more strict during testing
-    warnings.simplefilter('default', DeprecationWarning)
-    warnings.simplefilter('default', PendingDeprecationWarning)
+    warnings.simplefilter("default", DeprecationWarning)
+    warnings.simplefilter("default", PendingDeprecationWarning)

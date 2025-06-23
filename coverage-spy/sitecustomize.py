@@ -1,6 +1,8 @@
-"""Sacred Coverage Spy - Subprocess coverage tracking for production containers
+"""Sacred Coverage Spy - Subprocess coverage tracking for production containers.
+
 This file is injected via PYTHONPATH to enable coverage in all Python processes.
 """
+
 import coverage
 
 

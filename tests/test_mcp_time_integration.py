@@ -28,7 +28,9 @@ async def wait_for_services():
 class TestMCPTimeIntegration:
     """Integration tests for mcp-time service using mcp-streamablehttp-client."""
 
-    def run_mcp_client(self, url: str, token: str, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+    def run_mcp_client(
+        self, url: str, token: str, method: str, params: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Run mcp-streamablehttp-client and return the response."""
         # Set environment variables
         env = os.environ.copy()
@@ -36,40 +38,38 @@ class TestMCPTimeIntegration:
         env["MCP_CLIENT_ACCESS_TOKEN"] = token
 
         # Build the raw JSON-RPC request
-        request = {
-            "jsonrpc": "2.0",
-            "method": method,
-            "params": params or {}
-        }
+        request = {"jsonrpc": "2.0", "method": method, "params": params or {}}
 
         # Add ID for requests (not notifications)
         if method != "notifications/initialized":
             request["id"] = f"test-{method.replace('/', '-')}-{uuid.uuid4().hex[:8]}"
 
         # Convert to JSON string - use compact format to avoid issues
-        raw_request = json.dumps(request, separators=(',', ':'))
+        raw_request = json.dumps(request, separators=(",", ":"))
 
         # Build the command
         cmd = [
-            "pixi", "run", "mcp-streamablehttp-client",
-            "--server-url", url,
-            "--raw", raw_request
+            "pixi",
+            "run",
+            "mcp-streamablehttp-client",
+            "--server-url",
+            url,
+            "--raw",
+            raw_request,
         ]
 
         # Run the command
         result = subprocess.run(
-            cmd,
-            check=False, capture_output=True,
-            text=True,
-            timeout=30,
-            env=env
+            cmd, check=False, capture_output=True, text=True, timeout=30, env=env
         )
 
         if result.returncode != 0:
             # Check if it's an expected error
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
-            pytest.fail(f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}")
+            pytest.fail(
+                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"
+            )
 
         # Parse the output - find the JSON response
         try:
@@ -79,16 +79,16 @@ class TestMCPTimeIntegration:
             json_objects = []
             i = 0
             while i < len(output):
-                if output[i] == '{':
+                if output[i] == "{":
                     # Found start of JSON, find the matching closing brace
                     brace_count = 0
                     json_start = i
                     json_end = i
 
                     for j in range(i, len(output)):
-                        if output[j] == '{':
+                        if output[j] == "{":
                             brace_count += 1
-                        elif output[j] == '}':
+                        elif output[j] == "}":
                             brace_count -= 1
                             if brace_count == 0:
                                 json_end = j + 1
@@ -130,13 +130,10 @@ class TestMCPTimeIntegration:
                 "capabilities": {
                     "tools": {},
                     "resources": {"subscribe": True},
-                    "prompts": {}
+                    "prompts": {},
                 },
-                "clientInfo": {
-                    "name": "time-test-client",
-                    "version": "1.0.0"
-                }
-            }
+                "clientInfo": {"name": "time-test-client", "version": "1.0.0"},
+            },
         )
         assert "result" in response, f"Initialize failed: {response}"
 
@@ -156,25 +153,24 @@ class TestMCPTimeIntegration:
                     "resources": {"subscribe": True},
                     "prompts": {},
                     "logging": {},
-                    "completions": {}
+                    "completions": {},
                 },
-                "clientInfo": {
-                    "name": "test-time-client",
-                    "version": "1.0.0"
-                }
-            }
+                "clientInfo": {"name": "test-time-client", "version": "1.0.0"},
+            },
         )
 
         assert "result" in response
         result = response["result"]
         # Time server should use one of the officially supported protocol versions
-        assert result["protocolVersion"] in MCP_PROTOCOL_VERSIONS_SUPPORTED, \
+        assert result["protocolVersion"] in MCP_PROTOCOL_VERSIONS_SUPPORTED, (
             f"Time server protocol version {result['protocolVersion']} not in supported versions: {MCP_PROTOCOL_VERSIONS_SUPPORTED}"
+        )
         assert "serverInfo" in result
         # Server name should indicate time functionality
         server_name = result["serverInfo"]["name"]
-        assert "time" in server_name.lower(), \
+        assert "time" in server_name.lower(), (
             f"Server name '{server_name}' doesn't indicate time functionality"
+        )
         assert "capabilities" in result
 
     @pytest.mark.integration
@@ -187,10 +183,7 @@ class TestMCPTimeIntegration:
 
         # List tools
         response = self.run_mcp_client(
-            url=time_url,
-            token=client_token,
-            method="tools/list",
-            params={}
+            url=time_url, token=client_token, method="tools/list", params={}
         )
 
         assert "result" in response
@@ -211,11 +204,15 @@ class TestMCPTimeIntegration:
         # Time server should have time-related tools
         expected_tools = ["get_current_time", "convert_time"]
         for expected_tool in expected_tools:
-            assert expected_tool in tool_names, f"Missing expected tool: {expected_tool}"
+            assert expected_tool in tool_names, (
+                f"Missing expected tool: {expected_tool}"
+            )
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_list_resources(self, mcp_time_url, client_token, wait_for_services):
+    async def test_time_list_resources(
+        self, mcp_time_url, client_token, wait_for_services
+    ):
         time_url = f"{mcp_time_url}"
         """Test listing available resources."""
         # Initialize first
@@ -223,16 +220,15 @@ class TestMCPTimeIntegration:
 
         # List resources
         response = self.run_mcp_client(
-            url=time_url,
-            token=client_token,
-            method="resources/list",
-            params={}
+            url=time_url, token=client_token, method="resources/list", params={}
         )
 
         # Time server may not support resources/list - check for error
         if "error" in response:
             # Time server doesn't support resources - this is acceptable
-            print(f"Time server doesn't support resources/list: {response['error']['message']}")
+            print(
+                f"Time server doesn't support resources/list: {response['error']['message']}"
+            )
             assert response["error"]["code"] == -32601  # Method not found
         else:
             # If it does support resources, check the structure
@@ -250,7 +246,9 @@ class TestMCPTimeIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_health_check(self, mcp_time_url, client_token, wait_for_services):
+    async def test_time_health_check(
+        self, mcp_time_url, client_token, wait_for_services
+    ):
         time_url = f"{mcp_time_url}"
         """Test that the time service health endpoint is accessible."""
         # This test verifies the service is running and accessible
@@ -264,8 +262,8 @@ class TestMCPTimeIntegration:
             params={
                 "protocolVersion": MCP_PROTOCOL_VERSION,
                 "capabilities": {},
-                "clientInfo": {"name": "health-test-client", "version": "1.0.0"}
-            }
+                "clientInfo": {"name": "health-test-client", "version": "1.0.0"},
+            },
         )
 
         assert "result" in response

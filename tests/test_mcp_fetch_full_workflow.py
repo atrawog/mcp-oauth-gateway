@@ -1,6 +1,7 @@
 """FULL MCP Fetch Workflow Test - Testing ACTUAL functionality with REAL OAuth
 This test verifies the COMPLETE workflow from OAuth authentication to fetching content.
 """
+
 import json
 import os
 
@@ -14,7 +15,9 @@ from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 
 
 @pytest.mark.asyncio
-async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_services, mcp_fetch_url):
+async def test_full_mcp_fetch_workflow_with_real_oauth(
+    http_client, wait_for_services, mcp_fetch_url
+):
     """Test the COMPLETE MCP fetch workflow:
     1. Use REAL OAuth token
     2. Initialize MCP session
@@ -24,7 +27,9 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     # Get REAL OAuth token
     oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if not oauth_token:
-        pytest.fail("This test REQUIRES a REAL OAuth token! Run: just generate-github-token")
+        pytest.fail(
+            "This test REQUIRES a REAL OAuth token! Run: just generate-github-token"
+        )
 
     print("\n=== TESTING FULL MCP FETCH WORKFLOW ===")
     print(f"Using OAuth token: {oauth_token[:20]}...")
@@ -41,7 +46,9 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     except RuntimeError as e:
         # Try with alternative supported version
         if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
-            alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]  # Try the second supported version
+            alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[
+                1
+            ]  # Try the second supported version
             print(f"Retrying with alternative protocol version: {alt_version}")
             session_id, init_result = await initialize_mcp_session(
                 http_client, mcp_fetch_url, oauth_token, alt_version
@@ -53,7 +60,9 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     # Step 2: List available tools
     print("\nStep 2: Listing available tools...")
     try:
-        tools_result = await list_mcp_tools(http_client, mcp_fetch_url, oauth_token, session_id)
+        tools_result = await list_mcp_tools(
+            http_client, mcp_fetch_url, oauth_token, session_id
+        )
         print(f"Tools response: {json.dumps(tools_result, indent=2)}")
     except RuntimeError as e:
         print(f"Warning: Could not list tools: {e}")
@@ -62,11 +71,18 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     print("\nStep 3: Calling fetch tool to get https://example.com...")
     try:
         fetch_result = await call_mcp_tool(
-            http_client, mcp_fetch_url, oauth_token, session_id,
-            "fetch", {"url": "https://example.com"}, "fetch-1"
+            http_client,
+            mcp_fetch_url,
+            oauth_token,
+            session_id,
+            "fetch",
+            {"url": "https://example.com"},
+            "fetch-1",
         )
 
-        print(f"Fetch response (first 1000 chars): {json.dumps(fetch_result, indent=2)[:1000]}")
+        print(
+            f"Fetch response (first 1000 chars): {json.dumps(fetch_result, indent=2)[:1000]}"
+        )
 
         # Check the result directly (no need to parse JSON again)
         data = fetch_result
@@ -86,8 +102,11 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
                     content = item["text"]
 
                     # Verify we got example.com content
-                    assert "Example Domain" in content or "example" in content.lower(), \
+                    assert (
+                        "Example Domain" in content or "example" in content.lower()
+                    ), (
                         f"Didn't get expected content from example.com! Got: {content[:200]}"
+                    )
 
                     print("\n✅ SUCCESS! Fetched content from example.com")
                     print(f"✅ Content preview: {content[:200]}...")
@@ -99,18 +118,21 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, wait_for_ser
     # If we got here, we didn't find the expected content
     pytest.fail("Failed to find fetched content in response!")
 
+
 @pytest.mark.asyncio
-async def test_mcp_fetch_unauthorized_fails(http_client, wait_for_services, mcp_test_url):
+async def test_mcp_fetch_unauthorized_fails(
+    http_client, wait_for_services, mcp_test_url
+):
     """Verify that MCP fetch REQUIRES proper authentication."""
     # Try to access without token
     response = await http_client.post(
-        f"{mcp_test_url}",
-        json={"jsonrpc": "2.0", "method": "test", "id": 1}
+        f"{mcp_test_url}", json={"jsonrpc": "2.0", "method": "test", "id": 1}
     )
 
     assert response.status_code == 401, f"Expected 401, got {response.status_code}"
     assert "WWW-Authenticate" in response.headers
     print("✅ MCP fetch correctly rejects unauthorized requests")
+
 
 @pytest.mark.asyncio
 async def test_oauth_token_validation(http_client, wait_for_services):
@@ -121,8 +143,7 @@ async def test_oauth_token_validation(http_client, wait_for_services):
 
     # Test the /verify endpoint directly
     response = await http_client.get(
-        f"{AUTH_BASE_URL}/verify",
-        headers={"Authorization": f"Bearer {oauth_token}"}
+        f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {oauth_token}"}
     )
 
     if response.status_code == 200:

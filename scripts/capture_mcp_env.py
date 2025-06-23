@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Capture MCP client environment variables from command output and save to .env."""
+
 import re
 import subprocess
 import sys
@@ -7,6 +8,7 @@ from pathlib import Path
 
 
 ENV_FILE = Path(__file__).parent.parent / ".env"
+
 
 def save_env_var(key: str, value: str):
     """Save or update an environment variable in .env file."""
@@ -28,12 +30,13 @@ def save_env_var(key: str, value: str):
     with open(ENV_FILE, "w") as f:
         f.writelines(lines)
 
+
 def extract_env_vars(output: str):
     """Extract export statements from output."""
     env_vars = {}
-    pattern = r'^export\s+(MCP_CLIENT_[A-Z_]+)=(.+)$'
+    pattern = r"^export\s+(MCP_CLIENT_[A-Z_]+)=(.+)$"
 
-    for line in output.split('\n'):
+    for line in output.split("\n"):
         match = re.match(pattern, line.strip())
         if match:
             key = match.group(1)
@@ -44,6 +47,7 @@ def extract_env_vars(output: str):
 
     return env_vars
 
+
 def main():
     # Get command from arguments
     if len(sys.argv) < 2:
@@ -52,12 +56,14 @@ def main():
 
     # Pass environment variables through
     import os
+
     env = os.environ.copy()
 
     # Run the command WITHOUT capturing output to allow interactive prompts
     # We'll capture the final output by tee-ing to a temp file
     import tempfile
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False):
+
+    with tempfile.NamedTemporaryFile(mode="w+", delete=False):
         pass
 
     # Run command with tee to capture output while still showing it
@@ -72,13 +78,13 @@ def main():
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
-        universal_newlines=True
+        universal_newlines=True,
     )
 
     # Collect output while displaying it
     output_lines = []
     for line in process.stdout:
-        print(line, end='')  # Display to user
+        print(line, end="")  # Display to user
         output_lines.append(line)  # Collect for parsing
 
     process.wait()
@@ -87,7 +93,7 @@ def main():
         sys.exit(process.returncode)
 
     # Join all output for parsing
-    output = ''.join(output_lines)
+    output = "".join(output_lines)
 
     # Extract and save environment variables
     env_vars = extract_env_vars(output)
@@ -100,6 +106,7 @@ def main():
         print("\n✅ MCP client credentials saved to .env!")
     else:
         print("\n⚠️  No MCP client variables found in output")
+
 
 if __name__ == "__main__":
     main()

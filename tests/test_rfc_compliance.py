@@ -1,4 +1,5 @@
 """Test RFC 6749 and RFC 7591 compliance for OAuth endpoints."""
+
 import json
 
 import pytest
@@ -20,20 +21,24 @@ class TestRFCCompliance:
                 "response_type": "code",
                 "state": "test_state",
                 "code_challenge": "test_challenge",
-                "code_challenge_method": "S256"
+                "code_challenge_method": "S256",
             },
-            follow_redirects=False
+            follow_redirects=False,
         )
 
         assert response.status_code == 400
         try:
             error = response.json()
             assert error["detail"]["error"] == "invalid_client"
-            assert error["detail"]["error_description"] == "Client authentication failed"
+            assert (
+                error["detail"]["error_description"] == "Client authentication failed"
+            )
         except json.JSONDecodeError:
             # If response is not JSON, check if it's an HTML error page
             content = response.text
-            assert "invalid_client" in content or "Client authentication failed" in content
+            assert (
+                "invalid_client" in content or "Client authentication failed" in content
+            )
         # RFC 6749 compliant - only error and error_description fields
 
     @pytest.mark.asyncio
@@ -46,8 +51,8 @@ class TestRFCCompliance:
                 "code": "test_code",
                 "redirect_uri": "https://example.com/callback",
                 "client_id": "non_existent_client",
-                "client_secret": "test_secret"
-            }
+                "client_secret": "test_secret",
+            },
         )
 
         assert response.status_code == 401
@@ -82,8 +87,8 @@ class TestRFCCompliance:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["http://example.com/callback"],
-                "client_name": "TEST Test Client"
-            }
+                "client_name": "TEST Test Client",
+            },
         )
 
         assert response.status_code == 400
@@ -102,10 +107,10 @@ class TestRFCCompliance:
                     "https://example.com/callback",  # HTTPS
                     "http://localhost:3000/callback",  # HTTP localhost
                     "http://127.0.0.1:8080/callback",  # HTTP 127.0.0.1
-                    "myapp://callback"  # App-specific URI
+                    "myapp://callback",  # App-specific URI
                 ],
-                "client_name": "TEST Test Client"
-            }
+                "client_name": "TEST Test Client",
+            },
         )
 
         assert response.status_code == 201
@@ -119,11 +124,15 @@ class TestRFCCompliance:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
-                    headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                    headers={
+                        "Authorization": f"Bearer {client['registration_access_token']}"
+                    },
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
-                    print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+                    print(
+                        f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"
+                    )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
@@ -131,10 +140,7 @@ class TestRFCCompliance:
     async def test_registration_missing_redirect_uris_rfc7591(self, http_client):
         """Test RFC 7591 compliance for missing redirect_uris."""
         response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json={
-                "client_name": "TEST Test Client"
-            }
+            f"{AUTH_BASE_URL}/register", json={"client_name": "TEST Test Client"}
         )
 
         # RFC 7591 - Returns 400 with proper error format

@@ -1,4 +1,5 @@
 """Command-line interface for the MCP stdio-to-streamable-HTTP proxy."""
+
 import argparse
 import logging
 import os
@@ -27,40 +28,33 @@ Examples:
 
   # Run with custom session timeout
   mcp-streamablehttp-proxy --timeout 600 python -m mcp_server_fetch
-"""
+""",
     )
 
-    parser.add_argument(
-        "server_command",
-        nargs="+",
-        help="Command to run the MCP stdio server"
-    )
+    parser.add_argument("server_command", nargs="+", help="Command to run the MCP stdio server")
 
     parser.add_argument(
         "--host",
         default=os.getenv("MCP_BIND_HOST", "0.0.0.0"),
-        help="Host to bind to (default: 0.0.0.0, or MCP_BIND_HOST env var)"
+        help="Host to bind to (default: 0.0.0.0, or MCP_BIND_HOST env var)",
     )
 
     parser.add_argument(
         "--port",
         type=int,
         default=int(os.getenv("MCP_PORT", "3000")),
-        help="Port to bind to (default: 3000, or MCP_PORT env var)"
+        help="Port to bind to (default: 3000, or MCP_PORT env var)",
     )
 
     parser.add_argument(
-        "--timeout",
-        type=int,
-        default=300,
-        help="Session timeout in seconds (default: 300)"
+        "--timeout", type=int, default=300, help="Session timeout in seconds (default: 300)"
     )
 
     parser.add_argument(
         "--log-level",
         choices=["debug", "info", "warning", "error"],
         default="info",
-        help="Logging level (default: info)"
+        help="Logging level (default: info)",
     )
 
     # Use parse_known_args to handle server commands with options like -m
@@ -81,7 +75,7 @@ Examples:
             host=args.host,
             port=args.port,
             session_timeout=args.timeout,
-            log_level=args.log_level
+            log_level=args.log_level,
         )
     except KeyboardInterrupt:
         logger.info("Shutting down...")

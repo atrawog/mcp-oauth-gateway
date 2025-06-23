@@ -2,6 +2,7 @@
 """Helper script to save OAuth environment variables to .env file.
 This runs after mcp-streamablehttp-client to capture the env vars it set.
 """
+
 import os
 from pathlib import Path
 
@@ -20,6 +21,7 @@ OAUTH_VARS = [
     "OAUTH_DEVICE_AUTH_URL",
     "OAUTH_REGISTRATION_URL",
 ]
+
 
 def save_env_var(key: str, value: str):
     """Save or update an environment variable in .env file."""
@@ -40,6 +42,7 @@ def save_env_var(key: str, value: str):
 
     with open(ENV_FILE, "w") as f:
         f.writelines(lines)
+
 
 def main():
     """Save OAuth environment variables to .env."""
@@ -76,6 +79,7 @@ def main():
     else:
         print("\n⚠️  No OAuth variables found in environment")
         print("The mcp-streamablehttp-client should have set them.")
+
 
 if __name__ == "__main__":
     main()

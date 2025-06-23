@@ -15,6 +15,7 @@ The script will:
 5. Exchange auth code for tokens
 6. Save tokens to .env as MCP_CLIENT_ACCESS_TOKEN and MCP_CLIENT_REFRESH_TOKEN
 """
+
 import asyncio
 import os
 import sys
@@ -73,7 +74,9 @@ async def discover_oauth_metadata(mcp_url: str) -> dict[str, str]:
     # Try the well-known endpoint
     discovery_url = f"{base_url}/.well-known/oauth-authorization-server"
 
-    verify_ssl = not base_url.startswith("https://localhost") and "127.0.0.1" not in base_url
+    verify_ssl = (
+        not base_url.startswith("https://localhost") and "127.0.0.1" not in base_url
+    )
 
     async with httpx.AsyncClient(verify=verify_ssl) as client:
         try:
@@ -83,10 +86,14 @@ async def discover_oauth_metadata(mcp_url: str) -> dict[str, str]:
                 print("✅ Found OAuth metadata")
                 return {
                     "issuer": metadata.get("issuer", ""),
-                    "authorization_endpoint": metadata.get("authorization_endpoint", ""),
+                    "authorization_endpoint": metadata.get(
+                        "authorization_endpoint", ""
+                    ),
                     "token_endpoint": metadata.get("token_endpoint", ""),
                     "registration_endpoint": metadata.get("registration_endpoint", ""),
-                    "device_authorization_endpoint": metadata.get("device_authorization_endpoint", "")
+                    "device_authorization_endpoint": metadata.get(
+                        "device_authorization_endpoint", ""
+                    ),
                 }
             print(f"❌ Failed to fetch metadata: {response.status_code}")
             return {}
@@ -118,11 +125,16 @@ async def check_existing_client() -> tuple[str | None, str | None]:
     return None, None
 
 
-async def register_oauth_client(registration_url: str, redirect_uri: str) -> tuple[str, str]:
+async def register_oauth_client(
+    registration_url: str, redirect_uri: str
+) -> tuple[str, str]:
     """Register a new OAuth client."""
     print("📝 Registering new OAuth client...")
 
-    verify_ssl = not registration_url.startswith("https://localhost") and "127.0.0.1" not in registration_url
+    verify_ssl = (
+        not registration_url.startswith("https://localhost")
+        and "127.0.0.1" not in registration_url
+    )
 
     async with httpx.AsyncClient(verify=verify_ssl) as client:
         response = await client.post(
@@ -130,8 +142,8 @@ async def register_oauth_client(registration_url: str, redirect_uri: str) -> tup
             json={
                 "redirect_uris": [redirect_uri],
                 "client_name": "MCP OAuth Completion Script",
-                "scope": "openid profile email"
-            }
+                "scope": "openid profile email",
+            },
         )
 
         if response.status_code != 201:
@@ -153,19 +165,22 @@ async def exchange_code_for_tokens(
     client_id: str,
     client_secret: str,
     redirect_uri: str,
-    code_verifier: str | None = None
+    code_verifier: str | None = None,
 ) -> tuple[str, str | None]:
     """Exchange authorization code for tokens."""
     print("🔄 Exchanging authorization code for tokens...")
 
-    verify_ssl = not token_endpoint.startswith("https://localhost") and "127.0.0.1" not in token_endpoint
+    verify_ssl = (
+        not token_endpoint.startswith("https://localhost")
+        and "127.0.0.1" not in token_endpoint
+    )
 
     data = {
         "grant_type": "authorization_code",
         "code": auth_code,
         "redirect_uri": redirect_uri,
         "client_id": client_id,
-        "client_secret": client_secret
+        "client_secret": client_secret,
     }
 
     # Add PKCE verifier if we have one
@@ -176,7 +191,9 @@ async def exchange_code_for_tokens(
         response = await client.post(token_endpoint, data=data)
 
         if response.status_code != 200:
-            raise Exception(f"Token exchange failed ({response.status_code}): {response.text}")
+            raise Exception(
+                f"Token exchange failed ({response.status_code}): {response.text}"
+            )
 
         tokens = response.json()
 
@@ -262,7 +279,7 @@ async def main():
             client_id,
             client_secret,
             redirect_uri,
-            code_verifier
+            code_verifier,
         )
 
         # Step 5: Save tokens to .env

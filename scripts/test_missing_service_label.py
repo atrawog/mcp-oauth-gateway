@@ -3,18 +3,18 @@
 
 # Simulate the label dict without the service assignment
 label_dict_broken = {
-    'traefik.enable': 'true',
-    'traefik.http.routers.mcp-fetch.rule': 'Host(`mcp-fetch.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)',
-    'traefik.http.routers.mcp-fetch.priority': '2',
-    'traefik.http.routers.mcp-fetch.entrypoints': 'websecure',
-    'traefik.http.routers.mcp-fetch.tls.certresolver': 'letsencrypt',
-    'traefik.http.routers.mcp-fetch.middlewares': 'mcp-auth@docker',
+    "traefik.enable": "true",
+    "traefik.http.routers.mcp-fetch.rule": "Host(`mcp-fetch.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)",
+    "traefik.http.routers.mcp-fetch.priority": "2",
+    "traefik.http.routers.mcp-fetch.entrypoints": "websecure",
+    "traefik.http.routers.mcp-fetch.tls.certresolver": "letsencrypt",
+    "traefik.http.routers.mcp-fetch.middlewares": "mcp-auth@docker",
     # MISSING: 'traefik.http.routers.mcp-fetch.service': 'mcp-fetch',
-    'traefik.http.services.mcp-fetch.loadbalancer.server.port': '3000'
+    "traefik.http.services.mcp-fetch.loadbalancer.server.port": "3000",
 }
 
 # Check what the test would find
-router_name = 'mcp-fetch'
+router_name = "mcp-fetch"
 prefix = f"traefik.http.routers.{router_name}"
 
 print("Checking router:", router_name)

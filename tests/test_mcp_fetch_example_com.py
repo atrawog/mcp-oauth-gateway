@@ -1,6 +1,7 @@
 """Test fetching example.com through MCP with proper OAuth
 Following CLAUDE.md - NO MOCKING, real services only!
 """
+
 import json
 
 import pytest
@@ -15,10 +16,14 @@ class TestMCPFetchExampleCom:
     """Test fetching example.com content with proper MCP protocol."""
 
     @pytest.mark.asyncio
-    async def test_fetch_example_com_with_mcp_protocol(self, http_client, wait_for_services, mcp_fetch_url):
+    async def test_fetch_example_com_with_mcp_protocol(
+        self, http_client, wait_for_services, mcp_fetch_url
+    ):
         """Test fetching https://example.com and verify 'Example Domain' is in content."""
         # MUST have MCP client access token - test FAILS if not available
-        assert MCP_CLIENT_ACCESS_TOKEN, "MCP_CLIENT_ACCESS_TOKEN not available - run: just mcp-client-token"
+        assert MCP_CLIENT_ACCESS_TOKEN, (
+            "MCP_CLIENT_ACCESS_TOKEN not available - run: just mcp-client-token"
+        )
 
         # Step 2: Initialize MCP session properly
         try:
@@ -41,8 +46,13 @@ class TestMCPFetchExampleCom:
         # Step 3: Fetch example.com using proper tool call
         try:
             response_data = await call_mcp_tool(
-                http_client, mcp_fetch_url, MCP_CLIENT_ACCESS_TOKEN, session_id,
-                "fetch", {"url": "https://example.com"}, "fetch-1"
+                http_client,
+                mcp_fetch_url,
+                MCP_CLIENT_ACCESS_TOKEN,
+                session_id,
+                "fetch",
+                {"url": "https://example.com"},
+                "fetch-1",
             )
 
             print(f"Fetch result: {json.dumps(response_data, indent=2)}")
@@ -64,8 +74,9 @@ class TestMCPFetchExampleCom:
                     content_text = str(result)
 
                 # Check for "Example Domain"
-                assert "Example Domain" in content_text, \
+                assert "Example Domain" in content_text, (
                     f"Expected 'Example Domain' in fetched content, but got: {content_text[:500]}..."
+                )
 
                 print("✅ SUCCESS! Found 'Example Domain' in fetched content!")
                 return  # Test passed!

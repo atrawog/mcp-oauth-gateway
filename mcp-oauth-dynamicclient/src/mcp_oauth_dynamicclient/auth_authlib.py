@@ -2,6 +2,7 @@
 Authentication and token management module using Authlib
 Following the divine commandments - NO AD-HOC IMPLEMENTATIONS!
 """
+
 import base64
 import hashlib
 import json
@@ -33,6 +34,7 @@ class OAuth2Client(ClientMixin):
         redirect_uris = self._client_data.get("redirect_uris", [])
         if isinstance(redirect_uris, str):
             import json
+
             redirect_uris = json.loads(redirect_uris)
         return redirect_uris[0] if redirect_uris else None
 
@@ -44,6 +46,7 @@ class OAuth2Client(ClientMixin):
         redirect_uris = self._client_data.get("redirect_uris", [])
         if isinstance(redirect_uris, str):
             import json
+
             redirect_uris = json.loads(redirect_uris)
         return redirect_uri in redirect_uris
 
@@ -51,10 +54,7 @@ class OAuth2Client(ClientMixin):
         return bool(self._client_data.get("client_secret"))
 
     def check_client_secret(self, client_secret: str) -> bool:
-        return secrets.compare_digest(
-            self._client_data.get("client_secret", ""),
-            client_secret
-        )
+        return secrets.compare_digest(self._client_data.get("client_secret", ""), client_secret)
 
     def check_endpoint_auth_method(self, method: str, endpoint: str) -> bool:
         # Support both client_secret_post and client_secret_basic
@@ -83,7 +83,7 @@ class AuthManager:
         self.github_client = AsyncOAuth2Client(
             client_id=settings.github_client_id,
             client_secret=settings.github_client_secret,
-            redirect_uri=f"https://auth.{settings.base_domain}/callback"
+            redirect_uri=f"https://auth.{settings.base_domain}/callback",
         )
 
     async def create_jwt_token(self, claims: dict, redis_client: redis.Redis) -> str:
@@ -101,11 +101,11 @@ class AuthManager:
             "iat": int(now.timestamp()),
             "exp": int((now + timedelta(seconds=self.settings.access_token_lifetime)).timestamp()),
             "iss": f"https://auth.{self.settings.base_domain}",
-            "aud": f"https://auth.{self.settings.base_domain}"
+            "aud": f"https://auth.{self.settings.base_domain}",
         }
 
         # Create token using Authlib with the BLESSED RS256 algorithm!
-        if self.settings.jwt_algorithm == 'RS256':
+        if self.settings.jwt_algorithm == "RS256":
             # Use RSA private key for RS256 - cryptographic blessing!
             token = self.jwt.encode(header, payload, self.key_manager.private_key)
         else:
@@ -116,33 +116,40 @@ class AuthManager:
         await redis_client.setex(
             f"oauth:token:{jti}",
             self.settings.access_token_lifetime,
-            json.dumps({
-                **claims,
-                "created_at": int(now.timestamp()),
-                "expires_at": int((now + timedelta(seconds=self.settings.access_token_lifetime)).timestamp())
-            })
+            json.dumps(
+                {
+                    **claims,
+                    "created_at": int(now.timestamp()),
+                    "expires_at": int(
+                        (now + timedelta(seconds=self.settings.access_token_lifetime)).timestamp()
+                    ),
+                }
+            ),
         )
 
         # Track user's tokens if username present
         if "username" in claims:
             await redis_client.sadd(f"oauth:user_tokens:{claims['username']}", jti)
 
-        return token.decode('utf-8') if isinstance(token, bytes) else token
+        return token.decode("utf-8") if isinstance(token, bytes) else token
 
     async def verify_jwt_token(self, token: str, redis_client: redis.Redis) -> Optional[dict]:
         """Verifies JWT token using Authlib and checks Redis"""
         try:
             # Decode and validate token using Authlib
-            if self.settings.jwt_algorithm == 'RS256':
+            if self.settings.jwt_algorithm == "RS256":
                 # Use RSA public key for RS256 verification - divine cryptographic validation!
                 claims = self.jwt.decode(
                     token,
                     self.key_manager.public_key,
                     claims_options={
-                        "iss": {"essential": True, "value": f"https://auth.{self.settings.base_domain}"},
+                        "iss": {
+                            "essential": True,
+                            "value": f"https://auth.{self.settings.base_domain}",
+                        },
                         "exp": {"essential": True},
-                        "jti": {"essential": True}
-                    }
+                        "jti": {"essential": True},
+                    },
                 )
             else:
                 # HS256 fallback during transition period
@@ -150,10 +157,13 @@ class AuthManager:
                     token,
                     self.settings.jwt_secret,
                     claims_options={
-                        "iss": {"essential": True, "value": f"https://auth.{self.settings.base_domain}"},
+                        "iss": {
+                            "essential": True,
+                            "value": f"https://auth.{self.settings.base_domain}",
+                        },
                         "exp": {"essential": True},
-                        "jti": {"essential": True}
-                    }
+                        "jti": {"essential": True},
+                    },
                 )
 
             # Validate claims
@@ -184,10 +194,7 @@ class AuthManager:
         await redis_client.setex(
             f"oauth:refresh:{refresh_token}",
             self.settings.refresh_token_lifetime,
-            json.dumps({
-                **user_data,
-                "created_at": int(datetime.now(timezone.utc).timestamp())
-            })
+            json.dumps({**user_data, "created_at": int(datetime.now(timezone.utc).timestamp())}),
         )
 
         return refresh_token
@@ -197,32 +204,29 @@ class AuthManager:
         try:
             # Set up token endpoint
             self.github_client.metadata = {
-                'token_endpoint': 'https://github.com/login/oauth/access_token',
-                'token_endpoint_auth_methods_supported': ['client_secret_post']
+                "token_endpoint": "https://github.com/login/oauth/access_token",
+                "token_endpoint_auth_methods_supported": ["client_secret_post"],
             }
 
             # Exchange code for token
             token = await self.github_client.fetch_token(
-                'https://github.com/login/oauth/access_token',
+                "https://github.com/login/oauth/access_token",
                 code=code,
-                headers={'Accept': 'application/json'}
+                headers={"Accept": "application/json"},
             )
 
-            if not token or 'access_token' not in token:
+            if not token or "access_token" not in token:
                 return None
 
             # Get user info using the token
             async with httpx.AsyncClient() as client:
                 headers = {
                     "Authorization": f"Bearer {token['access_token']}",
-                    "Accept": "application/vnd.github.v3+json"
+                    "Accept": "application/vnd.github.v3+json",
                 }
 
                 # Get user info
-                user_response = await client.get(
-                    "https://api.github.com/user",
-                    headers=headers
-                )
+                user_response = await client.get("https://api.github.com/user", headers=headers)
 
                 if user_response.status_code != 200:
                     return None
@@ -269,26 +273,22 @@ class AuthManager:
             "sub": token_data.get("sub"),
             "aud": token_data.get("aud"),
             "iss": token_data.get("iss"),
-            "jti": token_data.get("jti")
+            "jti": token_data.get("jti"),
         }
 
     async def revoke_token(self, token: str, redis_client: redis.Redis) -> bool:
         """Revoke a token using Authlib patterns"""
         try:
             # Try to decode the token to get JTI
-            if self.settings.jwt_algorithm == 'RS256':
+            if self.settings.jwt_algorithm == "RS256":
                 # RS256 - the blessed way!
                 claims = self.jwt.decode(
-                    token,
-                    self.key_manager.public_key,
-                    claims_options={"jti": {"essential": True}}
+                    token, self.key_manager.public_key, claims_options={"jti": {"essential": True}}
                 )
             else:
                 # HS256 fallback
                 claims = self.jwt.decode(
-                    token,
-                    self.settings.jwt_secret,
-                    claims_options={"jti": {"essential": True}}
+                    token, self.settings.jwt_secret, claims_options={"jti": {"essential": True}}
                 )
 
             jti = claims.get("jti")
@@ -326,10 +326,7 @@ class AuthManager:
         # For now, we'll create a compatible response
         code = secrets.token_urlsafe(32)
 
-        response = {
-            "code": code,
-            "state": request.get("state")
-        }
+        response = {"code": code, "state": request.get("state")}
 
         return response, code
 
@@ -338,7 +335,4 @@ class AuthManager:
         client_id = f"client_{secrets.token_urlsafe(16)}"
         client_secret = secrets.token_urlsafe(32)
 
-        return {
-            "client_id": client_id,
-            "client_secret": client_secret
-        }
+        return {"client_id": client_id, "client_secret": client_secret}

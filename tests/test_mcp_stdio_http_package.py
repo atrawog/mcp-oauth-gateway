@@ -1,4 +1,5 @@
 """Test that mcp-fetch service is using the correct package."""
+
 import httpx
 import pytest
 
@@ -21,14 +22,14 @@ async def test_mcp_fetch_uses_package(mcp_fetch_url):
                 "params": {
                     "protocolVersion": "2025-03-26",
                     "capabilities": {},
-                    "clientInfo": {"name": "package-test", "version": "1.0.0"}
+                    "clientInfo": {"name": "package-test", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                "Content-Type": "application/json"
-            }
+                "Content-Type": "application/json",
+            },
         )
         assert response.status_code == 200
 

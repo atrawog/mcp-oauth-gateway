@@ -45,27 +45,39 @@ class PydanticDeprecationHunter(ast.NodeVisitor):
         """Hunt for deprecated Config classes in Pydantic models."""
         # Check if this is likely a Pydantic model
         is_pydantic_model = any(
-            (isinstance(base, ast.Name) and base.id in ["BaseModel", "BaseSettings"]) or
-            (isinstance(base, ast.Attribute) and
-             ((hasattr(base.value, 'id') and base.value.id == "pydantic" and base.attr in ["BaseModel", "BaseSettings"]) or
-              (hasattr(base.value, 'id') and base.value.id == "pydantic_settings" and base.attr == "BaseSettings")))
+            (isinstance(base, ast.Name) and base.id in ["BaseModel", "BaseSettings"])
+            or (
+                isinstance(base, ast.Attribute)
+                and (
+                    (
+                        hasattr(base.value, "id")
+                        and base.value.id == "pydantic"
+                        and base.attr in ["BaseModel", "BaseSettings"]
+                    )
+                    or (
+                        hasattr(base.value, "id")
+                        and base.value.id == "pydantic_settings"
+                        and base.attr == "BaseSettings"
+                    )
+                )
+            )
             for base in node.bases
         )
 
         if is_pydantic_model:
             # Hunt for deprecated Config class
             for item in node.body:
-                if (isinstance(item, ast.ClassDef) and
-                    item.name == "Config"):
-
-                    self.violations.append({
-                        "type": "deprecated_config_class",
-                        "line": item.lineno,
-                        "column": item.col_offset,
-                        "message": f"🔥 DEPRECATED: 'class Config:' found in {node.name}! Use 'model_config = ConfigDict()' instead! ⚡",
-                        "severity": "error",
-                        "class_name": node.name
-                    })
+                if isinstance(item, ast.ClassDef) and item.name == "Config":
+                    self.violations.append(
+                        {
+                            "type": "deprecated_config_class",
+                            "line": item.lineno,
+                            "column": item.col_offset,
+                            "message": f"🔥 DEPRECATED: 'class Config:' found in {node.name}! Use 'model_config = ConfigDict()' instead! ⚡",
+                            "severity": "error",
+                            "class_name": node.name,
+                        }
+                    )
 
             # Check if model_config is present when Config class is absent
             has_config_class = any(
@@ -74,23 +86,31 @@ class PydanticDeprecationHunter(ast.NodeVisitor):
             )
 
             has_model_config = any(
-                isinstance(item, ast.Assign) and
-                any(isinstance(target, ast.Name) and target.id == "model_config"
-                    for target in item.targets)
+                isinstance(item, ast.Assign)
+                and any(
+                    isinstance(target, ast.Name) and target.id == "model_config"
+                    for target in item.targets
+                )
                 for item in node.body
             )
 
-            if not has_config_class and not has_model_config and self.has_pydantic_import:
+            if (
+                not has_config_class
+                and not has_model_config
+                and self.has_pydantic_import
+            ):
                 # This might be okay, but let's check if ConfigDict is imported
                 if not self.has_config_dict_import:
-                    self.violations.append({
-                        "type": "missing_config_dict_import",
-                        "line": node.lineno,
-                        "column": node.col_offset,
-                        "message": f"⚠️  PREVENTION: {node.name} uses Pydantic but doesn't import ConfigDict! Add 'from pydantic import ConfigDict' to prevent future config issues! ⚡",
-                        "severity": "warning",
-                        "class_name": node.name
-                    })
+                    self.violations.append(
+                        {
+                            "type": "missing_config_dict_import",
+                            "line": node.lineno,
+                            "column": node.col_offset,
+                            "message": f"⚠️  PREVENTION: {node.name} uses Pydantic but doesn't import ConfigDict! Add 'from pydantic import ConfigDict' to prevent future config issues! ⚡",
+                            "severity": "warning",
+                            "class_name": node.name,
+                        }
+                    )
 
         self.generic_visit(node)
 
@@ -98,7 +118,7 @@ class PydanticDeprecationHunter(ast.NodeVisitor):
 def hunt_deprecated_patterns_in_file(file_path: Path) -> list[dict[str, Any]]:
     """Hunt deprecated patterns in a single file."""
     try:
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         # Parse the AST
@@ -114,50 +134,56 @@ def hunt_deprecated_patterns_in_file(file_path: Path) -> list[dict[str, Any]]:
         return hunter.violations + regex_violations
 
     except (SyntaxError, UnicodeDecodeError) as e:
-        return [{
-            "type": "parse_error",
-            "line": 0,
-            "column": 0,
-            "message": f"❌ Parse error in {file_path}: {e}",
-            "severity": "error",
-            "class_name": "N/A"
-        }]
+        return [
+            {
+                "type": "parse_error",
+                "line": 0,
+                "column": 0,
+                "message": f"❌ Parse error in {file_path}: {e}",
+                "severity": "error",
+                "class_name": "N/A",
+            }
+        ]
 
 
 def hunt_regex_patterns(content: str, file_path: Path) -> list[dict[str, Any]]:
     """Hunt for deprecated patterns using regex (backup to AST)."""
     violations = []
-    lines = content.split('\n')
+    lines = content.split("\n")
 
     # Pattern 1: class Config: pattern
-    config_class_pattern = re.compile(r'^\s*class\s+Config\s*:', re.MULTILINE)
+    config_class_pattern = re.compile(r"^\s*class\s+Config\s*:", re.MULTILINE)
     for match in config_class_pattern.finditer(content):
-        line_num = content[:match.start()].count('\n') + 1
-        violations.append({
-            "type": "regex_deprecated_config",
-            "line": line_num,
-            "column": match.start() - content.rfind('\n', 0, match.start()) - 1,
-            "message": "🔥 REGEX CATCH: 'class Config:' pattern detected! Use 'model_config = ConfigDict()' instead! ⚡",
-            "severity": "error",
-            "class_name": "Unknown"
-        })
+        line_num = content[: match.start()].count("\n") + 1
+        violations.append(
+            {
+                "type": "regex_deprecated_config",
+                "line": line_num,
+                "column": match.start() - content.rfind("\n", 0, match.start()) - 1,
+                "message": "🔥 REGEX CATCH: 'class Config:' pattern detected! Use 'model_config = ConfigDict()' instead! ⚡",
+                "severity": "error",
+                "class_name": "Unknown",
+            }
+        )
 
     # Pattern 2: Check for Pydantic imports without ConfigDict
-    has_pydantic = any('pydantic' in line for line in lines)
-    has_config_dict = any('ConfigDict' in line for line in lines)
+    has_pydantic = any("pydantic" in line for line in lines)
+    has_config_dict = any("ConfigDict" in line for line in lines)
 
     if has_pydantic and not has_config_dict:
         # Find the first pydantic import line
         for i, line in enumerate(lines):
-            if 'pydantic' in line and ('import' in line or 'from' in line):
-                violations.append({
-                    "type": "regex_missing_config_dict",
-                    "line": i + 1,
-                    "column": 0,
-                    "message": "⚠️  REGEX PREVENTION: File uses Pydantic but doesn't import ConfigDict! Consider adding 'from pydantic import ConfigDict'! ⚡",
-                    "severity": "warning",
-                    "class_name": "N/A"
-                })
+            if "pydantic" in line and ("import" in line or "from" in line):
+                violations.append(
+                    {
+                        "type": "regex_missing_config_dict",
+                        "line": i + 1,
+                        "column": 0,
+                        "message": "⚠️  REGEX PREVENTION: File uses Pydantic but doesn't import ConfigDict! Consider adding 'from pydantic import ConfigDict'! ⚡",
+                        "severity": "warning",
+                        "class_name": "N/A",
+                    }
+                )
                 break
 
     return violations
@@ -182,7 +208,9 @@ def hunt_deprecation_warnings() -> list[str]:
             try:
                 __import__(module_name)
             except DeprecationWarning as e:
-                warning_messages.append(f"🔥 RUNTIME DEPRECATION in {module_name}: {e} ⚡")
+                warning_messages.append(
+                    f"🔥 RUNTIME DEPRECATION in {module_name}: {e} ⚡"
+                )
             except ImportError:
                 # Module doesn't exist, skip
                 pass
@@ -205,18 +233,40 @@ def main() -> int:
     python_files = []
     for root, dirs, files in os.walk("."):
         # Skip common directories and third-party code
-        dirs[:] = [d for d in dirs if d not in {
-            '.git', '__pycache__', '.pytest_cache', 'htmlcov', 'logs', 'reports',
-            '.pixi', '.venv', 'venv', 'env', '.env', 'node_modules', 'build',
-            'dist', '.tox', 'site-packages', '.coverage'
-        }]
+        dirs[:] = [
+            d
+            for d in dirs
+            if d
+            not in {
+                ".git",
+                "__pycache__",
+                ".pytest_cache",
+                "htmlcov",
+                "logs",
+                "reports",
+                ".pixi",
+                ".venv",
+                "venv",
+                "env",
+                ".env",
+                "node_modules",
+                "build",
+                "dist",
+                ".tox",
+                "site-packages",
+                ".coverage",
+            }
+        ]
 
         # Skip third-party directories
-        if any(skip_path in root for skip_path in ['.pixi', 'site-packages', '.venv', 'venv']):
+        if any(
+            skip_path in root
+            for skip_path in [".pixi", "site-packages", ".venv", "venv"]
+        ):
             continue
 
         for file in files:
-            if file.endswith('.py'):
+            if file.endswith(".py"):
                 python_files.append(Path(root) / file)
 
     print(f"🎯 Hunting in {len(python_files)} Python files...")
@@ -265,9 +315,13 @@ def main() -> int:
         print("🔥 Fix these errors immediately to prevent production issues! ⚡")
         return 1
     if warning_count > 0:
-        print("⚠️  HUNT PASSED with warnings: Consider fixing warnings for future-proofing!")
+        print(
+            "⚠️  HUNT PASSED with warnings: Consider fixing warnings for future-proofing!"
+        )
         return 0
-    print("✅ HUNT PASSED: No deprecated patterns found! Divine compliance achieved! ⚡")
+    print(
+        "✅ HUNT PASSED: No deprecated patterns found! Divine compliance achieved! ⚡"
+    )
     return 0
 
 

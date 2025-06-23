@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """MCP OAuth Flow Helper - Handles the OAuth flow in steps."""
+
 import os
 import re
 import subprocess
@@ -8,6 +9,7 @@ from pathlib import Path
 
 
 ENV_FILE = Path(__file__).parent.parent / ".env"
+
 
 def save_env_var(key: str, value: str):
     """Save or update an environment variable in .env file."""
@@ -29,12 +31,13 @@ def save_env_var(key: str, value: str):
     with open(ENV_FILE, "w") as f:
         f.writelines(lines)
 
+
 def extract_env_vars(output: str):
     """Extract export statements from output."""
     env_vars = {}
-    pattern = r'^export\s+(MCP_CLIENT_[A-Z_]+)=(.+)$'
+    pattern = r"^export\s+(MCP_CLIENT_[A-Z_]+)=(.+)$"
 
-    for line in output.split('\n'):
+    for line in output.split("\n"):
         match = re.match(pattern, line.strip())
         if match:
             key = match.group(1)
@@ -44,6 +47,7 @@ def extract_env_vars(output: str):
 
     return env_vars
 
+
 def run_oauth_flow():
     """Run the OAuth flow with optional auth code."""
     # Check if auth code was provided as argument
@@ -51,7 +55,9 @@ def run_oauth_flow():
 
     # Set up environment
     env = os.environ.copy()
-    env["MCP_SERVER_URL"] = f"https://mcp-fetch.{env.get('BASE_DOMAIN', 'atradev.org')}/mcp"
+    env["MCP_SERVER_URL"] = (
+        f"https://mcp-fetch.{env.get('BASE_DOMAIN', 'atradev.org')}/mcp"
+    )
 
     if auth_code:
         env["MCP_AUTH_CODE"] = auth_code
@@ -59,8 +65,12 @@ def run_oauth_flow():
 
     # Run the MCP client
     cmd = [
-        sys.executable, "-m", "mcp_streamablehttp_client.cli",
-        "--token", "--server-url", env["MCP_SERVER_URL"]
+        sys.executable,
+        "-m",
+        "mcp_streamablehttp_client.cli",
+        "--token",
+        "--server-url",
+        env["MCP_SERVER_URL"],
     ]
 
     # Run command and capture output
@@ -83,22 +93,23 @@ def run_oauth_flow():
         print("\n✅ MCP client credentials saved to .env!")
         return 0
     # Check if we got an authorization URL
-    auth_url_match = re.search(r'(https://auth\.[^\s]+/authorize[^\s]+)', output)
+    auth_url_match = re.search(r"(https://auth\.[^\s]+/authorize[^\s]+)", output)
     if auth_url_match and not auth_code:
         auth_url = auth_url_match.group(1)
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("📋 AUTHORIZATION REQUIRED")
-        print("="*70)
+        print("=" * 70)
         print("\n1. Visit this URL in your browser:")
         print(f"   {auth_url}")
         print("\n2. Complete GitHub authentication")
         print("\n3. Copy the authorization code from the success page")
         print("\n4. Run this command with the code:")
         print("   just mcp-client-token <authorization-code>")
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         return 1
     print("\n⚠️  No MCP client variables found in output")
     return result.returncode
+
 
 if __name__ == "__main__":
     sys.exit(run_oauth_flow())

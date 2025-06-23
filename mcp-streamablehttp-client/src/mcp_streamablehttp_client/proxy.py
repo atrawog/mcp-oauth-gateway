@@ -1,4 +1,5 @@
 """Streamable HTTP to stdio proxy for MCP servers with OAuth support."""
+
 import asyncio
 import json
 import logging
@@ -44,7 +45,7 @@ class StreamableHttpToStdioProxy:
         # Create HTTP client
         self.http_client = httpx.AsyncClient(
             verify=self.settings.verify_ssl,
-            timeout=httpx.Timeout(self.settings.request_timeout)
+            timeout=httpx.Timeout(self.settings.request_timeout),
         )
 
         # Create OAuth client and authenticate
@@ -100,10 +101,10 @@ class StreamableHttpToStdioProxy:
                     break
 
                 # Add to buffer and process complete lines
-                buffer += data.decode('utf-8')
+                buffer += data.decode("utf-8")
 
-                while '\n' in buffer:
-                    line, buffer = buffer.split('\n', 1)
+                while "\n" in buffer:
+                    line, buffer = buffer.split("\n", 1)
                     line = line.strip()
 
                     if not line:
@@ -115,7 +116,7 @@ class StreamableHttpToStdioProxy:
                         response = await self._handle_request(request)
 
                         # Write response to stdout
-                        response_line = json.dumps(response) + '\n'
+                        response_line = json.dumps(response) + "\n"
                         sys.stdout.write(response_line)
                         sys.stdout.flush()
 
@@ -123,13 +124,10 @@ class StreamableHttpToStdioProxy:
                         logger.error(f"Invalid JSON received: {e}")
                         error_response = {
                             "jsonrpc": "2.0",
-                            "error": {
-                                "code": -32700,
-                                "message": "Parse error"
-                            },
-                            "id": None
+                            "error": {"code": -32700, "message": "Parse error"},
+                            "id": None,
                         }
-                        sys.stdout.write(json.dumps(error_response) + '\n')
+                        sys.stdout.write(json.dumps(error_response) + "\n")
                         sys.stdout.flush()
 
             except Exception as e:
@@ -162,7 +160,7 @@ class StreamableHttpToStdioProxy:
                 "Authorization": f"Bearer {self.access_token}",
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
-                "MCP-Protocol-Version": "2025-06-18"
+                "MCP-Protocol-Version": "2025-06-18",
             }
 
             logger.debug(f"Request headers: {headers}")
@@ -175,9 +173,7 @@ class StreamableHttpToStdioProxy:
             logger.info(f"Request: {request}")
 
             response = await self.http_client.post(
-                self.settings.mcp_server_url,
-                json=request,
-                headers=headers
+                self.settings.mcp_server_url, json=request, headers=headers
             )
 
             # Handle authentication errors
@@ -189,9 +185,7 @@ class StreamableHttpToStdioProxy:
                 # Retry request with new token
                 headers["Authorization"] = f"Bearer {self.access_token}"
                 response = await self.http_client.post(
-                    self.settings.mcp_server_url,
-                    json=request,
-                    headers=headers
+                    self.settings.mcp_server_url, json=request, headers=headers
                 )
 
             response.raise_for_status()
@@ -206,8 +200,8 @@ class StreamableHttpToStdioProxy:
 
             if "text/event-stream" in content_type:
                 # Parse SSE response
-                for line in response.text.strip().split('\n'):
-                    if line.startswith('data: '):
+                for line in response.text.strip().split("\n"):
+                    if line.startswith("data: "):
                         result = json.loads(line[6:])
                         break
                 else:
@@ -218,12 +212,13 @@ class StreamableHttpToStdioProxy:
                 result = response.json()
 
             # Send initialized notification after successful initialize
-            if method == "initialize" and "result" in result and not result.get("error"):
+            if (
+                method == "initialize"
+                and "result" in result
+                and not result.get("error")
+            ):
                 logger.info("Sending notifications/initialized")
-                notification = {
-                    "jsonrpc": "2.0",
-                    "method": "notifications/initialized"
-                }
+                notification = {"jsonrpc": "2.0", "method": "notifications/initialized"}
                 # Update headers to include session ID if we have one
                 notif_headers = headers.copy()
                 if self.session_id:
@@ -233,11 +228,15 @@ class StreamableHttpToStdioProxy:
                     notif_resp = await self.http_client.post(
                         self.settings.mcp_server_url,
                         json=notification,
-                        headers=notif_headers
+                        headers=notif_headers,
                     )
-                    logger.info(f"Initialized notification response: {notif_resp.status_code}")
+                    logger.info(
+                        f"Initialized notification response: {notif_resp.status_code}"
+                    )
                     if notif_resp.status_code not in (200, 202, 204):
-                        logger.warning(f"Unexpected notification response: {notif_resp.status_code} - {notif_resp.text}")
+                        logger.warning(
+                            f"Unexpected notification response: {notif_resp.status_code} - {notif_resp.text}"
+                        )
                 except Exception as e:
                     logger.warning(f"Failed to send initialized notification: {e}")
 
@@ -248,20 +247,14 @@ class StreamableHttpToStdioProxy:
             return {
                 "jsonrpc": "2.0",
                 "id": request_id,
-                "error": {
-                    "code": -32603,
-                    "message": f"HTTP error: {e!s}"
-                }
+                "error": {"code": -32603, "message": f"HTTP error: {e!s}"},
             }
         except Exception as e:
             logger.error(f"Request handling error: {e}")
             return {
                 "jsonrpc": "2.0",
                 "id": request_id,
-                "error": {
-                    "code": -32603,
-                    "message": f"Internal error: {e!s}"
-                }
+                "error": {"code": -32603, "message": f"Internal error: {e!s}"},
             }
 
     async def handle_notifications(self) -> None:

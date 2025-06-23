@@ -1,6 +1,5 @@
 """Strict MCP 2025-06-18 protocol compliance tests for mcp-fetchs."""
 
-
 import httpx
 import pytest
 
@@ -25,7 +24,9 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_initialize_protocol_negotiation(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_initialize_protocol_negotiation(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test protocol version negotiation per MCP 2025-06-18."""
         # Test supported version
         async with httpx.AsyncClient(verify=False) as client:
@@ -37,18 +38,15 @@ class TestMCPFetchsCompliance:
                     "params": {
                         "protocolVersion": "2025-06-18",
                         "capabilities": {},
-                        "clientInfo": {
-                            "name": "test-client",
-                            "version": "1.0.0"
-                        }
+                        "clientInfo": {"name": "test-client", "version": "1.0.0"},
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {valid_token}",
-                    "MCP-Protocol-Version": "2025-06-18"
-                }
+                    "MCP-Protocol-Version": "2025-06-18",
+                },
             )
 
             assert response.status_code == 200
@@ -71,7 +69,9 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_unsupported_protocol_version(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_unsupported_protocol_version(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test rejection of unsupported protocol versions."""
         async with httpx.AsyncClient(verify=False) as client:
             # Test unsupported version in params
@@ -82,14 +82,14 @@ class TestMCPFetchsCompliance:
                     "method": "initialize",
                     "params": {
                         "protocolVersion": "2024-11-05",  # Old version
-                        "capabilities": {}
+                        "capabilities": {},
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
 
             assert response.status_code == 200  # JSON-RPC errors return 200
@@ -100,22 +100,20 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_protocol_version_header(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_protocol_version_header(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test MCP-Protocol-Version header handling."""
         async with httpx.AsyncClient(verify=False) as client:
             # Test mismatched header version
             response = await client.post(
                 f"{mcp_fetchs_url}",
-                json={
-                    "jsonrpc": "2.0",
-                    "method": "tools/list",
-                    "id": 1
-                },
+                json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {valid_token}",
-                    "MCP-Protocol-Version": "2024-11-05"  # Old version
-                }
+                    "MCP-Protocol-Version": "2024-11-05",  # Old version
+                },
             )
 
             assert response.status_code == 400
@@ -125,21 +123,19 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tools_list_pagination(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_tools_list_pagination(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test tools/list pagination support per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=False) as client:
             # Test without cursor
             response = await client.post(
                 f"{mcp_fetchs_url}",
-                json={
-                    "jsonrpc": "2.0",
-                    "method": "tools/list",
-                    "id": 1
-                },
+                json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -155,32 +151,30 @@ class TestMCPFetchsCompliance:
                     "jsonrpc": "2.0",
                     "method": "tools/list",
                     "params": {"cursor": "test-cursor"},
-                    "id": 2
+                    "id": 2,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
 
             assert response.status_code == 200
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tool_definition_schema(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_tool_definition_schema(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test tool definitions match MCP 2025-06-18 schema."""
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
                 f"{mcp_fetchs_url}",
-                json={
-                    "jsonrpc": "2.0",
-                    "method": "tools/list",
-                    "id": 1
-                },
+                json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -205,21 +199,19 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tools_call_validation(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_tools_call_validation(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test tools/call parameter validation per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=False) as client:
             # Test missing params
             response = await client.post(
                 f"{mcp_fetchs_url}",
-                json={
-                    "jsonrpc": "2.0",
-                    "method": "tools/call",
-                    "id": 1
-                },
+                json={"jsonrpc": "2.0", "method": "tools/call", "id": 1},
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -234,12 +226,12 @@ class TestMCPFetchsCompliance:
                     "jsonrpc": "2.0",
                     "method": "tools/call",
                     "params": {"arguments": {}},
-                    "id": 2
+                    "id": 2,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -254,16 +246,13 @@ class TestMCPFetchsCompliance:
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
-                    "params": {
-                        "name": "nonexistent-tool",
-                        "arguments": {}
-                    },
-                    "id": 3
+                    "params": {"name": "nonexistent-tool", "arguments": {}},
+                    "id": 3,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -273,7 +262,9 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tool_execution_response_format(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_tool_execution_response_format(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test tool execution response format per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=False) as client:
             # Successful tool call
@@ -284,16 +275,14 @@ class TestMCPFetchsCompliance:
                     "method": "tools/call",
                     "params": {
                         "name": "fetch",
-                        "arguments": {
-                            "url": "https://httpbin.org/json"
-                        }
+                        "arguments": {"url": "https://httpbin.org/json"},
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -319,7 +308,9 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tool_execution_error_format(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_tool_execution_error_format(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test tool execution error format per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=False) as client:
             # Tool execution error (invalid URL)
@@ -332,14 +323,14 @@ class TestMCPFetchsCompliance:
                         "name": "fetch",
                         "arguments": {
                             "url": "ftp://invalid-scheme.com"  # Unsupported scheme
-                        }
+                        },
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -359,7 +350,9 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_session_id_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_session_id_handling(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test Mcp-Session-Id header handling per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=False) as client:
             # First request should return session ID
@@ -369,12 +362,12 @@ class TestMCPFetchsCompliance:
                     "jsonrpc": "2.0",
                     "method": "initialize",
                     "params": {"protocolVersion": "2025-06-18"},
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -387,21 +380,19 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_streamable_http_endpoints(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_streamable_http_endpoints(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test Streamable HTTP transport endpoints per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=False) as client:
             # POST /mcp should work
             response = await client.post(
                 f"{mcp_fetchs_url}",
-                json={
-                    "jsonrpc": "2.0",
-                    "method": "tools/list",
-                    "id": 1
-                },
+                json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
             assert response.status_code == 200
 
@@ -410,8 +401,8 @@ class TestMCPFetchsCompliance:
                 f"{mcp_fetchs_url}",
                 headers={
                     "Authorization": f"Bearer {valid_token}",
-                    "Accept": "text/event-stream"
-                }
+                    "Accept": "text/event-stream",
+                },
             )
             # Either 501 (not implemented) or 200 (if SSE is supported)
             assert response.status_code in [200, 501]

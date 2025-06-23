@@ -2,6 +2,7 @@
 """Purge expired OAuth tokens from Redis
 Can be run manually or via cron/systemd timer.
 """
+
 import asyncio
 import json
 import os
@@ -29,14 +30,14 @@ try:
         ["docker", "compose", "ps", "--services", "--filter", "status=running"],
         capture_output=True,
         text=True,
-        check=True
+        check=True,
     )
     if "redis" in result.stdout:
         port_result = subprocess.run(
             ["docker", "compose", "port", "redis", "6379"],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
         if port_result.stdout.strip():
             host, port = port_result.stdout.strip().split(":")
@@ -48,9 +49,7 @@ except:
 async def get_redis_client():
     """Get async Redis client."""
     return await redis.from_url(
-        REDIS_URL,
-        password=REDIS_PASSWORD,
-        decode_responses=True
+        REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
     )
 
 
@@ -63,12 +62,13 @@ def check_token_expiry(token_data: str) -> tuple[bool, int]:
         except:
             # Maybe it's a JWT token string - decode it
             import base64
-            parts = token_data.split('.')
+
+            parts = token_data.split(".")
             if len(parts) != 3:
                 return False, 0
 
             payload_part = parts[1]
-            payload_part += '=' * (4 - len(payload_part) % 4)
+            payload_part += "=" * (4 - len(payload_part) % 4)
             payload_json = base64.urlsafe_b64decode(payload_part)
             payload = json.loads(payload_json)
 
@@ -86,7 +86,9 @@ async def purge_expired_tokens(dry_run: bool = False):
     client = await get_redis_client()
 
     try:
-        print(f"{'[DRY RUN] ' if dry_run else ''}Starting token purge at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(
+            f"{'[DRY RUN] ' if dry_run else ''}Starting token purge at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
         print("=" * 60)
 
         # Statistics
@@ -99,7 +101,7 @@ async def purge_expired_tokens(dry_run: bool = False):
             "auth_codes_expired": 0,
             "auth_states_checked": 0,
             "auth_states_expired": 0,
-            "total_deleted": 0
+            "total_deleted": 0,
         }
 
         # Check access tokens
@@ -114,7 +116,9 @@ async def purge_expired_tokens(dry_run: bool = False):
                     if not dry_run:
                         await client.delete(key)
                     stats["access_tokens_expired"] += 1
-                    print(f"{'Would delete' if dry_run else 'Deleted'} expired access token: {key} (expired: {datetime.fromtimestamp(expires_at)})")
+                    print(
+                        f"{'Would delete' if dry_run else 'Deleted'} expired access token: {key} (expired: {datetime.fromtimestamp(expires_at)})"
+                    )
 
         # Check refresh tokens (they have TTL but let's verify)
         refresh_keys = await client.keys("oauth:refresh:*")
@@ -126,7 +130,9 @@ async def purge_expired_tokens(dry_run: bool = False):
                 if not dry_run:
                     await client.delete(key)
                 stats["refresh_tokens_expired"] += 1
-                print(f"{'Would delete' if dry_run else 'Deleted'} expired refresh token: {key}")
+                print(
+                    f"{'Would delete' if dry_run else 'Deleted'} expired refresh token: {key}"
+                )
 
         # Check auth codes (should have short TTL)
         code_keys = await client.keys("oauth:code:*")
@@ -138,7 +144,9 @@ async def purge_expired_tokens(dry_run: bool = False):
                 if not dry_run:
                     await client.delete(key)
                 stats["auth_codes_expired"] += 1
-                print(f"{'Would delete' if dry_run else 'Deleted'} expired auth code: {key}")
+                print(
+                    f"{'Would delete' if dry_run else 'Deleted'} expired auth code: {key}"
+                )
 
         # Check auth states (should have very short TTL - 5 minutes)
         state_keys = await client.keys("oauth:state:*")
@@ -150,24 +158,36 @@ async def purge_expired_tokens(dry_run: bool = False):
                 if not dry_run:
                     await client.delete(key)
                 stats["auth_states_expired"] += 1
-                print(f"{'Would delete' if dry_run else 'Deleted'} expired auth state: {key}")
+                print(
+                    f"{'Would delete' if dry_run else 'Deleted'} expired auth state: {key}"
+                )
 
         # Calculate totals
         stats["total_deleted"] = (
-            stats["access_tokens_expired"] +
-            stats["refresh_tokens_expired"] +
-            stats["auth_codes_expired"] +
-            stats["auth_states_expired"]
+            stats["access_tokens_expired"]
+            + stats["refresh_tokens_expired"]
+            + stats["auth_codes_expired"]
+            + stats["auth_states_expired"]
         )
 
         # Print summary
         print("\n" + "=" * 60)
         print(f"{'[DRY RUN] ' if dry_run else ''}Purge Summary:")
-        print(f"  Access Tokens: {stats['access_tokens_expired']}/{stats['access_tokens_checked']} expired")
-        print(f"  Refresh Tokens: {stats['refresh_tokens_expired']}/{stats['refresh_tokens_checked']} expired")
-        print(f"  Auth Codes: {stats['auth_codes_expired']}/{stats['auth_codes_checked']} expired")
-        print(f"  Auth States: {stats['auth_states_expired']}/{stats['auth_states_checked']} expired")
-        print(f"\n  Total {'would be ' if dry_run else ''}deleted: {stats['total_deleted']}")
+        print(
+            f"  Access Tokens: {stats['access_tokens_expired']}/{stats['access_tokens_checked']} expired"
+        )
+        print(
+            f"  Refresh Tokens: {stats['refresh_tokens_expired']}/{stats['refresh_tokens_checked']} expired"
+        )
+        print(
+            f"  Auth Codes: {stats['auth_codes_expired']}/{stats['auth_codes_checked']} expired"
+        )
+        print(
+            f"  Auth States: {stats['auth_states_expired']}/{stats['auth_states_checked']} expired"
+        )
+        print(
+            f"\n  Total {'would be ' if dry_run else ''}deleted: {stats['total_deleted']}"
+        )
 
         # Also clean up orphaned data
         if not dry_run and stats["total_deleted"] > 0:

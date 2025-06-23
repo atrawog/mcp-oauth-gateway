@@ -7,20 +7,23 @@ from pathlib import Path
 
 # Actual protocol versions supported by each service
 SERVICE_PROTOCOL_VERSIONS = {
-    'mcp-fetch': '2025-03-26',
-    'mcp-fetchs': '2025-06-18',
-    'mcp-filesystem': '2025-03-26',
-    'mcp-memory': '2024-11-05',
-    'mcp-playwright': '2025-06-18',
-    'mcp-sequentialthinking': '2024-11-05',
-    'mcp-time': '2025-03-26',
-    'mcp-tmux': '2025-06-18',
-    'mcp-everything': '2025-06-18'
+    "mcp-fetch": "2025-03-26",
+    "mcp-fetchs": "2025-06-18",
+    "mcp-filesystem": "2025-03-26",
+    "mcp-memory": "2024-11-05",
+    "mcp-playwright": "2025-06-18",
+    "mcp-sequentialthinking": "2024-11-05",
+    "mcp-time": "2025-03-26",
+    "mcp-tmux": "2025-06-18",
+    "mcp-everything": "2025-06-18",
 }
+
 
 def fix_docker_compose(service_name, protocol_version):
     """Update docker-compose.yml to properly set and use MCP_PROTOCOL_VERSION."""
-    compose_file = Path(f'/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml')
+    compose_file = Path(
+        f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml"
+    )
 
     if not compose_file.exists():
         print(f"❌ {compose_file} not found")
@@ -36,34 +39,34 @@ def fix_docker_compose(service_name, protocol_version):
 
     for _i, line in enumerate(lines):
         # Check if we're in the environment section
-        if line.strip() == 'environment:':
+        if line.strip() == "environment:":
             in_environment = True
             fixed_lines.append(line)
             continue
 
         # Check if we're leaving the environment section
-        if in_environment and line.strip() and not line.strip().startswith('-'):
+        if in_environment and line.strip() and not line.strip().startswith("-"):
             # We're leaving environment section, add MCP_PROTOCOL_VERSION if not found
             if not found_protocol_version:
-                fixed_lines.append(f'      - MCP_PROTOCOL_VERSION={protocol_version}\n')
+                fixed_lines.append(f"      - MCP_PROTOCOL_VERSION={protocol_version}\n")
             in_environment = False
 
         # Fix corrupted lines (like "P25-03-26")
-        if line.strip().startswith('P25-') or line.strip().startswith('P24-'):
-            fixed_lines.append(f'      - MCP_PROTOCOL_VERSION={protocol_version}\n')
+        if line.strip().startswith("P25-") or line.strip().startswith("P24-"):
+            fixed_lines.append(f"      - MCP_PROTOCOL_VERSION={protocol_version}\n")
             found_protocol_version = True
             continue
 
         # Update existing MCP_PROTOCOL_VERSION line
-        if '- MCP_PROTOCOL_VERSION=' in line:
-            fixed_lines.append(f'      - MCP_PROTOCOL_VERSION={protocol_version}\n')
+        if "- MCP_PROTOCOL_VERSION=" in line:
+            fixed_lines.append(f"      - MCP_PROTOCOL_VERSION={protocol_version}\n")
             found_protocol_version = True
             continue
 
         fixed_lines.append(line)
 
     # Write the fixed content
-    with open(compose_file, 'w') as f:
+    with open(compose_file, "w") as f:
         f.writelines(fixed_lines)
 
     # Now update healthcheck to use ${MCP_PROTOCOL_VERSION}
@@ -75,17 +78,24 @@ def fix_docker_compose(service_name, protocol_version):
     healthcheck_pattern = r'(test:.*?"protocolVersion":")(\d{4}-\d{2}-\d{2})(".*?grep.*?"protocolVersion":")(\d{4}-\d{2}-\d{2})(")'
 
     def update_healthcheck(match):
-        return match.group(1) + '${MCP_PROTOCOL_VERSION}' + match.group(3) + '${MCP_PROTOCOL_VERSION}' + match.group(5)
+        return (
+            match.group(1)
+            + "${MCP_PROTOCOL_VERSION}"
+            + match.group(3)
+            + "${MCP_PROTOCOL_VERSION}"
+            + match.group(5)
+        )
 
     content = re.sub(healthcheck_pattern, update_healthcheck, content, flags=re.DOTALL)
 
-    with open(compose_file, 'w') as f:
+    with open(compose_file, "w") as f:
         f.write(content)
 
     print(f"✅ Updated {service_name}:")
     print(f"   - Set MCP_PROTOCOL_VERSION={protocol_version} in environment")
     print("   - Updated healthcheck to use ${MCP_PROTOCOL_VERSION}")
     return True
+
 
 def main():
     """Update all MCP services with proper protocol version configuration."""
@@ -105,5 +115,6 @@ def main():
     print("   - Has MCP_PROTOCOL_VERSION set to its supported version")
     print("   - Uses ${{MCP_PROTOCOL_VERSION}} in healthchecks (no hardcoding!)")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

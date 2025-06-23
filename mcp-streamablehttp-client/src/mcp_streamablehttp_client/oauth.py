@@ -1,4 +1,5 @@
 """OAuth client implementation using Authlib."""
+
 import asyncio
 import logging
 import secrets
@@ -40,7 +41,7 @@ class OAuthClient:
                 token_endpoint=self.settings.oauth_token_url,
                 authorization_endpoint=self.settings.oauth_authorization_url,
                 token=self._get_current_token(),
-                update_token=self._update_token
+                update_token=self._update_token,
             )
 
     def _get_current_token(self) -> dict[str, Any] | None:
@@ -50,7 +51,7 @@ class OAuthClient:
 
         token = {
             "access_token": self.settings.oauth_access_token,
-            "token_type": "Bearer"
+            "token_type": "Bearer",
         }
 
         if self.settings.oauth_refresh_token:
@@ -70,14 +71,18 @@ class OAuthClient:
 
         # Calculate expiration time
         if "expires_at" in token:
-            self.settings.oauth_token_expires_at = datetime.fromtimestamp(token["expires_at"])
+            self.settings.oauth_token_expires_at = datetime.fromtimestamp(
+                token["expires_at"]
+            )
         elif "expires_in" in token:
-            self.settings.oauth_token_expires_at = datetime.utcnow() + timedelta(seconds=token["expires_in"])
+            self.settings.oauth_token_expires_at = datetime.utcnow() + timedelta(
+                seconds=token["expires_in"]
+            )
 
         # Update settings to reflect new values
-        self.settings.oauth_access_token = token['access_token']
+        self.settings.oauth_access_token = token["access_token"]
         if "refresh_token" in token:
-            self.settings.oauth_refresh_token = token['refresh_token']
+            self.settings.oauth_refresh_token = token["refresh_token"]
 
     async def __aenter__(self):
         return self
@@ -147,11 +152,15 @@ class OAuthClient:
         registration_data = {
             "client_name": self.settings.client_name,
             "application_type": "native",
-            "grant_types": ["authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:device_code"],
+            "grant_types": [
+                "authorization_code",
+                "refresh_token",
+                "urn:ietf:params:oauth:grant-type:device_code",
+            ],
             "response_types": ["code"],
             "redirect_uris": ["urn:ietf:wg:oauth:2.0:oob"],
             "token_endpoint_auth_method": "client_secret_post",
-            "scope": "read write"
+            "scope": "read write",
         }
 
         try:
@@ -159,7 +168,7 @@ class OAuthClient:
             response = await self.http_client.post(
                 self.settings.oauth_registration_url,
                 json=registration_data,
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json"},
             )
             response.raise_for_status()
 
@@ -169,12 +178,16 @@ class OAuthClient:
 
             # Save RFC 7592 management credentials
             if "registration_access_token" in data:
-                self.settings.registration_access_token = data["registration_access_token"]
+                self.settings.registration_access_token = data[
+                    "registration_access_token"
+                ]
                 logger.info("Saved registration_access_token for client management")
 
             if "registration_client_uri" in data:
                 self.settings.registration_client_uri = data["registration_client_uri"]
-                logger.info(f"Saved registration_client_uri: {data['registration_client_uri']}")
+                logger.info(
+                    f"Saved registration_client_uri: {data['registration_client_uri']}"
+                )
 
             console.print(f"[green]✓[/green] Client registered: {data['client_id']}")
             logger.info(f"Registered OAuth client: {data['client_id']}")
@@ -183,8 +196,7 @@ class OAuthClient:
 
         except httpx.HTTPError as e:
             logger.error(f"Client registration failed: {e}")
-            raise RuntimeError(f"Failed to register OAuth client: {e}")
-
+            raise RuntimeError(f"Failed to register OAuth client: {e}") from e
 
     async def device_flow_auth(self) -> None:
         """Perform OAuth device flow authentication using Authlib."""
@@ -204,10 +216,7 @@ class OAuthClient:
         """Request device code using Authlib."""
         response = await self.http_client.post(
             self.settings.oauth_device_auth_url,
-            data={
-                "client_id": self.settings.oauth_client_id,
-                "scope": "read write"
-            }
+            data={"client_id": self.settings.oauth_client_id, "scope": "read write"},
         )
         response.raise_for_status()
         return response.json()
@@ -218,12 +227,14 @@ class OAuthClient:
         verification_uri = device_data.get("verification_uri", "")
 
         console.print("\n")
-        console.print(Panel.fit(
-            f"[bold cyan]Please visit:[/bold cyan]\n{verification_uri}\n\n"
-            f"[bold cyan]And enter code:[/bold cyan]\n[bold yellow]{user_code}[/bold yellow]",
-            title="Device Authorization",
-            border_style="cyan"
-        ))
+        console.print(
+            Panel.fit(
+                f"[bold cyan]Please visit:[/bold cyan]\n{verification_uri}\n\n"
+                f"[bold cyan]And enter code:[/bold cyan]\n[bold yellow]{user_code}[/bold yellow]",
+                title="Device Authorization",
+                border_style="cyan",
+            )
+        )
         console.print("\n")
 
     async def _poll_for_device_token(self, device_data: dict[str, Any]) -> None:
@@ -250,15 +261,20 @@ class OAuthClient:
                             "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
                             "device_code": device_code,
                             "client_id": self.settings.oauth_client_id,
-                            "client_secret": self.settings.oauth_client_secret
-                        }
+                            "client_secret": self.settings.oauth_client_secret,
+                        },
                     )
 
                     if response.status_code == 200:
                         token_data = response.json()
                         self._update_token(token_data)
-                        progress.update(task, description="[green]✓[/green] Authorization successful!")
-                        console.print("\n[green]Authentication completed successfully![/green]")
+                        progress.update(
+                            task,
+                            description="[green]✓[/green] Authorization successful!",
+                        )
+                        console.print(
+                            "\n[green]Authentication completed successfully![/green]"
+                        )
                         return
 
                     error_data = response.json()
@@ -291,7 +307,7 @@ class OAuthClient:
             self.oauth_client = AsyncOAuth2Client(
                 client_id=self.settings.oauth_client_id,
                 client_secret=self.settings.oauth_client_secret,
-                redirect_uri="urn:ietf:wg:oauth:2.0:oob"
+                redirect_uri="urn:ietf:wg:oauth:2.0:oob",
             )
 
         # Generate authorization URL with PKCE
@@ -299,15 +315,17 @@ class OAuthClient:
             self.settings.oauth_authorization_url,
             redirect_uri="urn:ietf:wg:oauth:2.0:oob",
             scope="read write",
-            code_verifier=code_verifier
+            code_verifier=code_verifier,
         )
 
         console.print("\n")
-        console.print(Panel.fit(
-            f"[bold cyan]Please visit this URL to authorize:[/bold cyan]\n\n{auth_url}",
-            title="Manual Authorization",
-            border_style="cyan"
-        ))
+        console.print(
+            Panel.fit(
+                f"[bold cyan]Please visit this URL to authorize:[/bold cyan]\n\n{auth_url}",
+                title="Manual Authorization",
+                border_style="cyan",
+            )
+        )
 
         # Wait for user to paste authorization code
         console.print("\n")
@@ -323,12 +341,14 @@ class OAuthClient:
                 "redirect_uri": "urn:ietf:wg:oauth:2.0:oob",
                 "client_id": self.settings.oauth_client_id,
                 "client_secret": self.settings.oauth_client_secret,
-                "code_verifier": code_verifier
-            }
+                "code_verifier": code_verifier,
+            },
         )
 
         if response.status_code != 200:
-            logger.error(f"Token exchange failed: {response.status_code} - {response.text}")
+            logger.error(
+                f"Token exchange failed: {response.status_code} - {response.text}"
+            )
             raise RuntimeError(f"Token exchange failed: {response.text}")
 
         token_data = response.json()
@@ -346,7 +366,7 @@ class OAuthClient:
         # Use Authlib's refresh token support
         token = await self.oauth_client.refresh_token(
             self.settings.oauth_token_url,
-            refresh_token=self.settings.oauth_refresh_token
+            refresh_token=self.settings.oauth_refresh_token,
         )
 
         self._update_token(token)
@@ -372,23 +392,31 @@ class OAuthClient:
             # Update settings with discovered endpoints
             self.settings.oauth_metadata_url = metadata_url
             self.settings.oauth_issuer = metadata.get("issuer")
-            self.settings.oauth_authorization_url = metadata.get("authorization_endpoint")
+            self.settings.oauth_authorization_url = metadata.get(
+                "authorization_endpoint"
+            )
             self.settings.oauth_token_url = metadata.get("token_endpoint")
-            self.settings.oauth_device_auth_url = metadata.get("device_authorization_endpoint")
+            self.settings.oauth_device_auth_url = metadata.get(
+                "device_authorization_endpoint"
+            )
             self.settings.oauth_registration_url = metadata.get("registration_endpoint")
 
             # Validate required endpoints
             if not self.settings.oauth_token_url:
                 raise ValueError("OAuth metadata missing required token_endpoint")
 
-            console.print(f"[green]✓[/green] Discovered OAuth configuration from {metadata_url}")
-            logger.info(f"OAuth endpoints discovered: issuer={self.settings.oauth_issuer}")
+            console.print(
+                f"[green]✓[/green] Discovered OAuth configuration from {metadata_url}"
+            )
+            logger.info(
+                f"OAuth endpoints discovered: issuer={self.settings.oauth_issuer}"
+            )
 
             # Endpoints are discovered and set in settings (not persisted)
 
         except Exception as e:
             logger.error(f"Failed to discover OAuth metadata: {e}")
-            raise RuntimeError(f"OAuth discovery failed: {e}")
+            raise RuntimeError(f"OAuth discovery failed: {e}") from e
 
     async def _find_oauth_metadata_url(self) -> str | None:
         """Find OAuth metadata URL by trying various locations."""
@@ -406,10 +434,12 @@ class OAuthClient:
             domain_parts = parsed.netloc.split(".", 1)
             if len(domain_parts) > 1:
                 auth_domain = f"auth.{domain_parts[1]}"
-                candidates.extend([
-                    f"{parsed.scheme}://{auth_domain}/.well-known/oauth-authorization-server",
-                    f"{parsed.scheme}://{auth_domain}/.well-known/openid-configuration",
-                ])
+                candidates.extend(
+                    [
+                        f"{parsed.scheme}://{auth_domain}/.well-known/oauth-authorization-server",
+                        f"{parsed.scheme}://{auth_domain}/.well-known/openid-configuration",
+                    ]
+                )
 
         for candidate in candidates:
             try:
@@ -417,6 +447,7 @@ class OAuthClient:
                 if response.status_code == 200:
                     return candidate
             except Exception:
+                # Continue trying other candidates if this one fails
                 continue
 
         return None
@@ -432,7 +463,10 @@ class OAuthClient:
         Raises:
             RuntimeError: If operation fails or credentials missing
         """
-        if not self.settings.registration_access_token or not self.settings.registration_client_uri:
+        if (
+            not self.settings.registration_access_token
+            or not self.settings.registration_client_uri
+        ):
             raise RuntimeError(
                 "Missing registration management credentials. "
                 "Client must be registered with RFC 7592 support."
@@ -443,11 +477,13 @@ class OAuthClient:
                 self.settings.registration_client_uri,
                 headers={
                     "Authorization": f"Bearer {self.settings.registration_access_token}"
-                }
+                },
             )
 
             if response.status_code == 404:
-                raise RuntimeError("Client registration not found. Client may have expired.")
+                raise RuntimeError(
+                    "Client registration not found. Client may have expired."
+                )
             if response.status_code == 401:
                 raise RuntimeError("Invalid registration access token")
             if response.status_code == 403:
@@ -458,9 +494,11 @@ class OAuthClient:
 
         except httpx.HTTPError as e:
             logger.error(f"Failed to get client configuration: {e}")
-            raise RuntimeError(f"Failed to get client configuration: {e}")
+            raise RuntimeError(f"Failed to get client configuration: {e}") from e
 
-    async def update_client_configuration(self, updates: dict[str, Any]) -> dict[str, Any]:
+    async def update_client_configuration(
+        self, updates: dict[str, Any]
+    ) -> dict[str, Any]:
         """Update client configuration using RFC 7592 endpoint.
 
         Args:
@@ -472,7 +510,10 @@ class OAuthClient:
         Raises:
             RuntimeError: If operation fails or credentials missing
         """
-        if not self.settings.registration_access_token or not self.settings.registration_client_uri:
+        if (
+            not self.settings.registration_access_token
+            or not self.settings.registration_client_uri
+        ):
             raise RuntimeError(
                 "Missing registration management credentials. "
                 "Client must be registered with RFC 7592 support."
@@ -480,9 +521,16 @@ class OAuthClient:
 
         # Allowed update fields per RFC 7592
         allowed_fields = {
-            "redirect_uris", "client_name", "client_uri",
-            "logo_uri", "contacts", "tos_uri", "policy_uri",
-            "scope", "grant_types", "response_types"
+            "redirect_uris",
+            "client_name",
+            "client_uri",
+            "logo_uri",
+            "contacts",
+            "tos_uri",
+            "policy_uri",
+            "scope",
+            "grant_types",
+            "response_types",
         }
 
         # Filter to only allowed fields
@@ -497,8 +545,8 @@ class OAuthClient:
                 json=filtered_updates,
                 headers={
                     "Authorization": f"Bearer {self.settings.registration_access_token}",
-                    "Content-Type": "application/json"
-                }
+                    "Content-Type": "application/json",
+                },
             )
 
             if response.status_code == 404:
@@ -512,7 +560,10 @@ class OAuthClient:
 
             # Update local client_secret if returned
             data = response.json()
-            if "client_secret" in data and data["client_secret"] != self.settings.oauth_client_secret:
+            if (
+                "client_secret" in data
+                and data["client_secret"] != self.settings.oauth_client_secret
+            ):
                 self.settings.oauth_client_secret = data["client_secret"]
                 logger.info("Client secret was rotated by server")
 
@@ -520,7 +571,7 @@ class OAuthClient:
 
         except httpx.HTTPError as e:
             logger.error(f"Failed to update client configuration: {e}")
-            raise RuntimeError(f"Failed to update client configuration: {e}")
+            raise RuntimeError(f"Failed to update client configuration: {e}") from e
 
     async def delete_client_registration(self) -> None:
         """Delete this client registration using RFC 7592 endpoint.
@@ -531,7 +582,10 @@ class OAuthClient:
         Raises:
             RuntimeError: If operation fails or credentials missing
         """
-        if not self.settings.registration_access_token or not self.settings.registration_client_uri:
+        if (
+            not self.settings.registration_access_token
+            or not self.settings.registration_client_uri
+        ):
             raise RuntimeError(
                 "Missing registration management credentials. "
                 "Client must be registered with RFC 7592 support."
@@ -542,7 +596,7 @@ class OAuthClient:
                 self.settings.registration_client_uri,
                 headers={
                     "Authorization": f"Bearer {self.settings.registration_access_token}"
-                }
+                },
             )
 
             if response.status_code == 404:
@@ -568,4 +622,4 @@ class OAuthClient:
 
         except httpx.HTTPError as e:
             logger.error(f"Failed to delete client registration: {e}")
-            raise RuntimeError(f"Failed to delete client registration: {e}")
+            raise RuntimeError(f"Failed to delete client registration: {e}") from e

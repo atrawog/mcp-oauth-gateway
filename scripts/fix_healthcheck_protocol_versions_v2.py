@@ -20,15 +20,15 @@ def fix_healthcheck_protocol_version(service_dir):
     modified = False
     for i, line in enumerate(lines):
         # Look for healthcheck test lines with hardcoded protocol version
-        if 'test:' in line and 'protocolVersion' in line:
+        if "test:" in line and "protocolVersion" in line:
             # Replace hardcoded version in the request JSON with ${MCP_PROTOCOL_VERSION}
             # Match pattern: \"protocolVersion\":\"2025-06-18\" (or any date)
             original_line = line
             line = re.sub(
-                r'\\\"protocolVersion\\\":\\\"(\d{4}-\d{2}-\d{2})\\\"',
+                r"\\\"protocolVersion\\\":\\\"(\d{4}-\d{2}-\d{2})\\\"",
                 r'\\"protocolVersion\\":\\"${MCP_PROTOCOL_VERSION}\\"',
                 line,
-                count=1  # Only replace the first occurrence (the request)
+                count=1,  # Only replace the first occurrence (the request)
             )
 
             if line != original_line:
@@ -37,7 +37,7 @@ def fix_healthcheck_protocol_version(service_dir):
                 print("  Fixed hardcoded protocol version in healthcheck")
 
     if modified:
-        with open(compose_path, 'w') as f:
+        with open(compose_path, "w") as f:
             f.writelines(lines)
         return True
 
@@ -47,14 +47,18 @@ def fix_healthcheck_protocol_version(service_dir):
 def main():
     # Find all MCP service directories
     base_dir = Path("/home/atrawog/AI/atrawog/mcp-oauth-gateway")
-    service_dirs = [d for d in base_dir.iterdir() if d.is_dir() and d.name.startswith("mcp-")]
+    service_dirs = [
+        d for d in base_dir.iterdir() if d.is_dir() and d.name.startswith("mcp-")
+    ]
 
     fixed_count = 0
     for service_dir in sorted(service_dirs):
         if fix_healthcheck_protocol_version(service_dir):
             fixed_count += 1
 
-    print(f"\nFixed {fixed_count} services with hardcoded protocol versions in healthchecks")
+    print(
+        f"\nFixed {fixed_count} services with hardcoded protocol versions in healthchecks"
+    )
 
 
 if __name__ == "__main__":

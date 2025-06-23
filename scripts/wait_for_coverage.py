@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Wait for coverage data to be written by monitoring the coverage volume."""
+
 import os
 import sys
 import time
@@ -9,13 +10,15 @@ COVERAGE_DIR = "/coverage-data"
 MAX_WAIT = 60  # Maximum wait time in seconds
 CHECK_INTERVAL = 2
 
+
 def check_coverage_files():
     """Check if coverage files exist."""
     if not os.path.exists(COVERAGE_DIR):
         return False
 
-    coverage_files = [f for f in os.listdir(COVERAGE_DIR) if f.startswith('.coverage')]
+    coverage_files = [f for f in os.listdir(COVERAGE_DIR) if f.startswith(".coverage")]
     return len(coverage_files) > 0
+
 
 def main():
     print(f"Waiting for coverage data in {COVERAGE_DIR}...")
@@ -40,6 +43,7 @@ def main():
         print(f"Error listing directory: {e}")
 
     return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

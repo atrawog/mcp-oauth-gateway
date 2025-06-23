@@ -2,6 +2,7 @@
 """Simple HTTP server to receive OAuth callbacks for token generation
 This runs on localhost to capture the authorization code.
 """
+
 import asyncio
 
 from aiohttp import web
@@ -19,37 +20,37 @@ class CallbackReceiver:
         """Handle OAuth callback."""
         query_params = dict(request.query)
 
-        if 'error' in query_params:
-            self.error = query_params['error']
-            error_description = query_params.get('error_description', '')
+        if "error" in query_params:
+            self.error = query_params["error"]
+            error_description = query_params.get("error_description", "")
             return web.Response(
                 text=f"❌ OAuth Error: {self.error}\n{error_description}\n\nYou can close this window.",
-                content_type='text/plain'
+                content_type="text/plain",
             )
 
-        if 'code' in query_params:
-            self.auth_code = query_params['code']
-            self.state = query_params.get('state')
+        if "code" in query_params:
+            self.auth_code = query_params["code"]
+            self.state = query_params.get("state")
 
             return web.Response(
                 text=f"✅ Authorization code received!\n\nCode: {self.auth_code}\n\nYou can close this window.",
-                content_type='text/plain'
+                content_type="text/plain",
             )
 
         return web.Response(
             text="❌ No authorization code received\n\nYou can close this window.",
-            content_type='text/plain'
+            content_type="text/plain",
         )
 
     async def start_server(self):
         """Start the callback receiver server."""
         app = web.Application()
-        app.router.add_get('/callback', self.callback_handler)
+        app.router.add_get("/callback", self.callback_handler)
 
         runner = web_runner.AppRunner(app)
         await runner.setup()
 
-        site = web_runner.TCPSite(runner, 'localhost', self.port)
+        site = web_runner.TCPSite(runner, "localhost", self.port)
         await site.start()
 
         print(f"🔗 Callback receiver started on http://localhost:{self.port}/callback")

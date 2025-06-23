@@ -28,8 +28,10 @@ def extract_coverage_data():
     coverage_data = {}
     for path, lines_covered, covered_lines in cursor.fetchall():
         coverage_data[path] = {
-            'lines_covered': lines_covered,
-            'covered_lines': set(map(int, covered_lines.split(','))) if covered_lines else set()
+            "lines_covered": lines_covered,
+            "covered_lines": set(map(int, covered_lines.split(",")))
+            if covered_lines
+            else set(),
         }
 
     # Get arc data if available
@@ -43,10 +45,11 @@ def extract_coverage_data():
 
     for path, branches_covered in cursor.fetchall():
         if path in coverage_data:
-            coverage_data[path]['branches_covered'] = branches_covered
+            coverage_data[path]["branches_covered"] = branches_covered
 
     conn.close()
     return coverage_data
+
 
 def map_and_analyze_coverage():
     """Map coverage to local files and calculate percentages."""
@@ -80,18 +83,25 @@ def map_and_analyze_coverage():
             except:
                 pass
 
-        coverage_pct = (data['lines_covered'] / total_lines * 100) if total_lines > 0 else 0
-        total_lines_covered += data['lines_covered']
+        coverage_pct = (
+            (data["lines_covered"] / total_lines * 100) if total_lines > 0 else 0
+        )
+        total_lines_covered += data["lines_covered"]
 
-        results.append({
-            'file': local_path.replace("mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/", ""),
-            'lines_covered': data['lines_covered'],
-            'total_lines': total_lines,
-            'coverage_pct': coverage_pct,
-            'branches_covered': data.get('branches_covered', 0)
-        })
+        results.append(
+            {
+                "file": local_path.replace(
+                    "mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/", ""
+                ),
+                "lines_covered": data["lines_covered"],
+                "total_lines": total_lines,
+                "coverage_pct": coverage_pct,
+                "branches_covered": data.get("branches_covered", 0),
+            }
+        )
 
     return results, total_lines_covered
+
 
 def generate_detailed_report():
     """Generate a detailed coverage report."""
@@ -113,16 +123,18 @@ def generate_detailed_report():
     print("-" * 80)
 
     # Sort by coverage percentage
-    results.sort(key=lambda x: x['coverage_pct'], reverse=True)
+    results.sort(key=lambda x: x["coverage_pct"], reverse=True)
 
     for result in results:
-        file_name = result['file']
+        file_name = result["file"]
         if len(file_name) > 39:
             file_name = "..." + file_name[-36:]
 
         lines_info = f"{result['lines_covered']}/{result['total_lines']}"
-        coverage = f"{result['coverage_pct']:.1f}%" if result['total_lines'] > 0 else "N/A"
-        branches = result['branches_covered']
+        coverage = (
+            f"{result['coverage_pct']:.1f}%" if result["total_lines"] > 0 else "N/A"
+        )
+        branches = result["branches_covered"]
 
         print(f"{file_name:<40} {lines_info:<15} {coverage:<10} {branches}")
 
@@ -131,17 +143,17 @@ def generate_detailed_report():
     print("-" * 80)
 
     key_modules = {
-        'routes.py': 'OAuth Routes & Endpoints',
-        'auth_authlib.py': 'Authentication & Authorization',
-        'rfc7592.py': 'RFC 7592 Client Management',
-        'async_resource_protector.py': 'Bearer Token Protection',
-        'server.py': 'FastAPI Server',
-        'redis_client.py': 'Redis Storage',
-        'keys.py': 'JWT Key Management'
+        "routes.py": "OAuth Routes & Endpoints",
+        "auth_authlib.py": "Authentication & Authorization",
+        "rfc7592.py": "RFC 7592 Client Management",
+        "async_resource_protector.py": "Bearer Token Protection",
+        "server.py": "FastAPI Server",
+        "redis_client.py": "Redis Storage",
+        "keys.py": "JWT Key Management",
     }
 
     for module, description in key_modules.items():
-        module_data = next((r for r in results if r['file'] == module), None)
+        module_data = next((r for r in results if r["file"] == module), None)
         if module_data:
             print(f"✅ {description} ({module}):")
             print(f"   Lines covered: {module_data['lines_covered']}")
@@ -151,6 +163,7 @@ def generate_detailed_report():
             print()
 
     print("\n✨ Coverage report complete!")
+
 
 if __name__ == "__main__":
     generate_detailed_report()

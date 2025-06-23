@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Debug token expiry logic."""
+
 import asyncio
 import json
 import os
@@ -12,6 +13,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 async def debug_expiry():
     # Connect to Redis
     REDIS_URL = "redis://localhost:6379"
@@ -19,12 +21,13 @@ async def debug_expiry():
 
     # Try to get port mapping
     import subprocess
+
     try:
         port_result = subprocess.run(
             ["docker", "compose", "port", "redis", "6379"],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
         if port_result.stdout.strip():
             host, port = port_result.stdout.strip().split(":")
@@ -33,9 +36,7 @@ async def debug_expiry():
         pass
 
     client = await redis.from_url(
-        REDIS_URL,
-        password=REDIS_PASSWORD,
-        decode_responses=True
+        REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
     )
 
     try:
@@ -58,8 +59,12 @@ async def debug_expiry():
                     ttl = await client.ttl(key)
 
                     print(f"Token: {key}")
-                    print(f"  Created: {datetime.fromtimestamp(created_at)} ({created_at})")
-                    print(f"  Expires: {datetime.fromtimestamp(expires_at)} ({expires_at})")
+                    print(
+                        f"  Created: {datetime.fromtimestamp(created_at)} ({created_at})"
+                    )
+                    print(
+                        f"  Expires: {datetime.fromtimestamp(expires_at)} ({expires_at})"
+                    )
                     print(f"  Redis TTL: {ttl} seconds")
                     print(f"  Time until expiry: {expires_at - now} seconds")
                     print(f"  Is expired: {expires_at < now}")
@@ -71,6 +76,7 @@ async def debug_expiry():
 
     finally:
         await client.aclose()
+
 
 if __name__ == "__main__":
     asyncio.run(debug_expiry())

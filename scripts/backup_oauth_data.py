@@ -2,6 +2,7 @@
 """Backup OAuth Data from Redis
 Following the divine commandments of CLAUDE.md - NO MOCKING!
 """
+
 import asyncio
 import json
 import os
@@ -23,41 +24,41 @@ class OAuthBackup:
 
     def __init__(self):
         # Redis connection from environment - NO HARDCODING!
-        redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
-        redis_password = os.getenv('REDIS_PASSWORD')
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        redis_password = os.getenv("REDIS_PASSWORD")
 
         # If we're running on the host and Redis URL points to 'redis' hostname,
         # change it to localhost (Redis is exposed on host ports)
-        if 'redis://' in redis_url and 'redis:' in redis_url:
+        if "redis://" in redis_url and "redis:" in redis_url:
             # Check if we're in a container
-            if not os.path.exists('/.dockerenv'):
+            if not os.path.exists("/.dockerenv"):
                 # We're on the host, use localhost
-                redis_url = redis_url.replace('redis:', 'localhost:')
+                redis_url = redis_url.replace("redis:", "localhost:")
 
         # Parse Redis URL
-        if redis_url.startswith('redis://'):
+        if redis_url.startswith("redis://"):
             # Remove redis:// prefix and any path
-            url_parts = redis_url.replace('redis://', '').split('/')
+            url_parts = redis_url.replace("redis://", "").split("/")
             host_port = url_parts[0]
 
             # Check for authentication
-            if '@' in host_port:
+            if "@" in host_port:
                 # Format: user:pass@host:port
-                auth_part, host_port = host_port.split('@')
-                if ':' in auth_part:
-                    _, password = auth_part.split(':', 1)
+                auth_part, host_port = host_port.split("@")
+                if ":" in auth_part:
+                    _, password = auth_part.split(":", 1)
                     self.redis_password = password or self.redis_password
                 host_port = host_port
 
             # Parse host and port
-            if ':' in host_port:
-                self.redis_host, port = host_port.split(':')
+            if ":" in host_port:
+                self.redis_host, port = host_port.split(":")
                 self.redis_port = int(port)
             else:
                 self.redis_host = host_port
                 self.redis_port = 6379
         else:
-            self.redis_host = 'localhost'
+            self.redis_host = "localhost"
             self.redis_port = 6379
 
         self.redis_password = redis_password
@@ -73,7 +74,7 @@ class OAuthBackup:
             host=self.redis_host,
             port=self.redis_port,
             password=self.redis_password,
-            decode_responses=True
+            decode_responses=True,
         )
 
         # Test connection
@@ -99,8 +100,8 @@ class OAuthBackup:
                 "total_registrations": 0,
                 "total_tokens": 0,
                 "total_refresh_tokens": 0,
-                "total_sessions": 0
-            }
+                "total_sessions": 0,
+            },
         }
 
         # Pattern definitions
@@ -111,7 +112,7 @@ class OAuthBackup:
             "user_tokens": "oauth:user_tokens:*",
             "states": "oauth:state:*",
             "codes": "oauth:code:*",
-            "sessions": "redis:session:*"
+            "sessions": "redis:session:*",
         }
 
         # Backup each category
@@ -137,7 +138,9 @@ class OAuthBackup:
                         elif key_type == "list":
                             # For user_tokens, it's a list
                             value = await self.redis_client.lrange(key, 0, -1)
-                            value = json.dumps(value)  # Convert to JSON string for storage
+                            value = json.dumps(
+                                value
+                            )  # Convert to JSON string for storage
                         elif key_type == "set":
                             value = list(await self.redis_client.smembers(key))
                             value = json.dumps(value)
@@ -152,7 +155,7 @@ class OAuthBackup:
                         key_data = {
                             "value": value,
                             "type": key_type,
-                            "ttl": ttl if ttl > 0 else -1  # -1 means no expiry
+                            "ttl": ttl if ttl > 0 else -1,  # -1 means no expiry
                         }
 
                         # Try to parse JSON values for display
@@ -163,7 +166,9 @@ class OAuthBackup:
 
                                 # Extract useful info for display
                                 if category == "registrations":
-                                    client_name = parsed_value.get("client_name", "Unknown")
+                                    client_name = parsed_value.get(
+                                        "client_name", "Unknown"
+                                    )
                                     print(f"  📦 {key} → {client_name}")
                                 elif category == "tokens":
                                     client_id = parsed_value.get("client_id", "Unknown")
@@ -211,7 +216,7 @@ class OAuthBackup:
         filepath = self.backup_dir / filename
 
         # Save with pretty formatting
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(backup_data, f, indent=2, sort_keys=True)
 
         # Calculate file size
@@ -227,24 +232,28 @@ class OAuthBackup:
         """List all available backups."""
         backups = []
 
-        for filepath in sorted(self.backup_dir.glob("oauth-backup-*.json"), reverse=True):
+        for filepath in sorted(
+            self.backup_dir.glob("oauth-backup-*.json"), reverse=True
+        ):
             stat = filepath.stat()
 
             # Load metadata
             with open(filepath) as f:
                 data = json.load(f)
 
-            backups.append({
-                "filename": filepath.name,
-                "path": str(filepath),
-                "size_mb": stat.st_size / (1024 * 1024),
-                "created": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-                "timestamp": data.get("timestamp"),
-                "registrations": data["metadata"]["total_registrations"],
-                "tokens": data["metadata"]["total_tokens"],
-                "refresh_tokens": data["metadata"]["total_refresh_tokens"],
-                "sessions": data["metadata"]["total_sessions"]
-            })
+            backups.append(
+                {
+                    "filename": filepath.name,
+                    "path": str(filepath),
+                    "size_mb": stat.st_size / (1024 * 1024),
+                    "created": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                    "timestamp": data.get("timestamp"),
+                    "registrations": data["metadata"]["total_registrations"],
+                    "tokens": data["metadata"]["total_tokens"],
+                    "refresh_tokens": data["metadata"]["total_refresh_tokens"],
+                    "sessions": data["metadata"]["total_sessions"],
+                }
+            )
 
         return backups
 

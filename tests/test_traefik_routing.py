@@ -39,7 +39,9 @@ class TestTraefikRouting:
         assert "www-authenticate" in response.headers
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_path_routing_without_auth(self, http_client, wait_for_services):
+    async def test_mcp_fetch_path_routing_without_auth(
+        self, http_client, wait_for_services
+    ):
         """Test that /mcp path is routed correctly but requires auth."""
         # Test /mcp without auth - should get 401
         response = await http_client.post(
@@ -47,9 +49,9 @@ class TestTraefikRouting:
             json={"jsonrpc": "2.0", "method": "ping", "id": 1},
             headers={
                 "Content-Type": "application/json",
-                "Accept": "application/json,text/event-stream"
+                "Accept": "application/json,text/event-stream",
             },
-            follow_redirects=False
+            follow_redirects=False,
         )
         assert response.status_code == 401
         assert "www-authenticate" in response.headers
@@ -61,7 +63,9 @@ class TestTraefikRouting:
         assert error["detail"]["error"] == "invalid_request"
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_trailing_slash_redirect(self, http_client, wait_for_services):
+    async def test_mcp_fetch_trailing_slash_redirect(
+        self, http_client, wait_for_services
+    ):
         """Test that /mcp redirects to /mcp/ with trailing slash."""
         # First, let's check if we get a redirect from /mcp to /mcp/
         response = await http_client.post(
@@ -69,9 +73,9 @@ class TestTraefikRouting:
             json={"jsonrpc": "2.0", "method": "ping", "id": 1},
             headers={
                 "Content-Type": "application/json",
-                "Accept": "application/json,text/event-stream"
+                "Accept": "application/json,text/event-stream",
             },
-            follow_redirects=False
+            follow_redirects=False,
         )
 
         # Should get 401 from auth middleware before any redirect
@@ -88,7 +92,7 @@ class TestTraefikRouting:
             "/mcp/",
             "/mcp/tools/list",
             "/mcp/prompts/list",
-            "/mcp/resources/list"
+            "/mcp/resources/list",
         ]
 
         for path in paths_to_test:
@@ -96,10 +100,12 @@ class TestTraefikRouting:
                 f"{MCP_FETCH_URL}{path}",
                 json={"jsonrpc": "2.0", "method": "ping", "id": 1},
                 headers={"Content-Type": "application/json"},
-                follow_redirects=False
+                follow_redirects=False,
             )
             assert response.status_code == 401, f"Path {path} did not require auth"
-            assert "www-authenticate" in response.headers, f"Path {path} missing WWW-Authenticate"
+            assert "www-authenticate" in response.headers, (
+                f"Path {path} missing WWW-Authenticate"
+            )
 
     @pytest.mark.asyncio
     async def test_routing_priority_order(self, http_client, wait_for_services):
@@ -110,7 +116,9 @@ class TestTraefikRouting:
         assert response.status_code == 422
 
         # OAuth discovery should work without auth
-        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+        )
         assert response.status_code == 200
 
     @pytest.mark.asyncio
@@ -124,21 +132,21 @@ class TestTraefikRouting:
         assert "authorization_endpoint" in response.json()
 
         # MCP subdomain - all paths require auth with catch-all route
-        response = await http_client.get(
-            f"https://fetch.{BASE_DOMAIN}/some-path"
-        )
+        response = await http_client.get(f"https://fetch.{BASE_DOMAIN}/some-path")
         assert response.status_code == 401
 
         # MCP API endpoint should require auth
         response = await http_client.post(
             f"https://fetch.{BASE_DOMAIN}/mcp",
             json={"test": "data"},
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
         assert response.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_invalid_paths_return_404_or_401(self, http_client, wait_for_services):
+    async def test_invalid_paths_return_404_or_401(
+        self, http_client, wait_for_services
+    ):
         """Test that invalid paths return appropriate errors."""
         # Invalid path on MCP service should get 401 (auth blocks first with catch-all route)
         response = await http_client.get(f"{MCP_FETCH_URL}/invalid/path")
@@ -152,11 +160,13 @@ class TestTraefikRouting:
     async def test_http_to_https_redirect(self, http_client):
         """Test that HTTP requests are redirected to HTTPS."""
         # Test HTTP to HTTPS redirect for auth service
-        http_auth_url = f"http://auth.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
+        http_auth_url = (
+            f"http://auth.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
+        )
 
         response = await http_client.get(
             http_auth_url,
-            follow_redirects=False  # Don't follow redirects so we can check them
+            follow_redirects=False,  # Don't follow redirects so we can check them
         )
 
         # Should get a redirect response (301 or 302)
@@ -166,7 +176,9 @@ class TestTraefikRouting:
         )
 
         # Check that Location header points to HTTPS
-        assert "Location" in response.headers, "Missing Location header in redirect response"
+        assert "Location" in response.headers, (
+            "Missing Location header in redirect response"
+        )
         location = response.headers["Location"]
         assert location.startswith("https://"), (
             f"Redirect should point to HTTPS, got: {location}"
@@ -176,12 +188,11 @@ class TestTraefikRouting:
         )
 
         # Test HTTP to HTTPS redirect for MCP service
-        http_mcp_url = f"http://fetch.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
-
-        response = await http_client.get(
-            http_mcp_url,
-            follow_redirects=False
+        http_mcp_url = (
+            f"http://fetch.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
         )
+
+        response = await http_client.get(http_mcp_url, follow_redirects=False)
 
         # Should get a redirect response
         assert response.status_code in [301, 302, 307, 308], (
@@ -190,7 +201,9 @@ class TestTraefikRouting:
         )
 
         # Check that Location header points to HTTPS
-        assert "Location" in response.headers, "Missing Location header in MCP redirect response"
+        assert "Location" in response.headers, (
+            "Missing Location header in MCP redirect response"
+        )
         location = response.headers["Location"]
         assert location.startswith("https://"), (
             f"MCP redirect should point to HTTPS, got: {location}"
@@ -202,7 +215,7 @@ class TestTraefikRouting:
         # Test that following the redirect works
         https_response = await http_client.get(
             http_auth_url,
-            follow_redirects=True  # Follow redirects this time
+            follow_redirects=True,  # Follow redirects this time
         )
 
         # Should get successful response after redirect
@@ -213,4 +226,6 @@ class TestTraefikRouting:
         # Verify we actually got the OAuth metadata response
         metadata = https_response.json()
         assert "issuer" in metadata, f"Invalid OAuth metadata response: {metadata}"
-        assert metadata["issuer"] == f"https://auth.{BASE_DOMAIN}", f"Incorrect issuer: {metadata}"
+        assert metadata["issuer"] == f"https://auth.{BASE_DOMAIN}", (
+            f"Incorrect issuer: {metadata}"
+        )

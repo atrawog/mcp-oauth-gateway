@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fix JWT imports in test files to use our test helper."""
+
 import os
 import re
 
@@ -26,21 +27,28 @@ for filepath, content in files_to_fix:
     if "jwt.encode" in content and "from .jwt_test_helper import" not in content:
         # Find where to add the import (after other imports)
         import_section_end = 0
-        lines = content.split('\n')
+        lines = content.split("\n")
         for i, line in enumerate(lines):
-            if line.startswith(('import ', 'from ')):
+            if line.startswith(("import ", "from ")):
                 import_section_end = i + 1
-            elif import_section_end > 0 and line and not line.startswith(' ') and not line.startswith('#'):
+            elif (
+                import_section_end > 0
+                and line
+                and not line.startswith(" ")
+                and not line.startswith("#")
+            ):
                 break
 
         # Add the import
-        lines.insert(import_section_end, "from .jwt_test_helper import encode as jwt_encode")
-        content = '\n'.join(lines)
+        lines.insert(
+            import_section_end, "from .jwt_test_helper import encode as jwt_encode"
+        )
+        content = "\n".join(lines)
 
         # Replace jwt.encode with jwt_encode
-        content = re.sub(r'jwt\.encode\(', 'jwt_encode(', content)
+        content = re.sub(r"jwt\.encode\(", "jwt_encode(", content)
 
     if content != original_content:
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             f.write(content)
         print(f"Fixed JWT usage in {os.path.basename(filepath)}")

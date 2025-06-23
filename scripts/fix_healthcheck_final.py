@@ -23,9 +23,9 @@ def fix_healthcheck_final(service_dir):
     # Replace $MCP_PROTOCOL_VERSION with \$MCP_PROTOCOL_VERSION to prevent compose-time substitution
     # This ensures the variable is evaluated at runtime inside the container
     content = re.sub(
-        r'\"protocolVersion\":\"\$MCP_PROTOCOL_VERSION\"',
+        r"\"protocolVersion\":\"\$MCP_PROTOCOL_VERSION\"",
         r'\\"protocolVersion\\":\\"\\$MCP_PROTOCOL_VERSION\\"',
-        content
+        content,
     )
 
     # For the grep part, we need to be more careful with escaping
@@ -33,19 +33,19 @@ def fix_healthcheck_final(service_dir):
     content = re.sub(
         r"grep -q '\"protocolVersion\":\"'\"\$MCP_PROTOCOL_VERSION\"'\"'",
         r'grep -q \\"protocolVersion\\":\\"\\$MCP_PROTOCOL_VERSION\\"',
-        content
+        content,
     )
 
     # Alternative pattern that might exist
     content = re.sub(
-        r'grep -q \'\"protocolVersion\":\"\$MCP_PROTOCOL_VERSION\"\'',
+        r"grep -q \'\"protocolVersion\":\"\$MCP_PROTOCOL_VERSION\"\'",
         r'grep -q \\"protocolVersion\\":\\"\\$MCP_PROTOCOL_VERSION\\"',
-        content
+        content,
     )
 
     if content != original_content:
         print("  Fixed runtime environment variable usage")
-        with open(compose_path, 'w') as f:
+        with open(compose_path, "w") as f:
             f.write(content)
         return True
 
@@ -55,7 +55,9 @@ def fix_healthcheck_final(service_dir):
 def main():
     # Find all MCP service directories
     base_dir = Path("/home/atrawog/AI/atrawog/mcp-oauth-gateway")
-    service_dirs = [d for d in base_dir.iterdir() if d.is_dir() and d.name.startswith("mcp-")]
+    service_dirs = [
+        d for d in base_dir.iterdir() if d.is_dir() and d.name.startswith("mcp-")
+    ]
 
     fixed_count = 0
     for service_dir in sorted(service_dirs):

@@ -1,6 +1,7 @@
 """
 Configuration module for MCP OAuth Dynamic Client
 """
+
 from typing import Optional
 
 from pydantic import ConfigDict
@@ -38,8 +39,7 @@ class Settings(BaseSettings):
     # MCP Protocol Version
     mcp_protocol_version: str  # NO DEFAULTS!
 
-
     model_config = ConfigDict(
         env_file=".env",
-        extra="ignore"  # Allow extra fields from environment
+        extra="ignore",  # Allow extra fields from environment
     )

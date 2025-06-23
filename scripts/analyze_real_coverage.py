@@ -18,6 +18,7 @@ def decode_line_bits(numbits_blob):
                         covered_lines.add(base_line + bit)
     return covered_lines
 
+
 def analyze_coverage():
     """Extract and analyze coverage data."""
     coverage_db = Path(".coverage")
@@ -44,17 +45,17 @@ def analyze_coverage():
     for _file_id, path, numbits, context in cursor.fetchall():
         if path not in file_coverage:
             file_coverage[path] = {
-                'contexts': set(),
-                'covered_lines': set(),
-                'branches': 0
+                "contexts": set(),
+                "covered_lines": set(),
+                "branches": 0,
             }
 
         if context:
-            file_coverage[path]['contexts'].add(context)
+            file_coverage[path]["contexts"].add(context)
 
         # Decode line coverage
         lines = decode_line_bits(numbits)
-        file_coverage[path]['covered_lines'].update(lines)
+        file_coverage[path]["covered_lines"].update(lines)
 
     # Get branch coverage
     cursor.execute("""
@@ -66,7 +67,7 @@ def analyze_coverage():
 
     for path, branch_count in cursor.fetchall():
         if path in file_coverage:
-            file_coverage[path]['branches'] = branch_count
+            file_coverage[path]["branches"] = branch_count
 
     # Map paths and display results
     print("\n📁 Coverage by Module:")
@@ -79,10 +80,10 @@ def analyze_coverage():
 
     for path, data in sorted(file_coverage.items()):
         # Map container path to module name
-        module = path.split('/')[-1]
-        lines_covered = len(data['covered_lines'])
-        branches = data['branches']
-        contexts = len(data['contexts'])
+        module = path.split("/")[-1]
+        lines_covered = len(data["covered_lines"])
+        branches = data["branches"]
+        contexts = len(data["contexts"])
 
         total_lines += lines_covered
         total_branches += branches
@@ -96,7 +97,7 @@ def analyze_coverage():
     print("\n🔄 Execution Contexts Found:")
     all_contexts = set()
     for data in file_coverage.values():
-        all_contexts.update(data['contexts'])
+        all_contexts.update(data["contexts"])
 
     for ctx in sorted(all_contexts):
         if ctx:
@@ -106,14 +107,19 @@ def analyze_coverage():
     print("\n🎯 Key Module Coverage:")
     print("-" * 80)
 
-    key_modules = ['routes.py', 'auth_authlib.py', 'rfc7592.py', 'server.py']
+    key_modules = ["routes.py", "auth_authlib.py", "rfc7592.py", "server.py"]
     for module in key_modules:
-        module_data = next((data for path, data in file_coverage.items() if path.endswith(module)), None)
+        module_data = next(
+            (data for path, data in file_coverage.items() if path.endswith(module)),
+            None,
+        )
         if module_data:
             print(f"\n✅ {module}:")
             print(f"   Lines executed: {len(module_data['covered_lines'])}")
             print(f"   Branch coverage: {module_data['branches']} branches")
-            print(f"   Line numbers covered: {sorted(module_data['covered_lines'])[:20]}...")
+            print(
+                f"   Line numbers covered: {sorted(module_data['covered_lines'])[:20]}..."
+            )
 
     conn.close()
 
@@ -122,6 +128,7 @@ def analyze_coverage():
     print(f"   Total lines executed: {total_lines}")
     print(f"   Total branches covered: {total_branches}")
     print(f"   Files with coverage: {len(file_coverage)}")
+
 
 if __name__ == "__main__":
     analyze_coverage()

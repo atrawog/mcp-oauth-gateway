@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Clean up specific client registrations by name."""
+
 import json
 import os
 
@@ -16,6 +17,7 @@ REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 REDIS_DB = int(os.getenv("REDIS_DB", "0"))
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
+
 def cleanup_specific_clients():
     """Clean up specific client names."""
     redis_client = redis.Redis(
@@ -23,7 +25,7 @@ def cleanup_specific_clients():
         port=REDIS_PORT,
         db=REDIS_DB,
         password=REDIS_PASSWORD,
-        decode_responses=True
+        decode_responses=True,
     )
 
     # Names to clean up
@@ -40,10 +42,10 @@ def cleanup_specific_clients():
             client_data = redis_client.get(key)
             if client_data:
                 client = json.loads(client_data)
-                client_name = client.get('client_name', '')
+                client_name = client.get("client_name", "")
 
                 if client_name in cleanup_names:
-                    client_id = key.split(':')[-1]
+                    client_id = key.split(":")[-1]
                     print(f"Deleting client: {client_id} - {client_name}")
 
                     # Delete all related keys
@@ -58,7 +60,7 @@ def cleanup_specific_clients():
                         if token_data:
                             try:
                                 token = json.loads(token_data)
-                                if token.get('client_id') == client_id:
+                                if token.get("client_id") == client_id:
                                     redis_client.delete(token_key)
                             except:
                                 pass
@@ -70,6 +72,7 @@ def cleanup_specific_clients():
             print(f"  ❌ Error processing {key}: {e}")
 
     print(f"\nDeleted {deleted} clients")
+
 
 if __name__ == "__main__":
     cleanup_specific_clients()

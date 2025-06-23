@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Final fix for JWT imports in test files."""
+
 import os
 
 
@@ -21,7 +22,7 @@ for filename in os.listdir(test_dir):
 # Fix each file
 for filepath, content in files_to_fix:
     # Fix the broken import pattern
-    lines = content.split('\n')
+    lines = content.split("\n")
     fixed_lines = []
 
     for _i, line in enumerate(lines):
@@ -31,8 +32,8 @@ for filepath, content in files_to_fix:
         elif "from .jwt_test_helper import encode as jwt_encode" in line:
             # The import got mixed with other imports, fix it
             # Extract the other imports
-            before = line[:line.index("from .jwt_test_helper")]
-            after = line[line.index("from .jwt_test_helper"):]
+            before = line[: line.index("from .jwt_test_helper")]
+            after = line[line.index("from .jwt_test_helper") :]
 
             if before.strip().startswith("from .test_constants import"):
                 # Add jwt import on next line
@@ -44,6 +45,6 @@ for filepath, content in files_to_fix:
             fixed_lines.append(line)
 
     # Write back
-    with open(filepath, 'w') as f:
-        f.write('\n'.join(fixed_lines))
+    with open(filepath, "w") as f:
+        f.write("\n".join(fixed_lines))
     print(f"Fixed imports in {os.path.basename(filepath)}")

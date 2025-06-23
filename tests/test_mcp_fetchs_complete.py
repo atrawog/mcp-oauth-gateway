@@ -33,14 +33,16 @@ class TestMCPFetchsComplete:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_complete_oauth_flow_integration(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_complete_oauth_flow_integration(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test complete OAuth flow from authentication to content fetching."""
         # Step 1: Verify authentication is required
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
                 f"{mcp_fetchs_url}",
                 json={"jsonrpc": "2.0", "method": "initialize", "id": 1},
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json"},
             )
             assert response.status_code == 401
             assert response.headers["WWW-Authenticate"] == "Bearer"
@@ -52,17 +54,14 @@ class TestMCPFetchsComplete:
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
-                    "params": {
-                        "protocolVersion": "2025-06-18",
-                        "capabilities": {}
-                    },
-                    "id": 1
+                    "params": {"protocolVersion": "2025-06-18", "capabilities": {}},
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {gateway_token}",
-                    "MCP-Protocol-Version": "2025-06-18"
-                }
+                    "MCP-Protocol-Version": "2025-06-18",
+                },
             )
 
             assert response.status_code == 200
@@ -81,16 +80,12 @@ class TestMCPFetchsComplete:
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
                 f"{mcp_fetchs_url}",
-                json={
-                    "jsonrpc": "2.0",
-                    "method": "tools/list",
-                    "id": 2
-                },
+                json={"jsonrpc": "2.0", "method": "tools/list", "id": 2},
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {gateway_token}",
-                    "Mcp-Session-Id": session_id
-                }
+                    "Mcp-Session-Id": session_id,
+                },
             )
 
             assert response.status_code == 200
@@ -114,18 +109,15 @@ class TestMCPFetchsComplete:
                     "method": "tools/call",
                     "params": {
                         "name": "fetch",
-                        "arguments": {
-                            "url": "https://example.com",
-                            "method": "GET"
-                        }
+                        "arguments": {"url": "https://example.com", "method": "GET"},
                     },
-                    "id": 3
+                    "id": 3,
                 },
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {gateway_token}",
-                    "Mcp-Session-Id": session_id
-                }
+                    "Mcp-Session-Id": session_id,
+                },
             )
 
             assert response.status_code == 200
@@ -145,7 +137,9 @@ class TestMCPFetchsComplete:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_with_mcp_client_token(self, mcp_fetchs_url, client_token, wait_for_services):
+    async def test_fetchs_with_mcp_client_token(
+        self, mcp_fetchs_url, client_token, wait_for_services
+    ):
         """Test fetchs using MCP client access token."""
         async with httpx.AsyncClient(verify=False) as client:
             # Initialize session
@@ -154,17 +148,14 @@ class TestMCPFetchsComplete:
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
-                    "params": {
-                        "protocolVersion": "2025-06-18",
-                        "capabilities": {}
-                    },
-                    "id": 1
+                    "params": {"protocolVersion": "2025-06-18", "capabilities": {}},
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {client_token}",
-                    "MCP-Protocol-Version": "2025-06-18"
-                }
+                    "MCP-Protocol-Version": "2025-06-18",
+                },
             )
 
             assert response.status_code == 200
@@ -180,16 +171,16 @@ class TestMCPFetchsComplete:
                         "name": "fetch",
                         "arguments": {
                             "url": "https://httpbin.org/html",
-                            "method": "GET"
-                        }
+                            "method": "GET",
+                        },
                     },
-                    "id": 2
+                    "id": 2,
                 },
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {client_token}",
-                    "Mcp-Session-Id": session_id
-                }
+                    "Mcp-Session-Id": session_id,
+                },
             )
 
             assert response.status_code == 200
@@ -204,7 +195,9 @@ class TestMCPFetchsComplete:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_url_parameter_validation(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_url_parameter_validation(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test URL parameter validation in fetchs."""
         async with httpx.AsyncClient(verify=False) as client:
             # Test missing URL
@@ -213,18 +206,13 @@ class TestMCPFetchsComplete:
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
-                    "params": {
-                        "name": "fetch",
-                        "arguments": {
-                            "method": "GET"
-                        }
-                    },
-                    "id": 1
+                    "params": {"name": "fetch", "arguments": {"method": "GET"}},
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
-                }
+                    "Authorization": f"Bearer {gateway_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -243,15 +231,15 @@ class TestMCPFetchsComplete:
                         "name": "fetch",
                         "arguments": {
                             "url": "ftp://example.com/file.txt",
-                            "method": "GET"
-                        }
+                            "method": "GET",
+                        },
                     },
-                    "id": 2
+                    "id": 2,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
-                }
+                    "Authorization": f"Bearer {gateway_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -262,7 +250,9 @@ class TestMCPFetchsComplete:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_max_length_parameter(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_max_length_parameter(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test max_length parameter handling."""
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
@@ -275,15 +265,15 @@ class TestMCPFetchsComplete:
                         "arguments": {
                             "url": "https://httpbin.org/html",
                             "method": "GET",
-                            "max_length": 100  # Very small limit
-                        }
+                            "max_length": 100,  # Very small limit
+                        },
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
-                }
+                    "Authorization": f"Bearer {gateway_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -299,7 +289,9 @@ class TestMCPFetchsComplete:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_custom_headers_and_user_agent(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_custom_headers_and_user_agent(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test custom headers and user agent support."""
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
@@ -312,18 +304,16 @@ class TestMCPFetchsComplete:
                         "arguments": {
                             "url": "https://httpbin.org/headers",
                             "method": "GET",
-                            "headers": {
-                                "X-Custom-Header": "test-value"
-                            },
-                            "user_agent": "MCP-Fetchs-Test/1.0"
-                        }
+                            "headers": {"X-Custom-Header": "test-value"},
+                            "user_agent": "MCP-Fetchs-Test/1.0",
+                        },
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
-                }
+                    "Authorization": f"Bearer {gateway_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -341,7 +331,9 @@ class TestMCPFetchsComplete:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_post_method_with_body(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_post_method_with_body(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test POST method with request body."""
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
@@ -355,17 +347,15 @@ class TestMCPFetchsComplete:
                             "url": "https://httpbin.org/post",
                             "method": "POST",
                             "body": json.dumps({"test": "data", "fetchs": True}),
-                            "headers": {
-                                "Content-Type": "application/json"
-                            }
-                        }
+                            "headers": {"Content-Type": "application/json"},
+                        },
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
-                }
+                    "Authorization": f"Bearer {gateway_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -382,7 +372,9 @@ class TestMCPFetchsComplete:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_error_handling(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_error_handling(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test error handling for various failure scenarios."""
         async with httpx.AsyncClient(verify=False) as client:
             # Test 404 response
@@ -395,15 +387,15 @@ class TestMCPFetchsComplete:
                         "name": "fetch",
                         "arguments": {
                             "url": "https://httpbin.org/status/404",
-                            "method": "GET"
-                        }
+                            "method": "GET",
+                        },
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
-                }
+                    "Authorization": f"Bearer {gateway_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -424,15 +416,15 @@ class TestMCPFetchsComplete:
                         "name": "fetch",
                         "arguments": {
                             "url": "https://this-domain-definitely-does-not-exist-12345.com",
-                            "method": "GET"
-                        }
+                            "method": "GET",
+                        },
                     },
-                    "id": 2
+                    "id": 2,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
-                }
+                    "Authorization": f"Bearer {gateway_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -444,7 +436,9 @@ class TestMCPFetchsComplete:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_protocol_version_negotiation(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_protocol_version_negotiation(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test protocol version negotiation."""
         async with httpx.AsyncClient(verify=False) as client:
             # Try with older protocol version
@@ -453,17 +447,14 @@ class TestMCPFetchsComplete:
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
-                    "params": {
-                        "protocolVersion": "1.0",
-                        "capabilities": {}
-                    },
-                    "id": 1
+                    "params": {"protocolVersion": "1.0", "capabilities": {}},
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
+                    "Authorization": f"Bearer {gateway_token}",
                     # Don't send MCP-Protocol-Version header to test protocol-level negotiation
-                }
+                },
             )
 
             assert response.status_code == 200
@@ -473,12 +464,18 @@ class TestMCPFetchsComplete:
             assert data["error"]["code"] == -32602  # Invalid params
             assert data["error"]["message"] == "Invalid params"
             assert "Unsupported protocol version" in data["error"]["data"]
-            assert "1.0" in data["error"]["data"]  # Should mention the attempted version
-            assert "2025-06-18" in data["error"]["data"]  # Should mention supported version
+            assert (
+                "1.0" in data["error"]["data"]
+            )  # Should mention the attempted version
+            assert (
+                "2025-06-18" in data["error"]["data"]
+            )  # Should mention supported version
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_session_management(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_session_management(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test session management behavior."""
         async with httpx.AsyncClient(verify=False) as client:
             # Create two separate initialization requests
@@ -489,17 +486,14 @@ class TestMCPFetchsComplete:
                     json={
                         "jsonrpc": "2.0",
                         "method": "initialize",
-                        "params": {
-                            "protocolVersion": "2025-06-18",
-                            "capabilities": {}
-                        },
-                        "id": i + 1
+                        "params": {"protocolVersion": "2025-06-18", "capabilities": {}},
+                        "id": i + 1,
                     },
                     headers={
                         "Content-Type": "application/json",
                         "Authorization": f"Bearer {gateway_token}",
-                        "MCP-Protocol-Version": "2025-06-18"
-                    }
+                        "MCP-Protocol-Version": "2025-06-18",
+                    },
                 )
 
                 assert response.status_code == 200
@@ -513,16 +507,12 @@ class TestMCPFetchsComplete:
             for idx, session_id in enumerate(session_ids):
                 response = await client.post(
                     f"{mcp_fetchs_url}",
-                    json={
-                        "jsonrpc": "2.0",
-                        "method": "tools/list",
-                        "id": idx + 10
-                    },
+                    json={"jsonrpc": "2.0", "method": "tools/list", "id": idx + 10},
                     headers={
                         "Content-Type": "application/json",
                         "Authorization": f"Bearer {gateway_token}",
-                        "Mcp-Session-Id": session_id
-                    }
+                        "Mcp-Session-Id": session_id,
+                    },
                 )
 
                 assert response.status_code == 200
@@ -531,7 +521,9 @@ class TestMCPFetchsComplete:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_concurrent_requests(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_concurrent_requests(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test concurrent request handling."""
         import asyncio
 
@@ -545,15 +537,15 @@ class TestMCPFetchsComplete:
                         "name": "fetch",
                         "arguments": {
                             "url": "https://httpbin.org/delay/1",
-                            "method": "GET"
-                        }
+                            "method": "GET",
+                        },
                     },
-                    "id": request_id
+                    "id": request_id,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
-                }
+                    "Authorization": f"Bearer {gateway_token}",
+                },
             )
             return response
 

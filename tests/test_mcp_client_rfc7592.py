@@ -6,6 +6,7 @@ This test verifies that the client can:
 3. Use PUT to update its registration
 4. Use DELETE to remove its registration
 """
+
 import asyncio
 import sys
 from pathlib import Path
@@ -14,7 +15,9 @@ import pytest
 
 
 # Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "mcp-streamablehttp-client" / "src"))
+sys.path.insert(
+    0, str(Path(__file__).parent.parent / "mcp-streamablehttp-client" / "src")
+)
 
 from mcp_streamablehttp_client.config import Settings
 from mcp_streamablehttp_client.oauth import OAuthClient
@@ -32,7 +35,7 @@ async def test_mcp_client_rfc7592_lifecycle():
     settings = Settings(
         mcp_server_url=test_server,
         client_name="RFC7592 Test Client",
-        verify_ssl=False  # For test environment
+        verify_ssl=False,  # For test environment
     )
 
     async with OAuthClient(settings) as oauth:
@@ -61,10 +64,10 @@ async def test_mcp_client_rfc7592_lifecycle():
         print("\n3. Getting client configuration...")
         config = await oauth.get_client_configuration()
 
-        assert config['client_id'] == settings.oauth_client_id
-        assert config['client_name'] == "RFC7592 Test Client"
-        assert 'client_id_issued_at' in config
-        assert 'client_secret_expires_at' in config
+        assert config["client_id"] == settings.oauth_client_id
+        assert config["client_name"] == "RFC7592 Test Client"
+        assert "client_id_issued_at" in config
+        assert "client_secret_expires_at" in config
 
         print(f"   ✓ Retrieved config for: {config['client_name']}")
         print(f"   ✓ Scope: {config.get('scope', 'N/A')}")
@@ -76,15 +79,17 @@ async def test_mcp_client_rfc7592_lifecycle():
             "client_name": "RFC7592 Updated Test Client",
             "scope": "read write admin",
             "redirect_uris": ["https://updated.example.com/callback"],
-            "contacts": ["test@example.com", "admin@example.com"]
+            "contacts": ["test@example.com", "admin@example.com"],
         }
 
         updated_config = await oauth.update_client_configuration(updates)
 
-        assert updated_config['client_name'] == "RFC7592 Updated Test Client"
-        assert updated_config['scope'] == "read write admin"
-        assert updated_config['redirect_uris'] == ["https://updated.example.com/callback"]
-        assert updated_config['contacts'] == ["test@example.com", "admin@example.com"]
+        assert updated_config["client_name"] == "RFC7592 Updated Test Client"
+        assert updated_config["scope"] == "read write admin"
+        assert updated_config["redirect_uris"] == [
+            "https://updated.example.com/callback"
+        ]
+        assert updated_config["contacts"] == ["test@example.com", "admin@example.com"]
 
         print(f"   ✓ Updated client name: {updated_config['client_name']}")
         print(f"   ✓ Updated scope: {updated_config['scope']}")
@@ -94,8 +99,8 @@ async def test_mcp_client_rfc7592_lifecycle():
         print("\n5. Verifying update...")
         verify_config = await oauth.get_client_configuration()
 
-        assert verify_config['client_name'] == "RFC7592 Updated Test Client"
-        assert verify_config['scope'] == "read write admin"
+        assert verify_config["client_name"] == "RFC7592 Updated Test Client"
+        assert verify_config["scope"] == "read write admin"
 
         print("   ✓ Update verified successfully")
 
@@ -110,7 +115,9 @@ async def test_mcp_client_rfc7592_lifecycle():
             await oauth.get_client_configuration()
             raise AssertionError("Should have raised error with wrong token")
         except RuntimeError as e:
-            assert "Invalid registration access token" in str(e) or "Access forbidden" in str(e)
+            assert "Invalid registration access token" in str(
+                e
+            ) or "Access forbidden" in str(e)
             print("   ✓ Correctly rejected invalid token")
 
         # Restore real token
@@ -147,7 +154,7 @@ async def test_mcp_client_rfc7592_field_validation():
     settings = Settings(
         mcp_server_url=test_server,
         client_name="RFC7592 Field Test Client",
-        verify_ssl=False
+        verify_ssl=False,
     )
 
     async with OAuthClient(settings) as oauth:
@@ -163,8 +170,14 @@ async def test_mcp_client_rfc7592_field_validation():
             {"logo_uri": "https://example.com/logo.png"},
             {"tos_uri": "https://example.com/tos"},
             {"policy_uri": "https://example.com/privacy"},
-            {"grant_types": ["authorization_code", "refresh_token", "client_credentials"]},
-            {"response_types": ["code", "token"]}
+            {
+                "grant_types": [
+                    "authorization_code",
+                    "refresh_token",
+                    "client_credentials",
+                ]
+            },
+            {"response_types": ["code", "token"]},
         ]
 
         for update in test_updates:
@@ -172,7 +185,10 @@ async def test_mcp_client_rfc7592_field_validation():
             print(f"   Testing {field_name}...")
 
             result = await oauth.update_client_configuration(update)
-            assert field_name in result or field_name in {"grant_types", "response_types"}
+            assert field_name in result or field_name in {
+                "grant_types",
+                "response_types",
+            }
 
             print(f"   ✓ {field_name} updated successfully")
 
@@ -183,14 +199,14 @@ async def test_mcp_client_rfc7592_field_validation():
             "client_id": "hacked-id",  # Should be ignored
             "client_secret": "hacked-secret",  # Should be ignored
             "registration_access_token": "hacked-token",  # Should be ignored
-            "client_name": "Valid Update"  # This should work
+            "client_name": "Valid Update",  # This should work
         }
 
         result = await oauth.update_client_configuration(invalid_updates)
 
         # Verify only client_name was updated
-        assert result['client_name'] == "Valid Update"
-        assert result['client_id'] != "hacked-id"
+        assert result["client_name"] == "Valid Update"
+        assert result["client_id"] != "hacked-id"
 
         print("   ✓ Invalid fields correctly filtered")
 

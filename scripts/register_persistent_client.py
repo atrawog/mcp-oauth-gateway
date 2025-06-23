@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Register a persistent OAuth client that will survive restarts."""
+
 import asyncio
 import json
 import os
@@ -25,12 +26,11 @@ async def register_persistent_client():
         registration_data = {
             "redirect_uris": [TEST_CALLBACK_URL],
             "client_name": f"Persistent {TEST_CLIENT_NAME}",
-            "scope": TEST_CLIENT_SCOPE
+            "scope": TEST_CLIENT_SCOPE,
         }
 
         response = await client.post(
-            f"{AUTH_BASE_URL}/register",
-            json=registration_data
+            f"{AUTH_BASE_URL}/register", json=registration_data
         )
 
         if response.status_code == 201:
@@ -47,10 +47,8 @@ async def register_persistent_client():
             # Verify in Redis directly
             # Import REDIS_URL from test_constants
             from tests.test_constants import REDIS_URL
-            redis_client = await redis.from_url(
-                REDIS_URL,
-                decode_responses=True
-            )
+
+            redis_client = await redis.from_url(REDIS_URL, decode_responses=True)
 
             try:
                 # Check if client exists in Redis
@@ -94,8 +92,7 @@ async def verify_persistence():
         if test_client_id:
             # Check Redis directly
             redis_client = await redis.from_url(
-                f"redis://:{REDIS_PASSWORD}@localhost:6379/0",
-                decode_responses=True
+                f"redis://:{REDIS_PASSWORD}@localhost:6379/0", decode_responses=True
             )
 
             try:
@@ -103,7 +100,9 @@ async def verify_persistence():
                 exists = await redis_client.exists(client_key)
 
                 if exists:
-                    print(f"\n✅ Previous client {test_client_id} still exists in Redis!")
+                    print(
+                        f"\n✅ Previous client {test_client_id} still exists in Redis!"
+                    )
                     data = await redis_client.hgetall(client_key)
                     print(f"   Created at: {data.get('created_at', 'unknown')}")
                 else:

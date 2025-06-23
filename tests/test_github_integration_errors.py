@@ -1,6 +1,7 @@
 """Test GitHub OAuth integration error scenarios
 Following CLAUDE.md: Real tests against real GitHub API.
 """
+
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
@@ -20,11 +21,8 @@ class TestGitHubCallbackErrors:
         # Use an invalid state that doesn't exist in Redis
         response = await http_client.get(
             f"{AUTH_BASE_URL}/callback",
-            params={
-                "code": "some_code",
-                "state": "invalid_state_not_in_redis"
-            },
-            follow_redirects=False
+            params={"code": "some_code", "state": "invalid_state_not_in_redis"},
+            follow_redirects=False,
         )
 
         # Should return error
@@ -32,6 +30,7 @@ class TestGitHubCallbackErrors:
         error = response.json()
         assert error["detail"]["error"] == "invalid_request"
         assert "Invalid or expired state" in error["detail"]["error_description"]
+
 
 class TestRealOAuthFlowErrors:
     """Test real OAuth flow error scenarios."""
@@ -47,9 +46,9 @@ class TestRealOAuthFlowErrors:
                 "redirect_uri": "https://auth.atradev.org/success",  # Use registered redirect URI
                 "response_type": "code",
                 "scope": "openid profile email",
-                "state": "test_state"
+                "state": "test_state",
             },
-            follow_redirects=False
+            follow_redirects=False,
         )
 
         # Should redirect to GitHub
@@ -76,14 +75,18 @@ class TestRealOAuthFlowErrors:
                 "code": "expired_or_invalid_code_xxx",
                 "redirect_uri": "https://auth.atradev.org/success",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
 
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
-        assert "Invalid or expired authorization code" in error["detail"]["error_description"]
+        assert (
+            "Invalid or expired authorization code"
+            in error["detail"]["error_description"]
+        )
+
 
 class TestPKCEWithRealFlow:
     """Test PKCE verification with more realistic scenarios."""
@@ -99,14 +102,15 @@ class TestPKCEWithRealFlow:
                 "code": "code_that_requires_pkce",
                 "redirect_uri": "https://auth.atradev.org/success",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
                 # Missing code_verifier
-            }
+            },
         )
 
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
+
 
 class TestRefreshTokenErrors:
     """Test refresh token error scenarios."""
@@ -120,11 +124,13 @@ class TestRefreshTokenErrors:
                 "grant_type": "refresh_token",
                 "refresh_token": "invalid_refresh_token_xxx",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
-            }
+                "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
+            },
         )
 
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
-        assert "Invalid or expired refresh token" in error["detail"]["error_description"]
+        assert (
+            "Invalid or expired refresh token" in error["detail"]["error_description"]
+        )

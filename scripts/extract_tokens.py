@@ -6,6 +6,7 @@ from pathlib import Path
 
 ENV_FILE = Path(__file__).parent.parent / ".env"
 
+
 def save_env_var(key: str, value: str):
     """Save or update an environment variable in .env file."""
     lines = []
@@ -26,14 +27,15 @@ def save_env_var(key: str, value: str):
     with open(ENV_FILE, "w") as f:
         f.writelines(lines)
 
+
 # Read output file
 if len(sys.argv) > 1:
     with open(sys.argv[1]) as f:
         output = f.read()
 
     # Find export statements
-    pattern = r'^export\s+(MCP_CLIENT_[A-Z_]+)=(.+)$'
-    for line in output.split('\n'):
+    pattern = r"^export\s+(MCP_CLIENT_[A-Z_]+)=(.+)$"
+    for line in output.split("\n"):
         match = re.match(pattern, line.strip())
         if match:
             key = match.group(1)

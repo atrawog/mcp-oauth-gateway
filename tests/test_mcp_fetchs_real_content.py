@@ -31,7 +31,9 @@ class TestMCPFetchsRealContent:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_example_com_content(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_example_com_content(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test fetching example.com and verifying content."""
         async with httpx.AsyncClient(verify=False) as client:
             # Initialize session
@@ -41,12 +43,12 @@ class TestMCPFetchsRealContent:
                     "jsonrpc": "2.0",
                     "method": "initialize",
                     "params": {"protocolVersion": "2025-06-18"},
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
-                }
+                    "Authorization": f"Bearer {gateway_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -60,18 +62,15 @@ class TestMCPFetchsRealContent:
                     "method": "tools/call",
                     "params": {
                         "name": "fetch",
-                        "arguments": {
-                            "url": "https://example.com",
-                            "method": "GET"
-                        }
+                        "arguments": {"url": "https://example.com", "method": "GET"},
                     },
-                    "id": 2
+                    "id": 2,
                 },
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {gateway_token}",
-                    "Mcp-Session-Id": session_id
-                }
+                    "Mcp-Session-Id": session_id,
+                },
             )
 
             assert response.status_code == 200
@@ -95,7 +94,9 @@ class TestMCPFetchsRealContent:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_httpbin_endpoints(self, mcp_fetchs_url, client_token, wait_for_services):
+    async def test_fetchs_httpbin_endpoints(
+        self, mcp_fetchs_url, client_token, wait_for_services
+    ):
         """Test various httpbin.org endpoints for different scenarios."""
         async with httpx.AsyncClient(verify=False) as client:
             # Test JSON response
@@ -108,15 +109,15 @@ class TestMCPFetchsRealContent:
                         "name": "fetch",
                         "arguments": {
                             "url": "https://httpbin.org/json",
-                            "method": "GET"
-                        }
+                            "method": "GET",
+                        },
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {client_token}"
-                }
+                    "Authorization": f"Bearer {client_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -136,15 +137,15 @@ class TestMCPFetchsRealContent:
                         "arguments": {
                             "url": "https://httpbin.org/user-agent",
                             "method": "GET",
-                            "user_agent": "MCP-Fetchs-Test/2.0"
-                        }
+                            "user_agent": "MCP-Fetchs-Test/2.0",
+                        },
                     },
-                    "id": 2
+                    "id": 2,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {client_token}"
-                }
+                    "Authorization": f"Bearer {client_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -154,7 +155,9 @@ class TestMCPFetchsRealContent:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_auth_service_health(self, mcp_fetchs_url, base_domain, gateway_token, wait_for_services):
+    async def test_fetchs_auth_service_health(
+        self, mcp_fetchs_url, base_domain, gateway_token, wait_for_services
+    ):
         """Test fetching from our own auth service."""
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
@@ -166,15 +169,15 @@ class TestMCPFetchsRealContent:
                         "name": "fetch",
                         "arguments": {
                             "url": f"https://auth.{base_domain}/.well-known/oauth-authorization-server",
-                            "method": "GET"
-                        }
+                            "method": "GET",
+                        },
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
-                }
+                    "Authorization": f"Bearer {gateway_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -182,13 +185,15 @@ class TestMCPFetchsRealContent:
             content = data["result"]["content"][0]
 
             # Should contain OAuth metadata
-            assert 'issuer' in content["text"]
-            assert 'authorization_endpoint' in content["text"]
-            assert 'token_endpoint' in content["text"]
+            assert "issuer" in content["text"]
+            assert "authorization_endpoint" in content["text"]
+            assert "token_endpoint" in content["text"]
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_redirect_following(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_redirect_following(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test automatic redirect following."""
         async with httpx.AsyncClient(verify=False) as client:
             # httpbin.org/redirect/2 redirects twice
@@ -201,15 +206,15 @@ class TestMCPFetchsRealContent:
                         "name": "fetch",
                         "arguments": {
                             "url": "https://httpbin.org/redirect/2",
-                            "method": "GET"
-                        }
+                            "method": "GET",
+                        },
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
-                }
+                    "Authorization": f"Bearer {gateway_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -221,7 +226,9 @@ class TestMCPFetchsRealContent:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_different_content_types(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_different_content_types(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test handling different content types."""
         content_type_tests = [
             ("https://httpbin.org/html", "text/html", "Herman Melville"),
@@ -238,17 +245,14 @@ class TestMCPFetchsRealContent:
                         "method": "tools/call",
                         "params": {
                             "name": "fetch",
-                            "arguments": {
-                                "url": url,
-                                "method": "GET"
-                            }
+                            "arguments": {"url": url, "method": "GET"},
                         },
-                        "id": 1
+                        "id": 1,
                     },
                     headers={
                         "Content-Type": "application/json",
-                        "Authorization": f"Bearer {gateway_token}"
-                    }
+                        "Authorization": f"Bearer {gateway_token}",
+                    },
                 )
 
                 assert response.status_code == 200
@@ -259,7 +263,9 @@ class TestMCPFetchsRealContent:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_response_size_handling(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_response_size_handling(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test handling of large responses."""
         async with httpx.AsyncClient(verify=False) as client:
             # Request 1KB of data
@@ -273,15 +279,15 @@ class TestMCPFetchsRealContent:
                         "arguments": {
                             "url": "https://httpbin.org/bytes/1024",
                             "method": "GET",
-                            "max_length": 500  # Limit to 500 chars
-                        }
+                            "max_length": 500,  # Limit to 500 chars
+                        },
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {gateway_token}"
-                }
+                    "Authorization": f"Bearer {gateway_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -295,7 +301,9 @@ class TestMCPFetchsRealContent:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_status_code_handling(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_status_code_handling(
+        self, mcp_fetchs_url, gateway_token, wait_for_services
+    ):
         """Test handling of various HTTP status codes."""
         status_codes = [200, 201, 301, 400, 401, 403, 404, 500, 502]
 
@@ -310,15 +318,15 @@ class TestMCPFetchsRealContent:
                             "name": "fetch",
                             "arguments": {
                                 "url": f"https://httpbin.org/status/{status}",
-                                "method": "GET"
-                            }
+                                "method": "GET",
+                            },
                         },
-                        "id": status
+                        "id": status,
                     },
                     headers={
                         "Content-Type": "application/json",
-                        "Authorization": f"Bearer {gateway_token}"
-                    }
+                        "Authorization": f"Bearer {gateway_token}",
+                    },
                 )
 
                 assert response.status_code == 200

@@ -1,6 +1,7 @@
 """Sacred OAuth Flow Tests - NO MOCKING! Real services only!
 Tests the complete OAuth 2.1 flow with RFC 7591 compliance.
 """
+
 import base64
 import hashlib
 import json
@@ -21,7 +22,9 @@ class TestOAuthFlow:
     @pytest.mark.asyncio
     async def test_server_metadata(self, http_client, wait_for_services):
         """Test .well-known/oauth-authorization-server endpoint."""
-        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+        )
 
         assert response.status_code == 200
         metadata = response.json()
@@ -41,7 +44,9 @@ class TestOAuthFlow:
     async def test_client_registration_rfc7591(self, http_client, wait_for_services):
         """Test dynamic client registration per RFC 7591."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         # Track created clients for cleanup
         created_clients = []
@@ -53,13 +58,13 @@ class TestOAuthFlow:
                 "client_name": "TEST test_client_registration_rfc7591",
                 "client_uri": "https://example.com",
                 "scope": "openid profile",
-                "contacts": ["admin@example.com"]
+                "contacts": ["admin@example.com"],
             }
 
             response = await http_client.post(
                 f"{AUTH_BASE_URL}/register",
                 json=registration_data,
-                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
             )
 
             assert response.status_code == 201  # MUST return 201 Created
@@ -70,12 +75,12 @@ class TestOAuthFlow:
             assert "client_id" in client
             assert "client_secret" in client
             # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
-            client_lifetime = int(os.environ.get('CLIENT_LIFETIME', '7776000'))
+            client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
             if client_lifetime == 0:
                 assert client["client_secret_expires_at"] == 0  # Never expires
             else:
                 # Should be created_at + CLIENT_LIFETIME
-                created_at = client.get('client_id_issued_at')
+                created_at = client.get("client_id_issued_at")
                 expected_expiry = created_at + client_lifetime
                 assert abs(client["client_secret_expires_at"] - expected_expiry) <= 5
 
@@ -85,11 +90,13 @@ class TestOAuthFlow:
             assert client["client_uri"] == registration_data["client_uri"]
 
             # Test missing redirect_uris (with proper authentication)
-            invalid_data = {"client_name": "TEST test_client_registration_rfc7591_invalid"}
+            invalid_data = {
+                "client_name": "TEST test_client_registration_rfc7591_invalid"
+            }
             response = await http_client.post(
                 f"{AUTH_BASE_URL}/register",
                 json=invalid_data,
-                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
             )
 
             assert response.status_code == 400  # RFC 7591 compliant error
@@ -104,16 +111,22 @@ class TestOAuthFlow:
                     try:
                         delete_response = await http_client.delete(
                             f"{AUTH_BASE_URL}/register/{client['client_id']}",
-                            headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                            headers={
+                                "Authorization": f"Bearer {client['registration_access_token']}"
+                            },
                         )
                         # 204 No Content is success, 404 is okay if already deleted
                         if delete_response.status_code not in (204, 404):
-                            print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+                            print(
+                                f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"
+                            )
                     except Exception as e:
                         print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_authorization_endpoint_validation(self, http_client, registered_client):
+    async def test_authorization_endpoint_validation(
+        self, http_client, registered_client
+    ):
         """Test authorization endpoint with invalid client handling."""
         # Test with invalid client_id - MUST NOT redirect
         response = await http_client.get(
@@ -122,9 +135,9 @@ class TestOAuthFlow:
                 "client_id": "invalid_client",
                 "redirect_uri": TEST_CALLBACK_URL,
                 "response_type": "code",
-                "state": "test_state"
+                "state": "test_state",
             },
-            follow_redirects=False
+            follow_redirects=False,
         )
 
         assert response.status_code == 400  # MUST return error, not redirect
@@ -134,7 +147,9 @@ class TestOAuthFlow:
         except json.JSONDecodeError:
             # If response is not JSON, check if it's an HTML error page
             content = response.text
-            assert "invalid_client" in content or "Client authentication failed" in content
+            assert (
+                "invalid_client" in content or "Client authentication failed" in content
+            )
 
         # Test with valid client but invalid redirect_uri - MUST NOT redirect
         response = await http_client.get(
@@ -143,9 +158,9 @@ class TestOAuthFlow:
                 "client_id": registered_client["client_id"],
                 "redirect_uri": TEST_INVALID_REDIRECT_URI,
                 "response_type": "code",
-                "state": "test_state"
+                "state": "test_state",
             },
-            follow_redirects=False
+            follow_redirects=False,
         )
 
         assert response.status_code == 400
@@ -156,10 +171,16 @@ class TestOAuthFlow:
     async def test_pkce_flow(self, http_client, registered_client):
         """Test PKCE (RFC 7636) with S256 challenge method."""
         # Generate PKCE challenge
-        code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8').rstrip('=')
-        code_challenge = base64.urlsafe_b64encode(
-            hashlib.sha256(code_verifier.encode()).digest()
-        ).decode('utf-8').rstrip('=')
+        code_verifier = (
+            base64.urlsafe_b64encode(secrets.token_bytes(32))
+            .decode("utf-8")
+            .rstrip("=")
+        )
+        code_challenge = (
+            base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest())
+            .decode("utf-8")
+            .rstrip("=")
+        )
 
         # Start authorization flow with PKCE
         response = await http_client.get(
@@ -170,9 +191,9 @@ class TestOAuthFlow:
                 "response_type": "code",
                 "state": "pkce_test",
                 "code_challenge": code_challenge,
-                "code_challenge_method": "S256"
+                "code_challenge_method": "S256",
             },
-            follow_redirects=False
+            follow_redirects=False,
         )
 
         # Should redirect to GitHub OAuth
@@ -190,8 +211,8 @@ class TestOAuthFlow:
                 "grant_type": "authorization_code",
                 "code": "invalid_code",
                 "client_id": "invalid_client",
-                "redirect_uri": "http://localhost:8080/callback"
-            }
+                "redirect_uri": "http://localhost:8080/callback",
+            },
         )
 
         assert response.status_code == 401
@@ -207,8 +228,8 @@ class TestOAuthFlow:
                 "code": "invalid_code",
                 "client_id": registered_client["client_id"],
                 "client_secret": registered_client["client_secret"],
-                "redirect_uri": registered_client["redirect_uris"][0]
-            }
+                "redirect_uri": registered_client["redirect_uris"][0],
+            },
         )
 
         assert response.status_code == 400
@@ -224,8 +245,8 @@ class TestOAuthFlow:
             data={
                 "token": "invalid_token",
                 "client_id": registered_client["client_id"],
-                "client_secret": registered_client["client_secret"]
-            }
+                "client_secret": registered_client["client_secret"],
+            },
         )
 
         # Introspection endpoint might not be implemented yet
@@ -244,8 +265,8 @@ class TestOAuthFlow:
             data={
                 "token": "any_token",
                 "client_id": registered_client["client_id"],
-                "client_secret": registered_client["client_secret"]
-            }
+                "client_secret": registered_client["client_secret"],
+            },
         )
 
         # Revocation endpoint might not be implemented yet
@@ -264,8 +285,7 @@ class TestOAuthFlow:
 
         # Test with invalid token
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": "Bearer invalid_token"}
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer invalid_token"}
         )
 
         assert response.status_code == 401

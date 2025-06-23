@@ -10,7 +10,9 @@ from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
 from tests.test_constants import MCP_EVERYTHING_URLS
 
 
-@pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
+@pytest.mark.skipif(
+    not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled"
+)
 def test_echo_tool():
     """Test the echo tool directly."""
     if not MCP_EVERYTHING_URLS:
@@ -23,17 +25,17 @@ def test_echo_tool():
 
     # Test echo command
     cmd = [
-        "pixi", "run", "mcp-streamablehttp-client",
-        "--server-url", url,
-        "--command", "echo Hello from mcp-everything test!"
+        "pixi",
+        "run",
+        "mcp-streamablehttp-client",
+        "--server-url",
+        url,
+        "--command",
+        "echo Hello from mcp-everything test!",
     ]
 
     result = subprocess.run(
-        cmd,
-        check=False, capture_output=True,
-        text=True,
-        env=env,
-        timeout=30
+        cmd, check=False, capture_output=True, text=True, env=env, timeout=30
     )
 
     print(f"Return code: {result.returncode}")
@@ -42,7 +44,10 @@ def test_echo_tool():
         print(f"Stderr:\n{result.stderr}")
 
     # Check for success
-    assert result.returncode == 0 or "Echo: Hello from mcp-everything test!" in result.stdout
+    assert (
+        result.returncode == 0
+        or "Echo: Hello from mcp-everything test!" in result.stdout
+    )
 
 
 if __name__ == "__main__":

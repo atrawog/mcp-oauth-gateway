@@ -5,6 +5,7 @@ Following CLAUDE.md Commandment 1: NO MOCKING, NO SIMULATION, REAL TESTS ONLY!
 This script generates ALL required OAuth tokens by completing REAL OAuth flows.
 Uses REAL GitHub OAuth, REAL callback URLs, and REAL token exchanges.
 """
+
 import asyncio
 import base64
 import hashlib
@@ -67,38 +68,40 @@ async def check_existing_token(token: str) -> bool:
                 "https://api.github.com/user",
                 headers={
                     "Authorization": f"Bearer {token}",
-                    "Accept": "application/vnd.github.v3+json"
-                }
+                    "Accept": "application/vnd.github.v3+json",
+                },
             )
             return response.status_code == 200
         except:
             return False
 
 
-
-async def register_oauth_client_with_user_token(base_url: str, user_jwt_token: str) -> dict[str, str]:
+async def register_oauth_client_with_user_token(
+    base_url: str, user_jwt_token: str
+) -> dict[str, str]:
     """Register OAuth client using a valid user JWT token."""
     # Get REAL callback URLs from environment - must be REAL FQDNs
     test_callback_url = os.getenv("TEST_CALLBACK_URL")
     test_redirect_uri = os.getenv("TEST_REDIRECT_URI")
 
     if not test_callback_url or not test_redirect_uri:
-        raise Exception("TEST_CALLBACK_URL and TEST_REDIRECT_URI must be set in .env with REAL FQDNs")
+        raise Exception(
+            "TEST_CALLBACK_URL and TEST_REDIRECT_URI must be set in .env with REAL FQDNs"
+        )
 
-    verify_ssl = not base_url.startswith("https://localhost") and "127.0.0.1" not in base_url
+    verify_ssl = (
+        not base_url.startswith("https://localhost") and "127.0.0.1" not in base_url
+    )
 
     async with httpx.AsyncClient(verify=verify_ssl) as client:
         response = await client.post(
             f"{base_url}/register",
             json={
-                "redirect_uris": [
-                    test_callback_url,
-                    test_redirect_uri
-                ],
+                "redirect_uris": [test_callback_url, test_redirect_uri],
                 "client_name": "MCP OAuth Token Generator",
-                "scope": "openid profile email"
+                "scope": "openid profile email",
             },
-            headers={"Authorization": f"Bearer {user_jwt_token}"}
+            headers={"Authorization": f"Bearer {user_jwt_token}"},
         )
 
         if response.status_code != 201:
@@ -120,10 +123,7 @@ async def github_device_flow() -> str:
         response = await client.post(
             "https://github.com/login/device/code",
             headers={"Accept": "application/json"},
-            data={
-                "client_id": github_client_id,
-                "scope": "user:email"
-            }
+            data={"client_id": github_client_id, "scope": "user:email"},
         )
 
         if response.status_code != 200:
@@ -137,7 +137,7 @@ async def github_device_flow() -> str:
 
         # Automatically open browser
         try:
-            webbrowser.open(device_data['verification_uri'])
+            webbrowser.open(device_data["verification_uri"])
             print("🌐 Opened browser automatically")
         except:
             print("⚠️  Could not open browser automatically")
@@ -154,8 +154,8 @@ async def github_device_flow() -> str:
                 data={
                     "client_id": github_client_id,
                     "device_code": device_data["device_code"],
-                    "grant_type": "urn:ietf:params:oauth:grant-type:device_code"
-                }
+                    "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+                },
             )
 
             poll_data = poll_response.json()
@@ -173,15 +173,21 @@ async def github_device_flow() -> str:
                 raise Exception(f"Device flow failed: {poll_data}")
 
 
-async def complete_real_oauth_flow(auth_base_url: str, client_id: str, client_secret: str) -> tuple[str, str]:
+async def complete_real_oauth_flow(
+    auth_base_url: str, client_id: str, client_secret: str
+) -> tuple[str, str]:
     """Complete REAL OAuth flow using the actual authorization endpoint."""
     print("\n🔐 Starting REAL OAuth Flow...")
 
     # Step 1: Generate REAL PKCE challenge
-    code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=")
-    code_challenge = base64.urlsafe_b64encode(
-        hashlib.sha256(code_verifier.encode()).digest()
-    ).decode().rstrip("=")
+    code_verifier = (
+        base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=")
+    )
+    code_challenge = (
+        base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest())
+        .decode()
+        .rstrip("=")
+    )
 
     state = secrets.token_urlsafe(16)
 
@@ -197,7 +203,7 @@ async def complete_real_oauth_flow(auth_base_url: str, client_id: str, client_se
         "scope": "openid profile email",
         "state": state,
         "code_challenge": code_challenge,
-        "code_challenge_method": "S256"
+        "code_challenge_method": "S256",
     }
 
     auth_url = f"{auth_base_url}/authorize?{urlencode(auth_params)}"
@@ -216,14 +222,19 @@ async def complete_real_oauth_flow(auth_base_url: str, client_id: str, client_se
         print("⚠️  Could not open browser automatically")
 
     # Wait for user to complete OAuth flow and provide authorization code
-    print("\n📝 After completing OAuth, copy the authorization code from the success page:")
+    print(
+        "\n📝 After completing OAuth, copy the authorization code from the success page:"
+    )
     auth_code = input("Authorization code: ").strip()
 
     if not auth_code:
         raise Exception("No authorization code provided")
 
     # Step 3: Exchange code for tokens
-    verify_ssl = not auth_base_url.startswith("https://localhost") and "127.0.0.1" not in auth_base_url
+    verify_ssl = (
+        not auth_base_url.startswith("https://localhost")
+        and "127.0.0.1" not in auth_base_url
+    )
 
     async with httpx.AsyncClient(verify=verify_ssl) as client:
         token_response = await client.post(
@@ -234,12 +245,14 @@ async def complete_real_oauth_flow(auth_base_url: str, client_id: str, client_se
                 "redirect_uri": callback_url,
                 "client_id": client_id,
                 "client_secret": client_secret,
-                "code_verifier": code_verifier
-            }
+                "code_verifier": code_verifier,
+            },
         )
 
         if token_response.status_code != 200:
-            raise Exception(f"Token exchange failed ({token_response.status_code}): {token_response.text}")
+            raise Exception(
+                f"Token exchange failed ({token_response.status_code}): {token_response.text}"
+            )
 
         tokens = token_response.json()
 
@@ -300,7 +313,10 @@ async def main():
         print(f"🔍 Validating OAuth client credentials: {client_id}...")
 
         # Try to use the client credentials with a dummy auth code to see if client is valid
-        verify_ssl = not auth_base_url.startswith("https://localhost") and "127.0.0.1" not in auth_base_url
+        verify_ssl = (
+            not auth_base_url.startswith("https://localhost")
+            and "127.0.0.1" not in auth_base_url
+        )
         async with httpx.AsyncClient(verify=verify_ssl) as client:
             try:
                 # Try token endpoint with client credentials to validate them
@@ -309,11 +325,13 @@ async def main():
                     data={
                         "grant_type": "authorization_code",
                         "code": "dummy_code",  # This will fail, but we'll get different errors
-                        "redirect_uri": os.getenv("TEST_CALLBACK_URL", "https://example.com/callback"),
+                        "redirect_uri": os.getenv(
+                            "TEST_CALLBACK_URL", "https://example.com/callback"
+                        ),
                         "client_id": client_id,
                         "client_secret": client_secret,
-                        "code_verifier": "dummy_verifier"
-                    }
+                        "code_verifier": "dummy_verifier",
+                    },
                 )
 
                 # Check the error response to determine if client is valid
@@ -331,7 +349,9 @@ async def main():
                         print("✅ OAuth client credentials are valid!")
                     # If we get "invalid_client", the client doesn't exist or secret is wrong
                     elif error_code == "invalid_client":
-                        print("❌ OAuth client credentials are invalid or not registered!")
+                        print(
+                            "❌ OAuth client credentials are invalid or not registered!"
+                        )
                         print("   The client was likely cleared from Redis.")
                         client_id = None
                         client_secret = None
@@ -347,7 +367,9 @@ async def main():
                     client_id = None
                     client_secret = None
                 else:
-                    print(f"❌ Unexpected response validating client: {response.status_code}")
+                    print(
+                        f"❌ Unexpected response validating client: {response.status_code}"
+                    )
                     print(f"   Response: {response.text}")
                     client_id = None
                     client_secret = None
@@ -358,17 +380,25 @@ async def main():
                 client_secret = None
 
     # If we have everything, check if the access token is still valid
-    if client_id and client_secret and existing_access_token and existing_access_token != "PLACEHOLDER_NEEDS_REAL_OAUTH_FLOW":
+    if (
+        client_id
+        and client_secret
+        and existing_access_token
+        and existing_access_token != "PLACEHOLDER_NEEDS_REAL_OAUTH_FLOW"
+    ):
         print(f"✅ Using existing OAuth client: {client_id}")
         print("🔍 Checking existing GATEWAY_OAUTH_ACCESS_TOKEN...")
 
         # Test if the token is valid by calling /verify
-        verify_ssl = not auth_base_url.startswith("https://localhost") and "127.0.0.1" not in auth_base_url
+        verify_ssl = (
+            not auth_base_url.startswith("https://localhost")
+            and "127.0.0.1" not in auth_base_url
+        )
         async with httpx.AsyncClient(verify=verify_ssl) as client:
             try:
                 response = await client.get(
                     f"{auth_base_url}/verify",
-                    headers={"Authorization": f"Bearer {existing_access_token}"}
+                    headers={"Authorization": f"Bearer {existing_access_token}"},
                 )
                 if response.status_code == 200:
                     print("✅ GATEWAY_OAUTH_ACCESS_TOKEN is still valid!")
@@ -391,19 +421,26 @@ async def main():
             print("\n🔧 Registering new OAuth client (no auth required)...")
 
             # Register a new client - no authentication needed!
-            verify_ssl = not auth_base_url.startswith("https://localhost") and "127.0.0.1" not in auth_base_url
+            verify_ssl = (
+                not auth_base_url.startswith("https://localhost")
+                and "127.0.0.1" not in auth_base_url
+            )
 
             async with httpx.AsyncClient(verify=verify_ssl) as client:
                 response = await client.post(
                     f"{auth_base_url}/register",
                     json={
                         "redirect_uris": [
-                            os.getenv("TEST_CALLBACK_URL", "https://auth.atradev.org/success"),
-                            os.getenv("TEST_REDIRECT_URI", "https://auth.atradev.org/callback")
+                            os.getenv(
+                                "TEST_CALLBACK_URL", "https://auth.atradev.org/success"
+                            ),
+                            os.getenv(
+                                "TEST_REDIRECT_URI", "https://auth.atradev.org/callback"
+                            ),
                         ],
                         "client_name": "MCP OAuth Gateway Client",
-                        "scope": "openid profile email"
-                    }
+                        "scope": "openid profile email",
+                    },
                 )
 
                 if response.status_code == 201:

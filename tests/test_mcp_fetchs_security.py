@@ -24,7 +24,9 @@ class TestMCPFetchsSecurity:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_auth_schemes(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_fetchs_auth_schemes(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test various authentication schemes are properly rejected/accepted."""
         test_cases = [
             # (auth_header, expected_status, description)
@@ -50,16 +52,18 @@ class TestMCPFetchsSecurity:
                         "jsonrpc": "2.0",
                         "method": "initialize",
                         "params": {"protocolVersion": "2025-06-18"},
-                        "id": 1
+                        "id": 1,
                     },
-                    headers=headers
+                    headers=headers,
                 )
 
                 assert response.status_code == expected_status, f"Failed: {description}"
                 if expected_status == 401:
                     # WWW-Authenticate header should start with "Bearer"
                     www_auth = response.headers.get("WWW-Authenticate", "")
-                    assert www_auth.startswith("Bearer"), f"WWW-Authenticate should start with Bearer, got: {www_auth}"
+                    assert www_auth.startswith("Bearer"), (
+                        f"WWW-Authenticate should start with Bearer, got: {www_auth}"
+                    )
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -76,25 +80,25 @@ class TestMCPFetchsSecurity:
             for token in invalid_tokens:
                 response = await client.post(
                     f"{mcp_fetchs_url}",
-                    json={
-                        "jsonrpc": "2.0",
-                        "method": "initialize",
-                        "id": 1
-                    },
+                    json={"jsonrpc": "2.0", "method": "initialize", "id": 1},
                     headers={
                         "Content-Type": "application/json",
-                        "Authorization": f"Bearer {token}"
-                    }
+                        "Authorization": f"Bearer {token}",
+                    },
                 )
 
                 assert response.status_code == 401
                 # WWW-Authenticate header should start with Bearer
                 www_auth = response.headers.get("WWW-Authenticate", "")
-                assert www_auth.startswith("Bearer"), f"WWW-Authenticate should start with Bearer, got: {www_auth}"
+                assert www_auth.startswith("Bearer"), (
+                    f"WWW-Authenticate should start with Bearer, got: {www_auth}"
+                )
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_endpoint_auth_requirements(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_fetchs_endpoint_auth_requirements(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test which endpoints require authentication."""
         endpoints_auth_required = [
             ("/mcp", "POST", True),
@@ -110,20 +114,30 @@ class TestMCPFetchsSecurity:
                 response = await client.request(
                     method,
                     f"{mcp_fetchs_url}{path}",
-                    headers={"Content-Type": "application/json"} if method == "POST" else {},
-                    json={"jsonrpc": "2.0", "method": "test", "id": 1} if method == "POST" else None
+                    headers={"Content-Type": "application/json"}
+                    if method == "POST"
+                    else {},
+                    json={"jsonrpc": "2.0", "method": "test", "id": 1}
+                    if method == "POST"
+                    else None,
                 )
 
                 if auth_required:
-                    assert response.status_code in [401, 404], f"{method} {path} should require auth"
+                    assert response.status_code in [401, 404], (
+                        f"{method} {path} should require auth"
+                    )
                     if response.status_code == 401:
                         assert response.headers.get("WWW-Authenticate") == "Bearer"
                 else:
-                    assert response.status_code != 401, f"{method} {path} should not require auth"
+                    assert response.status_code != 401, (
+                        f"{method} {path} should not require auth"
+                    )
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_prevents_ssrf(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_fetchs_prevents_ssrf(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test Server-Side Request Forgery prevention."""
         dangerous_urls = [
             "http://localhost/admin",
@@ -143,17 +157,14 @@ class TestMCPFetchsSecurity:
                         "method": "tools/call",
                         "params": {
                             "name": "fetch",
-                            "arguments": {
-                                "url": url,
-                                "method": "GET"
-                            }
+                            "arguments": {"url": url, "method": "GET"},
                         },
-                        "id": 1
+                        "id": 1,
                     },
                     headers={
                         "Content-Type": "application/json",
-                        "Authorization": f"Bearer {valid_token}"
-                    }
+                        "Authorization": f"Bearer {valid_token}",
+                    },
                 )
 
                 assert response.status_code == 200
@@ -166,7 +177,9 @@ class TestMCPFetchsSecurity:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_header_injection_prevention(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_fetchs_header_injection_prevention(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test prevention of header injection attacks."""
         malicious_headers = {
             "X-Injected\r\nX-Evil": "value",
@@ -185,15 +198,15 @@ class TestMCPFetchsSecurity:
                         "arguments": {
                             "url": "https://httpbin.org/headers",
                             "method": "GET",
-                            "headers": malicious_headers
-                        }
+                            "headers": malicious_headers,
+                        },
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
 
             # Should either sanitize or reject malicious headers
@@ -206,7 +219,9 @@ class TestMCPFetchsSecurity:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_rate_limiting_behavior(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_fetchs_rate_limiting_behavior(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test service behavior under rapid requests."""
         async with httpx.AsyncClient(verify=False) as client:
             # Make 10 rapid requests
@@ -214,15 +229,11 @@ class TestMCPFetchsSecurity:
             for i in range(10):
                 response = await client.post(
                     f"{mcp_fetchs_url}",
-                    json={
-                        "jsonrpc": "2.0",
-                        "method": "tools/list",
-                        "id": i
-                    },
+                    json={"jsonrpc": "2.0", "method": "tools/list", "id": i},
                     headers={
                         "Content-Type": "application/json",
-                        "Authorization": f"Bearer {valid_token}"
-                    }
+                        "Authorization": f"Bearer {valid_token}",
+                    },
                 )
                 responses.append(response.status_code)
 
@@ -231,10 +242,14 @@ class TestMCPFetchsSecurity:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_oauth_discovery_security(self, base_domain, wait_for_services):
+    async def test_fetchs_oauth_discovery_security(
+        self, base_domain, wait_for_services
+    ):
         """Test OAuth discovery endpoint security."""
         # Use base domain for OAuth discovery, not the /mcp endpoint
-        oauth_discovery_url = f"https://fetchs.{base_domain}/.well-known/oauth-authorization-server"
+        oauth_discovery_url = (
+            f"https://fetchs.{base_domain}/.well-known/oauth-authorization-server"
+        )
 
         async with httpx.AsyncClient(verify=False) as client:
             # Discovery should be publicly accessible

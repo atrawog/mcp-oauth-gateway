@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Save MCP client environment variables to .env file."""
+
 import re
 import sys
 from pathlib import Path
 
 
 ENV_FILE = Path(__file__).parent.parent / ".env"
+
 
 def save_env_var(key: str, value: str):
     """Save or update an environment variable in .env file."""
@@ -27,14 +29,15 @@ def save_env_var(key: str, value: str):
     with open(ENV_FILE, "w") as f:
         f.writelines(lines)
 
+
 # Read from stdin
 input_text = sys.stdin.read()
 
 # Find export statements
-pattern = r'^export\s+(MCP_CLIENT_[A-Z_]+)=(.+)$'
+pattern = r"^export\s+(MCP_CLIENT_[A-Z_]+)=(.+)$"
 env_vars = {}
 
-for line in input_text.split('\n'):
+for line in input_text.split("\n"):
     match = re.match(pattern, line.strip())
     if match:
         key = match.group(1)
@@ -51,4 +54,4 @@ if env_vars:
     print("\n✅ MCP client credentials saved to .env!")
 
 # Pass through the original output
-print(input_text, end='')
+print(input_text, end="")

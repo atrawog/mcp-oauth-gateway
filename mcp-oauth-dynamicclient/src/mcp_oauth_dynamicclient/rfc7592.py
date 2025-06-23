@@ -2,6 +2,7 @@
 RFC 7592 - OAuth 2.0 Dynamic Client Registration Management Protocol
 Implementation using Authlib's patterns
 """
+
 import json
 import secrets
 from typing import Optional
@@ -86,9 +87,16 @@ class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
 
         # Update allowed fields from metadata
         allowed_updates = [
-            "redirect_uris", "client_name", "client_uri",
-            "logo_uri", "contacts", "tos_uri", "policy_uri",
-            "scope", "grant_types", "response_types"
+            "redirect_uris",
+            "client_name",
+            "client_uri",
+            "logo_uri",
+            "contacts",
+            "tos_uri",
+            "policy_uri",
+            "scope",
+            "grant_types",
+            "response_types",
         ]
 
         for field in allowed_updates:
@@ -106,16 +114,11 @@ class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
         if self.settings.client_lifetime > 0:
             ttl = self.settings.client_lifetime
             await self.redis_client.setex(
-                f"oauth:client:{client_id}",
-                ttl,
-                json.dumps(existing_data)
+                f"oauth:client:{client_id}", ttl, json.dumps(existing_data)
             )
         else:
             # CLIENT_LIFETIME=0 means never expire
-            await self.redis_client.set(
-                f"oauth:client:{client_id}",
-                json.dumps(existing_data)
-            )
+            await self.redis_client.set(f"oauth:client:{client_id}", json.dumps(existing_data))
 
         return OAuth2Client(existing_data)
 
@@ -134,9 +137,7 @@ class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
         pattern = "oauth:token:*"
         cursor = 0
         while True:
-            cursor, keys = await self.redis_client.scan(
-                cursor, match=pattern, count=100
-            )
+            cursor, keys = await self.redis_client.scan(cursor, match=pattern, count=100)
             for key in keys:
                 token_data = await self.redis_client.get(key)
                 if token_data:
@@ -168,7 +169,7 @@ class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
             "grant_types": json.loads(client_data.get("grant_types", '["authorization_code"]')),
             "response_types": json.loads(client_data.get("response_types", '["code"]')),
             "client_name": client_data.get("client_name"),
-            "scope": client_data.get("scope")
+            "scope": client_data.get("scope"),
         }
 
         # Add timestamps - REQUIRED by tests and good practice

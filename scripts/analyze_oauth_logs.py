@@ -2,6 +2,7 @@
 """Sacred OAuth Log Analysis Script
 Analyzes OAuth flow patterns and errors from logs.
 """
+
 import re
 from collections import defaultdict
 from datetime import datetime
@@ -17,7 +18,7 @@ def analyze_logs(log_dir: Path) -> dict:
         "client_registrations": 0,
         "token_exchanges": 0,
         "auth_failures": 0,
-        "successful_flows": 0
+        "successful_flows": 0,
     }
 
     if not log_dir.exists():
@@ -74,10 +75,10 @@ Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 ## Summary Statistics
 
-- Total Requests: {stats['total_requests']}
-- Client Registrations: {stats['client_registrations']}
-- Token Exchanges: {stats['token_exchanges']}
-- Auth Failures: {stats['auth_failures']}
+- Total Requests: {stats["total_requests"]}
+- Client Registrations: {stats["client_registrations"]}
+- Token Exchanges: {stats["token_exchanges"]}
+- Auth Failures: {stats["auth_failures"]}
 
 ## Endpoint Usage
 
@@ -85,27 +86,29 @@ Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 |----------|----------|
 """
 
-    for endpoint, count in sorted(stats['endpoints'].items()):
+    for endpoint, count in sorted(stats["endpoints"].items()):
         report += f"| /{endpoint} | {count} |\n"
 
-    if stats['errors']:
+    if stats["errors"]:
         report += "\n## Error Distribution\n\n"
         report += "| Error Type | Count |\n"
         report += "|------------|-------|\n"
 
-        for error, count in sorted(stats['errors'].items(), key=lambda x: x[1], reverse=True):
+        for error, count in sorted(
+            stats["errors"].items(), key=lambda x: x[1], reverse=True
+        ):
             report += f"| {error} | {count} |\n"
 
     # Add recommendations
     report += "\n## Recommendations\n\n"
 
-    if stats['auth_failures'] > stats['token_exchanges']:
+    if stats["auth_failures"] > stats["token_exchanges"]:
         report += "- ⚠️ High auth failure rate detected. Check client credentials.\n"
 
-    if stats['errors'].get('invalid_client', 0) > 0:
+    if stats["errors"].get("invalid_client", 0) > 0:
         report += "- ⚠️ Invalid client errors detected. Verify client registration.\n"
 
-    if stats['client_registrations'] == 0 and stats['total_requests'] > 0:
+    if stats["client_registrations"] == 0 and stats["total_requests"] > 0:
         report += "- ℹ️ No client registrations found. Ensure clients are registering properly.\n"
 
     return report

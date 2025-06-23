@@ -5,6 +5,7 @@ These tests document the current issues with mcp-streamablehttp-proxy session ha
 The proxy appears to create a new session for each request instead of maintaining
 sessions across requests from the same HTTP client.
 """
+
 import os
 
 import httpx
@@ -22,14 +23,18 @@ class TestMCPProxySessionIssues:
     """Document current session handling issues in mcp-streamablehttp-proxy."""
 
     @pytest.mark.asyncio
-    async def test_session_not_maintained_across_requests(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_session_not_maintained_across_requests(
+        self, http_client: httpx.AsyncClient, wait_for_services
+    ):
         """ISSUE: The proxy creates a new session for each request.
 
         Expected behavior: After initializing, subsequent requests should use the same session.
         Actual behavior: Each request creates a new session, causing "not initialized" errors.
         """
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Initialize session
         init_response = await http_client.post(
@@ -39,11 +44,11 @@ class TestMCPProxySessionIssues:
                 "method": "initialize",
                 "params": {
                     "protocol_version": MCP_PROTOCOL_VERSION,
-                    "client_info": {"name": "test", "version": "1.0"}
+                    "client_info": {"name": "test", "version": "1.0"},
                 },
-                "id": 1
+                "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
         )
 
         # This should succeed
@@ -53,7 +58,7 @@ class TestMCPProxySessionIssues:
         tools_response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
         )
 
         # The proxy now correctly returns an error for missing session ID
@@ -65,14 +70,18 @@ class TestMCPProxySessionIssues:
         assert "Session ID required" in data["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_session_id_header_missing(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_session_id_header_missing(
+        self, http_client: httpx.AsyncClient, wait_for_services
+    ):
         """ISSUE: The proxy doesn't return Mcp-Session-Id header as expected by MCP spec.
 
         Per MCP 2025-06-18 spec, servers MAY assign session IDs during initialization
         and clients MUST include them in subsequent requests.
         """
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
@@ -81,11 +90,11 @@ class TestMCPProxySessionIssues:
                 "method": "initialize",
                 "params": {
                     "protocol_version": MCP_PROTOCOL_VERSION,
-                    "client_info": {"name": "test", "version": "1.0"}
+                    "client_info": {"name": "test", "version": "1.0"},
                 },
-                "id": 1
+                "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
         )
 
         assert response.status_code == 200
@@ -107,7 +116,9 @@ class TestMCPProxyWorkarounds:
         This is not ideal but works with current proxy implementation.
         """
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Create new client for each operation (forces new session)
         async with httpx.AsyncClient() as client1:
@@ -119,11 +130,11 @@ class TestMCPProxyWorkarounds:
                     "method": "initialize",
                     "params": {
                         "protocol_version": MCP_PROTOCOL_VERSION,
-                        "client_info": {"name": "workaround", "version": "1.0"}
+                        "client_info": {"name": "workaround", "version": "1.0"},
                     },
-                    "id": 1
+                    "id": 1,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
+                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
             )
             assert init_response.status_code == 200
 
@@ -137,11 +148,11 @@ class TestMCPProxyWorkarounds:
                     "method": "initialize",
                     "params": {
                         "protocol_version": MCP_PROTOCOL_VERSION,
-                        "client_info": {"name": "workaround2", "version": "1.0"}
+                        "client_info": {"name": "workaround2", "version": "1.0"},
                     },
-                    "id": 1
+                    "id": 1,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
+                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
             )
             assert init_response.status_code == 200
 
@@ -149,7 +160,7 @@ class TestMCPProxyWorkarounds:
             tools_response = await client2.post(
                 f"{MCP_FETCH_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
+                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
             )
             # This works because we used the same client that initialized
             assert tools_response.status_code == 200

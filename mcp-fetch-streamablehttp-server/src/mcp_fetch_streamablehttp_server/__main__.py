@@ -10,8 +10,7 @@ from .server import create_server
 
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 logger = logging.getLogger(__name__)
@@ -27,7 +26,7 @@ def main():
     app = server.create_app()
 
     # Get host and port from environment
-    host = os.getenv("HOST", "0.0.0.0")
+    host = os.getenv("HOST", "0.0.0.0")  # noqa: S104
     port = int(os.getenv("PORT", "3000"))
 
     # Log startup info

@@ -1,7 +1,19 @@
 #!/usr/bin/env python3
 """Generate Traefik routing labels for AI model hostnames."""
 
-AI_MODELS = ["aria", "atlas", "cipher", "echo", "lyra", "nova", "prism", "sage", "verse", "zenith"]
+AI_MODELS = [
+    "aria",
+    "atlas",
+    "cipher",
+    "echo",
+    "lyra",
+    "nova",
+    "prism",
+    "sage",
+    "verse",
+    "zenith",
+]
+
 
 def generate_routes_for_model(model: str) -> str:
     """Generate all required routes for a single AI model hostname."""
@@ -40,6 +52,7 @@ def generate_routes_for_model(model: str) -> str:
       - "traefik.http.routers.mcp-fetch-{model}-catchall.service=mcp-fetch"
 """
 
+
 def main():
     print("# Additional AI model hostnames routing configuration")
     print("# Add these labels to the mcp-fetch service in docker-compose.yml")
@@ -47,6 +60,7 @@ def main():
 
     for model in AI_MODELS:
         print(generate_routes_for_model(model))
+
 
 if __name__ == "__main__":
     main()

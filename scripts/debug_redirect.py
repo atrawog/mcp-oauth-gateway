@@ -7,10 +7,10 @@ import httpx
 # Test direct request
 print("Test 1: Direct request to /mcp (no redirect follow)")
 r = httpx.post(
-    'https://mcp-fetch.atradev.org/mcp',
-    headers={'Authorization': 'Bearer test'},
-    json={'jsonrpc': '2.0', 'method': 'ping', 'id': 1},
-    follow_redirects=False
+    "https://mcp-fetch.atradev.org/mcp",
+    headers={"Authorization": "Bearer test"},
+    json={"jsonrpc": "2.0", "method": "ping", "id": 1},
+    follow_redirects=False,
 )
 print(f"  Status: {r.status_code}")
 if r.status_code == 307:
@@ -22,10 +22,10 @@ print()
 print("Test 2: Request to /mcp with redirect follow")
 try:
     r = httpx.post(
-        'https://mcp-fetch.atradev.org/mcp',
-        headers={'Authorization': 'Bearer test'},
-        json={'jsonrpc': '2.0', 'method': 'ping', 'id': 1},
-        follow_redirects=True
+        "https://mcp-fetch.atradev.org/mcp",
+        headers={"Authorization": "Bearer test"},
+        json={"jsonrpc": "2.0", "method": "ping", "id": 1},
+        follow_redirects=True,
     )
     print(f"  Status: {r.status_code}")
     print(f"  Final URL: {r.url}")
@@ -37,10 +37,10 @@ print()
 # Test direct to /mcp/
 print("Test 3: Direct request to /mcp/ (with trailing slash)")
 r = httpx.post(
-    'https://mcp-fetch.atradev.org/mcp/',
-    headers={'Authorization': 'Bearer test'},
-    json={'jsonrpc': '2.0', 'method': 'ping', 'id': 1},
-    follow_redirects=False
+    "https://mcp-fetch.atradev.org/mcp/",
+    headers={"Authorization": "Bearer test"},
+    json={"jsonrpc": "2.0", "method": "ping", "id": 1},
+    follow_redirects=False,
 )
 print(f"  Status: {r.status_code}")
 print(f"  Body: {r.text[:100]}")

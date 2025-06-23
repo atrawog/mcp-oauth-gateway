@@ -4,6 +4,6 @@ from datetime import datetime
 
 
 now = datetime.now()
-print(f'Current system time: {now}')
-print(f'Current timestamp: {int(time.time())}')
-print(f'Timezone: {time.tzname}')
+print(f"Current system time: {now}")
+print(f"Current timestamp: {int(time.time())}")
+print(f"Timezone: {time.tzname}")

@@ -2,6 +2,7 @@
 """Sacred Test Completeness Verifier - Ensures tests follow CLAUDE.md
 This script checks that tests verify ACTUAL results, not just status codes!
 """
+
 import ast
 import sys
 from pathlib import Path
@@ -19,7 +20,7 @@ class TestCompletenessChecker(ast.NodeVisitor):
         self.has_functionality_check = False
 
     def visit_FunctionDef(self, node):
-        if node.name.startswith('test_'):
+        if node.name.startswith("test_"):
             self.current_function = node.name
             self.has_status_check = False
             self.has_content_check = False
@@ -29,12 +30,16 @@ class TestCompletenessChecker(ast.NodeVisitor):
             self.generic_visit(node)
 
             # Check for violations after visiting the function
-            if self.has_status_check and not (self.has_content_check or self.has_functionality_check):
-                self.violations.append({
-                    'function': self.current_function,
-                    'line': node.lineno,
-                    'issue': 'Only checks status code - MUST verify actual functionality!'
-                })
+            if self.has_status_check and not (
+                self.has_content_check or self.has_functionality_check
+            ):
+                self.violations.append(
+                    {
+                        "function": self.current_function,
+                        "line": node.lineno,
+                        "issue": "Only checks status code - MUST verify actual functionality!",
+                    }
+                )
 
             self.current_function = None
         else:
@@ -45,9 +50,11 @@ class TestCompletenessChecker(ast.NodeVisitor):
         if self.current_function:
             # Check if comparing status_code
             if isinstance(node.left, ast.Attribute):
-                if (hasattr(node.left.value, 'attr') and
-                    node.left.value.attr == 'response' and
-                    node.left.attr == 'status_code'):
+                if (
+                    hasattr(node.left.value, "attr")
+                    and node.left.value.attr == "response"
+                    and node.left.attr == "status_code"
+                ):
                     self.has_status_check = True
 
         self.generic_visit(node)
@@ -61,7 +68,7 @@ class TestCompletenessChecker(ast.NodeVisitor):
 
             # Look for content/result checks
             if isinstance(node.test.left, ast.Name):
-                if node.test.left.id in ['content', 'result', 'data', 'body']:
+                if node.test.left.id in ["content", "result", "data", "body"]:
                     self.has_content_check = True
 
             # Look for "in" comparisons (e.g., "Example Domain" in content)
@@ -75,7 +82,7 @@ class TestCompletenessChecker(ast.NodeVisitor):
         """Check for JSON parsing and result validation."""
         if self.current_function and isinstance(node.func, ast.Attribute):
             # Check for response.json() calls
-            if node.func.attr == 'json':
+            if node.func.attr == "json":
                 self.has_functionality_check = True
 
         self.generic_visit(node)
@@ -87,7 +94,7 @@ def check_test_file(filepath):
         content = f.read()
 
     # Skip files that are properly marked as failing
-    if 'pytest.fail(' in content and 'SACRED VIOLATION' in content:
+    if "pytest.fail(" in content and "SACRED VIOLATION" in content:
         return []
 
     try:
@@ -115,7 +122,7 @@ def main():
 
     for test_file in sorted(test_files):
         # Skip conftest and constants
-        if test_file.name in ['conftest.py', 'test_constants.py']:
+        if test_file.name in ["conftest.py", "test_constants.py"]:
             continue
 
         violations = check_test_file(test_file)

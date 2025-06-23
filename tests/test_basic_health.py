@@ -1,4 +1,5 @@
 """Basic health test to verify connectivity using OAuth discovery endpoint."""
+
 import httpx
 import pytest
 
@@ -9,7 +10,9 @@ from .test_constants import AUTH_BASE_URL
 async def test_auth_oauth_discovery_health():
     """Test auth service health via OAuth discovery endpoint."""
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+        response = await client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+        )
         assert response.status_code == 200
         data = response.json()
         # Verify required OAuth metadata fields are present
@@ -23,7 +26,9 @@ async def test_auth_oauth_discovery_health():
 async def test_auth_metadata_basic():
     """Test auth metadata endpoint."""
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+        response = await client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+        )
         print(f"Status: {response.status_code}")
         print(f"Response: {response.text}")
         assert response.status_code == 200

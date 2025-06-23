@@ -1,6 +1,7 @@
 """
 Pydantic models for OAuth 2.1 and RFC 7591 compliance
 """
+
 from typing import Any, Optional
 
 from pydantic import BaseModel

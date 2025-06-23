@@ -23,6 +23,7 @@ Current Security Model:
 - Token Exchange: REQUIRES valid authorization code from GitHub
 - Resource Access: REQUIRES valid bearer token from OAuth flow
 """
+
 import secrets
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
@@ -48,12 +49,11 @@ class TestRegistrationPublicAccess:
         registration_data = {
             "redirect_uris": [TEST_CALLBACK_URL],
             "client_name": "TEST test_register_endpoint_is_public",
-            "scope": TEST_CLIENT_SCOPE
+            "scope": TEST_CLIENT_SCOPE,
         }
 
         response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json=registration_data
+            f"{AUTH_BASE_URL}/register", json=registration_data
         )
 
         # RFC 7591 allows implementations to choose whether registration
@@ -64,7 +64,9 @@ class TestRegistrationPublicAccess:
             assert "WWW-Authenticate" in response.headers
             error = response.json()
             assert error["detail"]["error"] == "authorization_required"
-            print("✓ Registration endpoint requires authentication (current implementation)")
+            print(
+                "✓ Registration endpoint requires authentication (current implementation)"
+            )
         elif response.status_code == 201:
             # Alternative: public registration allowed
             client_data = response.json()
@@ -76,7 +78,9 @@ class TestRegistrationPublicAccess:
                 try:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                        headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                        headers={
+                            "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        },
                     )
                     assert delete_response.status_code in (204, 404)
                 except Exception as e:
@@ -89,19 +93,21 @@ class TestRegistrationPublicAccess:
         """Test that anyone with valid GitHub auth can register a client."""
         # Skip if no auth token available
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.fail("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
+            pytest.fail(
+                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+            )
 
         # Register a client with valid authentication
         registration_data = {
             "redirect_uris": ["https://testapp.example.com/callback"],
             "client_name": "TEST test_anyone_can_register_with_auth",
-            "scope": "openid profile email"
+            "scope": "openid profile email",
         }
 
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json=registration_data,
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
         assert response.status_code == 201
@@ -119,7 +125,9 @@ class TestRegistrationPublicAccess:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                    headers={
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                    },
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
@@ -130,11 +138,15 @@ class TestTokenSecurityWithoutGitHub:
     """Test that registered clients cannot get tokens without GitHub authentication."""
 
     @pytest.mark.asyncio
-    async def test_registered_client_cannot_get_token_without_github_auth(self, http_client, wait_for_services):
+    async def test_registered_client_cannot_get_token_without_github_auth(
+        self, http_client, wait_for_services
+    ):
         """Test that having client credentials alone is not enough to get tokens."""
         # First register a client (requires auth in current implementation)
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.fail("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
+            pytest.fail(
+                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+            )
 
         # Register a test client
         registration_response = await http_client.post(
@@ -142,9 +154,9 @@ class TestTokenSecurityWithoutGitHub:
             json={
                 "redirect_uris": [TEST_CALLBACK_URL],
                 "client_name": "TEST test_registered_client_cannot_get_token_without_github_auth",
-                "scope": "openid profile"
+                "scope": "openid profile",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
         assert registration_response.status_code == 201
@@ -159,8 +171,8 @@ class TestTokenSecurityWithoutGitHub:
             data={
                 "grant_type": "client_credentials",
                 "client_id": client_id,
-                "client_secret": client_secret
-            }
+                "client_secret": client_secret,
+            },
         )
 
         # Should reject client_credentials grant type or return error
@@ -173,27 +185,33 @@ class TestTokenSecurityWithoutGitHub:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                    headers={
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                    },
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_authorization_requires_github_login(self, http_client, wait_for_services):
+    async def test_authorization_requires_github_login(
+        self, http_client, wait_for_services
+    ):
         """Test that authorization endpoint redirects to GitHub for user authentication."""
         # Register a client first
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.fail("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
+            pytest.fail(
+                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+            )
 
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_CALLBACK_URL],
                 "client_name": "TEST test_authorization_requires_github_login",
-                "scope": "openid profile email"
+                "scope": "openid profile email",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
         assert registration_response.status_code == 201
@@ -207,13 +225,11 @@ class TestTokenSecurityWithoutGitHub:
             "redirect_uri": TEST_CALLBACK_URL,
             "response_type": "code",
             "scope": "openid profile email",
-            "state": state
+            "state": state,
         }
 
         auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize",
-            params=auth_params,
-            follow_redirects=False
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
         )
 
         # Should redirect to GitHub OAuth
@@ -232,7 +248,9 @@ class TestTokenSecurityWithoutGitHub:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                    headers={
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                    },
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
@@ -243,14 +261,18 @@ class TestAllowedUsersEnforcement:
     """Test that only allowed GitHub users can complete OAuth flow."""
 
     @pytest.mark.asyncio
-    async def test_oauth_flow_checks_allowed_users(self, http_client, wait_for_services):
+    async def test_oauth_flow_checks_allowed_users(
+        self, http_client, wait_for_services
+    ):
         """Test that the system enforces ALLOWED_GITHUB_USERS restriction."""
         # This test documents the expected behavior
         # In production, unauthorized users should get access_denied error
 
         # Skip if no auth token
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.fail("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
+            pytest.fail(
+                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+            )
 
         # The actual user restriction is enforced after GitHub callback
         # This test verifies the auth flow structure
@@ -259,9 +281,9 @@ class TestAllowedUsersEnforcement:
             json={
                 "redirect_uris": [TEST_CALLBACK_URL],
                 "client_name": "TEST test_oauth_flow_checks_allowed_users",
-                "scope": "openid profile"
+                "scope": "openid profile",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
         assert registration_response.status_code == 201
@@ -273,13 +295,11 @@ class TestAllowedUsersEnforcement:
             "redirect_uri": TEST_CALLBACK_URL,
             "response_type": "code",
             "scope": "openid profile",
-            "state": secrets.token_urlsafe(16)
+            "state": secrets.token_urlsafe(16),
         }
 
         auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize",
-            params=auth_params,
-            follow_redirects=False
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
         )
 
         assert auth_response.status_code == 307
@@ -290,7 +310,9 @@ class TestAllowedUsersEnforcement:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                    headers={
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                    },
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
@@ -301,20 +323,20 @@ class TestUnauthorizedUserAccess:
     """Test that unauthorized users get proper access_denied errors."""
 
     @pytest.mark.asyncio
-    async def test_invalid_github_callback_handling(self, http_client, wait_for_services):
+    async def test_invalid_github_callback_handling(
+        self, http_client, wait_for_services
+    ):
         """Test handling of invalid GitHub callback (simulating unauthorized user)."""
         # When GitHub calls back with an error (e.g., user denied access)
         callback_params = {
             "error": "access_denied",
             "error_description": "The user has denied your application access.",
             "error_uri": "https://docs.github.com/en/developers/apps/troubleshooting-oauth-app-access-token-request-errors#access-denied",
-            "state": "test_state_12345"
+            "state": "test_state_12345",
         }
 
         callback_response = await http_client.get(
-            f"{AUTH_BASE_URL}/callback",
-            params=callback_params,
-            follow_redirects=False
+            f"{AUTH_BASE_URL}/callback", params=callback_params, follow_redirects=False
         )
 
         # Should handle the error appropriately
@@ -332,20 +354,24 @@ class TestUnauthorizedUserAccess:
             assert "error" in error or "detail" in error
 
     @pytest.mark.asyncio
-    async def test_token_exchange_without_valid_code(self, http_client, wait_for_services):
+    async def test_token_exchange_without_valid_code(
+        self, http_client, wait_for_services
+    ):
         """Test that token endpoint rejects invalid authorization codes."""
         # Register a client first
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.fail("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
+            pytest.fail(
+                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+            )
 
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_CALLBACK_URL],
                 "client_name": "TEST test_token_exchange_without_valid_code",
-                "scope": "openid profile"
+                "scope": "openid profile",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
         assert registration_response.status_code == 201
@@ -359,8 +385,8 @@ class TestUnauthorizedUserAccess:
                 "code": "invalid_authorization_code",
                 "redirect_uri": TEST_CALLBACK_URL,
                 "client_id": client_data["client_id"],
-                "client_secret": client_data["client_secret"]
-            }
+                "client_secret": client_data["client_secret"],
+            },
         )
 
         # Should reject invalid code
@@ -373,7 +399,9 @@ class TestUnauthorizedUserAccess:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                    headers={
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                    },
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
@@ -394,7 +422,9 @@ class TestSecurityModelValidation:
 
         # Skip if no auth token
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
-            pytest.fail("GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!")
+            pytest.fail(
+                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+            )
 
         # Step 1: Register a client
         registration_response = await http_client.post(
@@ -402,9 +432,9 @@ class TestSecurityModelValidation:
             json={
                 "redirect_uris": [TEST_CALLBACK_URL],
                 "client_name": "TEST test_complete_security_flow",
-                "scope": "openid profile email"
+                "scope": "openid profile email",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
         assert registration_response.status_code == 201
@@ -416,13 +446,11 @@ class TestSecurityModelValidation:
             "redirect_uri": TEST_CALLBACK_URL,
             "response_type": "code",
             "scope": "openid profile email",
-            "state": secrets.token_urlsafe(16)
+            "state": secrets.token_urlsafe(16),
         }
 
         auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize",
-            params=auth_params,
-            follow_redirects=False
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
         )
 
         assert auth_response.status_code == 307
@@ -431,12 +459,7 @@ class TestSecurityModelValidation:
         # Step 3: Verify MCP endpoint requires authentication
         mcp_response = await http_client.post(
             f"{MCP_FETCH_URL}",
-            json={
-                "jsonrpc": "2.0",
-                "method": "test",
-                "params": {},
-                "id": 1
-            }
+            json={"jsonrpc": "2.0", "method": "test", "params": {}, "id": 1},
         )
 
         # Should require authentication
@@ -453,7 +476,9 @@ class TestSecurityModelValidation:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                    headers={"Authorization": f"Bearer {client_data['registration_access_token']}"}
+                    headers={
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                    },
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:

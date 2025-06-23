@@ -1,6 +1,7 @@
 """
 Main server module for MCP OAuth Dynamic Client
 """
+
 import os
 from contextlib import asynccontextmanager
 
@@ -37,7 +38,7 @@ def create_app(settings: Settings = None) -> FastAPI:
         title="MCP OAuth Gateway - Auth Service",
         description="Sacred Auth Service following OAuth 2.1 and RFC 7591 divine specifications",
         version="0.1.0",
-        lifespan=lifespan
+        lifespan=lifespan,
     )
 
     # Configure CORS
@@ -51,9 +52,8 @@ def create_app(settings: Settings = None) -> FastAPI:
             allow_credentials=True,
             allow_methods=["GET", "POST", "OPTIONS"],
             allow_headers=["*"],
-            expose_headers=["X-User-Id", "X-User-Name", "X-Auth-Token"]
+            expose_headers=["X-User-Id", "X-User-Name", "X-Auth-Token"],
         )
-
 
     # Include OAuth routes with Authlib ResourceProtector for enhanced security
     oauth_router = create_oauth_router(settings, redis_manager, auth_manager)

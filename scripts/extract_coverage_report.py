@@ -11,8 +11,9 @@ def count_set_bits(blob):
         return 0
     count = 0
     for byte in blob:
-        count += bin(byte).count('1')
+        count += bin(byte).count("1")
     return count
+
 
 def extract_coverage():
     """Extract coverage data and generate report."""
@@ -61,7 +62,7 @@ def extract_coverage():
     total_branches = 0
 
     for path, lines in sorted(coverage_data.items()):
-        module = path.split('/')[-1]
+        module = path.split("/")[-1]
         branches = arc_data.get(path, 0)
         total_lines += lines
         total_branches += branches
@@ -73,6 +74,7 @@ def extract_coverage():
     print(f"✅ Coverage data successfully collected from {len(coverage_data)} modules")
     print(f"📈 Total lines executed: {total_lines}")
     print(f"🌿 Total branches covered: {total_branches}")
+
 
 if __name__ == "__main__":
     extract_coverage()

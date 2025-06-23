@@ -2,6 +2,7 @@
 """Manage OAuth registrations and tokens in Redis
 Following the sacred commandments - direct access to real data!
 """
+
 import asyncio
 import base64
 import json
@@ -31,7 +32,7 @@ try:
         ["docker", "compose", "ps", "--services", "--filter", "status=running"],
         capture_output=True,
         text=True,
-        check=True
+        check=True,
     )
     if "redis" in result.stdout:
         # Get Redis container port mapping
@@ -39,7 +40,7 @@ try:
             ["docker", "compose", "port", "redis", "6379"],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
         if port_result.stdout.strip():
             host, port = port_result.stdout.strip().split(":")
@@ -51,22 +52,20 @@ except:
 async def get_redis_client():
     """Get async Redis client."""
     return await redis.from_url(
-        REDIS_URL,
-        password=REDIS_PASSWORD,
-        decode_responses=True
+        REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
     )
 
 
 def decode_jwt_payload(token: str) -> dict | None:
     """Decode JWT payload without verification."""
     try:
-        parts = token.split('.')
+        parts = token.split(".")
         if len(parts) != 3:
             return None
 
         # Add padding if needed
         payload_part = parts[1]
-        payload_part += '=' * (4 - len(payload_part) % 4)
+        payload_part += "=" * (4 - len(payload_part) % 4)
 
         payload_json = base64.urlsafe_b64decode(payload_part)
         return json.loads(payload_json)
@@ -111,22 +110,30 @@ async def list_registrations():
                         redirect_uris = [redirect_uris]
 
                 # Handle timestamp - could be client_id_issued_at or created_at
-                created_at = client_data.get("client_id_issued_at", client_data.get("created_at", 0))
+                created_at = client_data.get(
+                    "client_id_issued_at", client_data.get("created_at", 0)
+                )
 
-                registrations.append([
-                    client_id,
-                    client_data.get("client_name", "N/A"),
-                    client_data.get("scope", "N/A"),
-                    ", ".join(redirect_uris) if isinstance(redirect_uris, list) else str(redirect_uris),
-                    format_timestamp(created_at)
-                ])
+                registrations.append(
+                    [
+                        client_id,
+                        client_data.get("client_name", "N/A"),
+                        client_data.get("scope", "N/A"),
+                        ", ".join(redirect_uris)
+                        if isinstance(redirect_uris, list)
+                        else str(redirect_uris),
+                        format_timestamp(created_at),
+                    ]
+                )
 
         print("\n=== OAuth Client Registrations ===")
-        print(tabulate(
-            registrations,
-            headers=["Client ID", "Name", "Scope", "Redirect URIs", "Created"],
-            tablefmt="grid"
-        ))
+        print(
+            tabulate(
+                registrations,
+                headers=["Client ID", "Name", "Scope", "Redirect URIs", "Created"],
+                tablefmt="grid",
+            )
+        )
         print(f"\nTotal registrations: {len(registrations)}")
 
     finally:
@@ -177,23 +184,36 @@ async def list_tokens():
                             except:
                                 pass
 
-                    tokens.append([
-                        jti[:12] + "...",
-                        payload.get("username", "N/A"),
-                        client_id,
-                        client_name,
-                        payload.get("scope", "N/A"),
-                        format_timestamp(issued_at),
-                        format_timestamp(expires_at),
-                        f"{ttl}s" if ttl > 0 else "No TTL"
-                    ])
+                    tokens.append(
+                        [
+                            jti[:12] + "...",
+                            payload.get("username", "N/A"),
+                            client_id,
+                            client_name,
+                            payload.get("scope", "N/A"),
+                            format_timestamp(issued_at),
+                            format_timestamp(expires_at),
+                            f"{ttl}s" if ttl > 0 else "No TTL",
+                        ]
+                    )
 
         print("\n=== Active OAuth Tokens ===")
-        print(tabulate(
-            tokens,
-            headers=["JTI", "User", "Client ID", "Client Name", "Scope", "Issued", "Expires", "TTL"],
-            tablefmt="grid"
-        ))
+        print(
+            tabulate(
+                tokens,
+                headers=[
+                    "JTI",
+                    "User",
+                    "Client ID",
+                    "Client Name",
+                    "Scope",
+                    "Issued",
+                    "Expires",
+                    "TTL",
+                ],
+                tablefmt="grid",
+            )
+        )
         print(f"\nTotal tokens: {len(tokens)}")
 
         # Also check refresh tokens
@@ -369,7 +389,13 @@ async def delete_all_tokens():
         code_keys = await client.keys("oauth:code:*")
         user_token_keys = await client.keys("oauth:user_tokens:*")
 
-        total_keys = len(access_keys) + len(refresh_keys) + len(state_keys) + len(code_keys) + len(user_token_keys)
+        total_keys = (
+            len(access_keys)
+            + len(refresh_keys)
+            + len(state_keys)
+            + len(code_keys)
+            + len(user_token_keys)
+        )
 
         if total_keys == 0:
             print("No OAuth data to delete.")

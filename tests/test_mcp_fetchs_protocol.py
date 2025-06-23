@@ -26,35 +26,45 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_json_rpc_compliance(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_fetchs_json_rpc_compliance(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test JSON-RPC 2.0 compliance."""
         test_cases = [
             # Valid requests
             {
                 "request": {"jsonrpc": "2.0", "method": "tools/list", "id": 1},
                 "expected_id": 1,
-                "should_have_result": True
+                "should_have_result": True,
             },
             {
-                "request": {"jsonrpc": "2.0", "method": "tools/list", "id": "string-id"},
+                "request": {
+                    "jsonrpc": "2.0",
+                    "method": "tools/list",
+                    "id": "string-id",
+                },
                 "expected_id": "string-id",
-                "should_have_result": True
+                "should_have_result": True,
             },
             # Invalid requests
             {
                 "request": {"method": "tools/list", "id": 1},  # Missing jsonrpc
                 "expected_error_code": -32600,
-                "should_have_error": True
+                "should_have_error": True,
             },
             {
-                "request": {"jsonrpc": "1.0", "method": "tools/list", "id": 1},  # Wrong version
+                "request": {
+                    "jsonrpc": "1.0",
+                    "method": "tools/list",
+                    "id": 1,
+                },  # Wrong version
                 "expected_error_code": -32600,
-                "should_have_error": True
+                "should_have_error": True,
             },
             {
                 "request": {"jsonrpc": "2.0", "id": 1},  # Missing method
                 "expected_error_code": -32601,  # Method not found (treating missing as empty string)
-                "should_have_error": True
+                "should_have_error": True,
             },
         ]
 
@@ -65,8 +75,8 @@ class TestMCPFetchsProtocol:
                     json=test["request"],
                     headers={
                         "Content-Type": "application/json",
-                        "Authorization": f"Bearer {valid_token}"
-                    }
+                        "Authorization": f"Bearer {valid_token}",
+                    },
                 )
 
                 assert response.status_code in [200, 400]
@@ -88,7 +98,9 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_method_routing(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_fetchs_method_routing(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test correct routing of different MCP methods."""
         methods = [
             ("initialize", True),
@@ -105,7 +117,10 @@ class TestMCPFetchsProtocol:
                 if method == "initialize":
                     params = {"protocolVersion": "2025-06-18"}
                 elif method == "tools/call":
-                    params = {"name": "fetch", "arguments": {"url": "https://example.com"}}
+                    params = {
+                        "name": "fetch",
+                        "arguments": {"url": "https://example.com"},
+                    }
 
                 response = await client.post(
                     f"{mcp_fetchs_url}",
@@ -113,12 +128,12 @@ class TestMCPFetchsProtocol:
                         "jsonrpc": "2.0",
                         "method": method,
                         "params": params,
-                        "id": 1
+                        "id": 1,
                     },
                     headers={
                         "Content-Type": "application/json",
-                        "Authorization": f"Bearer {valid_token}"
-                    }
+                        "Authorization": f"Bearer {valid_token}",
+                    },
                 )
 
                 assert response.status_code == 200
@@ -132,7 +147,9 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_session_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_fetchs_session_handling(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test MCP session management."""
         async with httpx.AsyncClient(verify=False) as client:
             # Initialize without session
@@ -142,12 +159,12 @@ class TestMCPFetchsProtocol:
                     "jsonrpc": "2.0",
                     "method": "initialize",
                     "params": {"protocolVersion": "2025-06-18"},
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}"
-                }
+                    "Authorization": f"Bearer {valid_token}",
+                },
             )
 
             assert response.status_code == 200
@@ -157,16 +174,12 @@ class TestMCPFetchsProtocol:
             # Use session for subsequent request
             response = await client.post(
                 f"{mcp_fetchs_url}",
-                json={
-                    "jsonrpc": "2.0",
-                    "method": "tools/list",
-                    "id": 2
-                },
+                json={"jsonrpc": "2.0", "method": "tools/list", "id": 2},
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {valid_token}",
-                    "Mcp-Session-Id": session_id
-                }
+                    "Mcp-Session-Id": session_id,
+                },
             )
 
             assert response.status_code == 200
@@ -176,16 +189,12 @@ class TestMCPFetchsProtocol:
             # Try with invalid session
             response = await client.post(
                 f"{mcp_fetchs_url}",
-                json={
-                    "jsonrpc": "2.0",
-                    "method": "tools/list",
-                    "id": 3
-                },
+                json={"jsonrpc": "2.0", "method": "tools/list", "id": 3},
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {valid_token}",
-                    "Mcp-Session-Id": "invalid-session-id"
-                }
+                    "Mcp-Session-Id": "invalid-session-id",
+                },
             )
 
             # Should still work (stateless implementation)
@@ -193,7 +202,9 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_protocol_headers(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_fetchs_protocol_headers(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test MCP protocol headers."""
         async with httpx.AsyncClient(verify=False) as client:
             # Test with protocol version header
@@ -203,13 +214,13 @@ class TestMCPFetchsProtocol:
                     "jsonrpc": "2.0",
                     "method": "initialize",
                     "params": {"protocolVersion": "2025-06-18"},
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {valid_token}",
-                    "MCP-Protocol-Version": "2025-06-18"
-                }
+                    "MCP-Protocol-Version": "2025-06-18",
+                },
             )
 
             assert response.status_code == 200
@@ -221,37 +232,43 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_error_response_format(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_fetchs_error_response_format(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test error response format compliance."""
         error_scenarios = [
             # Parse error
             {
                 "body": b"invalid json",
                 "expected_code": -32700,
-                "expected_message_contains": "Parse error"
+                "expected_message_contains": "Parse error",
             },
             # Invalid request (missing method)
             {
                 "body": json.dumps({"jsonrpc": "2.0", "id": 1}),
                 "expected_code": -32601,  # Method not found (treating missing as None)
-                "expected_message_contains": "Method not found"
+                "expected_message_contains": "Method not found",
             },
             # Method not found
             {
-                "body": json.dumps({"jsonrpc": "2.0", "method": "nonexistent", "id": 1}),
+                "body": json.dumps(
+                    {"jsonrpc": "2.0", "method": "nonexistent", "id": 1}
+                ),
                 "expected_code": -32601,
-                "expected_message_contains": "Method not found"
+                "expected_message_contains": "Method not found",
             },
             # Invalid params (unknown tool)
             {
-                "body": json.dumps({
-                    "jsonrpc": "2.0",
-                    "method": "tools/call",
-                    "params": {"name": "nonexistent-tool", "arguments": {}},
-                    "id": 1
-                }),
+                "body": json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "tools/call",
+                        "params": {"name": "nonexistent-tool", "arguments": {}},
+                        "id": 1,
+                    }
+                ),
                 "expected_code": -32602,
-                "expected_message_contains": "Invalid params"
+                "expected_message_contains": "Invalid params",
             },
         ]
 
@@ -262,8 +279,8 @@ class TestMCPFetchsProtocol:
                     content=scenario["body"],
                     headers={
                         "Content-Type": "application/json",
-                        "Authorization": f"Bearer {valid_token}"
-                    }
+                        "Authorization": f"Bearer {valid_token}",
+                    },
                 )
 
                 assert response.status_code in [200, 400]
@@ -279,7 +296,9 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_content_type_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_fetchs_content_type_handling(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test Content-Type header handling."""
         # The service accepts various content types more leniently
         content_types = [
@@ -299,7 +318,7 @@ class TestMCPFetchsProtocol:
                 response = await client.post(
                     f"{mcp_fetchs_url}",
                     json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
-                    headers=headers
+                    headers=headers,
                 )
 
                 # Service is lenient and accepts requests as long as they're valid JSON
@@ -313,7 +332,9 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_request_id_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
+    async def test_fetchs_request_id_handling(
+        self, mcp_fetchs_url, valid_token, wait_for_services
+    ):
         """Test proper handling of request IDs."""
         id_values = [
             1,
@@ -328,15 +349,11 @@ class TestMCPFetchsProtocol:
             for request_id in id_values:
                 response = await client.post(
                     f"{mcp_fetchs_url}",
-                    json={
-                        "jsonrpc": "2.0",
-                        "method": "tools/list",
-                        "id": request_id
-                    },
+                    json={"jsonrpc": "2.0", "method": "tools/list", "id": request_id},
                     headers={
                         "Content-Type": "application/json",
-                        "Authorization": f"Bearer {valid_token}"
-                    }
+                        "Authorization": f"Bearer {valid_token}",
+                    },
                 )
 
                 assert response.status_code == 200

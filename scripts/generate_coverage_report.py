@@ -61,6 +61,7 @@ def fix_coverage_paths():
     conn.close()
     print(f"  Fixed {updated} file paths, removed {removed} auth.py files")
 
+
 def main():
     """Generate coverage report from collected data."""
     # Copy coverage files from htmlcov if they exist
@@ -85,9 +86,7 @@ def main():
     # Combine coverage data
     print("\n🔄 Combining coverage data...")
     result = subprocess.run(
-        ["coverage", "combine", "--keep"],
-        check=False, capture_output=True,
-        text=True
+        ["coverage", "combine", "--keep"], check=False, capture_output=True, text=True
     )
 
     if result.returncode != 0 and "No data to combine" not in result.stderr:
@@ -101,8 +100,9 @@ def main():
     print("=" * 80)
     result = subprocess.run(
         ["coverage", "report", "--show-missing", "--omit=*/auth.py"],
-        check=False, capture_output=True,
-        text=True
+        check=False,
+        capture_output=True,
+        text=True,
     )
 
     if result.returncode == 0 and result.stdout:
@@ -114,8 +114,9 @@ def main():
     print("\n🌐 Generating HTML report...")
     result = subprocess.run(
         ["coverage", "html", "--show-contexts"],
-        check=False, capture_output=True,
-        text=True
+        check=False,
+        capture_output=True,
+        text=True,
     )
 
     if result.returncode == 0:
@@ -125,6 +126,7 @@ def main():
 
     print("\n✨ Coverage report generation complete!")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

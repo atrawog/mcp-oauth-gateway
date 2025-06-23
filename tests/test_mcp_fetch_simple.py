@@ -1,6 +1,7 @@
 """Simple MCP Fetch Test - Verify authentication works
 Following CLAUDE.md - NO MOCKING, real services only!
 """
+
 import json
 import secrets
 import time
@@ -19,7 +20,9 @@ class TestMCPFetchSimple:
     """Simple test to verify MCP fetch authentication."""
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_auth_works(self, http_client, wait_for_services, registered_client, mcp_fetch_url):
+    async def test_mcp_fetch_auth_works(
+        self, http_client, wait_for_services, registered_client, mcp_fetch_url
+    ):
         """Test that we can authenticate to mcp-fetch service."""
         # Connect to Redis
         redis_client = await redis.from_url(REDIS_URL, decode_responses=True)
@@ -39,32 +42,32 @@ class TestMCPFetchSimple:
                 "jti": jti,
                 "iat": now,
                 "exp": now + ACCESS_TOKEN_LIFETIME,
-                "iss": f"https://auth.{BASE_DOMAIN}"
+                "iss": f"https://auth.{BASE_DOMAIN}",
             }
 
             # Create JWT
-            access_token = jwt_encode(token_claims, GATEWAY_JWT_SECRET, algorithm="HS256")
+            access_token = jwt_encode(
+                token_claims, GATEWAY_JWT_SECRET, algorithm="HS256"
+            )
 
             # Store in Redis (simulating successful OAuth)
             await redis_client.setex(
                 f"oauth:token:{jti}",
                 ACCESS_TOKEN_LIFETIME,
-                json.dumps({
-                    "sub": token_claims["sub"],
-                    "username": token_claims["username"],
-                    "email": token_claims["email"],
-                    "name": token_claims["name"],
-                    "scope": token_claims["scope"],
-                    "client_id": token_claims["client_id"]
-                })
+                json.dumps(
+                    {
+                        "sub": token_claims["sub"],
+                        "username": token_claims["username"],
+                        "email": token_claims["email"],
+                        "name": token_claims["name"],
+                        "scope": token_claims["scope"],
+                        "client_id": token_claims["client_id"],
+                    }
+                ),
             )
 
             # Simple MCP request - just list available tools
-            mcp_request = {
-                "jsonrpc": "2.0",
-                "method": "tools/list",
-                "id": 1
-            }
+            mcp_request = {"jsonrpc": "2.0", "method": "tools/list", "id": 1}
 
             # Test authentication works
             response = await http_client.post(
@@ -73,9 +76,9 @@ class TestMCPFetchSimple:
                 headers={
                     "Authorization": f"Bearer {access_token}",
                     "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream"  # MCP requires this
+                    "Accept": "application/json, text/event-stream",  # MCP requires this
                 },
-                follow_redirects=True  # Handle the 307 redirect
+                follow_redirects=True,  # Handle the 307 redirect
             )
 
             print(f"Response status: {response.status_code}")
@@ -92,11 +95,9 @@ class TestMCPFetchSimple:
                     "method": "tools/call",
                     "params": {
                         "name": "fetch",
-                        "arguments": {
-                            "url": "https://example.com"
-                        }
+                        "arguments": {"url": "https://example.com"},
                     },
-                    "id": 2
+                    "id": 2,
                 }
 
                 fetch_response = await http_client.post(
@@ -104,8 +105,8 @@ class TestMCPFetchSimple:
                     json=fetch_request,
                     headers={
                         "Authorization": f"Bearer {access_token}",
-                        "Content-Type": "application/json"
-                    }
+                        "Content-Type": "application/json",
+                    },
                 )
 
                 if fetch_response.status_code == 200:
@@ -116,7 +117,9 @@ class TestMCPFetchSimple:
                     if "result" in fetch_result:
                         content = str(fetch_result.get("result", {}))
                         if "Example Domain" in content:
-                            print("✓ Successfully found 'Example Domain' in fetched content!")
+                            print(
+                                "✓ Successfully found 'Example Domain' in fetched content!"
+                            )
                         else:
                             print("Content fetched but 'Example Domain' not found")
                             print(f"Content preview: {content[:200]}...")
@@ -129,7 +132,9 @@ class TestMCPFetchSimple:
                 if response.status_code == 401:
                     print("Authentication failed - token not accepted")
                 elif response.status_code == 404:
-                    print("Endpoint not found - service may not be configured correctly")
+                    print(
+                        "Endpoint not found - service may not be configured correctly"
+                    )
                 elif response.status_code == 307:
                     print(f"Redirect to: {response.headers.get('Location')}")
 

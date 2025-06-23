@@ -12,16 +12,13 @@ class TestMCPProtocol:
     """Test MCP Protocol compliance - version MUST match .env!"""
 
     @pytest.mark.asyncio
-    async def test_mcp_endpoint_requires_auth(self, http_client, wait_for_services, mcp_fetch_url):
+    async def test_mcp_endpoint_requires_auth(
+        self, http_client, wait_for_services, mcp_fetch_url
+    ):
         """Test that MCP endpoint requires authentication."""
         # Try to access without auth
         response = await http_client.post(
-            f"{mcp_fetch_url}",
-            json={
-                "jsonrpc": "2.0",
-                "method": "ping",
-                "id": 1
-            }
+            f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}
         )
 
         # Should get 401 from ForwardAuth middleware
@@ -29,7 +26,9 @@ class TestMCPProtocol:
         assert response.headers.get("WWW-Authenticate") == "Bearer"
 
     @pytest.mark.asyncio
-    async def test_mcp_json_rpc_format(self, http_client, wait_for_services, mcp_fetch_url):
+    async def test_mcp_json_rpc_format(
+        self, http_client, wait_for_services, mcp_fetch_url
+    ):
         """Test JSON-RPC 2.0 message format requirements."""
         # Invalid JSON-RPC (missing required fields)
         test_cases = [
@@ -40,35 +39,30 @@ class TestMCPProtocol:
             # Missing method
             {"jsonrpc": "2.0", "id": 1},
             # Null id (forbidden for requests)
-            {"jsonrpc": "2.0", "method": "test", "id": None}
+            {"jsonrpc": "2.0", "method": "test", "id": None},
         ]
 
         # Test without auth - endpoint should reject before checking JSON-RPC format
         for invalid_request in test_cases:
-            response = await http_client.post(
-                f"{mcp_fetch_url}",
-                json=invalid_request
-            )
+            response = await http_client.post(f"{mcp_fetch_url}", json=invalid_request)
 
             # Should get 401 from auth middleware
             assert response.status_code == 401
             assert response.headers.get("WWW-Authenticate") == "Bearer"
 
     @pytest.mark.asyncio
-    async def test_mcp_streamable_http_headers(self, http_client, wait_for_services, mcp_fetch_url):
+    async def test_mcp_streamable_http_headers(
+        self, http_client, wait_for_services, mcp_fetch_url
+    ):
         """Test required headers for Streamable HTTP transport."""
         # Test required Accept header without auth
         response = await http_client.post(
             f"{mcp_fetch_url}",
-            json={
-                "jsonrpc": "2.0",
-                "method": "ping",
-                "id": 1
-            },
+            json={"jsonrpc": "2.0", "method": "ping", "id": 1},
             headers={
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
-            }
+                "Content-Type": "application/json",
+            },
         )
 
         # Check response (will be 401 due to auth, but headers are validated)
@@ -78,7 +72,9 @@ class TestMCPProtocol:
         assert "text/event-stream" in response.request.headers["Accept"]
 
     @pytest.mark.asyncio
-    async def test_mcp_session_management(self, http_client, wait_for_services, mcp_fetch_url):
+    async def test_mcp_session_management(
+        self, http_client, wait_for_services, mcp_fetch_url
+    ):
         """Test MCP session ID handling."""
         session_id = "test-session-123"
 
@@ -90,13 +86,11 @@ class TestMCPProtocol:
                 "method": "initialize",
                 "params": {
                     "protocolVersion": MCP_PROTOCOL_VERSION,
-                    "clientCapabilities": {}
+                    "clientCapabilities": {},
                 },
-                "id": 1
+                "id": 1,
             },
-            headers={
-                "Mcp-Session-Id": session_id
-            }
+            headers={"Mcp-Session-Id": session_id},
         )
 
         # Should get 401 but session header was sent
@@ -104,7 +98,9 @@ class TestMCPProtocol:
         assert "Mcp-Session-Id" in response.request.headers
 
     @pytest.mark.asyncio
-    async def test_mcp_protocol_version(self, http_client, wait_for_services, mcp_fetch_url):
+    async def test_mcp_protocol_version(
+        self, http_client, wait_for_services, mcp_fetch_url
+    ):
         """Test MCP protocol version negotiation."""
         response = await http_client.post(
             f"{mcp_fetch_url}",
@@ -113,21 +109,18 @@ class TestMCPProtocol:
                 "method": "initialize",
                 "params": {
                     "protocolVersion": MCP_PROTOCOL_VERSION,
-                    "clientCapabilities": {
-                        "roots": True,
-                        "sampling": True
-                    }
+                    "clientCapabilities": {"roots": True, "sampling": True},
                 },
-                "id": "init-1"
+                "id": "init-1",
             },
-            headers={
-                "MCP-Protocol-Version": MCP_PROTOCOL_VERSION
-            }
+            headers={"MCP-Protocol-Version": MCP_PROTOCOL_VERSION},
         )
 
         # Should get 401 but protocol version header was sent
         assert response.status_code == 401
-        assert response.request.headers.get("MCP-Protocol-Version") == MCP_PROTOCOL_VERSION
+        assert (
+            response.request.headers.get("MCP-Protocol-Version") == MCP_PROTOCOL_VERSION
+        )
 
     @pytest.mark.asyncio
     async def test_mcp_error_response_format(self, http_client, mcp_fetch_url):
@@ -135,11 +128,7 @@ class TestMCPProtocol:
         # This will fail auth, but we can check the error format
         response = await http_client.post(
             f"{mcp_fetch_url}",
-            json={
-                "jsonrpc": "2.0",
-                "method": "unknown_method",
-                "id": 1
-            }
+            json={"jsonrpc": "2.0", "method": "unknown_method", "id": 1},
         )
 
         # Even auth errors should follow some structure
@@ -150,37 +139,36 @@ class TestMCPProtocol:
             assert "error" in error_data or "detail" in error_data
 
     @pytest.mark.asyncio
-    async def test_mcp_batch_request_support(self, http_client, wait_for_services, mcp_fetch_url):
+    async def test_mcp_batch_request_support(
+        self, http_client, wait_for_services, mcp_fetch_url
+    ):
         """Test that MCP supports receiving JSON-RPC batches."""
         # Send batch request without auth
         batch = [
             {"jsonrpc": "2.0", "method": "ping", "id": 1},
             {"jsonrpc": "2.0", "method": "ping", "id": 2},
-            {"jsonrpc": "2.0", "method": "ping", "id": 3}
+            {"jsonrpc": "2.0", "method": "ping", "id": 3},
         ]
 
-        response = await http_client.post(
-            f"{mcp_fetch_url}",
-            json=batch
-        )
+        response = await http_client.post(f"{mcp_fetch_url}", json=batch)
 
         # Should get 401 from auth middleware
         # Real MCP server must support receiving batches
         assert response.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_mcp_http_methods(self, http_client, wait_for_services, mcp_fetch_url):
+    async def test_mcp_http_methods(
+        self, http_client, wait_for_services, mcp_fetch_url
+    ):
         """Test that MCP endpoint supports both POST and GET methods."""
         # Test POST method without auth
         post_response = await http_client.post(
-            f"{mcp_fetch_url}",
-            json={"jsonrpc": "2.0", "method": "ping", "id": 1}
+            f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}
         )
         assert post_response.status_code == 401  # Auth required
 
         # Test GET method without auth
         get_response = await http_client.get(
-            f"{mcp_fetch_url}",
-            headers={"Mcp-Session-Id": "test-session"}
+            f"{mcp_fetch_url}", headers={"Mcp-Session-Id": "test-session"}
         )
         assert get_response.status_code == 401  # Auth required

@@ -1,4 +1,5 @@
 """Core proxy functionality for bridging stdio MCP servers to HTTP."""
+
 import asyncio
 import json
 import logging
@@ -29,13 +30,15 @@ class MCPSession:
 
     async def start_server(self):
         """Start the underlying MCP server process."""
-        logger.info(f"Starting MCP server for session {self.session_id}: {' '.join(self.server_command)}")
+        logger.info(
+            f"Starting MCP server for session {self.session_id}: {' '.join(self.server_command)}"
+        )
 
         self.process = await asyncio.create_subprocess_exec(
             *self.server_command,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
         )
 
         # Start reading responses from the server
@@ -118,7 +121,7 @@ class MCPSession:
             "jsonrpc": "2.0",
             "method": "tools/list",
             "params": {},
-            "id": self.request_id_counter
+            "id": self.request_id_counter,
         }
 
         response = await self._send_request(request)
@@ -129,7 +132,9 @@ class MCPSession:
 
         result = response.get("result", {})
         self.available_tools = result.get("tools", [])
-        logger.info(f"Session {self.session_id}: Available tools: {[t.get('name') for t in self.available_tools]}")
+        logger.info(
+            f"Session {self.session_id}: Available tools: {[t.get('name') for t in self.available_tools]}"
+        )
 
     async def handle_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """Handle an incoming MCP request."""
@@ -137,11 +142,15 @@ class MCPSession:
         if method == "initialize":
             if not self.session_initialized:
                 # Log the incoming request for debugging
-                logger.info(f"Session {self.session_id}: Initialize request: {json.dumps(request_data, indent=2)}")
+                logger.info(
+                    f"Session {self.session_id}: Initialize request: {json.dumps(request_data, indent=2)}"
+                )
 
                 # Forward the initialize request to the underlying server
                 response = await self._send_request(request_data)
-                logger.info(f"Session {self.session_id}: Initialize response from server: {json.dumps(response, indent=2)}")
+                logger.info(
+                    f"Session {self.session_id}: Initialize response from server: {json.dumps(response, indent=2)}"
+                )
 
                 # If successful, complete the initialization process
                 if "result" in response:
@@ -153,7 +162,7 @@ class MCPSession:
                     initialized_notification = {
                         "jsonrpc": "2.0",
                         "method": "notifications/initialized",
-                        "params": {}
+                        "params": {},
                     }
                     await self._send_request(initialized_notification)
 
@@ -168,17 +177,16 @@ class MCPSession:
                 return {
                     "jsonrpc": "2.0",
                     "id": request_data.get("id"),
-                    "error": {
-                        "code": -32603,
-                        "message": "Session already initialized"
-                    }
+                    "error": {"code": -32603, "message": "Session already initialized"},
                 }
 
         # Only check initialization for non-initialize requests
         if method != "initialize" and not self.session_initialized:
             raise RuntimeError(f"Session {self.session_id} not initialized")
 
-        logger.info(f"Session {self.session_id}: Handling MCP request: {json.dumps(request_data, indent=2)}")
+        logger.info(
+            f"Session {self.session_id}: Handling MCP request: {json.dumps(request_data, indent=2)}"
+        )
 
         # Update activity timestamp
         self.last_activity = time.time()
@@ -189,7 +197,9 @@ class MCPSession:
             request_data["id"] = self.request_id_counter
 
         response = await self._send_request(request_data)
-        logger.info(f"Session {self.session_id}: MCP server response: {json.dumps(response, indent=2)}")
+        logger.info(
+            f"Session {self.session_id}: MCP server response: {json.dumps(response, indent=2)}"
+        )
         return response
 
     async def close(self):
@@ -258,7 +268,9 @@ class MCPSessionManager:
         logger.info(f"Created new session {session_id}. Total sessions: {len(self.sessions)}")
         return session
 
-    async def handle_request(self, request_data: Dict[str, Any], session_id: Optional[str] = None) -> tuple[Dict[str, Any], str]:
+    async def handle_request(
+        self, request_data: Dict[str, Any], session_id: Optional[str] = None
+    ) -> tuple[Dict[str, Any], str]:
         """Handle MCP request and return response with session ID."""
         method = request_data.get("method")
 
@@ -267,17 +279,16 @@ class MCPSessionManager:
             # Log requested version - we'll accept any and forward to underlying server
             requested_version = request_data.get("params", {}).get("protocolVersion")
             if requested_version:
-                logger.info(f"Client requested protocol version: {requested_version}, forwarding to underlying MCP server")
+                logger.info(
+                    f"Client requested protocol version: {requested_version}, forwarding to underlying MCP server"
+                )
 
             # Don't allow re-initialization of existing sessions
             if session_id and session_id in self.sessions:
                 response = {
                     "jsonrpc": "2.0",
                     "id": request_data.get("id"),
-                    "error": {
-                        "code": -32603,
-                        "message": "Session already initialized"
-                    }
+                    "error": {"code": -32603, "message": "Session already initialized"},
                 }
                 return response, session_id
 
@@ -290,7 +301,9 @@ class MCPSessionManager:
 
             # Store the session
             self.sessions[new_session_id] = session
-            logger.info(f"Created new session {new_session_id}. Total sessions: {len(self.sessions)}")
+            logger.info(
+                f"Created new session {new_session_id}. Total sessions: {len(self.sessions)}"
+            )
 
             # Let the session handle the initialize request completely
             response = await session.handle_request(request_data)
@@ -305,8 +318,8 @@ class MCPSessionManager:
                 "id": request_data.get("id"),
                 "error": {
                     "code": -32002,
-                    "message": "Session ID required. Please include Mcp-Session-Id header from initialize response."
-                }
+                    "message": "Session ID required. Please include Mcp-Session-Id header from initialize response.",
+                },
             }
             return response, ""
 
@@ -317,8 +330,8 @@ class MCPSessionManager:
                 "id": request_data.get("id"),
                 "error": {
                     "code": -32002,
-                    "message": f"Invalid session ID: {session_id}. Session may have expired or does not exist."
-                }
+                    "message": f"Invalid session ID: {session_id}. Session may have expired or does not exist.",
+                },
             }
             return response, ""
 
@@ -372,7 +385,7 @@ def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI
             allow_credentials=True,
             allow_methods=["GET", "POST", "OPTIONS"],
             allow_headers=["*"],
-            expose_headers=["Mcp-Session-Id", "MCP-Protocol-Version"]
+            expose_headers=["Mcp-Session-Id", "MCP-Protocol-Version"],
         )
         logger.info(f"CORS enabled for origins: {cors_origins}")
     else:
@@ -422,9 +435,13 @@ def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI
             if method == "initialize":
                 logger.info("Initialize request received. Creating new session...")
             else:
-                logger.info(f"Request for method '{method}' with session ID: {session_id or 'MISSING'}")
+                logger.info(
+                    f"Request for method '{method}' with session ID: {session_id or 'MISSING'}"
+                )
 
-            response, returned_session_id = await session_manager.handle_request(request_data, session_id)
+            response, returned_session_id = await session_manager.handle_request(
+                request_data, session_id
+            )
 
             # Create response with session ID header
             json_response = JSONResponse(content=response)
@@ -438,7 +455,11 @@ def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI
             logger.error(f"Error handling request: {e}")
             return JSONResponse(
                 status_code=500,
-                content={"jsonrpc": "2.0", "error": {"code": -32603, "message": str(e)}, "id": None}
+                content={
+                    "jsonrpc": "2.0",
+                    "error": {"code": -32603, "message": str(e)},
+                    "id": None,
+                },
             )
 
     @app.post("/mcp/")

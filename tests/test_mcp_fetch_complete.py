@@ -2,6 +2,7 @@
 NO SHORTCUTS! Tests MUST verify actual functionality, not just status codes!
 Tests MUST FAIL if the actual fetch doesn't work!
 """
+
 import json
 import os
 
@@ -20,7 +21,9 @@ class TestMCPFetchComplete:
     """Test actual MCP fetch functionality - no shortcuts allowed!"""
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_actually_fetches_content(self, http_client, wait_for_services, mcp_test_url):
+    async def test_mcp_fetch_actually_fetches_content(
+        self, http_client, wait_for_services, mcp_test_url
+    ):
         """This test MUST:
         1. Complete the FULL OAuth flow (no fake tokens!)
         2. Actually fetch content from a real URL
@@ -28,23 +31,27 @@ class TestMCPFetchComplete:
         4. FAIL if any step doesn't work 100%.
         """
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         # Step 1: Register an OAuth client
         registration_data = {
             "redirect_uris": [TEST_REDIRECT_URI],
             "client_name": "TEST test_mcp_fetch_actually_fetches_content",
-            "scope": TEST_CLIENT_SCOPE
+            "scope": TEST_CLIENT_SCOPE,
         }
 
         reg_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json=registration_data,
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
         # MUST succeed or test fails
-        assert reg_response.status_code == 201, f"Client registration FAILED: {reg_response.text}"
+        assert reg_response.status_code == 201, (
+            f"Client registration FAILED: {reg_response.text}"
+        )
         client = reg_response.json()
         assert "client_id" in client, "No client_id in registration response!"
         assert "client_secret" in client, "No client_secret in registration response!"
@@ -55,7 +62,9 @@ class TestMCPFetchComplete:
             # a pre-authorized token from the environment
 
             # Check if we have a valid OAuth token in the environment
-            oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+            oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
+                "OAUTH_JWT_TOKEN"
+            )
 
             if not oauth_token:
                 pytest.fail(
@@ -82,8 +91,13 @@ class TestMCPFetchComplete:
             # Step 4: Make the MCP request to fetch actual content
             try:
                 response_data = await call_mcp_tool(
-                    http_client, mcp_test_url, oauth_token, session_id,
-                    "fetch", {"url": "https://example.com"}, "complete-test-1"
+                    http_client,
+                    mcp_test_url,
+                    oauth_token,
+                    session_id,
+                    "fetch",
+                    {"url": "https://example.com"},
+                    "complete-test-1",
                 )
 
                 # Convert to mock response object for compatibility
@@ -127,7 +141,7 @@ class TestMCPFetchComplete:
                     f"SACRED VIOLATION: MCP fetch returned {response.status_code}!\n"
                     f"Tests MUST verify complete functionality!\n"
                     f"Response: {response.text[:500]}"
-            )
+                )
 
             # If we get 200, validate the full response
             if response.status_code == 200:
@@ -139,11 +153,15 @@ class TestMCPFetchComplete:
 
                 # Step 7: Verify it's a successful JSON-RPC response
                 assert "jsonrpc" in result, "Missing jsonrpc field in response!"
-                assert result["jsonrpc"] == "2.0", f"Wrong JSON-RPC version: {result['jsonrpc']}"
+                assert result["jsonrpc"] == "2.0", (
+                    f"Wrong JSON-RPC version: {result['jsonrpc']}"
+                )
 
                 # Check for errors - ALL errors should cause test failure per CLAUDE.md Commandment 1
                 if "error" in result:
-                    pytest.fail(f"MCP returned an error: {result['error']}. Tests MUST verify actual functionality!")
+                    pytest.fail(
+                        f"MCP returned an error: {result['error']}. Tests MUST verify actual functionality!"
+                    )
 
                 if "result" in result:
                     # Step 8: Verify the fetched content
@@ -152,7 +170,11 @@ class TestMCPFetchComplete:
                     # Handle different possible response structures
                     content = None
                     if isinstance(fetch_result, dict):
-                        content = fetch_result.get("content") or fetch_result.get("body") or fetch_result.get("text")
+                        content = (
+                            fetch_result.get("content")
+                            or fetch_result.get("body")
+                            or fetch_result.get("text")
+                        )
                     elif isinstance(fetch_result, str):
                         content = fetch_result
 
@@ -174,20 +196,30 @@ class TestMCPFetchComplete:
                 try:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
-                        headers={"Authorization": f"Bearer {client['registration_access_token']}"}
+                        headers={
+                            "Authorization": f"Bearer {client['registration_access_token']}"
+                        },
                     )
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
-                        print(f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}")
+                        print(
+                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"
+                        )
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_validates_url_parameter(self, http_client, wait_for_services, mcp_test_url):
+    async def test_mcp_fetch_validates_url_parameter(
+        self, http_client, wait_for_services, mcp_test_url
+    ):
         """Test that MCP fetch properly validates the URL parameter."""
-        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
+            "OAUTH_JWT_TOKEN"
+        )
         if not oauth_token:
-            pytest.fail("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
+            pytest.fail(
+                "Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!"
+            )
 
         # Initialize MCP session properly first
         try:
@@ -207,8 +239,13 @@ class TestMCPFetchComplete:
         # Test with missing URL parameter using proper tool call
         try:
             response_data = await call_mcp_tool(
-                http_client, mcp_test_url, oauth_token, session_id,
-                "fetch", {}, "validation-test-1"  # Missing url argument
+                http_client,
+                mcp_test_url,
+                oauth_token,
+                session_id,
+                "fetch",
+                {},
+                "validation-test-1",  # Missing url argument
             )
 
             # Check if we got a validation error
@@ -231,11 +268,17 @@ class TestMCPFetchComplete:
             return
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_handles_invalid_urls(self, http_client, wait_for_services, mcp_test_url):
+    async def test_mcp_fetch_handles_invalid_urls(
+        self, http_client, wait_for_services, mcp_test_url
+    ):
         """Test that MCP fetch properly handles invalid URLs."""
-        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
+            "OAUTH_JWT_TOKEN"
+        )
         if not oauth_token:
-            pytest.fail("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
+            pytest.fail(
+                "Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!"
+            )
 
         # Initialize MCP session properly first
         try:
@@ -263,12 +306,19 @@ class TestMCPFetchComplete:
         for invalid_url in invalid_urls:
             try:
                 response_data = await call_mcp_tool(
-                    http_client, mcp_test_url, oauth_token, session_id,
-                    "fetch", {"url": invalid_url}, f"invalid-url-{invalid_url[:10]}"
+                    http_client,
+                    mcp_test_url,
+                    oauth_token,
+                    session_id,
+                    "fetch",
+                    {"url": invalid_url},
+                    f"invalid-url-{invalid_url[:10]}",
                 )
 
                 # Check if we got an error result
-                if "result" in response_data and isinstance(response_data["result"], dict):
+                if "result" in response_data and isinstance(
+                    response_data["result"], dict
+                ):
                     mcp_result = response_data["result"]
                     if mcp_result.get("isError"):
                         print(f"✓ Got expected error for '{invalid_url}': {mcp_result}")
@@ -287,11 +337,17 @@ class TestMCPFetchComplete:
                 continue
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_respects_max_size(self, http_client, wait_for_services, mcp_test_url):
+    async def test_mcp_fetch_respects_max_size(
+        self, http_client, wait_for_services, mcp_test_url
+    ):
         """Test that MCP fetch respects max_size parameter."""
-        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
+            "OAUTH_JWT_TOKEN"
+        )
         if not oauth_token:
-            pytest.fail("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
+            pytest.fail(
+                "Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!"
+            )
 
         # Initialize MCP session properly first
         try:
@@ -311,20 +367,29 @@ class TestMCPFetchComplete:
         # Test with small max_length using proper tool call
         try:
             response_data = await call_mcp_tool(
-                http_client, mcp_test_url, oauth_token, session_id,
-                "fetch", {"url": "https://example.com", "max_length": 100}, "size-test-1"
+                http_client,
+                mcp_test_url,
+                oauth_token,
+                session_id,
+                "fetch",
+                {"url": "https://example.com", "max_length": 100},
+                "size-test-1",
             )
 
             # Check if we got a result
             if "result" in response_data:
                 fetch_result = response_data["result"]
-                if "content" in fetch_result and isinstance(fetch_result["content"], list):
+                if "content" in fetch_result and isinstance(
+                    fetch_result["content"], list
+                ):
                     for item in fetch_result["content"]:
                         if item.get("type") == "text" and "text" in item:
                             content = item["text"]
                             print(f"Fetched content size: {len(content)} bytes")
                             # The content should be reasonably small (respecting max_length)
-                            if len(content) <= 500:  # Reasonable limit considering formatting
+                            if (
+                                len(content) <= 500
+                            ):  # Reasonable limit considering formatting
                                 print("✓ Content size appears to respect max_length")
                             break
                 else:
@@ -335,29 +400,27 @@ class TestMCPFetchComplete:
             print(f"✓ Server handled small max_length appropriately: {e}")
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_without_auth_must_fail(self, http_client, wait_for_services, mcp_test_url):
+    async def test_mcp_fetch_without_auth_must_fail(
+        self, http_client, wait_for_services, mcp_test_url
+    ):
         """Test that MCP fetch ALWAYS requires authentication - no exceptions!"""
         mcp_request = {
             "jsonrpc": "2.0",
             "method": "tools/call",
-            "params": {
-                "name": "fetch",
-                "arguments": {"url": "https://example.com"}
-            },
-            "id": "auth-test-1"
+            "params": {"name": "fetch", "arguments": {"url": "https://example.com"}},
+            "id": "auth-test-1",
         }
 
         # Test 1: No auth header at all
-        response = await http_client.post(
-            f"{mcp_test_url}",
-            json=mcp_request
-        )
+        response = await http_client.post(f"{mcp_test_url}", json=mcp_request)
 
         assert response.status_code == 401, (
             f"SECURITY VIOLATION! Got {response.status_code} without auth! "
             "MCP fetch MUST require authentication!"
         )
-        assert "WWW-Authenticate" in response.headers, "Missing WWW-Authenticate header!"
+        assert "WWW-Authenticate" in response.headers, (
+            "Missing WWW-Authenticate header!"
+        )
         assert response.headers["WWW-Authenticate"] == "Bearer", "Wrong auth challenge!"
 
         # Test 2: Verify error response format
@@ -370,7 +433,7 @@ class TestMCPFetchComplete:
         response = await http_client.post(
             f"{mcp_test_url}",
             json=mcp_request,
-            headers={"Authorization": "Bearer completely-invalid-token"}
+            headers={"Authorization": "Bearer completely-invalid-token"},
         )
 
         assert response.status_code == 401, (
@@ -382,7 +445,7 @@ class TestMCPFetchComplete:
         response = await http_client.post(
             f"{mcp_test_url}",
             json=mcp_request,
-            headers={"Authorization": "Basic dXNlcjpwYXNz"}  # Basic auth
+            headers={"Authorization": "Basic dXNlcjpwYXNz"},  # Basic auth
         )
 
         assert response.status_code == 401, (
@@ -390,15 +453,20 @@ class TestMCPFetchComplete:
             "MCP fetch MUST only accept Bearer tokens!"
         )
 
+
 @pytest.mark.asyncio
-async def test_complete_oauth_flow_integration(http_client, wait_for_services, mcp_test_url):
+async def test_complete_oauth_flow_integration(
+    http_client, wait_for_services, mcp_test_url
+):
     """The ultimate test - complete OAuth flow with actual functionality verification.
     This test MUST FAIL if ANY part doesn't work 100%!
     """
     # This test demonstrates what a REAL integration test should look like
     # It MUST use real OAuth tokens and verify actual functionality
 
-    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
+    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
+        "OAUTH_JWT_TOKEN"
+    )
 
     if not oauth_token:
         pytest.fail(
@@ -419,13 +487,14 @@ async def test_complete_oauth_flow_integration(http_client, wait_for_services, m
     print("Testing complete OAuth + MCP integration...")
 
     # 1. Verify auth endpoint via OAuth discovery
-    auth_response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+    auth_response = await http_client.get(
+        f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+    )
     assert auth_response.status_code == 200, "Auth service not healthy!"
 
     # 2. Verify MCP endpoint requires auth
     mcp_response = await http_client.post(
-        f"{mcp_test_url}",
-        json={"jsonrpc": "2.0", "method": "ping", "id": 1}
+        f"{mcp_test_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}
     )
     assert mcp_response.status_code == 401, "MCP not enforcing auth!"
 
@@ -447,8 +516,13 @@ async def test_complete_oauth_flow_integration(http_client, wait_for_services, m
     # 4. Make authenticated MCP tool call
     try:
         response_data = await call_mcp_tool(
-            http_client, mcp_test_url, oauth_token, session_id,
-            "fetch", {"url": "https://example.com"}, "integration-1"
+            http_client,
+            mcp_test_url,
+            oauth_token,
+            session_id,
+            "fetch",
+            {"url": "https://example.com"},
+            "integration-1",
         )
 
         # 5. MUST succeed completely

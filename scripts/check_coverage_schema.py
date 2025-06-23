@@ -2,7 +2,7 @@
 import sqlite3
 
 
-conn = sqlite3.connect('.coverage')
+conn = sqlite3.connect(".coverage")
 cursor = conn.cursor()
 
 # Get all tables

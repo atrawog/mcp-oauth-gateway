@@ -4,6 +4,7 @@
 This script demonstrates how the wildcard '*' allows any authenticated GitHub user.
 Run this after setting ALLOWED_GITHUB_USERS=* in your .env file and restarting the auth service.
 """
+
 import asyncio
 import os
 import sys
@@ -21,12 +22,14 @@ async def test_wildcard_functionality():
     auth_url = f"https://auth.{base_domain}"
 
     async with httpx.AsyncClient(verify=False) as client:
-        print("1. Testing client registration (should work regardless of ALLOWED_GITHUB_USERS)...")
+        print(
+            "1. Testing client registration (should work regardless of ALLOWED_GITHUB_USERS)..."
+        )
 
         # Register a test client
         reg_response = await client.post(
             f"{auth_url}/register",
-            json={"redirect_uris": ["https://testapp.example.com/callback"]}
+            json={"redirect_uris": ["https://testapp.example.com/callback"]},
         )
 
         if reg_response.status_code != 201:
@@ -47,13 +50,11 @@ async def test_wildcard_functionality():
             "response_type": "code",
             "state": "test-state-123",
             "code_challenge": "test-challenge-456",
-            "code_challenge_method": "S256"
+            "code_challenge_method": "S256",
         }
 
         auth_response = await client.get(
-            f"{auth_url}/authorize",
-            params=auth_params,
-            follow_redirects=False
+            f"{auth_url}/authorize", params=auth_params, follow_redirects=False
         )
 
         if auth_response.status_code != 302:
@@ -78,9 +79,12 @@ async def test_wildcard_functionality():
             print("   ✅ Any authenticated GitHub user will be allowed!")
         else:
             print(f"   ALLOWED_GITHUB_USERS is restricted to: '{allowed_users}'")
-            print("   ⚠️  Only these specific users will be allowed through GitHub OAuth")
+            print(
+                "   ⚠️  Only these specific users will be allowed through GitHub OAuth"
+            )
 
         return True
+
 
 async def main():
     print("🔍 Testing Wildcard ALLOWED_GITHUB_USERS Functionality")
@@ -100,6 +104,7 @@ async def main():
         print("❌ Test failed - check the error messages above")
 
     return 0 if success else 1
+
 
 if __name__ == "__main__":
     sys.exit(asyncio.run(main()))
