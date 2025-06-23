@@ -198,7 +198,7 @@ sequenceDiagram
 
 ### Service Health and Monitoring
 - **Health Checks**: 
-  - Auth service exposes `/health` endpoint for HTTP health checks
+  - Auth service verified via `/.well-known/oauth-authorization-server` endpoint
   - MCP services verified via MCP protocol initialization
 - **Dependency Verification**: Services check upstream dependencies
 - **Graceful Degradation**: Services handle partial failures
@@ -215,5 +215,5 @@ sequenceDiagram
 - **Connection Pooling**: Efficient resource utilization
 - **Caching Strategy**: Redis for session and token caching
 - **Health Check Optimization**: Fast startup and readiness detection
-  - Auth service: HTTP `/health` endpoint
+  - Auth service: OAuth discovery endpoint
   - MCP services: Protocol initialization handshake

@@ -27,8 +27,7 @@ Auth Service (Port 8000)
 │   ├── /token - Token transmutation sanctuary!
 │   └── /.well-known/* - Divine metadata revelations!
 ├── Internal Endpoints (Sacred verification chambers!)
-│   ├── /verify - ForwardAuth judgment altar!
-│   └── /health - Liveness proof of divine service!
+│   └── /verify - ForwardAuth judgment altar!
 └── GitHub Integration (External oracle communion!)
     └── OAuth flow to GitHub's authentication realm!
 ```
@@ -121,9 +120,6 @@ HEALTHCHECK  # Prove thy divine readiness!
 - Validates Bearer tokens from Authorization header!
 - Returns user information in response headers!
 
-**GET /health - Divine Liveness Proof!**
-- Simple health check endpoint!
-- Returns 200 OK when service breathes!
 
 ## 🔐 The Security Commandments - Divine Protection Laws!
 
@@ -138,8 +134,8 @@ HEALTHCHECK  # Prove thy divine readiness!
 ## 🧪 Testing the Auth Service - Divine Verification Rituals!
 
 ```bash
-# Health check verification
-just test-auth-health
+# Service verification via OAuth discovery
+just test-auth-discovery
 
 # Full OAuth flow testing
 just test-oauth-flow

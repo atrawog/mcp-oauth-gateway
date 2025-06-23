@@ -166,10 +166,19 @@ environment:
 
 #### Health Check Configuration
 ```yaml
+# For Auth Service - using OAuth discovery endpoint
 healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+  test: ["CMD", "curl", "-f", "-s", "http://localhost:8000/.well-known/oauth-authorization-server"]
+  interval: 10s
+  timeout: 5s
+  retries: 5
+  start_period: 30s
+
+# For MCP Services - using protocol initialization
+healthcheck:
+  test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"'$$MCP_PROTOCOL_VERSION'\",\"capabilities\":{},\"clientInfo\":{\"name\":\"healthcheck\",\"version\":\"1.0\"}},\"id\":1}' | grep -q '\"protocolVersion\":\"'$$MCP_PROTOCOL_VERSION'\"'"]
   interval: 30s
-  timeout: 10s
+  timeout: 5s
   retries: 3
   start_period: 40s
 ```
@@ -245,24 +254,28 @@ Services validate configuration at startup:
 
 ### Health Check Endpoints
 
-#### Auth Service: `/health`
+#### Auth Service: `/.well-known/oauth-authorization-server`
+The OAuth discovery endpoint serves as the health check. A successful response indicates the service is operational:
 ```json
 {
-  "status": "healthy",
-  "checks": {
-    "database": "ok",
-    "github_oauth": "ok", 
-    "jwt_keys": "ok"
-  }
+  "issuer": "https://auth.yourdomain.com",
+  "authorization_endpoint": "https://auth.yourdomain.com/authorize",
+  "token_endpoint": "https://auth.yourdomain.com/token",
+  "registration_endpoint": "https://auth.yourdomain.com/register"
 }
 ```
 
-#### MCP Services: `/health`
+#### MCP Services: Protocol Initialization
+MCP services are verified via the MCP protocol initialization handshake. A successful initialization response indicates the service is operational:
 ```json
 {
-  "status": "healthy",
-  "mcp_server": "running",
-  "protocol_version": "${MCP_PROTOCOL_VERSION:-2025-06-18}"
+  "jsonrpc": "2.0",
+  "result": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {...},
+    "serverInfo": {...}
+  },
+  "id": 1
 }
 ```
 

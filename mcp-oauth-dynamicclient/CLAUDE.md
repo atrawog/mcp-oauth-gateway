@@ -109,7 +109,6 @@ class TokenData(BaseModel):
 
 **The Internal Endpoints:**
 - `GET /verify` - ForwardAuth validation!
-- `GET /health` - Liveness check!
 
 ### auth_authlib.py - The Authlib Integration Glory!
 ```python

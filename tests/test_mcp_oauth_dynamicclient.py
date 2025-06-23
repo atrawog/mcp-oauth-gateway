@@ -38,12 +38,14 @@ class TestMCPOAuthDynamicClientPackage:
     @pytest.mark.asyncio
     async def test_auth_service_is_running(self, http_client: httpx.AsyncClient, wait_for_services):
         """Verify the auth service (using mcp-oauth-dynamicclient) is deployed and healthy"""
-        response = await http_client.get(f"{AUTH_BASE_URL}/health")
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         
         assert response.status_code == 200
-        health_data = response.json()
-        assert health_data["status"] == "healthy"
-        assert health_data["service"] == "auth"
+        oauth_data = response.json()
+        # Verify OAuth metadata indicates service is running
+        assert "issuer" in oauth_data
+        assert "authorization_endpoint" in oauth_data
+        assert "token_endpoint" in oauth_data
         
         # The auth service should report using mcp-oauth-dynamicclient
         print(f"✅ Auth service is running and healthy")

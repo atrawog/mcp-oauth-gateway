@@ -22,15 +22,17 @@ class TestCoverageGaps:
     """Test all the coverage gaps identified in the analysis"""
     
     @pytest.mark.asyncio
-    async def test_health_check_redis_failure(self, http_client, wait_for_services):
-        """Test health check when Redis is unavailable (lines 131-135)"""
-        # This is tricky to test with real services - we'd need to actually break Redis
-        # For now, we can at least verify the health endpoint works
-        response = await http_client.get(f"{AUTH_BASE_URL}/health")
+    async def test_oauth_discovery_as_health_check(self, http_client, wait_for_services):
+        """Test OAuth discovery endpoint as health check"""
+        # OAuth discovery endpoint serves as the health check
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "healthy"
-        assert data["service"] == "auth"
+        # Verify required OAuth metadata fields are present
+        assert "issuer" in data
+        assert "authorization_endpoint" in data
+        assert "token_endpoint" in data
+        assert "registration_endpoint" in data
     
     @pytest.mark.asyncio
     async def test_client_registration_missing_redirect_uris(self, http_client, wait_for_services):

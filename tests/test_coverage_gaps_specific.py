@@ -28,17 +28,17 @@ class TestHealthCheckErrors:
     """Test health check error scenarios - Lines 131-132"""
     
     @pytest.mark.asyncio
-    async def test_health_check_with_redis_down(self, http_client, wait_for_services):
-        """Test health check when Redis is temporarily unavailable"""
-        # Note: This is challenging to test without actually breaking Redis
-        # We'll test the endpoint works normally, ensuring lines are covered
-        response = await http_client.get(f"{AUTH_BASE_URL}/health")
+    async def test_oauth_discovery_health_status(self, http_client, wait_for_services):
+        """Test OAuth discovery endpoint as health indicator"""
+        # OAuth discovery endpoint now serves as health check
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         
-        # Should be healthy normally
+        # Should be accessible when service is healthy
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "healthy"
-        assert data["service"] == "auth"
+        assert "issuer" in data
+        assert "authorization_endpoint" in data
+        assert "token_endpoint" in data
 
 class TestWellKnownMetadata:
     """Test .well-known endpoint - Line 172"""

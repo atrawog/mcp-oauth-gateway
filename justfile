@@ -285,14 +285,14 @@ check-health:
 # Quick health check (simple version)
 health-quick:
     @echo "Checking service health..."
-    @curl -f https://auth.${BASE_DOMAIN}/health || echo "Auth service not healthy"
-    @curl -f https://mcp-fetch.${BASE_DOMAIN}/health || echo "MCP-fetch not healthy"
+    @curl -f https://auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server || echo "Auth service not healthy"
+    @curl -f https://mcp-fetch.${BASE_DOMAIN}/.well-known/oauth-authorization-server || echo "MCP-fetch OAuth discovery not accessible"
 
 # Check SSL certificates
 check-ssl:
     @echo "Checking SSL certificates..."
     @echo "Auth service:"
-    @curl -I https://auth.${BASE_DOMAIN}/health 2>&1 | grep -E "HTTP|SSL|certificate" || echo "Auth SSL check failed"
+    @curl -I https://auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server 2>&1 | grep -E "HTTP|SSL|certificate" || echo "Auth SSL check failed"
     @echo ""
     @echo "MCP-fetch service:"
     @curl -I https://mcp-fetch.${BASE_DOMAIN}/sse 2>&1 | grep -E "HTTP|SSL|certificate" || echo "MCP-fetch SSL check failed"

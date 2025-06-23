@@ -13,20 +13,21 @@ from .test_constants import AUTH_BASE_URL, GATEWAY_JWT_SECRET, JWT_SECRET, GATEW
 from .jwt_test_helper import encode as jwt_encode
 
 class TestHealthCheckErrors:
-    """Test health check error scenarios"""
+    """Test health check error scenarios using OAuth discovery endpoint"""
     
     @pytest.mark.asyncio
-    async def test_health_check_with_redis_connection_issues(self, http_client):
-        """Test health check when Redis has issues - triggers lines 131-132"""
-        # First verify health is OK
-        response = await http_client.get(f"{AUTH_BASE_URL}/health")
+    async def test_oauth_discovery_health_check(self, http_client):
+        """Test OAuth discovery endpoint used as health check"""
+        # Verify OAuth discovery endpoint is accessible
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         assert response.status_code == 200
         
-        # We can't easily break Redis connection in real deployment
-        # But we can at least verify the endpoint exists and returns proper format
+        # Verify it returns proper OAuth metadata
         data = response.json()
-        assert "status" in data
-        assert data["status"] == "healthy"
+        assert "issuer" in data
+        assert "authorization_endpoint" in data
+        assert "token_endpoint" in data
+        assert "registration_endpoint" in data
 
 class TestSuccessEndpoint:
     """Test the /success endpoint - covers lines 773-834"""
@@ -384,8 +385,8 @@ class TestShutdownHandler:
     async def test_app_lifecycle(self, http_client):
         """Verify app can handle shutdown gracefully - relates to line 119"""
         # We can't actually trigger shutdown in deployed service
-        # But we can verify the app is running and healthy
-        response = await http_client.get(f"{AUTH_BASE_URL}/health")
+        # But we can verify the app is running via OAuth discovery
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         assert response.status_code == 200
         
         # The shutdown handler is tested implicitly when services restart

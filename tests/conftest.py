@@ -473,9 +473,9 @@ async def refresh_and_validate_tokens(ensure_services_ready):
 @pytest.fixture
 async def wait_for_services(http_client: httpx.AsyncClient):
     """Wait for all services to be healthy before running tests"""
-    # Always check auth service
+    # Always check auth service via OAuth discovery
     services_to_check = [
-        (AUTH_BASE_URL, "/health", 200)
+        (AUTH_BASE_URL, "/.well-known/oauth-authorization-server", 200)
     ]
     
     # Check if we have MCP_TESTING_URL for general MCP testing

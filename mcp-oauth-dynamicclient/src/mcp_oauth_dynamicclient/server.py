@@ -55,19 +55,6 @@ def create_app(settings: Settings = None) -> FastAPI:
             expose_headers=["X-User-Id", "X-User-Name", "X-Auth-Token"]
         )
     
-    # Health check endpoint
-    @app.get("/health")
-    async def health_check():
-        """Divine health check - verifies all systems are blessed"""
-        try:
-            # Check Redis
-            await redis_manager.client.ping()
-            return {"status": "healthy", "service": "auth"}
-        except Exception as e:
-            return JSONResponse(
-                status_code=503,
-                content={"status": "unhealthy", "error": str(e)}
-            )
     
     # Include OAuth routes with Authlib ResourceProtector for enhanced security
     oauth_router = create_oauth_router(settings, redis_manager, auth_manager)

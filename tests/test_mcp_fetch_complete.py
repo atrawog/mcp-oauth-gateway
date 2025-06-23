@@ -428,8 +428,8 @@ async def test_complete_oauth_flow_integration(http_client, wait_for_services, m
     # Now test EVERYTHING works together
     print("Testing complete OAuth + MCP integration...")
     
-    # 1. Verify auth endpoint
-    auth_response = await http_client.get(f"{AUTH_BASE_URL}/health")
+    # 1. Verify auth endpoint via OAuth discovery
+    auth_response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
     assert auth_response.status_code == 200, "Auth service not healthy!"
     
     # 2. Verify MCP endpoint requires auth

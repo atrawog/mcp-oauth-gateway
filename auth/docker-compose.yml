@@ -43,12 +43,6 @@ services:
       - "traefik.http.routers.auth-verify.tls.certresolver=letsencrypt"
       - "traefik.http.routers.auth-verify.service=auth"
       
-      # Health check endpoint - Priority 2
-      - "traefik.http.routers.auth-health.rule=Host(`auth.${BASE_DOMAIN}`) && Path(`/health`)"
-      - "traefik.http.routers.auth-health.priority=2"
-      - "traefik.http.routers.auth-health.entrypoints=websecure"
-      - "traefik.http.routers.auth-health.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.auth-health.service=auth"
       
       # HTTP to HTTPS redirect for auth service - Priority 1 (lowest)
       - "traefik.http.routers.auth-redirect.rule=Host(`auth.${BASE_DOMAIN}`)"
@@ -61,7 +55,7 @@ services:
       - "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"
       - "traefik.http.middlewares.mcp-auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name,X-Auth-Token"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "-s", "http://localhost:8000/.well-known/oauth-authorization-server"]
       interval: 10s
       timeout: 5s
       retries: 5

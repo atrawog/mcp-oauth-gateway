@@ -91,11 +91,11 @@ docker logs mcp-oauth-gateway-auth-1
 
 **Solutions**:
 ```bash
-# Check auth service health endpoint
-curl -f https://auth.${BASE_DOMAIN}/health
+# Check auth service via OAuth discovery
+curl -f https://auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server
 
-# Check auth internal health (bypass Traefik)
-docker exec mcp-oauth-gateway-auth-1 curl -f http://localhost:8000/health
+# Check auth internal OAuth discovery (bypass Traefik)
+docker exec mcp-oauth-gateway-auth-1 curl -f http://localhost:8000/.well-known/oauth-authorization-server
 
 # Check MCP service health via protocol initialization
 curl -X POST https://mcp-fetch.${BASE_DOMAIN}/mcp \
@@ -283,7 +283,7 @@ docker network inspect public
 
 # Test inter-service communication
 docker exec mcp-oauth-gateway-auth-1 redis-cli -h redis ping
-docker exec mcp-oauth-gateway-traefik-1 curl http://auth:8000/health
+docker exec mcp-oauth-gateway-traefik-1 curl http://auth:8000/.well-known/oauth-authorization-server
 ```
 
 **Solutions**:
@@ -512,10 +512,10 @@ docker exec mcp-oauth-gateway-redis-1 redis-cli monitor
 ```bash
 # Test internal latency
 docker exec mcp-oauth-gateway-auth-1 redis-cli -h redis ping
-docker exec mcp-oauth-gateway-traefik-1 curl -w "@curl-format.txt" -o /dev/null -s http://auth:8000/health
+docker exec mcp-oauth-gateway-traefik-1 curl -w "@curl-format.txt" -o /dev/null -s http://auth:8000/.well-known/oauth-authorization-server
 
 # Test external latency for auth service
-curl -w "@curl-format.txt" -o /dev/null -s https://auth.${BASE_DOMAIN}/health
+curl -w "@curl-format.txt" -o /dev/null -s https://auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server
 
 # Test external latency for MCP service (protocol init)
 curl -w "@curl-format.txt" -o /dev/null -s -X POST https://mcp-fetch.${BASE_DOMAIN}/mcp \

@@ -29,11 +29,8 @@ class TestTraefikRouting:
         assert "issuer" in metadata
         assert metadata["issuer"] == f"https://auth.{BASE_DOMAIN}"
         
-        # Test health endpoint
-        response = await http_client.get(f"{AUTH_BASE_URL}/health")
-        assert response.status_code == 200
-        health = response.json()
-        assert health["status"] == "healthy"
+        # OAuth discovery endpoint serves as health check
+        # Already tested above
     
     @pytest.mark.asyncio
     async def test_mcp_fetch_root_requires_auth(self, http_client, wait_for_services):
@@ -114,8 +111,8 @@ class TestTraefikRouting:
         # Should get 422 for missing parameters (FastAPI validation)
         assert response.status_code == 422
         
-        # Health check should work without auth
-        response = await http_client.get(f"{AUTH_BASE_URL}/health")
+        # OAuth discovery should work without auth
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         assert response.status_code == 200
     
     @pytest.mark.asyncio
@@ -157,7 +154,7 @@ class TestTraefikRouting:
     async def test_http_to_https_redirect(self, http_client):
         """Test that HTTP requests are redirected to HTTPS"""
         # Test HTTP to HTTPS redirect for auth service
-        http_auth_url = f"http://auth.{BASE_DOMAIN}/health"
+        http_auth_url = f"http://auth.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
         
         response = await http_client.get(
             http_auth_url,
@@ -181,7 +178,7 @@ class TestTraefikRouting:
         )
         
         # Test HTTP to HTTPS redirect for MCP service
-        http_mcp_url = f"http://fetch.{BASE_DOMAIN}/health"
+        http_mcp_url = f"http://fetch.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
         
         response = await http_client.get(
             http_mcp_url,

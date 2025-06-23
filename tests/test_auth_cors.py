@@ -111,8 +111,8 @@ class TestAuthCORS:
                     "Auth headers not exposed in CORS"
                 
     def test_auth_health_endpoint_cors(self):
-        """Test that health endpoint also has CORS headers"""
-        health_url = f"https://auth.{self.base_domain}/health"
+        """Test that OAuth discovery endpoint also has CORS headers"""
+        health_url = f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
         
         # If CORS is set to wildcard, use a test origin
         if self.cors_origins == ["*"]:
@@ -126,10 +126,10 @@ class TestAuthCORS:
                 headers={"Origin": test_origin}
             )
             
-            assert response.status_code == 200, "Health check failed"
+            assert response.status_code == 200, "OAuth discovery check failed"
             
-            # Health endpoint should also have CORS headers
-            assert "access-control-allow-origin" in response.headers, "Health endpoint missing CORS headers"
+            # OAuth discovery endpoint should also have CORS headers
+            assert "access-control-allow-origin" in response.headers, "OAuth discovery endpoint missing CORS headers"
             
             # When wildcard is configured, the response may be "*" instead of the specific origin
             allowed_origin = response.headers["access-control-allow-origin"]
