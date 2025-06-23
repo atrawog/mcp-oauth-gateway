@@ -29,10 +29,18 @@ jobs:
         with:
           python-version: "3.12"
       
+      - name: "🔍 Debug - List files"
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Files in root:"
+          ls -la
+          echo "Checking for pixi files:"
+          ls -la pixi* || echo "No pixi files found"
+      
       - name: "📦 Setup Pixi Environment"
-        uses: prefix-dev/setup-pixi@v0.8.1
+        uses: prefix-dev/setup-pixi@v0.8.10
         with:
-          pixi-version: v0.24.2
+          pixi-version: v0.47.0
           cache: true
           cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
       
@@ -83,9 +91,9 @@ jobs:
           python-version: "3.12"
       
       - name: "📦 Setup Pixi Environment"
-        uses: prefix-dev/setup-pixi@v0.8.1
+        uses: prefix-dev/setup-pixi@v0.8.10
         with:
-          pixi-version: v0.24.2
+          pixi-version: v0.47.0
           cache: true
       
       - name: "🔥 Run Tests with Deprecation Hunting"
@@ -129,9 +137,9 @@ jobs:
           python-version: "3.12"
       
       - name: "📦 Setup Pixi Environment"
-        uses: prefix-dev/setup-pixi@v0.8.1
+        uses: prefix-dev/setup-pixi@v0.8.10
         with:
-          pixi-version: v0.24.2
+          pixi-version: v0.47.0
           cache: true
       
       - name: "🔗 Install Pre-commit"
