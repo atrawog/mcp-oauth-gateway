@@ -19,12 +19,6 @@
 
 **⚡ Finding root cause = divine enlightenment! ⚡**
 
-**The Heresies of Shallow Debugging:**
-- ❌ "Fixed the error" (but not WHY it happened!)
-- ❌ "Added a try/except" (bandaid on cancer!)
-- ❌ "Works on my machine" (production is thy judge!)
-- ❌ "Restarted and it worked" (randomness is Satan!)
-
 **The Path to Debugging Salvation:**
 - ✅ Reproduce reliably or face chaos!
 - ✅ Trace to the source of evil!
@@ -43,12 +37,6 @@
 - **No shortcuts** - Pain now or AGONY later!
 
 **⚡ Every mock is a lie waiting to destroy production! ⚡**
-
-**The Sins of Mocking:**
-- ❌ Mock objects that behave differently than reality!
-- ❌ Stub methods that hide integration failures!
-- ❌ Fake services that mask timing issues!
-- ❌ Patched dependencies that create false confidence!
 
 **The Path of Testing Righteousness:**
 - ✅ Docker containers for real services!
@@ -76,17 +64,6 @@
 **THE SUPREME LAW: If you're not typing "just", you're committing HERESY!**
 
 **⚡ The Sacred Path vs The Path to Damnation ⚡**
-
-**❌ BLASPHEMY - NEVER DO THIS:**
-```bash
-python script.py                    # HERESY! Direct Python execution!
-pip install package                 # BLASPHEMY! Pip is forbidden!
-docker run service                  # SACRILEGE! Docker without compose!
-pytest tests/                       # HERESY! Direct pytest execution!
-docker-compose up                   # BLASPHEMY! Use just!
-npm install                         # HERESY! Where is just?
-./scripts/deploy.sh                 # SACRILEGE! Shell scripts are forbidden!
-```
 
 **✅ THE RIGHTEOUS PATH - ALWAYS DO THIS:**
 ```bash
@@ -119,155 +96,8 @@ set quiet                        # Silence the incantations! Show only results!
 - **`just test-all`** - 🌟 The complete test suite! NEVER run tests individually!
 - **`just test-verbose`** - 📢 Verbose testing! NEVER add flags to pytest directly!
 - **`just test-sidecar-coverage`** - 🔥 The holy grail! NEVER run coverage tools directly!
-
-**⚡ DIVINE WRATH for these heresies: ⚡**
-- ❌ `pytest` - NEVER! Use `just test`!
-- ❌ `python -m pytest` - DOUBLE HERESY!
-- ❌ `coverage run` - BLASPHEMY! Use `just test-sidecar-coverage`!
-- ❌ `pixi run pytest` - STILL HERESY! Use `just test`!
-
-**🚀 The Infrastructure Commandments - OBEY OR PERISH! 🚀**
-
-**🔥 THE SECOND LAW: Docker commands are FORBIDDEN without just! 🔥**
-
-- ❌ `docker-compose up` → ✅ `just up` (Righteousness!)
-- ❌ `docker-compose down` → ✅ `just down` (Divine shutdown!)
-- ❌ `docker-compose logs` → ✅ `just logs` (Sacred logs!)
-- ❌ `docker-compose build` → ✅ `just build-all` (Holy construction!)
-- ❌ `docker ps` → ✅ `just ps` (If it doesn't exist, CREATE IT!)
-
-**⚡ Using docker commands directly = INSTANT PRODUCTION FAILURE! ⚡**
-
-- **`just up`** - 🌅 The divine awakening! Resurrects all services from docker slumber!
-- **`just up-fresh`** - 🌊 The baptism command! Fresh build with --force-recreate sanctification!
-- **`just down`** - 🌙 The peaceful sleep! Sends services to temporary docker heaven!
-- **`just build-all`** - 🏗️ The construction ritual! Builds all container temples!
-- **`just rebuild <service>`** - 🔨 The targeted resurrection! Rebuilds one service with --no-cache purity!
-- **`just rebuild-all`** - 🏗️ The phoenix command! Burns all to ash and resurrects pure!
-
-**📜 The Logging & Monitoring Psalms 📜**
-- **`just logs`** - 📝 The historical scribe! Shows last 200 log entries for divine review!
-- **`just logs-follow`** - 🔄 The eternal watcher! Follows all container confessions with -f dedication!
-- **`just logs-purge`** - 🔥 The log incinerator! Destroys all container logs via restart!
-- **`just check-health`** - 💓 The vital signs monitor! Full Python health verification ritual!
-
-**🔧 The Utility & Setup Rituals 🔧**
-- **`just ensure-services-ready`** - ⚡ The guardian at the gates! Blocks until services live!
-- **`just setup`** - 🎯 The initial blessing! First-time project sanctification!
-
-**⚡ The Sacred Script Execution Ritual - Pixi Through Just! ⚡**
-
-**Behold! The divine pattern for running scripts in ./scripts/ with blessed pixi isolation:**
-
-```justfile
-# The Sacred Pattern for Script Invocation
-test:
-    @pixi run pytest tests/ -v
-```
-
-**🔥 The Immutable Laws of Script Execution! 🔥**
-- **Always use `just`** - Never raw python or direct pixi calls. Pixi manages thy dependencies and just your environment!
-- **Always prefix with `@`** - Hide the incantation, show only results!
-- **Never use pip directly** - Pixi is thy only package shepherd!
-- **Scripts live in ./scripts/** - With __init__.py for importable glory!
-
-**⚡ Use these commands or wander in debugging purgatory forever! ⚡**
-
 **⚡ THE DIVINE WARNING: Ad Hoc Commands = ETERNAL DEBUGGING HELL! ⚡**
 
-**🔥 The Most Insidious Sin: "Just This Once" Syndrome 🔥**
-
-**THE BLASPHEMOUS THOUGHTS THAT DAMN YOU:**
-- "I'll just run this quick test..." ❌ NO! ETERNAL DEBUGGING AWAITS!
-- "It's just a one-line fix..." ❌ LIES! HOURS OF FRUITLESS DEBUGGING!
-- "I don't need just for this..." ❌ HERESY! DAYS OF CONFUSION AHEAD!
-- "It's faster without just..." ❌ BLASPHEMY! SLOWER BY INFINITY!
-
-**⚡ The Divine Truth About Ad Hoc Commands: ⚡**
-
-**When you run `python quickfix.py` instead of creating a just recipe:**
-- ❌ No environment variables loaded = MYSTERIOUS FAILURES!
-- ❌ Wrong Python version = INCOMPATIBLE CODE HELL!
-- ❌ Missing dependencies = IMPORT ERROR PURGATORY!
-- ❌ Different working directory = FILE NOT FOUND DAMNATION!
-- ❌ No one can reproduce your "fix" = TEAM DEBUGGING NIGHTMARE!
-
-**🔥 The Eternal Debugging Cycle of Ad Hoc Sinners: 🔥**
-1. Run quick command without just ❌
-2. "It works on my machine!" 😈
-3. Breaks in production 💥
-4. Hours debugging environment differences 😱
-5. "Why didn't I use just?" 😭
-6. REPEAT FOREVER IN DEBUGGING HELL! 🔥
-
-**⚡ REAL EXAMPLES OF AD HOC DAMNATION: ⚡**
-
-**The "Quick Test" Sin:**
-```bash
-# SINNER: "I'll just quickly test this..."
-python -m pytest tests/test_auth.py::test_login  # ❌ BLASPHEMY!
-# RESULT: Works locally, fails in CI = 6 HOURS DEBUGGING!
-
-# SALVATION: Use the blessed test recipe with arguments!
-# In justfile:
-test *args:
-    @pixi run pytest {{args}}
-
-# Now use: just test tests/test_auth.py::test_login -v ✅
-# Or: just test --lf  # Run last failed
-# Or: just test -k login  # Run tests matching 'login'
-```
-
-**The "Quick Fix" Heresy:**
-```bash
-# SINNER: "Just a quick database fix..."
-docker exec -it postgres psql -U admin -c "UPDATE..."  # ❌ HERESY!
-# RESULT: Wrong database, corrupted data = 2 DAYS RECOVERY!
-
-# SALVATION: Use flexible exec recipe!
-# In justfile:
-exec service *args:
-    docker-compose exec -T {{service}} {{args}}
-
-# Now use: just exec postgres psql -U $DB_USER -d $DB_NAME -c "UPDATE..." ✅
-# Or: just exec redis redis-cli FLUSHALL
-# Or: just exec auth /bin/bash
-```
-
-**The "Script Execution" Blasphemy:**
-```bash
-# SINNER: "Just running a quick script..."
-python scripts/analyze.py --debug  # ❌ SACRILEGE!
-# RESULT: Different output than production = INFINITE CONFUSION!
-
-# SALVATION: Universal script runner!
-# In justfile:
-run script *args:
-    @pixi run python scripts/{{script}}.py {{args}}
-
-# Now use: just run analyze --debug ✅
-# Or: just run migrate --dry-run
-# Or: just run backup --full
-```
-
-**⚡ THE IRON LAW OF DEBUGGING: ⚡**
-
-**Every ad hoc command creates THREE future bugs:**
-1. **The Environment Bug** - It worked with YOUR setup, not production's!
-2. **The Reproduction Bug** - No one else can run your "fix"!
-3. **The Documentation Bug** - No record of what you actually did!
-
-**🔥 THE DIVINE PROPHECY: 🔥**
-"Those who run ad hoc commands are condemned to debug the same issue FOREVER, across different environments, at 3 AM, during critical deployments, while the production server burns!"
-
-**⚡ REMEMBER: 30 seconds to create a just recipe = HOURS of debugging saved! ⚡**
-
-**⚡ The Divine Trinity Enforcement - ABSOLUTE AND UNFORGIVING! ⚡**
-
-1. **CODE REVIEWS**: REJECT any PR showing direct command execution!
-2. **DOCUMENTATION**: REJECT any docs not using just commands!
-3. **SCRIPTS**: REJECT any automation bypassing the trinity!
-4. **CI/CD**: MUST use just for ALL operations!
 
 **🔥 The Only Acceptable Commands: 🔥**
 - Commands starting with `just`
@@ -275,39 +105,6 @@ run script *args:
 - NOTHING ELSE! NO EXCEPTIONS!
 
 **⚡ Remember: If you're not typing "just", you're typing BLASPHEMY! ⚡**
-
-**🔥 The Sacred Conversion Ritual - From Heresy to Righteousness! 🔥**
-
-**Found yourself typing a direct command? STOP! Perform the ritual:**
-
-1. **REPENT** - Acknowledge your sin of direct execution!
-2. **CREATE** - Add a just recipe for this command IMMEDIATELY!
-3. **COMMIT** - Save this recipe to prevent future sin!
-4. **EXECUTE** - Run through just with divine blessing!
-
-```justfile
-# Example: The Divine Pattern of Flexible Recipes
-
-# Universal test runner with positional arguments
-test *args:
-    @pixi run pytest {{args}}
-
-# Flexible service executor
-exec service *args:
-    docker-compose exec -T {{service}} {{args}}
-
-# Script runner that takes script name and arguments
-run script *args:
-    @pixi run python scripts/{{script}}.py {{args}}
-
-# Docker operations with optional arguments
-logs service *args:
-    docker-compose logs {{service}} {{args}}
-
-# Build with optional services
-build *services:
-    docker-compose build {{services}}
-```
 
 **⚡ One flexible recipe > 100 specific commands! Use positional arguments! ⚡**
 
@@ -330,27 +127,7 @@ rebuild service="all":
     else
         docker-compose build --no-cache {{service}}
     fi
-
-# Variadic arguments for multiple targets
-clean +targets:
-    rm -rf {{targets}}
-
-# Recipe dependencies and aliases
-alias t := test
-alias r := run
-
-# Choose recipe with selection - @ shows the menu
-@choose:
-    just --choose
 ```
-
-**⚡ The Sacred Quiet Principle: ⚡**
-- With `set quiet` - Commands are silent by default (divine silence!)
-- Use `@` prefix to SHOW a command when needed
-- No `@` = quiet execution (when `set quiet` is active)
-- This is the OPPOSITE of default just behavior!
-
-**⚡ Master these patterns or create recipe sprawl! ⚡**
 
 ## 3. Sacred Project Structure or Directory Chaos
 
@@ -417,18 +194,6 @@ project/
 - **Store .env.example** - Template for mortals!
 - **Use `set dotenv-required`** - Force .env existence or face instant death!
 
-**⚡ Hardcode values = production disasters! ⚡**
-
-**🔥 The Sacred Truth of dotenv-required: 🔥**
-```justfile
-set dotenv-required  # This divine setting ensures:
-                     # ❌ No .env file = IMMEDIATE FAILURE!
-                     # ❌ No guessing at configuration!
-                     # ❌ No "works on my machine" mysteries!
-                     # ✅ Explicit configuration always!
-```
-
-**⚡ Missing .env = Your commands shall not pass! ⚡**
 
 ## 5. Docker Compose for All Services or Container Chaos
 
@@ -650,15 +415,6 @@ healthcheck:
 ```
 
 **⚡ This divine incantation performs a blessed initialization handshake! ⚡**
-
-### The Sacred Truths Revealed by This Holy Pattern
-
-**🔥 The Divine Health Check Accomplishes These Supreme Miracles:**
-1. **Performs Full Protocol Handshake** - Executes sacred `initialize` method!
-2. **Validates StreamableHTTP Transport** - Event-stream responses flow with divine grace!
-3. **Confirms Protocol Version Match** - Sacred `${MCP_PROTOCOL_VERSION}` verified dynamically!
-4. **Proves Server Readiness** - Successful initialization demonstrates full vitality!
-5. **Tests Complete MCP Flow** - From request to event-stream response perfection!
 
 **⚡ The Blessed Success Response Pattern:**
 ```
