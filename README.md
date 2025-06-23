@@ -51,10 +51,6 @@ The MCP OAuth Gateway implements a complete OAuth 2.1 Authorization Server that 
 The gateway implements a sophisticated **two-realm authentication system** that separates client registration from user authentication, providing both security and flexibility:
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                          TWO-REALM AUTHENTICATION ARCHITECTURE                  │
-└─────────────────────────────────────────────────────────────────────────────────┘
-
 ╔═══════════════════════════════════════════════════════════════════════════════════╗
 ║                    REALM 1: MCP CLIENT REGISTRATION MANAGEMENT                    ║
 ║                              (RFC 7591/7592 Compliance)                           ║
