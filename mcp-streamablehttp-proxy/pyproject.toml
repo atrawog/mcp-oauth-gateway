@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"},
+    {name = "Andreas Trawoeger"},
 ]
 keywords = ["mcp", "model-context-protocol", "proxy", "streamable-http", "stdio"]
 classifiers = [
@@ -46,10 +46,10 @@ dev = [
 mcp-streamablehttp-proxy = "mcp_streamablehttp_proxy.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/mcp-streamablehttp-proxy"
-Repository = "https://github.com/yourusername/mcp-streamablehttp-proxy.git"
-Issues = "https://github.com/yourusername/mcp-streamablehttp-proxy/issues"
-Documentation = "https://github.com/yourusername/mcp-streamablehttp-proxy#readme"
+Homepage = "https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-streamablehttp-proxy"
+Repository = "https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-streamablehttp-proxy"
+Issues = "https://github.com/atrawog/mcp-oauth-gateway/issues"
+Documentation = "https://atrawog.github.io/mcp-oauth-gateway"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mcp_streamablehttp_proxy"]

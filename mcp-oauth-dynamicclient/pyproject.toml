@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "MCP OAuth Team"},
+    {name = "Andreas Trawoeger"},
 ]
 keywords = ["oauth", "oauth2", "mcp", "dynamic-client-registration", "rfc7591"]
 classifiers = [
@@ -52,10 +52,10 @@ dev = [
 mcp-oauth-server = "mcp_oauth_dynamicclient.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/mcp-oauth-dynamicclient"
-Documentation = "https://mcp-oauth-dynamicclient.readthedocs.io"
-Repository = "https://github.com/yourusername/mcp-oauth-dynamicclient"
-Issues = "https://github.com/yourusername/mcp-oauth-dynamicclient/issues"
+Homepage = "https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-oauth-dynamicclient"
+Repository = "https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-oauth-dynamicclient"
+Issues = "https://github.com/atrawog/mcp-oauth-gateway/issues"
+Documentation = "https://atrawog.github.io/mcp-oauth-gateway"
 
 [tool.setuptools.packages.find]
 where = ["src"]
