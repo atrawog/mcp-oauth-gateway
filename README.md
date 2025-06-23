@@ -8,7 +8,7 @@ An OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Con
 
 - **Primary Purpose**: Reference implementation for MCP protocol development and testing
 - **Experimental Nature**: Used as a test platform for future MCP protocol iterations
-- **Security Disclaimer**: While we strive for security best practices, this implementation likely contains bugs and security vulnerabilities
+- **Security Disclaimer**: While this implementation strives for security best practices, this implementation likely contains bugs and security vulnerabilities
 - **Production Warning**: NOT recommended for production use without thorough security review
 - **Use at Your Own Risk**: This is experimental software intended for development and testing
 
@@ -17,11 +17,10 @@ An OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Con
 - **OAuth Authorization Server**: This gateway implements a complete OAuth 2.1 authorization server with RFC 7591 dynamic client registration
 - **GitHub as Identity Provider**: Uses GitHub OAuth for user identity verification and authentication
 - **Zero Code Modification**: Protects any MCP server without requiring changes to the server code
-- **Protocol Proxy**: Uses `mcp-streamablehttp-proxy` to bridge stdio MCP servers to HTTP endpoints
 
 ### Extensions Beyond MCP 2025-06-18 Protocol
 
-- **RFC 7592 Client Management**: This gateway and `mcp-streamablehttp-client` implement RFC 7592 (OAuth 2.0 Dynamic Client Registration Management Protocol), which is NOT part of the MCP 2025-06-18 specification. This provides complete client lifecycle management including read, update, and delete operations on registered clients.
+- **RFC 7592 Client Management**: This gateway implements RFC 7592 (OAuth 2.0 Dynamic Client Registration Management Protocol), which is NOT part of the MCP 2025-06-18 specification. This provides complete client lifecycle management including read, update, and delete operations on registered clients.
 
 ## 🚀 Quick Start
 
@@ -34,7 +33,7 @@ An OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Con
 - **Public IP address and properly configured DNS** (MANDATORY - no exceptions!)
   - All subdomains (auth.your-domain.com, fetch.your-domain.com, etc.) must resolve to your server
   - Port 80 and 443 must be accessible from the internet for Let's Encrypt certificate provisioning
-  - NO localhost development - production-ready or nothing! This is the divine law!
+
 
 ### Initial Setup
 
@@ -311,22 +310,6 @@ Full documentation is available in Jupyter Book format:
 just docs-build
 # Open docs/_build/html/index.html
 ```
-
-## 🙏 Sacred Commandments
-
-This project follows the Ten Sacred Commandments:
-
-1. **NO MOCKING** - All tests run against real services
-2. **Blessed Trinity** - just, pixi, and docker-compose only
-3. **Sacred Structure** - Prescribed directory layout
-4. **Configuration via .env** - No hardcoded values
-5. **Docker Compose** - Service isolation
-6. **Pytest with Sidecar** - Production coverage
-7. **Docker Healthchecks** - No sleep commands
-8. **Log Segregation** - All logs in ./logs/
-9. **Jupyter Book Docs** - MyST format
-10. **Root Cause Analysis** - Fix causes, not symptoms
-
 ## 📄 License
 
 Apache License 2.0 - see [LICENSE](LICENSE) file for details.

@@ -109,7 +109,7 @@ test:
 ```
 
 **🔥 The Immutable Laws of Script Execution! 🔥**
-- **Always use `just` and `@pixi run python`** - Never raw python! Pixi manages thy dependencies and just your environment!
+- **Always use `just`** - Never raw python or direct pixi calls. Pixi manages thy dependencies and just your environment!
 - **Always prefix with `@`** - Hide the incantation, show only results!
 - **Never use pip directly** - Pixi is thy only package shepherd!
 - **Scripts live in ./scripts/** - With __init__.py for importable glory!
