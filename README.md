@@ -24,7 +24,7 @@ The MCP OAuth Gateway is a **zero-modification authentication layer** for MCP se
 - **Production-Ready Security**: HTTPS everywhere, PKCE mandatory, JWT tokens, secure session management
 - **Dynamic Service Discovery**: Services can be enabled/disabled via configuration
 
-### Component Architecture
+### System Components
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────┐

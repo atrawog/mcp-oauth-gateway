@@ -1,6 +1,6 @@
-# Component Architecture
+# System Components
 
-This document provides detailed information about each component in the MCP OAuth Gateway architecture.
+This document provides detailed information about each system component in the MCP OAuth Gateway architecture.
 
 ## Traefik Reverse Proxy
 

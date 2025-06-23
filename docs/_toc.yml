@@ -8,7 +8,7 @@ chapters:
     title: Architecture
     sections:
       - file: architecture/components
-        title: Component Architecture
+        title: System Components
       - file: architecture/oauth-flow
         title: OAuth 2.1 Flow
       - file: architecture/mcp-integration
