@@ -2,6 +2,8 @@
 
 An OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Context Protocol) server without code modification. The gateway acts as an OAuth Authorization Server while using GitHub as the Identity Provider (IdP) for user authentication.
 
+📖 **[View Documentation](https://atrawog.github.io/mcp-oauth-gateway)** | 🔧 **[Installation Guide](https://atrawog.github.io/mcp-oauth-gateway/installation/quick-start.html)** | 🏗️ **[Architecture Overview](https://atrawog.github.io/mcp-oauth-gateway/architecture.html)**
+
 ## ⚠️ Important Notice
 
 **This is a reference implementation and test platform for the MCP protocol.** 
@@ -841,13 +843,15 @@ curl -X POST https://everything.${BASE_DOMAIN}/mcp \
 
 ### Documentation
 
-Full documentation is available in Jupyter Book format:
+📖 **[View the full documentation online](https://atrawog.github.io/mcp-oauth-gateway)**
+
+The documentation is also available locally in Jupyter Book format:
 
 ```bash
-# Build documentation
+# Build documentation locally
 just docs-build
 
-# Open in browser
+# Open local build in browser
 open docs/_build/html/index.html
 ```
 
