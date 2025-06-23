@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Properly fix all MCP service docker-compose files."""
 
-import yaml
 from pathlib import Path
+
 
 # Actual protocol versions supported by each service
 SERVICE_PROTOCOL_VERSIONS = {
@@ -20,38 +20,31 @@ SERVICE_PROTOCOL_VERSIONS = {
 def fix_docker_compose(service_name, protocol_version):
     """Fix docker-compose.yml for a service."""
     compose_file = Path(f'/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml')
-    
+
     if not compose_file.exists():
         print(f"❌ {compose_file} not found")
         return False
-    
+
     # Read the file
-    with open(compose_file, 'r') as f:
+    with open(compose_file) as f:
         content = f.read()
-    
+
     # Fix duplicate MCP_PROTOCOL_VERSION lines
     lines = content.split('\n')
     fixed_lines = []
     seen_mcp_protocol = False
-    
+
     for line in lines:
         # Skip duplicate MCP_PROTOCOL_VERSION lines
-        if '- MCP_PROTOCOL_VERSION=' in line:
+        if '- MCP_PROTOCOL_VERSION=' in line or line.strip().startswith('P25-') or line.strip().startswith('P24-'):
             if not seen_mcp_protocol:
                 fixed_lines.append(f'      - MCP_PROTOCOL_VERSION={protocol_version}')
                 seen_mcp_protocol = True
             continue
-        # Fix corrupted lines
-        elif line.strip().startswith('P25-') or line.strip().startswith('P24-'):
-            if not seen_mcp_protocol:
-                fixed_lines.append(f'      - MCP_PROTOCOL_VERSION={protocol_version}')
-                seen_mcp_protocol = True
-            continue
-        else:
-            fixed_lines.append(line)
-    
+        fixed_lines.append(line)
+
     content = '\n'.join(fixed_lines)
-    
+
     # Now fix the healthcheck to use ${MCP_PROTOCOL_VERSION}
     # This is the divine pattern from CLAUDE.md
     healthcheck_template = '''    healthcheck:
@@ -64,12 +57,12 @@ def fix_docker_compose(service_name, protocol_version):
       timeout: 5s
       retries: 3
       start_period: 40s'''
-    
+
     # Find and replace the healthcheck section
     import re
     healthcheck_pattern = r'healthcheck:.*?(?=\n(?:networks:|$))'
     content = re.sub(healthcheck_pattern, healthcheck_template.strip(), content, flags=re.DOTALL)
-    
+
     # Ensure environment section exists and has MCP_PROTOCOL_VERSION
     if not seen_mcp_protocol and 'environment:' in content:
         # Add MCP_PROTOCOL_VERSION after environment:
@@ -83,26 +76,26 @@ def fix_docker_compose(service_name, protocol_version):
                 lines.insert(j, f'      - MCP_PROTOCOL_VERSION={protocol_version}')
                 break
         content = '\n'.join(lines)
-    
+
     # Write the fixed content
     with open(compose_file, 'w') as f:
         f.write(content)
-    
+
     print(f"✅ Fixed {service_name}:")
     print(f"   - MCP_PROTOCOL_VERSION={protocol_version}")
-    print(f"   - Healthcheck uses ${{MCP_PROTOCOL_VERSION}}")
+    print("   - Healthcheck uses ${MCP_PROTOCOL_VERSION}")
     return True
 
 def main():
     """Fix all services."""
     print("🔥 Fixing all MCP services per divine CLAUDE.md commandments! ⚡\n")
-    
+
     updated = 0
     for service, version in SERVICE_PROTOCOL_VERSIONS.items():
         if fix_docker_compose(service, version):
             updated += 1
         print()
-    
+
     print(f"✅ Updated {updated}/{len(SERVICE_PROTOCOL_VERSIONS)} services")
     print("\n⚡ Divine configuration achieved! ⚡")
     print("Each service now uses ${{MCP_PROTOCOL_VERSION}} in healthchecks!")

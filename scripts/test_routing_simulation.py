@@ -1,23 +1,18 @@
 #!/usr/bin/env python3
-"""
-Simulate what happens with different Traefik routing configurations
-"""
+"""Simulate what happens with different Traefik routing configurations."""
 
 def test_traefik_routing(path, rules):
-    """Simulate Traefik routing decision"""
+    """Simulate Traefik routing decision."""
     print(f"\nTesting path: {path}")
     print("-" * 50)
-    
+
     for rule_name, rule_config in rules.items():
         rule = rule_config["rule"]
         priority = rule_config.get("priority", 0)
-        
+
         # Simulate rule matching
-        if "Host(`mcp-fetch.domain.com`)" in rule:
-            host_match = True
-        else:
-            host_match = False
-            
+        host_match = "Host(`mcp-fetch.domain.com`)" in rule
+
         if "PathPrefix(`/mcp`)" in rule:
             path_match = path.startswith("/mcp")
         elif "Path(`/health`)" in rule:
@@ -27,18 +22,18 @@ def test_traefik_routing(path, rules):
             path_match = True
         else:
             path_match = False
-            
+
         total_match = host_match and path_match
-        
+
         print(f"Rule: {rule_name}")
         print(f"  Rule: {rule}")
         print(f"  Priority: {priority}")
         print(f"  Host match: {host_match}")
         print(f"  Path match: {path_match}")
         print(f"  Total match: {total_match}")
-        
+
         if total_match:
-            print(f"  ✓ This rule would handle the request!")
+            print("  ✓ This rule would handle the request!")
 
 # Original configuration (missing PathPrefix)
 print("\n" + "="*70)

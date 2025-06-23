@@ -1,11 +1,13 @@
-"""Basic health test to verify connectivity using OAuth discovery endpoint"""
-import pytest
+"""Basic health test to verify connectivity using OAuth discovery endpoint."""
 import httpx
+import pytest
+
 from .test_constants import AUTH_BASE_URL
 
-@pytest.mark.asyncio 
+
+@pytest.mark.asyncio
 async def test_auth_oauth_discovery_health():
-    """Test auth service health via OAuth discovery endpoint"""
+    """Test auth service health via OAuth discovery endpoint."""
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         assert response.status_code == 200
@@ -15,11 +17,11 @@ async def test_auth_oauth_discovery_health():
         assert "authorization_endpoint" in data
         assert "token_endpoint" in data
         assert "registration_endpoint" in data
-        
-        
+
+
 @pytest.mark.asyncio
 async def test_auth_metadata_basic():
-    """Test auth metadata endpoint"""
+    """Test auth metadata endpoint."""
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         print(f"Status: {response.status_code}")

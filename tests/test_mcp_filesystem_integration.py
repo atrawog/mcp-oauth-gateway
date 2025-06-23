@@ -1,15 +1,10 @@
 """Integration tests for the MCP Filesystem service following sacred testing commandments."""
-import json
+
 import pytest
-import httpx
-import time
-import secrets
-from .test_constants import (
-    AUTH_BASE_URL,
-    BASE_DOMAIN,
-    GATEWAY_OAUTH_ACCESS_TOKEN,
-    TEST_HTTP_TIMEOUT
-)
+
+from .test_constants import BASE_DOMAIN
+from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import TEST_HTTP_TIMEOUT
 
 
 class TestMCPFilesystemIntegration:
@@ -23,7 +18,7 @@ class TestMCPFilesystemIntegration:
             f"{mcp_filesystem_url}/health",
             timeout=TEST_HTTP_TIMEOUT
         )
-        
+
         assert response.status_code == 401, \
             f"Health check must require authentication per divine CLAUDE.md: {response.status_code} - {response.text}"
 
@@ -42,7 +37,7 @@ class TestMCPFilesystemIntegration:
             headers={"Content-Type": "application/json"},
             timeout=TEST_HTTP_TIMEOUT
         )
-        
+
         assert response.status_code == 401, \
             f"Expected 401 without auth, got {response.status_code}"
 
@@ -51,7 +46,7 @@ class TestMCPFilesystemIntegration:
         """Test filesystem directory listing with authentication."""
         # Use the gateway token from environment
         token = GATEWAY_OAUTH_ACCESS_TOKEN
-        
+
         # List workspace directory
         response = await http_client.post(
             f"{mcp_filesystem_url}",
@@ -68,10 +63,10 @@ class TestMCPFilesystemIntegration:
             },
             timeout=TEST_HTTP_TIMEOUT
         )
-        
+
         assert response.status_code == 200, \
             f"List request failed: {response.status_code} - {response.text}"
-        
+
         result = response.json()
         assert "result" in result or "error" in result, \
             f"Invalid response format: {result}"
@@ -81,7 +76,7 @@ class TestMCPFilesystemIntegration:
         """Test filesystem file reading with authentication."""
         # Use the gateway token from environment
         token = GATEWAY_OAUTH_ACCESS_TOKEN
-        
+
         # First initialize the session
         init_response = await http_client.post(
             f"{mcp_filesystem_url}",
@@ -105,19 +100,19 @@ class TestMCPFilesystemIntegration:
             },
             timeout=TEST_HTTP_TIMEOUT
         )
-        
+
         assert init_response.status_code == 200, \
             f"Initialize failed: {init_response.status_code} - {init_response.text}"
-        
+
         # Extract session ID if provided
         session_id = None
         if "Mcp-Session-Id" in init_response.headers:
             session_id = init_response.headers["Mcp-Session-Id"]
-        
+
         # Check the initialize response
         init_result = init_response.json()
         assert "result" in init_result, f"Initialize response missing result: {init_result}"
-        
+
         # Send initialized notification (no ID for notifications)
         initialized_headers = {
             "Authorization": f"Bearer {token}",
@@ -126,7 +121,7 @@ class TestMCPFilesystemIntegration:
         }
         if session_id:
             initialized_headers["Mcp-Session-Id"] = session_id
-            
+
         # Send notification without expecting a response
         await http_client.post(
             f"{mcp_filesystem_url}",
@@ -139,7 +134,7 @@ class TestMCPFilesystemIntegration:
             headers=initialized_headers,
             timeout=TEST_HTTP_TIMEOUT
         )
-        
+
         # Now read the test file
         headers = {
             "Authorization": f"Bearer {token}",
@@ -148,7 +143,7 @@ class TestMCPFilesystemIntegration:
         }
         if session_id:
             headers["Mcp-Session-Id"] = session_id
-            
+
         response = await http_client.post(
             f"{mcp_filesystem_url}",
             json={
@@ -163,14 +158,14 @@ class TestMCPFilesystemIntegration:
             headers=headers,
             timeout=TEST_HTTP_TIMEOUT
         )
-        
+
         assert response.status_code == 200, \
             f"Read request failed: {response.status_code} - {response.text}"
-        
+
         result = response.json()
         assert "result" in result or "error" in result, \
             f"Invalid response format: {result}"
-        
+
         # If successful, content should contain our test text
         if "result" in result:
             result_content = result["result"]
@@ -189,18 +184,18 @@ class TestMCPFilesystemIntegration:
         """Test that OAuth discovery endpoint is accessible on filesystem subdomain."""
         # Use base domain for OAuth discovery, not the /mcp endpoint
         oauth_discovery_url = f"https://filesystem.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
-        
+
         # OAuth discovery should be publicly accessible
         response = await http_client.get(
             oauth_discovery_url,
             timeout=TEST_HTTP_TIMEOUT,
             follow_redirects=False
         )
-        
+
         # Should either return metadata directly or redirect to auth service
         assert response.status_code in [200, 302, 307], \
             f"OAuth discovery failed: {response.status_code} - {response.text}"
-        
+
         if response.status_code == 200:
             # Verify it's valid OAuth metadata
             metadata = response.json()
@@ -221,7 +216,7 @@ class TestMCPFilesystemIntegration:
             },
             timeout=TEST_HTTP_TIMEOUT
         )
-        
+
         # CORS preflight should return 200 or 204
         assert response.status_code in [200, 204], \
             f"CORS preflight failed: {response.status_code}"

@@ -1,16 +1,16 @@
 """Comprehensive tests for mcp-time service using mcp-streamablehttp-client."""
 
 import json
-import asyncio
-import pytest
-import subprocess
 import os
+import subprocess
 import uuid
-from typing import Dict, Any, List
-from datetime import datetime
+from typing import Any
 
-from tests.conftest import ensure_services_ready
-from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN, MCP_PROTOCOL_VERSIONS_SUPPORTED, MCP_PROTOCOL_VERSION
+import pytest
+
+from tests.test_constants import MCP_CLIENT_ACCESS_TOKEN
+from tests.test_constants import MCP_PROTOCOL_VERSION
+from tests.test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 
 
 @pytest.fixture
@@ -27,37 +27,37 @@ async def wait_for_services():
 
 class TestMCPTimeComprehensive:
     """Comprehensive tests for mcp-time service functionality."""
-    
-    def run_mcp_client_command(self, url: str, token: str, command: str) -> Dict[str, Any]:
+
+    def run_mcp_client_command(self, url: str, token: str, command: str) -> dict[str, Any]:
         """Run mcp-streamablehttp-client with a command and return the response."""
         # Set environment variables
         env = os.environ.copy()
         env["MCP_SERVER_URL"] = url
         env["MCP_CLIENT_ACCESS_TOKEN"] = token
-        
+
         # Build the command
         cmd = [
             "pixi", "run", "mcp-streamablehttp-client",
             "--server-url", url,
             "--command", command
         ]
-        
+
         # Run the command
         result = subprocess.run(
             cmd,
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
             timeout=30,
             env=env
         )
-        
+
         if result.returncode != 0:
             pytest.fail(f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}")
-        
+
         # Parse the output to find the actual response
         output = result.stdout
         lines = output.split('\\n')
-        
+
         # Look for lines that contain JSON responses
         for line in lines:
             line = line.strip()
@@ -67,57 +67,57 @@ class TestMCPTimeComprehensive:
                     return response_data
                 except json.JSONDecodeError:
                     continue
-        
+
         # If no JSON found, return the raw output for analysis
         return {"raw_output": output, "stderr": result.stderr}
-    
-    def run_mcp_client_raw(self, url: str, token: str, method: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+
+    def run_mcp_client_raw(self, url: str, token: str, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Run mcp-streamablehttp-client with raw JSON-RPC and return the response."""
         # Set environment variables
         env = os.environ.copy()
         env["MCP_SERVER_URL"] = url
         env["MCP_CLIENT_ACCESS_TOKEN"] = token
-        
+
         # Build the raw JSON-RPC request
         request = {
             "jsonrpc": "2.0",
             "method": method,
             "params": params or {}
         }
-        
+
         # Add ID for requests (not notifications)
         if method != "notifications/initialized":
             request["id"] = f"test-{method.replace('/', '-')}-{uuid.uuid4().hex[:8]}"
-        
+
         # Convert to JSON string - use compact format to avoid issues
         raw_request = json.dumps(request, separators=(',', ':'))
-        
+
         # Build the command
         cmd = [
             "pixi", "run", "mcp-streamablehttp-client",
             "--server-url", url,
             "--raw", raw_request
         ]
-        
+
         # Run the command
         result = subprocess.run(
             cmd,
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
             timeout=30,
             env=env
         )
-        
+
         if result.returncode != 0:
             # Check if it's an expected error
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}")
-        
+
         # Parse the output - find the JSON response
         try:
             output = result.stdout
-            
+
             # Find all JSON objects in the output
             json_objects = []
             i = 0
@@ -127,7 +127,7 @@ class TestMCPTimeComprehensive:
                     brace_count = 0
                     json_start = i
                     json_end = i
-                    
+
                     for j in range(i, len(output)):
                         if output[j] == '{':
                             brace_count += 1
@@ -136,7 +136,7 @@ class TestMCPTimeComprehensive:
                             if brace_count == 0:
                                 json_end = j + 1
                                 break
-                    
+
                     if brace_count == 0:
                         json_str = output[json_start:json_end]
                         try:
@@ -151,17 +151,17 @@ class TestMCPTimeComprehensive:
                         i += 1
                 else:
                     i += 1
-            
+
             if not json_objects:
                 return {"raw_output": output, "stderr": result.stderr}
-            
+
             # Return the last JSON-RPC response
             response = json_objects[-1]
             return response
-            
+
         except Exception as e:
             pytest.fail(f"Failed to parse JSON response: {e}\\nOutput: {result.stdout}")
-    
+
     def initialize_session(self, url: str, token: str) -> None:
         """Initialize a new MCP session."""
         response = self.run_mcp_client_raw(
@@ -182,7 +182,7 @@ class TestMCPTimeComprehensive:
             }
         )
         assert "result" in response, f"Initialize failed: {response}"
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_time_tool_discovery(self, mcp_time_url, client_token, wait_for_services):
@@ -190,7 +190,7 @@ class TestMCPTimeComprehensive:
         time_url = f"{mcp_time_url}"
         # Initialize session
         self.initialize_session(time_url, client_token)
-        
+
         # List available tools
         response = self.run_mcp_client_raw(
             url=time_url,
@@ -198,27 +198,27 @@ class TestMCPTimeComprehensive:
             method="tools/list",
             params={}
         )
-        
+
         assert "result" in response
         tools = response["result"]["tools"]
         assert isinstance(tools, list)
         assert len(tools) >= 2
-        
+
         # Check for expected tools
         tool_names = [tool["name"] for tool in tools]
         assert "get_current_time" in tool_names
         assert "convert_time" in tool_names
-        
+
         # Get tool details
         get_current_time_tool = next(tool for tool in tools if tool["name"] == "get_current_time")
         convert_time_tool = next(tool for tool in tools if tool["name"] == "convert_time")
-        
+
         # Verify get_current_time tool structure
         assert "description" in get_current_time_tool
         assert "inputSchema" in get_current_time_tool
         assert "properties" in get_current_time_tool["inputSchema"]
         assert "timezone" in get_current_time_tool["inputSchema"]["properties"]
-        
+
         # Verify convert_time tool structure
         assert "description" in convert_time_tool
         assert "inputSchema" in convert_time_tool
@@ -226,11 +226,11 @@ class TestMCPTimeComprehensive:
         assert "source_timezone" in properties
         assert "time" in properties
         assert "target_timezone" in properties
-        
+
         print(f"Time tools found: {tool_names}")
         print(f"get_current_time description: {get_current_time_tool['description']}")
         print(f"convert_time description: {convert_time_tool['description']}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_get_current_time_utc(self, mcp_time_url, client_token, wait_for_services):
@@ -238,7 +238,7 @@ class TestMCPTimeComprehensive:
         time_url = f"{mcp_time_url}"
         # Initialize session
         self.initialize_session(time_url, client_token)
-        
+
         # Get current time in UTC
         response = self.run_mcp_client_raw(
             url=time_url,
@@ -251,20 +251,20 @@ class TestMCPTimeComprehensive:
                 }
             }
         )
-        
+
         print(f"UTC time response: {json.dumps(response, indent=2)}")
-        
+
         assert "result" in response
         assert "content" in response["result"]
         content = response["result"]["content"]
         assert isinstance(content, list)
         assert len(content) > 0
-        
+
         # Parse the text content
         text_content = content[0]["text"]
         assert "UTC" in text_content
         print(f"Current UTC time: {text_content}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_get_current_time_major_timezones(self, mcp_time_url, client_token, wait_for_services):
@@ -272,18 +272,18 @@ class TestMCPTimeComprehensive:
         time_url = f"{mcp_time_url}"
         # Initialize session
         self.initialize_session(time_url, client_token)
-        
+
         # Test major timezones
         timezones = [
             "America/New_York",
-            "America/Los_Angeles", 
+            "America/Los_Angeles",
             "Europe/London",
             "Europe/Paris",
             "Asia/Tokyo",
             "Asia/Shanghai",
             "Australia/Sydney"
         ]
-        
+
         for timezone in timezones:
             response = self.run_mcp_client_raw(
                 url=time_url,
@@ -296,9 +296,9 @@ class TestMCPTimeComprehensive:
                     }
                 }
             )
-            
+
             print(f"Time in {timezone}: {response}")
-            
+
             # Should get either a result or an error
             assert "result" in response or "error" in response
             if "result" in response:
@@ -311,7 +311,7 @@ class TestMCPTimeComprehensive:
                 print(f"✅ {timezone}: {text_content}")
             else:
                 print(f"❌ {timezone}: {response['error']}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_convert_time_basic(self, mcp_time_url, client_token, wait_for_services):
@@ -319,7 +319,7 @@ class TestMCPTimeComprehensive:
         time_url = f"{mcp_time_url}"
         # Initialize session
         self.initialize_session(time_url, client_token)
-        
+
         # Convert 2:30 PM EST to PST
         response = self.run_mcp_client_raw(
             url=time_url,
@@ -334,9 +334,9 @@ class TestMCPTimeComprehensive:
                 }
             }
         )
-        
+
         print(f"Time conversion response: {json.dumps(response, indent=2)}")
-        
+
         assert "result" in response or "error" in response
         if "result" in response:
             content = response["result"]["content"]
@@ -349,7 +349,7 @@ class TestMCPTimeComprehensive:
             print(f"✅ Time conversion successful: {text_content}")
         else:
             print(f"Time conversion error: {response['error']}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_convert_time_global_business_hours(self, mcp_time_url, client_token, wait_for_services):
@@ -357,7 +357,7 @@ class TestMCPTimeComprehensive:
         time_url = f"{mcp_time_url}"
         # Initialize session
         self.initialize_session(time_url, client_token)
-        
+
         # Convert 9 AM business hours across major business centers
         conversions = [
             {
@@ -368,7 +368,7 @@ class TestMCPTimeComprehensive:
             },
             {
                 "name": "London to Tokyo",
-                "source": "Europe/London", 
+                "source": "Europe/London",
                 "target": "Asia/Tokyo",
                 "time": "09:00"
             },
@@ -379,9 +379,9 @@ class TestMCPTimeComprehensive:
                 "time": "09:00"
             }
         ]
-        
+
         successful_conversions = 0
-        
+
         for conversion in conversions:
             response = self.run_mcp_client_raw(
                 url=time_url,
@@ -396,9 +396,9 @@ class TestMCPTimeComprehensive:
                     }
                 }
             )
-            
+
             print(f"\\n{conversion['name']} (9 AM): {response}")
-            
+
             if "result" in response:
                 content = response["result"]["content"]
                 if isinstance(content, list) and len(content) > 0:
@@ -407,10 +407,10 @@ class TestMCPTimeComprehensive:
                     successful_conversions += 1
             else:
                 print(f"❌ {conversion['name']}: Failed")
-        
+
         # At least some conversions should work
         assert successful_conversions >= 2, f"Expected at least 2 successful conversions, got {successful_conversions}"
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_convert_time_edge_cases(self, mcp_time_url, client_token, wait_for_services):
@@ -418,7 +418,7 @@ class TestMCPTimeComprehensive:
         time_url = f"{mcp_time_url}"
         # Initialize session
         self.initialize_session(time_url, client_token)
-        
+
         # Test various time formats and edge cases
         test_cases = [
             {
@@ -428,7 +428,7 @@ class TestMCPTimeComprehensive:
                 "time": "00:00"
             },
             {
-                "name": "End of day conversion", 
+                "name": "End of day conversion",
                 "source": "UTC",
                 "target": "Asia/Tokyo",
                 "time": "23:59"
@@ -440,7 +440,7 @@ class TestMCPTimeComprehensive:
                 "time": "15:30:45"
             }
         ]
-        
+
         for test_case in test_cases:
             response = self.run_mcp_client_raw(
                 url=time_url,
@@ -455,16 +455,16 @@ class TestMCPTimeComprehensive:
                     }
                 }
             )
-            
+
             print(f"\\n{test_case['name']}: {response}")
-            
+
             # Should get either a result or an error (both are acceptable for edge cases)
             assert "result" in response or "error" in response
             if "result" in response:
                 print(f"✅ {test_case['name']}: Success")
             else:
                 print(f"⚠️ {test_case['name']}: {response.get('error', 'Unknown error')}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_time_error_handling(self, mcp_time_url, client_token, wait_for_services):
@@ -472,7 +472,7 @@ class TestMCPTimeComprehensive:
         time_url = f"{mcp_time_url}"
         # Initialize session
         self.initialize_session(time_url, client_token)
-        
+
         # Test invalid timezone
         invalid_timezone_response = self.run_mcp_client_raw(
             url=time_url,
@@ -485,9 +485,9 @@ class TestMCPTimeComprehensive:
                 }
             }
         )
-        
+
         print(f"Invalid timezone response: {json.dumps(invalid_timezone_response, indent=2)}")
-        
+
         # Should get an error or a result with error content
         if "error" in invalid_timezone_response:
             print("Tool correctly returned JSON-RPC error for invalid timezone")
@@ -500,7 +500,7 @@ class TestMCPTimeComprehensive:
                     print("Tool correctly returned error in content for invalid timezone")
                 else:
                     print(f"Unexpected response for invalid timezone: {text_content}")
-        
+
         # Test invalid time format
         invalid_time_response = self.run_mcp_client_raw(
             url=time_url,
@@ -515,12 +515,12 @@ class TestMCPTimeComprehensive:
                 }
             }
         )
-        
+
         print(f"Invalid time format response: {json.dumps(invalid_time_response, indent=2)}")
-        
+
         # Should handle invalid time format gracefully
         assert "result" in invalid_time_response or "error" in invalid_time_response
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_time_timezone_detection(self, mcp_time_url, client_token, wait_for_services):
@@ -528,20 +528,20 @@ class TestMCPTimeComprehensive:
         time_url = f"{mcp_time_url}"
         # Initialize session
         self.initialize_session(time_url, client_token)
-        
+
         # Test various valid IANA timezone formats
         valid_timezones = [
             "UTC",
-            "GMT", 
+            "GMT",
             "America/New_York",
             "Europe/London",
             "Asia/Tokyo",
             "Australia/Sydney",
             "Pacific/Auckland"
         ]
-        
+
         successful_queries = 0
-        
+
         for timezone in valid_timezones:
             response = self.run_mcp_client_raw(
                 url=time_url,
@@ -554,7 +554,7 @@ class TestMCPTimeComprehensive:
                     }
                 }
             )
-            
+
             if "result" in response:
                 content = response["result"]["content"]
                 if isinstance(content, list) and len(content) > 0:
@@ -562,11 +562,11 @@ class TestMCPTimeComprehensive:
                     print(f"✅ {timezone}: Valid")
             else:
                 print(f"❌ {timezone}: Failed")
-        
+
         # Most valid timezones should work
         assert successful_queries >= 5, f"Expected at least 5 successful timezone queries, got {successful_queries}"
         print(f"Successfully queried {successful_queries}/{len(valid_timezones)} timezones")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_time_complete_workflow(self, mcp_time_url, client_token, wait_for_services):
@@ -574,9 +574,9 @@ class TestMCPTimeComprehensive:
         time_url = f"{mcp_time_url}"
         # Initialize session
         self.initialize_session(time_url, client_token)
-        
+
         print("\\n=== Starting Complete Time Workflow ===")
-        
+
         # Step 1: Get current time in UTC
         utc_response = self.run_mcp_client_raw(
             url=time_url,
@@ -590,7 +590,7 @@ class TestMCPTimeComprehensive:
             }
         )
         print(f"Step 1 - Get UTC time: {'✅ Success' if 'result' in utc_response else '❌ Error'}")
-        
+
         # Step 2: Get current time in New York
         ny_response = self.run_mcp_client_raw(
             url=time_url,
@@ -604,7 +604,7 @@ class TestMCPTimeComprehensive:
             }
         )
         print(f"Step 2 - Get New York time: {'✅ Success' if 'result' in ny_response else '❌ Error'}")
-        
+
         # Step 3: Convert 3 PM New York time to Tokyo
         conversion_response = self.run_mcp_client_raw(
             url=time_url,
@@ -620,7 +620,7 @@ class TestMCPTimeComprehensive:
             }
         )
         print(f"Step 3 - Convert NY to Tokyo: {'✅ Success' if 'result' in conversion_response else '❌ Error'}")
-        
+
         # Step 4: Convert morning Tokyo time back to London
         reverse_conversion = self.run_mcp_client_raw(
             url=time_url,
@@ -636,14 +636,14 @@ class TestMCPTimeComprehensive:
             }
         )
         print(f"Step 4 - Convert Tokyo to London: {'✅ Success' if 'result' in reverse_conversion else '❌ Error'}")
-        
+
         print("=== Time Workflow Complete ===\\n")
-        
+
         # Verify at least most steps succeeded
         successful_steps = sum(1 for step in [utc_response, ny_response, conversion_response, reverse_conversion] if "result" in step)
         print(f"Successfully completed {successful_steps}/4 time operations")
         assert successful_steps >= 3, f"Expected at least 3 successful steps, got {successful_steps}"
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_time_protocol_compliance(self, mcp_time_url, client_token, wait_for_services):
@@ -660,29 +660,29 @@ class TestMCPTimeComprehensive:
                 "clientInfo": {"name": "protocol-test-client", "version": "1.0.0"}
             }
         )
-        
+
         assert "result" in init_response
         result = init_response["result"]
-        
+
         # Verify protocol version compatibility
         assert result["protocolVersion"] in MCP_PROTOCOL_VERSIONS_SUPPORTED
-        
+
         # Verify server info
         assert "serverInfo" in result
         server_info = result["serverInfo"]
         assert "name" in server_info
         assert "version" in server_info
-        
+
         # Verify capabilities
         assert "capabilities" in result
         capabilities = result["capabilities"]
         assert "tools" in capabilities  # Time should support tools
-        
-        print(f"✅ Protocol compliance verified")
+
+        print("✅ Protocol compliance verified")
         print(f"  Server: {server_info['name']} v{server_info['version']}")
         print(f"  Protocol: {result['protocolVersion']}")
         print(f"  Capabilities: {list(capabilities.keys())}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_time_performance_batch(self, mcp_time_url, client_token, wait_for_services):
@@ -690,16 +690,16 @@ class TestMCPTimeComprehensive:
         time_url = f"{mcp_time_url}"
         # Initialize session
         self.initialize_session(time_url, client_token)
-        
+
         print("\\n=== Testing Time Service Performance ===")
-        
+
         # Batch of timezone queries
         timezones = [
             "UTC", "America/New_York", "Europe/London", "Asia/Tokyo", "Australia/Sydney"
         ]
-        
+
         successful_requests = 0
-        
+
         for i, timezone in enumerate(timezones, 1):
             response = self.run_mcp_client_raw(
                 url=time_url,
@@ -712,14 +712,14 @@ class TestMCPTimeComprehensive:
                     }
                 }
             )
-            
+
             if "result" in response:
                 successful_requests += 1
                 print(f"Request {i}/5 ({timezone}): ✅ Success")
             else:
                 print(f"Request {i}/5 ({timezone}): ❌ Failed")
-        
+
         print(f"=== Performance Test Complete: {successful_requests}/5 successful ===\\n")
-        
+
         # Most requests should succeed
         assert successful_requests >= 4, f"Expected at least 4 successful requests, got {successful_requests}"

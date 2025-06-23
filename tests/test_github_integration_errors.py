@@ -1,22 +1,22 @@
+"""Test GitHub OAuth integration error scenarios
+Following CLAUDE.md: Real tests against real GitHub API.
 """
-Test GitHub OAuth integration error scenarios
-Following CLAUDE.md: Real tests against real GitHub API
-"""
+from urllib.parse import parse_qs
+from urllib.parse import urlparse
+
 import pytest
-import httpx
-import secrets
-import json
-import time
-import asyncio
-from urllib.parse import urlparse, parse_qs
-from .test_constants import AUTH_BASE_URL, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GATEWAY_OAUTH_CLIENT_ID, GATEWAY_OAUTH_CLIENT_SECRET
+
+from .test_constants import AUTH_BASE_URL
+from .test_constants import GATEWAY_OAUTH_CLIENT_ID
+from .test_constants import GATEWAY_OAUTH_CLIENT_SECRET
+
 
 class TestGitHubCallbackErrors:
-    """Test GitHub OAuth callback error scenarios"""
-    
+    """Test GitHub OAuth callback error scenarios."""
+
     @pytest.mark.asyncio
     async def test_callback_with_invalid_state(self, http_client):
-        """Test callback with invalid state - covers error path"""
+        """Test callback with invalid state - covers error path."""
         # Use an invalid state that doesn't exist in Redis
         response = await http_client.get(
             f"{AUTH_BASE_URL}/callback",
@@ -26,7 +26,7 @@ class TestGitHubCallbackErrors:
             },
             follow_redirects=False
         )
-        
+
         # Should return error
         assert response.status_code == 400
         error = response.json()
@@ -34,11 +34,11 @@ class TestGitHubCallbackErrors:
         assert "Invalid or expired state" in error["detail"]["error_description"]
 
 class TestRealOAuthFlowErrors:
-    """Test real OAuth flow error scenarios"""
-    
+    """Test real OAuth flow error scenarios."""
+
     @pytest.mark.asyncio
     async def test_complete_flow_with_valid_client(self, http_client):
-        """Test OAuth flow with valid client"""
+        """Test OAuth flow with valid client."""
         # Start authorization flow
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
@@ -51,23 +51,23 @@ class TestRealOAuthFlowErrors:
             },
             follow_redirects=False
         )
-        
+
         # Should redirect to GitHub
         assert response.status_code == 307
         location = response.headers["location"]
         assert "github.com/login/oauth/authorize" in location
-        
+
         # Extract GitHub state
         parsed = urlparse(location)
         params = parse_qs(parsed.query)
         github_state = params["state"][0]
-        
+
         # State should be stored in Redis
         assert github_state is not None
-    
+
     @pytest.mark.asyncio
     async def test_token_exchange_with_expired_code(self, http_client):
-        """Test token exchange with expired authorization code"""
+        """Test token exchange with expired authorization code."""
         # Try to exchange a non-existent code
         response = await http_client.post(
             f"{AUTH_BASE_URL}/token",
@@ -79,18 +79,18 @@ class TestRealOAuthFlowErrors:
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
-        
+
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
         assert "Invalid or expired authorization code" in error["detail"]["error_description"]
 
 class TestPKCEWithRealFlow:
-    """Test PKCE verification with more realistic scenarios"""
-    
+    """Test PKCE verification with more realistic scenarios."""
+
     @pytest.mark.asyncio
     async def test_pkce_missing_verifier(self, http_client):
-        """Test PKCE flow without verifier - will fail at code validation"""
+        """Test PKCE flow without verifier - will fail at code validation."""
         # Try to exchange code without verifier (will fail because code doesn't exist)
         response = await http_client.post(
             f"{AUTH_BASE_URL}/token",
@@ -103,17 +103,17 @@ class TestPKCEWithRealFlow:
                 # Missing code_verifier
             }
         )
-        
+
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
 
 class TestRefreshTokenErrors:
-    """Test refresh token error scenarios"""
-    
+    """Test refresh token error scenarios."""
+
     @pytest.mark.asyncio
     async def test_refresh_token_invalid(self, http_client):
-        """Test invalid refresh token"""
+        """Test invalid refresh token."""
         response = await http_client.post(
             f"{AUTH_BASE_URL}/token",
             data={
@@ -123,7 +123,7 @@ class TestRefreshTokenErrors:
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET
             }
         )
-        
+
         assert response.status_code == 400
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"

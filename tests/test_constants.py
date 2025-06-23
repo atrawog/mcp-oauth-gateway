@@ -1,5 +1,4 @@
-"""
-Sacred Test Constants - Following Commandment 4: Configure Only Through Environment
+"""Sacred Test Constants - Following Commandment 4: Configure Only Through Environment
 NO HARDCODED VALUES! NO DEFAULTS! ALL configuration MUST come from environment variables.
 
 According to CLAUDE.md: "No defaults in code - Every value must be explicitly blessed!"
@@ -7,8 +6,9 @@ Environment variables are loaded by 'just test' - tests read from environment on
 """
 import os
 
+
 def _get_env_or_fail(key: str) -> str:
-    """Get environment variable or fail with clear error message"""
+    """Get environment variable or fail with clear error message."""
     value = os.getenv(key)
     if value is None:
         raise ValueError(
@@ -19,7 +19,7 @@ def _get_env_or_fail(key: str) -> str:
     return value
 
 def _get_env_int_or_fail(key: str) -> int:
-    """Get environment variable as integer or fail"""
+    """Get environment variable as integer or fail."""
     value = _get_env_or_fail(key)
     try:
         return int(value)
@@ -27,7 +27,7 @@ def _get_env_int_or_fail(key: str) -> int:
         raise ValueError(f"Environment variable {key} must be an integer, got: {value}")
 
 def _get_env_float_or_fail(key: str) -> float:
-    """Get environment variable as float or fail"""
+    """Get environment variable as float or fail."""
     value = _get_env_or_fail(key)
     try:
         return float(value)
@@ -35,7 +35,7 @@ def _get_env_float_or_fail(key: str) -> float:
         raise ValueError(f"Environment variable {key} must be a float, got: {value}")
 
 def _get_env_optional(key: str, default=None):
-    """Get optional environment variable"""
+    """Get optional environment variable."""
     return os.getenv(key, default)
 
 # Domain Configuration - From main .env
@@ -47,25 +47,25 @@ MCP_TESTING_URL = _get_env_optional("MCP_TESTING_URL")
 
 # Helper function to get MCP service URLs
 def _get_mcp_service_urls(service_name: str, default_subdomain: str) -> list:
-    """Get MCP service URLs with fallback to single URL or MCP_TESTING_URL"""
+    """Get MCP service URLs with fallback to single URL or MCP_TESTING_URL."""
     # First check for MCP_<SERVICE>_URLS (plural)
     urls_env = _get_env_optional(f"MCP_{service_name.upper()}_URLS")
     if urls_env:
         urls = [url.strip() for url in urls_env.split(",") if url.strip()]
         # Use URLs as-is from environment - they already include /mcp if needed
         return [url.rstrip('/') for url in urls]
-    
-    # Then check for MCP_<SERVICE>_URL (singular) 
+
+    # Then check for MCP_<SERVICE>_URL (singular)
     url_env = _get_env_optional(f"MCP_{service_name.upper()}_URL")
     if url_env:
         url = url_env.strip().rstrip('/')
         return [url]
-    
+
     # Fall back to MCP_TESTING_URL if provided
     if MCP_TESTING_URL:
         url = MCP_TESTING_URL.strip().rstrip('/')
         return [url]
-    
+
     # Finally, construct from BASE_DOMAIN
     return [f"https://{default_subdomain}.{BASE_DOMAIN}"]
 
@@ -79,7 +79,7 @@ MCP_SEQUENTIALTHINKING_URL = _get_mcp_service_urls("sequentialthinking", "sequen
 MCP_TIME_URL = _get_mcp_service_urls("time", "time")[0]
 MCP_TMUX_URL = _get_mcp_service_urls("tmux", "tmux")[0]
 
-# Redis Configuration - From main .env 
+# Redis Configuration - From main .env
 REDIS_PASSWORD = _get_env_or_fail("REDIS_PASSWORD")
 # For tests, we connect to localhost Redis (not the Docker service name)
 REDIS_URL = f"redis://:{REDIS_PASSWORD}@localhost:6379/0"
@@ -122,7 +122,7 @@ OAUTH_ACCESS_TOKEN = GATEWAY_OAUTH_ACCESS_TOKEN
 
 # Test Configuration - From main .env
 TEST_HTTP_TIMEOUT = _get_env_float_or_fail("TEST_HTTP_TIMEOUT")
-TEST_MAX_RETRIES = _get_env_int_or_fail("TEST_MAX_RETRIES")  
+TEST_MAX_RETRIES = _get_env_int_or_fail("TEST_MAX_RETRIES")
 TEST_RETRY_DELAY = _get_env_float_or_fail("TEST_RETRY_DELAY")
 TEST_CALLBACK_URL = _get_env_or_fail("TEST_CALLBACK_URL")
 TEST_CLIENT_NAME = _get_env_or_fail("TEST_CLIENT_NAME")

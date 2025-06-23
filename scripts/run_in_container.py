@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
-"""
-Helper script to run Python scripts inside a Docker container with proper Redis access
-"""
+"""Helper script to run Python scripts inside a Docker container with proper Redis access."""
+import os
 import subprocess
 import sys
-import os
+
 
 def main():
     if len(sys.argv) < 2:
         print("Usage: run_in_container.py <script.py> [args...]")
         sys.exit(1)
-    
+
     script = sys.argv[1]
     args = sys.argv[2:]
-    
+
     # Build docker run command
     cmd = [
         "docker", "run", "--rm",
@@ -25,9 +24,9 @@ def main():
         "python:3.11-slim",
         "python", script
     ] + args
-    
+
     # Run the command
-    result = subprocess.run(cmd)
+    result = subprocess.run(cmd, check=False)
     sys.exit(result.returncode)
 
 if __name__ == "__main__":

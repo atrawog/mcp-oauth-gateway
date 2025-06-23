@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""
-Manage OAuth registrations and tokens in Redis
+"""Manage OAuth registrations and tokens in Redis
 Following the sacred commandments - direct access to real data!
 """
 import asyncio
+import base64
 import json
 import os
 import sys
-import base64
 from datetime import datetime
-from typing import Optional, List, Dict
+
 import redis.asyncio as redis
 from dotenv import load_dotenv
 from tabulate import tabulate
+
 
 # Load environment
 load_dotenv()
@@ -23,6 +23,8 @@ REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
 # Check if we should connect via Docker
 import subprocess
+
+
 try:
     # Check if Redis is running in Docker
     result = subprocess.run(
@@ -47,7 +49,7 @@ except:
 
 
 async def get_redis_client():
-    """Get async Redis client"""
+    """Get async Redis client."""
     return await redis.from_url(
         REDIS_URL,
         password=REDIS_PASSWORD,
@@ -55,17 +57,17 @@ async def get_redis_client():
     )
 
 
-def decode_jwt_payload(token: str) -> Optional[Dict]:
-    """Decode JWT payload without verification"""
+def decode_jwt_payload(token: str) -> dict | None:
+    """Decode JWT payload without verification."""
     try:
         parts = token.split('.')
         if len(parts) != 3:
             return None
-        
+
         # Add padding if needed
         payload_part = parts[1]
         payload_part += '=' * (4 - len(payload_part) % 4)
-        
+
         payload_json = base64.urlsafe_b64decode(payload_part)
         return json.loads(payload_json)
     except Exception:
@@ -73,7 +75,7 @@ def decode_jwt_payload(token: str) -> Optional[Dict]:
 
 
 def format_timestamp(ts: int) -> str:
-    """Format Unix timestamp to readable date"""
+    """Format Unix timestamp to readable date."""
     try:
         return datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
     except:
@@ -81,24 +83,24 @@ def format_timestamp(ts: int) -> str:
 
 
 async def list_registrations():
-    """List all OAuth client registrations"""
+    """List all OAuth client registrations."""
     client = await get_redis_client()
-    
+
     try:
         # Find all client registrations
         keys = await client.keys("oauth:client:*")
-        
+
         if not keys:
             print("No client registrations found.")
             return
-        
+
         registrations = []
         for key in keys:
             data = await client.get(key)
             if data:
                 client_data = json.loads(data)
                 client_id = key.split(":")[-1]
-                
+
                 # Handle redirect_uris properly
                 redirect_uris = client_data.get("redirect_uris", [])
                 if isinstance(redirect_uris, str):
@@ -107,10 +109,10 @@ async def list_registrations():
                         redirect_uris = json.loads(redirect_uris)
                     except:
                         redirect_uris = [redirect_uris]
-                
+
                 # Handle timestamp - could be client_id_issued_at or created_at
                 created_at = client_data.get("client_id_issued_at", client_data.get("created_at", 0))
-                
+
                 registrations.append([
                     client_id,
                     client_data.get("client_name", "N/A"),
@@ -118,7 +120,7 @@ async def list_registrations():
                     ", ".join(redirect_uris) if isinstance(redirect_uris, list) else str(redirect_uris),
                     format_timestamp(created_at)
                 ])
-        
+
         print("\n=== OAuth Client Registrations ===")
         print(tabulate(
             registrations,
@@ -126,23 +128,23 @@ async def list_registrations():
             tablefmt="grid"
         ))
         print(f"\nTotal registrations: {len(registrations)}")
-        
+
     finally:
         await client.aclose()
 
 
 async def list_tokens():
-    """List all active OAuth tokens"""
+    """List all active OAuth tokens."""
     client = await get_redis_client()
-    
+
     try:
         # Find all tokens
         token_keys = await client.keys("oauth:token:*")
-        
+
         if not token_keys:
             print("No active tokens found.")
             return
-        
+
         tokens = []
         for key in token_keys:
             token_data = await client.get(key)
@@ -154,15 +156,15 @@ async def list_tokens():
                 except:
                     # Maybe it's a JWT token string
                     payload = decode_jwt_payload(token_data)
-                
+
                 if payload:
                     jti = key.split(":")[-1]
                     ttl = await client.ttl(key)
-                    
+
                     # Handle both JWT claims (iat/exp) and stored fields (created_at/expires_at)
                     issued_at = payload.get("iat", payload.get("created_at", 0))
                     expires_at = payload.get("exp", payload.get("expires_at", 0))
-                    
+
                     # Fetch client name
                     client_id = payload.get("client_id", "N/A")
                     client_name = "N/A"
@@ -174,7 +176,7 @@ async def list_tokens():
                                 client_name = client_info.get("client_name", "N/A")
                             except:
                                 pass
-                    
+
                     tokens.append([
                         jti[:12] + "...",
                         payload.get("username", "N/A"),
@@ -185,7 +187,7 @@ async def list_tokens():
                         format_timestamp(expires_at),
                         f"{ttl}s" if ttl > 0 else "No TTL"
                     ])
-        
+
         print("\n=== Active OAuth Tokens ===")
         print(tabulate(
             tokens,
@@ -193,44 +195,43 @@ async def list_tokens():
             tablefmt="grid"
         ))
         print(f"\nTotal tokens: {len(tokens)}")
-        
+
         # Also check refresh tokens
         refresh_keys = await client.keys("oauth:refresh:*")
         if refresh_keys:
             print(f"\nRefresh tokens found: {len(refresh_keys)}")
-        
+
     finally:
         await client.aclose()
 
 
 async def delete_registration(client_id: str):
-    """Delete a specific client registration and ALL associated tokens"""
+    """Delete a specific client registration and ALL associated tokens."""
     client = await get_redis_client()
-    
+
     try:
         key = f"oauth:client:{client_id}"
-        
+
         # Check if exists
         if not await client.exists(key):
             print(f"❌ Client registration '{client_id}' not found.")
             return
-        
+
         # Get client info before deletion
         data = await client.get(key)
         client_data = json.loads(data) if data else {}
-        
+
         # Delete the registration
         await client.delete(key)
-        
-        print(f"✅ Deleted client registration:")
+
+        print("✅ Deleted client registration:")
         print(f"   Client ID: {client_id}")
         print(f"   Name: {client_data.get('client_name', 'N/A')}")
         print(f"   Scope: {client_data.get('scope', 'N/A')}")
-        
+
         # Find and delete ALL tokens for this client
         deleted_access_tokens = 0
-        deleted_refresh_tokens = 0
-        
+
         # Delete access tokens
         token_keys = await client.keys("oauth:token:*")
         for token_key in token_keys:
@@ -241,20 +242,20 @@ async def delete_registration(client_id: str):
                     payload = json.loads(token_data)
                 except:
                     payload = decode_jwt_payload(token_data)
-                
+
                 if payload and payload.get("client_id") == client_id:
                     await client.delete(token_key)
                     deleted_access_tokens += 1
-        
+
         # Delete refresh tokens
         refresh_keys = await client.keys("oauth:refresh:*")
-        for refresh_key in refresh_keys:
+        for _refresh_key in refresh_keys:
             # Refresh tokens might store client_id differently
             # For now, we'll need to check the associated access token
             # or store client_id with refresh token
             # TODO: Implement refresh token client association
             pass
-        
+
         # Delete any authorization codes
         code_keys = await client.keys("oauth:code:*")
         deleted_codes = 0
@@ -268,98 +269,98 @@ async def delete_registration(client_id: str):
                         deleted_codes += 1
                 except:
                     pass
-        
+
         # Summary
-        print(f"\n📊 Deletion Summary:")
+        print("\n📊 Deletion Summary:")
         print(f"   Access tokens deleted: {deleted_access_tokens}")
         if deleted_codes:
             print(f"   Auth codes deleted: {deleted_codes}")
         print(f"\n✅ Client '{client_id}' and all associated data has been removed.")
-            
+
     finally:
         await client.aclose()
 
 
 async def delete_token(jti: str):
-    """Delete a specific token by JTI"""
+    """Delete a specific token by JTI."""
     client = await get_redis_client()
-    
+
     try:
         # Try both full and partial JTI
         keys_to_try = [
             f"oauth:token:{jti}",
             # Also search for partial match
         ]
-        
+
         # If partial JTI, search for it
         if len(jti) < 20:
             all_keys = await client.keys("oauth:token:*")
             for key in all_keys:
                 if jti in key:
                     keys_to_try.append(key)
-        
+
         deleted = False
         for key in keys_to_try:
             if await client.exists(key):
                 # Get token info before deletion
                 token_data = await client.get(key)
                 payload = decode_jwt_payload(token_data) if token_data else None
-                
+
                 await client.delete(key)
-                
-                print(f"✅ Deleted token:")
+
+                print("✅ Deleted token:")
                 print(f"   JTI: {key.split(':')[-1]}")
                 if payload:
                     print(f"   User: {payload.get('username', 'N/A')}")
                     print(f"   Client: {payload.get('client_id', 'N/A')}")
-                
+
                 deleted = True
                 break
-        
+
         if not deleted:
             print(f"❌ Token with JTI '{jti}' not found.")
-            
+
     finally:
         await client.aclose()
 
 
 async def delete_all_registrations():
-    """Delete ALL client registrations"""
+    """Delete ALL client registrations."""
     client = await get_redis_client()
-    
+
     try:
         keys = await client.keys("oauth:client:*")
-        
+
         if not keys:
             print("No client registrations to delete.")
             return
-        
+
         # Confirm
         print(f"⚠️  This will delete {len(keys)} client registrations!")
         confirm = input("Are you sure? (yes/no): ")
-        
+
         if confirm.lower() != "yes":
             print("Cancelled.")
             return
-        
+
         # Delete all registrations
         deleted = await client.delete(*keys)
         print(f"✅ Deleted {deleted} client registrations")
-        
+
         # Also delete orphaned tokens
         token_keys = await client.keys("oauth:token:*")
         if token_keys:
             token_deleted = await client.delete(*token_keys)
             print(f"   Also deleted {token_deleted} associated tokens")
-            
+
     finally:
         await client.aclose()
 
 
 async def delete_all_tokens():
-    """Delete ALL tokens, auth states, and auth codes"""
+    """Delete ALL tokens, auth states, and auth codes."""
     client = await get_redis_client()
-    
+
     try:
         # Find all OAuth data types
         access_keys = await client.keys("oauth:token:*")
@@ -367,26 +368,26 @@ async def delete_all_tokens():
         state_keys = await client.keys("oauth:state:*")
         code_keys = await client.keys("oauth:code:*")
         user_token_keys = await client.keys("oauth:user_tokens:*")
-        
+
         total_keys = len(access_keys) + len(refresh_keys) + len(state_keys) + len(code_keys) + len(user_token_keys)
-        
+
         if total_keys == 0:
             print("No OAuth data to delete.")
             return
-        
+
         # Confirm
-        print(f"⚠️  This will delete:")
+        print("⚠️  This will delete:")
         print(f"   - {len(access_keys)} access tokens")
         print(f"   - {len(refresh_keys)} refresh tokens")
         print(f"   - {len(state_keys)} auth states")
         print(f"   - {len(code_keys)} auth codes")
         print(f"   - {len(user_token_keys)} user token indexes")
         confirm = input("Are you sure? (yes/no): ")
-        
+
         if confirm.lower() != "yes":
             print("Cancelled.")
             return
-        
+
         # Delete all OAuth data
         deleted = 0
         if access_keys:
@@ -399,17 +400,17 @@ async def delete_all_tokens():
             deleted += await client.delete(*code_keys)
         if user_token_keys:
             deleted += await client.delete(*user_token_keys)
-            
+
         print(f"✅ Deleted {deleted} OAuth data entries")
-        
+
     finally:
         await client.aclose()
 
 
 async def show_stats():
-    """Show OAuth statistics"""
+    """Show OAuth statistics."""
     client = await get_redis_client()
-    
+
     try:
         # Count different types
         clients = len(await client.keys("oauth:client:*"))
@@ -418,7 +419,7 @@ async def show_stats():
         states = len(await client.keys("oauth:state:*"))
         codes = len(await client.keys("oauth:code:*"))
         user_tokens = len(await client.keys("oauth:user_tokens:*"))
-        
+
         print("\n=== OAuth Statistics ===")
         print(f"Client Registrations: {clients}")
         print(f"Access Tokens:        {tokens}")
@@ -426,19 +427,19 @@ async def show_stats():
         print(f"Auth States:          {states}")
         print(f"Auth Codes:           {codes}")
         print(f"User Token Indexes:   {user_tokens}")
-        
+
         # Get some user stats
         if user_tokens > 0:
             user_keys = await client.keys("oauth:user_tokens:*")
             users = [key.split(":")[-1] for key in user_keys]
             print(f"\nActive users: {', '.join(users)}")
-            
+
     finally:
         await client.aclose()
 
 
 async def main():
-    """Main entry point"""
+    """Main entry point."""
     if len(sys.argv) < 2:
         print("Usage: manage_oauth_data.py <command> [args]")
         print("\nCommands:")
@@ -450,9 +451,9 @@ async def main():
         print("  delete-all-tokens    - Delete ALL tokens")
         print("  stats                - Show OAuth statistics")
         sys.exit(1)
-    
+
     command = sys.argv[1]
-    
+
     try:
         if command == "list-registrations":
             await list_registrations()

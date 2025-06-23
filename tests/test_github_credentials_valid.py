@@ -1,28 +1,27 @@
-"""
-Test to verify GitHub credentials are still valid
+"""Test to verify GitHub credentials are still valid
 Following CLAUDE.md - NO MOCKING, real services only!
-This test should run FIRST to ensure OAuth flow can work
+This test should run FIRST to ensure OAuth flow can work.
 """
-import pytest
-import httpx
 import os
-from .test_constants import (
-    GITHUB_CLIENT_ID,
-    GITHUB_CLIENT_SECRET,
-    AUTH_BASE_URL
-)
+
+import httpx
+import pytest
+
+from .test_constants import AUTH_BASE_URL
+from .test_constants import GITHUB_CLIENT_ID
+
 
 class TestGitHubCredentialsValid:
-    """Verify GitHub OAuth credentials are still valid"""
-    
+    """Verify GitHub OAuth credentials are still valid."""
+
     @pytest.mark.asyncio
     async def test_github_pat_valid(self):
-        """Test if GITHUB_PAT is still valid"""
+        """Test if GITHUB_PAT is still valid."""
         github_pat = os.getenv("GITHUB_PAT")
-        
+
         if not github_pat:
             pytest.fail("GITHUB_PAT not set - TESTS MUST NOT BE SKIPPED! GitHub PAT is REQUIRED!")
-        
+
         # Test the PAT by making a simple API call
         async with httpx.AsyncClient() as client:
             response = await client.get(
@@ -32,7 +31,7 @@ class TestGitHubCredentialsValid:
                     "Accept": "application/vnd.github.v3+json"
                 }
             )
-            
+
             if response.status_code == 401:
                 pytest.fail(
                     "GITHUB_PAT is invalid or expired! "
@@ -50,40 +49,40 @@ class TestGitHubCredentialsValid:
                 print(f"✅ GITHUB_PAT is valid for user: {user_data.get('login', 'unknown')}")
             else:
                 pytest.fail(f"Unexpected response: {response.status_code} - {response.text}")
-    
+
     @pytest.mark.asyncio
     async def test_oauth_client_credentials_valid(self):
-        """Test if GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET are still valid"""
+        """Test if GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET are still valid."""
         oauth_client_id = os.getenv("GATEWAY_OAUTH_CLIENT_ID")
         oauth_client_secret = os.getenv("GATEWAY_OAUTH_CLIENT_SECRET")
-        
+
         if not oauth_client_id or not oauth_client_secret:
             pytest.fail("GATEWAY_OAUTH_CLIENT_ID or GATEWAY_OAUTH_CLIENT_SECRET not set - skipping OAuth validation - TESTS MUST NOT BE SKIPPED!")
-        
+
         # These are our dynamically registered credentials - verify they work
         # We can't directly verify them without a full OAuth flow, but we can
         # at least check they're in the expected format
-        
+
         # Client ID should start with "client_"
         if not oauth_client_id.startswith("client_"):
             pytest.fail(
                 f"OAUTH_CLIENT_ID '{oauth_client_id}' doesn't match expected format. "
                 "Run 'just generate-github-token' to register a new client."
             )
-        
+
         # Client secret should be a reasonable length
         if len(oauth_client_secret) < 20:
             pytest.fail(
                 f"GATEWAY_OAUTH_CLIENT_SECRET seems too short ({len(oauth_client_secret)} chars). "
                 "Run 'just generate-github-token' to register a new client."
             )
-        
+
         print(f"✅ GATEWAY_OAUTH_CLIENT_ID format valid: {oauth_client_id}")
         print(f"✅ GATEWAY_OAUTH_CLIENT_SECRET format valid: {len(oauth_client_secret)} chars")
-    
+
     @pytest.mark.asyncio
     async def test_github_oauth_app_valid(self, wait_for_services):
-        """Test if GitHub OAuth app credentials are valid"""
+        """Test if GitHub OAuth app credentials are valid."""
         # Try to reach GitHub OAuth authorize endpoint with our app
         async with httpx.AsyncClient() as client:
             # Build authorize URL
@@ -94,16 +93,16 @@ class TestGitHubCredentialsValid:
                 f"&scope=read:user user:email"
                 f"&state=test_validation"
             )
-            
+
             # GitHub should redirect us to login if credentials are valid
             response = await client.get(
                 authorize_url,
                 follow_redirects=False
             )
-            
+
             if response.status_code == 302:
                 location = response.headers.get("location", "")
-                
+
                 # Check for OAuth error in redirect
                 if "error=invalid_client" in location:
                     pytest.fail(
@@ -124,7 +123,7 @@ class TestGitHubCredentialsValid:
                     )
                 else:
                     # Should redirect to login or back to our callback
-                    print(f"✅ GitHub OAuth app credentials are valid")
+                    print("✅ GitHub OAuth app credentials are valid")
                     print(f"   Would redirect to: {location[:100]}...")
             elif response.status_code == 200:
                 # GitHub might show the authorize page directly
@@ -137,31 +136,31 @@ class TestGitHubCredentialsValid:
                     f"Unexpected response from GitHub: {response.status_code}. "
                     "This might indicate invalid OAuth app credentials."
                 )
-    
-    @pytest.mark.asyncio 
+
+    @pytest.mark.asyncio
     async def test_all_required_credentials_present(self):
-        """Ensure all required credentials are set"""
+        """Ensure all required credentials are set."""
         required_vars = {
             "GITHUB_CLIENT_ID": "GitHub OAuth App Client ID",
             "GITHUB_CLIENT_SECRET": "GitHub OAuth App Client Secret",
         }
-        
+
         missing = []
         for var, description in required_vars.items():
             if not os.getenv(var):
                 missing.append(f"{var} ({description})")
-        
+
         if missing:
             pytest.fail(
-                f"Missing required credentials:\n" + 
+                "Missing required credentials:\n" +
                 "\n".join(f"  - {m}" for m in missing) +
                 "\n\nSet these in your .env file or run 'just generate-github-token'"
             )
-        
+
         print("✅ All required GitHub credentials are present")
-    
+
     def test_run_this_first(self):
-        """This test should always run first to validate setup"""
+        """This test should always run first to validate setup."""
         print("\n" + "="*60)
         print("VALIDATING GITHUB CREDENTIALS")
         print("="*60)

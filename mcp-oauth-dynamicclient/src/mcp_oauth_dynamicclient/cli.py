@@ -2,10 +2,11 @@
 CLI interface for MCP OAuth Dynamic Client
 """
 import argparse
+
 import uvicorn
 
-from .server import create_app
 from .config import Settings
+from .server import create_app
 
 
 def main():
@@ -29,13 +30,13 @@ def main():
         action="store_true",
         help="Enable auto-reload for development"
     )
-    
+
     args = parser.parse_args()
-    
+
     # Create app
     settings = Settings()
     app = create_app(settings)
-    
+
     # Run server
     if args.reload:
         # For reload, use the module path

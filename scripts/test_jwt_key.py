@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Test JWT private key loading"""
-import os
+"""Test JWT private key loading."""
 import base64
-from cryptography.hazmat.primitives import serialization
+import os
+
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+
 
 try:
     key_b64 = os.getenv('JWT_PRIVATE_KEY_B64')

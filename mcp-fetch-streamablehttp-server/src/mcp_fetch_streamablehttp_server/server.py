@@ -3,20 +3,23 @@
 import asyncio
 import json
 import logging
-import os
-from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any
 
 import uvloop
-from fastapi import FastAPI, Request, Response, HTTPException
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi import FastAPI
+from fastapi import Request
+from fastapi import Response
+from fastapi.responses import JSONResponse
 from mcp.server import Server
-from mcp.types import TextContent, ImageContent
-from pydantic import ConfigDict, Field
+from mcp.types import ImageContent
+from mcp.types import TextContent
+from pydantic import ConfigDict
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
-from .transport import StreamableHTTPTransport
 from .fetch_handler import FetchHandler
+from .transport import StreamableHTTPTransport
+
 
 # Use uvloop for better performance
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
@@ -25,20 +28,20 @@ logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     """Server configuration."""
-    
+
     # Server settings
     server_name: str = Field(..., description="Server name")
     server_version: str = Field(..., description="Server version")
     protocol_version: str = Field(..., description="Protocol version")
-    
+
     # Fetch settings
-    fetch_allowed_schemes: List[str] = Field(default=["http", "https"], description="Allowed URL schemes")
+    fetch_allowed_schemes: list[str] = Field(default=["http", "https"], description="Allowed URL schemes")
     fetch_max_redirects: int = Field(default=5, description="Max redirects")
     fetch_default_user_agent: str = Field(default="ModelContextProtocol/1.0 (Fetch Server)", description="User agent")
-    
+
     # Transport settings
     fetch_enable_sse: bool = Field(default=False, description="SSE support for future implementation")
-    
+
     model_config = ConfigDict(
         env_prefix="MCP_",
         env_file=".env",
@@ -48,55 +51,52 @@ class Settings(BaseSettings):
 
 class StreamableHTTPServer:
     """MCP server with native Streamable HTTP transport."""
-    
-    def __init__(self, settings: Optional[Settings] = None):
+
+    def __init__(self, settings: Settings | None = None):
         self.settings = settings or Settings()
         self.transport = StreamableHTTPTransport()
         self.fetch_handler = FetchHandler(
             allowed_schemes=self.settings.fetch_allowed_schemes,
             max_redirects=self.settings.fetch_max_redirects
         )
-        
+
         # Create MCP server
         self.server = Server(self.settings.server_name)
-        
+
         # Register tools
         self._register_tools()
-        
+
         # Track active sessions
-        self.sessions: Dict[str, Any] = {}
-        
+        self.sessions: dict[str, Any] = {}
+
     def _register_tools(self):
         """Register fetch tool with MCP server."""
-        
+
         @self.server.call_tool()
-        async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent | ImageContent]:
+        async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent | ImageContent]:
             """Handle tool calls."""
-            
             if name == "fetch":
                 return await self.fetch_handler.handle_fetch(arguments)
-            else:
-                raise ValueError(f"Unknown tool: {name}")
-                
+            raise ValueError(f"Unknown tool: {name}")
+
         @self.server.list_tools()
-        async def list_tools() -> List[Dict[str, Any]]:
+        async def list_tools() -> list[dict[str, Any]]:
             """List available tools."""
             tools = self.fetch_handler.get_tools()
             return [tool.model_dump() for tool in tools]
-            
+
     async def handle_request(self, request: Request) -> Response:
         """Handle HTTP request and route to transport."""
-        
         # Extract method, path, headers, and body
         method = request.method
         path = request.url.path
         headers = dict(request.headers)
-        
+
         # Read body for POST/PUT
         body = None
         if method in ["POST", "PUT"]:
             body = await request.body()
-            
+
         # Handle OPTIONS first (CORS preflight doesn't require auth)
         if method == "OPTIONS":
             # CORS preflight
@@ -109,13 +109,13 @@ class StreamableHTTPServer:
                     "Access-Control-Max-Age": "86400",
                 }
             )
-            
-        
+
+
         # ⚡ DIVINE DECREE: NO AUTHENTICATION IN MCP SERVICES! ⚡
         # Authentication is handled by Traefik via ForwardAuth middleware
         # MCP services must maintain "pure protocol innocence" per CLAUDE.md
         # The holy trinity separation demands it!
-            
+
         # Check MCP protocol version header if provided
         mcp_version = headers.get("mcp-protocol-version", headers.get("MCP-Protocol-Version"))
         if mcp_version and mcp_version != self.settings.protocol_version:
@@ -123,28 +123,26 @@ class StreamableHTTPServer:
                 status_code=400,
                 content={"error": "Unsupported protocol version", "message": f"Server only supports MCP version: {self.settings.protocol_version}, got {mcp_version}"}
             )
-        
+
         # For stateless operation, process request directly
         if method == "POST" and path == "/mcp":
             return await self._handle_stateless_request(headers, body)
-        elif method == "GET" and path == "/mcp":
+        if method == "GET" and path == "/mcp":
             # SSE endpoint - not implemented yet
             return JSONResponse(
                 status_code=501,
                 content={"error": "Not implemented", "message": "Server-Sent Events not yet supported"}
             )
-        else:
-            return JSONResponse(
-                status_code=404,
-                content={"error": "Not found", "message": f"Path {path} not found"}
-            )
-            
-    async def _handle_stateless_request(self, headers: Dict[str, str], body: bytes) -> Response:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "Not found", "message": f"Path {path} not found"}
+        )
+
+    async def _handle_stateless_request(self, headers: dict[str, str], body: bytes) -> Response:
         """Handle stateless JSON-RPC request."""
-        
         # Note: Be lenient with content type as long as body is valid JSON
         # This allows clients that may send incorrect content types
-            
+
         # Parse JSON-RPC request
         try:
             data = json.loads(body)
@@ -161,7 +159,7 @@ class StreamableHTTPServer:
                     "id": None
                 }
             )
-            
+
         # Validate JSON-RPC structure
         if "jsonrpc" not in data or data["jsonrpc"] != "2.0":
             return JSONResponse(
@@ -176,18 +174,18 @@ class StreamableHTTPServer:
                     "id": data.get("id")
                 }
             )
-            
+
         # Handle different methods
         method = data.get("method")
         request_id = data.get("id")
         params = data.get("params", {})
-        
+
         try:
             if method == "initialize":
                 # Handle initialization per MCP 2025-06-18
                 # Client should provide protocolVersion in params
                 client_protocol = params.get("protocolVersion", self.settings.protocol_version)
-                
+
                 # Check if client protocol matches server version
                 if client_protocol != self.settings.protocol_version:
                     return JSONResponse(
@@ -207,7 +205,7 @@ class StreamableHTTPServer:
                             "MCP-Protocol-Version": self.settings.protocol_version,
                         }
                     )
-                
+
                 result = {
                     "protocolVersion": self.settings.protocol_version,
                     "capabilities": {
@@ -224,8 +222,8 @@ class StreamableHTTPServer:
             elif method == "tools/list":
                 # List available tools per MCP 2025-06-18
                 # Support pagination via cursor parameter
-                cursor = params.get("cursor")
-                
+                params.get("cursor")
+
                 tools = self.fetch_handler.get_tools()
                 # For now, return all tools (no pagination)
                 result = {
@@ -251,7 +249,7 @@ class StreamableHTTPServer:
                             "MCP-Protocol-Version": self.settings.protocol_version,
                         }
                     )
-                    
+
                 tool_name = params.get("name")
                 if not tool_name:
                     return JSONResponse(
@@ -270,9 +268,9 @@ class StreamableHTTPServer:
                             "MCP-Protocol-Version": self.settings.protocol_version,
                         }
                     )
-                    
+
                 tool_args = params.get("arguments", {})
-                
+
                 if tool_name == "fetch":
                     try:
                         contents = await self.fetch_handler.handle_fetch(tool_args)
@@ -285,7 +283,7 @@ class StreamableHTTPServer:
                         result = {
                             "content": [{
                                 "type": "text",
-                                "text": f"Tool execution failed: {str(tool_error)}"
+                                "text": f"Tool execution failed: {tool_error!s}"
                             }],
                             "isError": True
                         }
@@ -324,7 +322,7 @@ class StreamableHTTPServer:
                         "MCP-Protocol-Version": self.settings.protocol_version,
                     }
                 )
-                
+
             # Return success response
             return JSONResponse(
                 content={
@@ -338,7 +336,7 @@ class StreamableHTTPServer:
                     "MCP-Protocol-Version": self.settings.protocol_version,
                 }
             )
-            
+
         except Exception as e:
             # Return error response
             return JSONResponse(
@@ -357,24 +355,23 @@ class StreamableHTTPServer:
                     "MCP-Protocol-Version": self.settings.protocol_version,
                 }
             )
-                    
+
     def create_app(self) -> FastAPI:
         """Create FastAPI application."""
-        
         app = FastAPI(
             title=self.settings.server_name,
             version=self.settings.server_version,
             docs_url=None,  # Disable docs for security
             redoc_url=None,
         )
-        
+
         # Add routes
         app.add_api_route("/mcp", self.handle_request, methods=["GET", "POST", "DELETE", "OPTIONS"])
-        
+
         return app
 
 
-def create_server(settings: Optional[Settings] = None) -> StreamableHTTPServer:
+def create_server(settings: Settings | None = None) -> StreamableHTTPServer:
     """Create and configure MCP fetch server."""
     return StreamableHTTPServer(settings)
 

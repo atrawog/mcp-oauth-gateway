@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""
-Purge expired OAuth tokens from Redis
-Can be run manually or via cron/systemd timer
+"""Purge expired OAuth tokens from Redis
+Can be run manually or via cron/systemd timer.
 """
 import asyncio
 import json
@@ -9,9 +8,10 @@ import os
 import sys
 import time
 from datetime import datetime
-from typing import Dict, Tuple
+
 import redis.asyncio as redis
 from dotenv import load_dotenv
+
 
 # Load environment
 load_dotenv()
@@ -22,6 +22,8 @@ REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
 # Check if we should connect via Docker
 import subprocess
+
+
 try:
     result = subprocess.run(
         ["docker", "compose", "ps", "--services", "--filter", "status=running"],
@@ -44,7 +46,7 @@ except:
 
 
 async def get_redis_client():
-    """Get async Redis client"""
+    """Get async Redis client."""
     return await redis.from_url(
         REDIS_URL,
         password=REDIS_PASSWORD,
@@ -52,8 +54,8 @@ async def get_redis_client():
     )
 
 
-def check_token_expiry(token_data: str) -> Tuple[bool, int]:
-    """Check if token is expired. Returns (is_expired, expires_at_timestamp)"""
+def check_token_expiry(token_data: str) -> tuple[bool, int]:
+    """Check if token is expired. Returns (is_expired, expires_at_timestamp)."""
     try:
         # Try to parse as JSON (stored token info)
         try:
@@ -64,29 +66,29 @@ def check_token_expiry(token_data: str) -> Tuple[bool, int]:
             parts = token_data.split('.')
             if len(parts) != 3:
                 return False, 0
-            
+
             payload_part = parts[1]
             payload_part += '=' * (4 - len(payload_part) % 4)
             payload_json = base64.urlsafe_b64decode(payload_part)
             payload = json.loads(payload_json)
-        
+
         # Check for expiration in either format
         expires_at = payload.get("exp", payload.get("expires_at", 0))
         now = int(time.time())
-        
+
         return expires_at < now, expires_at
     except Exception:
         return False, 0
 
 
 async def purge_expired_tokens(dry_run: bool = False):
-    """Purge all expired tokens from Redis"""
+    """Purge all expired tokens from Redis."""
     client = await get_redis_client()
-    
+
     try:
         print(f"{'[DRY RUN] ' if dry_run else ''}Starting token purge at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("=" * 60)
-        
+
         # Statistics
         stats = {
             "access_tokens_checked": 0,
@@ -99,11 +101,11 @@ async def purge_expired_tokens(dry_run: bool = False):
             "auth_states_expired": 0,
             "total_deleted": 0
         }
-        
+
         # Check access tokens
         token_keys = await client.keys("oauth:token:*")
         stats["access_tokens_checked"] = len(token_keys)
-        
+
         for key in token_keys:
             token_data = await client.get(key)
             if token_data:
@@ -113,11 +115,11 @@ async def purge_expired_tokens(dry_run: bool = False):
                         await client.delete(key)
                     stats["access_tokens_expired"] += 1
                     print(f"{'Would delete' if dry_run else 'Deleted'} expired access token: {key} (expired: {datetime.fromtimestamp(expires_at)})")
-        
+
         # Check refresh tokens (they have TTL but let's verify)
         refresh_keys = await client.keys("oauth:refresh:*")
         stats["refresh_tokens_checked"] = len(refresh_keys)
-        
+
         for key in refresh_keys:
             ttl = await client.ttl(key)
             if ttl <= 0:  # TTL expired or no TTL
@@ -125,11 +127,11 @@ async def purge_expired_tokens(dry_run: bool = False):
                     await client.delete(key)
                 stats["refresh_tokens_expired"] += 1
                 print(f"{'Would delete' if dry_run else 'Deleted'} expired refresh token: {key}")
-        
+
         # Check auth codes (should have short TTL)
         code_keys = await client.keys("oauth:code:*")
         stats["auth_codes_checked"] = len(code_keys)
-        
+
         for key in code_keys:
             ttl = await client.ttl(key)
             if ttl <= 0:  # TTL expired or no TTL
@@ -137,11 +139,11 @@ async def purge_expired_tokens(dry_run: bool = False):
                     await client.delete(key)
                 stats["auth_codes_expired"] += 1
                 print(f"{'Would delete' if dry_run else 'Deleted'} expired auth code: {key}")
-        
+
         # Check auth states (should have very short TTL - 5 minutes)
         state_keys = await client.keys("oauth:state:*")
         stats["auth_states_checked"] = len(state_keys)
-        
+
         for key in state_keys:
             ttl = await client.ttl(key)
             if ttl <= 0:  # TTL expired or no TTL
@@ -149,7 +151,7 @@ async def purge_expired_tokens(dry_run: bool = False):
                     await client.delete(key)
                 stats["auth_states_expired"] += 1
                 print(f"{'Would delete' if dry_run else 'Deleted'} expired auth state: {key}")
-        
+
         # Calculate totals
         stats["total_deleted"] = (
             stats["access_tokens_expired"] +
@@ -157,7 +159,7 @@ async def purge_expired_tokens(dry_run: bool = False):
             stats["auth_codes_expired"] +
             stats["auth_states_expired"]
         )
-        
+
         # Print summary
         print("\n" + "=" * 60)
         print(f"{'[DRY RUN] ' if dry_run else ''}Purge Summary:")
@@ -166,7 +168,7 @@ async def purge_expired_tokens(dry_run: bool = False):
         print(f"  Auth Codes: {stats['auth_codes_expired']}/{stats['auth_codes_checked']} expired")
         print(f"  Auth States: {stats['auth_states_expired']}/{stats['auth_states_checked']} expired")
         print(f"\n  Total {'would be ' if dry_run else ''}deleted: {stats['total_deleted']}")
-        
+
         # Also clean up orphaned data
         if not dry_run and stats["total_deleted"] > 0:
             print("\nCleaning up orphaned user token indexes...")
@@ -175,7 +177,7 @@ async def purge_expired_tokens(dry_run: bool = False):
                 # Check if user has any active tokens
                 username = key.split(":")[-1]
                 has_active_tokens = False
-                
+
                 # Check all tokens for this user
                 all_token_keys = await client.keys("oauth:token:*")
                 for token_key in all_token_keys:
@@ -188,28 +190,28 @@ async def purge_expired_tokens(dry_run: bool = False):
                                 break
                         except:
                             pass
-                
+
                 if not has_active_tokens:
                     await client.delete(key)
                     print(f"  Removed orphaned user token index: {key}")
-        
+
         print(f"\n✅ Purge completed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        
+
     finally:
         await client.aclose()
 
 
 async def main():
-    """Main entry point"""
+    """Main entry point."""
     dry_run = "--dry-run" in sys.argv or "-n" in sys.argv
-    
+
     if "--help" in sys.argv or "-h" in sys.argv:
         print("Usage: purge_expired_tokens.py [--dry-run|-n]")
         print("\nOptions:")
         print("  --dry-run, -n  Show what would be deleted without actually deleting")
         print("\nThis script purges all expired OAuth tokens from Redis.")
         sys.exit(0)
-    
+
     await purge_expired_tokens(dry_run=dry_run)
 
 

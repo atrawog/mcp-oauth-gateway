@@ -1,8 +1,9 @@
 """Command-line interface for the MCP stdio-to-streamable-HTTP proxy."""
-import sys
 import argparse
 import logging
 import os
+import sys
+
 from .server import run_server
 
 logger = logging.getLogger(__name__)
@@ -17,54 +18,54 @@ def main():
 Examples:
   # Run with a Python MCP server module
   mcp-streamablehttp-proxy python -m mcp_server_fetch
-  
+
   # Run with a custom command
   mcp-streamablehttp-proxy /path/to/mcp-server --arg1 --arg2
-  
+
   # Run on a different port
   mcp-streamablehttp-proxy --port 8080 python -m mcp_server_fetch
-  
+
   # Run with custom session timeout
   mcp-streamablehttp-proxy --timeout 600 python -m mcp_server_fetch
 """
     )
-    
+
     parser.add_argument(
         "server_command",
         nargs="+",
         help="Command to run the MCP stdio server"
     )
-    
+
     parser.add_argument(
         "--host",
         default=os.getenv("MCP_BIND_HOST", "0.0.0.0"),
         help="Host to bind to (default: 0.0.0.0, or MCP_BIND_HOST env var)"
     )
-    
+
     parser.add_argument(
         "--port",
         type=int,
         default=int(os.getenv("MCP_PORT", "3000")),
         help="Port to bind to (default: 3000, or MCP_PORT env var)"
     )
-    
+
     parser.add_argument(
         "--timeout",
         type=int,
         default=300,
         help="Session timeout in seconds (default: 300)"
     )
-    
+
     parser.add_argument(
         "--log-level",
         choices=["debug", "info", "warning", "error"],
         default="info",
         help="Logging level (default: info)"
     )
-    
+
     # Use parse_known_args to handle server commands with options like -m
     args, unknown = parser.parse_known_args()
-    
+
     # Combine the server_command with any unknown args (like -m)
     full_server_command = args.server_command
     if unknown:
@@ -73,7 +74,7 @@ Examples:
             full_server_command = [full_server_command[0]] + unknown + full_server_command[1:]
         else:
             full_server_command = unknown
-    
+
     try:
         run_server(
             server_command=full_server_command,

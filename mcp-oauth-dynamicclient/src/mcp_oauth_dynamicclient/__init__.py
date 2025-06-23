@@ -6,11 +6,8 @@ Following OAuth 2.1 and RFC 7591 divine specifications
 __version__ = "0.1.0"
 
 from .config import Settings
-from .models import (
-    ClientRegistration,
-    TokenResponse,
-    ErrorResponse
-)
+from .models import ClientRegistration, ErrorResponse, TokenResponse
+
 
 # Import create_app lazily to avoid circular imports
 def __getattr__(name):

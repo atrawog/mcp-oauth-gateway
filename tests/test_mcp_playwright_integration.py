@@ -1,10 +1,10 @@
-"""
-Comprehensive integration tests for MCP Playwright service.
+"""Comprehensive integration tests for MCP Playwright service.
 Tests all browser automation functionality including navigation, interaction, and content extraction.
 """
-import pytest
 import json
 import os
+
+import pytest
 
 from tests.test_constants import BASE_DOMAIN
 
@@ -17,11 +17,11 @@ def base_domain():
 
 class TestMCPPlaywrightIntegration:
     """Test MCP Playwright service integration with OAuth authentication."""
-    
+
     def run_mcp_client_raw(self, url, token, method, params=None):
         """Run mcp-streamablehttp-client with raw MCP protocol."""
         import subprocess
-        
+
         # Create request payload
         request_data = {
             "jsonrpc": "2.0",
@@ -30,38 +30,38 @@ class TestMCPPlaywrightIntegration:
         }
         if params:
             request_data["params"] = params
-            
+
         # Convert to JSON string
         raw_request = json.dumps(request_data)
-        
+
         # Run mcp-streamablehttp-client
         cmd = [
             "pixi", "run", "python", "-m", "mcp_streamablehttp_client.cli",
             "--server-url", f"{url}",
             "--raw", raw_request
         ]
-        
+
         # Set environment variables for token
         env = os.environ.copy()
         env["MCP_CLIENT_ACCESS_TOKEN"] = token
-        
+
         result = subprocess.run(
             cmd,
-            cwd="/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-streamablehttp-client",
+            check=False, cwd="/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-streamablehttp-client",
             capture_output=True,
             text=True,
             timeout=30,
             env=env
         )
-        
+
         if result.returncode != 0:
             pytest.fail(f"MCP client failed: {result.stderr}")
-            
+
         # Parse JSON response - look for JSON in the output
         try:
             # Look for JSON response in the output (like the memory test pattern)
             output = result.stdout
-            
+
             # Find all JSON objects in the output
             json_objects = []
             i = 0
@@ -71,7 +71,7 @@ class TestMCPPlaywrightIntegration:
                     brace_count = 0
                     json_start = i
                     json_end = i
-                    
+
                     for j in range(i, len(output)):
                         if output[j] == '{':
                             brace_count += 1
@@ -80,7 +80,7 @@ class TestMCPPlaywrightIntegration:
                             if brace_count == 0:
                                 json_end = j + 1
                                 break
-                    
+
                     if brace_count == 0:
                         json_str = output[json_start:json_end]
                         try:
@@ -95,24 +95,24 @@ class TestMCPPlaywrightIntegration:
                         i += 1
                 else:
                     i += 1
-            
+
             if not json_objects:
                 pytest.fail(f"No JSON-RPC response found in output: {output}")
-            
+
             # Return the last JSON-RPC response
             return json_objects[-1]
-            
+
         except Exception as e:
             pytest.fail(f"Failed to parse JSON response: {e}\nOutput: {result.stdout}")
 
     def test_playwright_service_health(self, mcp_playwright_url, mcp_client_token, wait_for_services):
         """Test playwright service health using MCP protocol per divine CLAUDE.md."""
         import requests
-        
+
         # First verify that /health requires authentication
         response = requests.get(f"{mcp_playwright_url}/health", timeout=10)
         assert response.status_code == 401, "/health endpoint must require authentication per divine CLAUDE.md"
-        
+
         # Health checks should use MCP protocol initialization
         response = self.run_mcp_client_raw(
             url=mcp_playwright_url,
@@ -127,7 +127,7 @@ class TestMCPPlaywrightIntegration:
                 }
             }
         )
-        
+
         assert "result" in response or "error" in response
         if "result" in response:
             assert "protocolVersion" in response["result"]
@@ -137,16 +137,17 @@ class TestMCPPlaywrightIntegration:
         """Test OAuth discovery endpoint routing."""
         import requests
         import urllib3
+
         from tests.test_constants import BASE_DOMAIN
-        
+
         # Suppress SSL warnings for test environment
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        
-        # Use base domain for OAuth discovery, not the /mcp endpoint  
+
+        # Use base domain for OAuth discovery, not the /mcp endpoint
         oauth_discovery_url = f"https://playwright.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
         response = requests.get(oauth_discovery_url, timeout=10, verify=False)
         assert response.status_code == 200
-        
+
         oauth_config = response.json()
         assert oauth_config["issuer"]
         assert oauth_config["authorization_endpoint"]
@@ -171,7 +172,7 @@ class TestMCPPlaywrightIntegration:
                 }
             }
         )
-        
+
         assert "result" in response
         result = response["result"]
         assert result["protocolVersion"] == "2025-06-18"
@@ -185,18 +186,14 @@ class TestMCPPlaywrightIntegration:
             token=mcp_client_token,
             method="tools/list"
         )
-        
+
         assert "result" in response
         tools = response["result"]["tools"]
-        
+
         # Expected playwright tools (actual Microsoft Playwright MCP tools)
-        expected_tools = {
-            "browser_navigate", "browser_click", "browser_type", "browser_take_screenshot",
-            "browser_snapshot", "browser_wait_for", "browser_close", "browser_tab_new"
-        }
-        
+
         tool_names = {tool["name"] for tool in tools}
-        
+
         # Check that we have basic browser automation tools
         basic_tools = {"browser_navigate", "browser_click", "browser_take_screenshot"}
         found_basic = basic_tools.intersection(tool_names)
@@ -215,7 +212,7 @@ class TestMCPPlaywrightIntegration:
                 }
             }
         )
-        
+
         assert "result" in response
         result = response["result"]
         assert "content" in result
@@ -234,9 +231,9 @@ class TestMCPPlaywrightIntegration:
                 }
             }
         )
-        
+
         assert "result" in navigate_response
-        
+
         # Then get page content using snapshot
         response = self.run_mcp_client_raw(
             url=mcp_playwright_url,
@@ -247,7 +244,7 @@ class TestMCPPlaywrightIntegration:
                 "arguments": {}
             }
         )
-        
+
         assert "result" in response
         result = response["result"]
         assert "content" in result
@@ -266,7 +263,7 @@ class TestMCPPlaywrightIntegration:
                 }
             }
         )
-        
+
         # Get snapshot from the page
         response = self.run_mcp_client_raw(
             url=mcp_playwright_url,
@@ -277,7 +274,7 @@ class TestMCPPlaywrightIntegration:
                 "arguments": {}
             }
         )
-        
+
         # Should either succeed or give a specific error about the selector
         assert "result" in response or "error" in response
         if "result" in response:
@@ -298,7 +295,7 @@ class TestMCPPlaywrightIntegration:
                 }
             }
         )
-        
+
         # Take a screenshot
         response = self.run_mcp_client_raw(
             url=mcp_playwright_url,
@@ -309,7 +306,7 @@ class TestMCPPlaywrightIntegration:
                 "arguments": {}
             }
         )
-        
+
         assert "result" in response
         result = response["result"]
         assert "content" in result
@@ -328,7 +325,7 @@ class TestMCPPlaywrightIntegration:
                 }
             }
         )
-        
+
         # Get page snapshot (equivalent functionality)
         response = self.run_mcp_client_raw(
             url=mcp_playwright_url,
@@ -339,7 +336,7 @@ class TestMCPPlaywrightIntegration:
                 "arguments": {}
             }
         )
-        
+
         assert "result" in response
         result = response["result"]
         assert "content" in result
@@ -358,7 +355,7 @@ class TestMCPPlaywrightIntegration:
                 }
             }
         )
-        
+
         # Wait for page load (using generic wait)
         response = self.run_mcp_client_raw(
             url=mcp_playwright_url,
@@ -371,7 +368,7 @@ class TestMCPPlaywrightIntegration:
                 }
             }
         )
-        
+
         assert "result" in response
         result = response["result"]
         assert "content" in result
@@ -390,7 +387,7 @@ class TestMCPPlaywrightIntegration:
                 }
             }
         )
-        
+
         # Get page snapshot with element information
         response = self.run_mcp_client_raw(
             url=mcp_playwright_url,
@@ -401,7 +398,7 @@ class TestMCPPlaywrightIntegration:
                 "arguments": {}
             }
         )
-        
+
         # Should either succeed or give a specific error about the attribute
         assert "result" in response or "error" in response
         if "result" in response:
@@ -415,11 +412,11 @@ class TestMCPPlaywrightIntegration:
             token=mcp_client_token,
             method="resources/list"
         )
-        
+
         # Resources/list might not be supported by all MCP servers
         # Check that we get either a result or a proper error
         assert "result" in response or "error" in response
-        
+
         if "result" in response:
             resources = response["result"]["resources"]
             # Should have browser-related resources
@@ -444,7 +441,7 @@ class TestMCPPlaywrightIntegration:
                 "clientInfo": {"name": "version-test", "version": "1.0.0"}
             }
         )
-        
+
         assert "result" in response
         result = response["result"]
         assert result["protocolVersion"] == "2025-06-18"
@@ -457,7 +454,7 @@ class TestMCPPlaywrightIntegration:
             token=mcp_client_token,
             method="invalid/method"
         )
-        
+
         assert "error" in response
         error = response["error"]
         assert error["code"] == -32601  # Method not found
@@ -465,7 +462,7 @@ class TestMCPPlaywrightIntegration:
     def test_playwright_authentication_required(self, mcp_playwright_url):
         """Test that MCP endpoint requires authentication."""
         import requests
-        
+
         # Test without token
         response = requests.post(
             f"{mcp_playwright_url}",
@@ -476,6 +473,6 @@ class TestMCPPlaywrightIntegration:
             },
             headers={"Content-Type": "application/json"}
         )
-        
+
         assert response.status_code == 401
         assert "WWW-Authenticate" in response.headers

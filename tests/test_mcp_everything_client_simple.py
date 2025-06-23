@@ -1,11 +1,14 @@
 """Simple test of mcp-everything service using mcp-streamablehttp-client --command."""
 
-import subprocess
 import os
+import subprocess
+
 import pytest
 
-from tests.conftest import ensure_services_ready
-from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN, MCP_EVERYTHING_TESTS_ENABLED, MCP_EVERYTHING_URLS
+from tests.test_constants import BASE_DOMAIN
+from tests.test_constants import MCP_CLIENT_ACCESS_TOKEN
+from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
+from tests.test_constants import MCP_EVERYTHING_URLS
 
 
 @pytest.fixture
@@ -39,32 +42,32 @@ async def wait_for_services():
 
 class TestMCPEverythingClientSimple:
     """Simple test of mcp-everything using mcp-streamablehttp-client."""
-    
+
     def run_client_command(self, url: str, token: str, command: str) -> tuple[int, str, str]:
         """Run mcp-streamablehttp-client with a command and return result."""
         # Set environment variables
         env = os.environ.copy()
         env["MCP_SERVER_URL"] = url
         env["MCP_CLIENT_ACCESS_TOKEN"] = token
-        
+
         # Build the command
         cmd = [
             "pixi", "run", "mcp-streamablehttp-client",
             "--server-url", url,
             "--command", command
         ]
-        
+
         # Run the command
         result = subprocess.run(
             cmd,
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
             timeout=30,
             env=env
         )
-        
+
         return result.returncode, result.stdout, result.stderr
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
@@ -77,14 +80,14 @@ class TestMCPEverythingClientSimple:
             token=client_token,
             command="echo test"
         )
-        
+
         print(f"Return code: {returncode}")
         print(f"Stdout: {stdout}")
         print(f"Stderr: {stderr}")
-        
+
         # The command might not exist, but we should get a response
         assert returncode == 0 or "not found" in stdout.lower() or "error" in stdout.lower()
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
@@ -95,14 +98,14 @@ class TestMCPEverythingClientSimple:
             token=client_token,
             command="list_tools"
         )
-        
+
         print(f"Return code: {returncode}")
         print(f"Stdout: {stdout}")
         print(f"Stderr: {stderr}")
-        
+
         # Check if we got a response (even if it's an error about the command)
         assert stdout or stderr
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
@@ -113,14 +116,14 @@ class TestMCPEverythingClientSimple:
             token=client_token,
             command="help"
         )
-        
+
         print(f"Return code: {returncode}")
         print(f"Stdout: {stdout}")
         print(f"Stderr: {stderr}")
-        
+
         # Check if we got a response
         assert stdout or stderr
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
@@ -131,21 +134,21 @@ class TestMCPEverythingClientSimple:
             token=client_token,
             command="this_command_does_not_exist"
         )
-        
+
         print(f"Return code: {returncode}")
         print(f"Stdout: {stdout}")
         print(f"Stderr: {stderr}")
-        
+
         # Should get an error response - the client exits with status 1 for unknown commands
         assert returncode == 1 or "not available" in stdout.lower() or "error" in stdout.lower() or stderr
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_available_features(self, everything_url, client_token, wait_for_services):
         """Try to discover available features."""
         print("\n=== Testing mcp-everything server features ===")
-        
+
         # Try different commands to see what's available
         test_commands = [
             "list",
@@ -159,7 +162,7 @@ class TestMCPEverythingClientSimple:
             "sample",
             "everything"
         ]
-        
+
         for command in test_commands:
             print(f"\nTrying command: {command}")
             returncode, stdout, stderr = self.run_client_command(
@@ -167,17 +170,17 @@ class TestMCPEverythingClientSimple:
                 token=client_token,
                 command=command
             )
-            
+
             if stdout:
                 print(f"Output: {stdout[:200]}...")  # First 200 chars
             if stderr:
                 print(f"Error: {stderr[:200]}...")
-            
+
             # Look for successful responses
             if returncode == 0 and stdout and "error" not in stdout.lower():
                 print(f"✓ Command '{command}' seems to work!")
-        
+
         print("\n=== Feature discovery completed ===")
-        
+
         # Test passes if we can communicate with the server
         assert True

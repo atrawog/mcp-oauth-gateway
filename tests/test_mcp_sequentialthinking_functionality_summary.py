@@ -1,5 +1,4 @@
-"""
-Summary of MCP Sequential Thinking Service Test Coverage
+"""Summary of MCP Sequential Thinking Service Test Coverage.
 
 This document summarizes the comprehensive functionality testing performed on the
 mcp-sequentialthinking service using mcp-streamablehttp-client.
@@ -19,7 +18,7 @@ TESTED FUNCTIONALITY:
    - ✅ Service initialization and protocol handshake
    - ✅ Tool listing via tools/list endpoint
    - ✅ Parameter schema validation for 'sequentialthinking' tool
-   - ✅ All 9 expected parameters present: thought, nextThoughtNeeded, thoughtNumber, 
+   - ✅ All 9 expected parameters present: thought, nextThoughtNeeded, thoughtNumber,
         totalThoughts, isRevision, revisesThought, branchFromThought, branchId, needsMoreThoughts
 
 🧠 2. Simple Problem Solving (test_sequentialthinking_simple_problem)
@@ -109,7 +108,7 @@ The sequential thinking service successfully demonstrates:
 
 🔄 Advanced Reasoning Features:
    - Thought revision and correction capabilities
-   - Branching logic for exploring alternatives  
+   - Branching logic for exploring alternatives
    - Dynamic scaling of analysis depth
    - State management across thinking sessions
 
@@ -134,7 +133,7 @@ SERVICE ENDPOINTS:
 =================
 
 - Primary: https://mcp-sequentialthinking.${BASE_DOMAIN}/mcp
-- Health: https://mcp-sequentialthinking.${BASE_DOMAIN}/health  
+- Health: https://mcp-sequentialthinking.${BASE_DOMAIN}/health
 - OAuth Discovery: https://mcp-sequentialthinking.${BASE_DOMAIN}/.well-known/oauth-authorization-server
 
 NEXT STEPS:

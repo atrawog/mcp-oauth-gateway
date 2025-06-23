@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
-"""
-Save MCP client environment variables to .env file
-"""
-import sys
+"""Save MCP client environment variables to .env file."""
 import re
+import sys
 from pathlib import Path
+
 
 ENV_FILE = Path(__file__).parent.parent / ".env"
 
 def save_env_var(key: str, value: str):
-    """Save or update an environment variable in .env file"""
+    """Save or update an environment variable in .env file."""
     lines = []
     found = False
-    
+
     if ENV_FILE.exists():
         with open(ENV_FILE) as f:
             for line in f:
@@ -21,10 +20,10 @@ def save_env_var(key: str, value: str):
                     found = True
                 else:
                     lines.append(line)
-    
+
     if not found:
         lines.append(f"\n{key}={value}\n")
-    
+
     with open(ENV_FILE, "w") as f:
         f.writelines(lines)
 

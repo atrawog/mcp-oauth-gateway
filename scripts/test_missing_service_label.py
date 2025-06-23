@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Simulate what the validation test would report with missing service label
-"""
+"""Simulate what the validation test would report with missing service label."""
 
 # Simulate the label dict without the service assignment
 label_dict_broken = {
@@ -27,9 +25,9 @@ if f"{prefix}.service" in label_dict_broken:
     print(f"✓ Router {router_name} has service assignment")
 else:
     print(f"✗ Router {router_name} missing service assignment!")
-    print(f"  This causes 404 errors because Traefik doesn't know where to route!")
-    print(f"  The router will match requests but have no backend service.")
-    
+    print("  This causes 404 errors because Traefik doesn't know where to route!")
+    print("  The router will match requests but have no backend service.")
+
 print("\nWhat happens in Traefik:")
 print("1. Request arrives at https://mcp-fetch.domain.com/mcp")
 print("2. Router 'mcp-fetch' matches (Host + PathPrefix rule)")

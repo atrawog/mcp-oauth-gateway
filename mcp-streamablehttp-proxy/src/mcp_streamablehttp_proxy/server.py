@@ -1,7 +1,9 @@
 """Server runner for the MCP stdio-to-HTTP proxy."""
 import logging
-from typing import List, Optional
+from typing import List
+
 import uvicorn
+
 from .proxy import create_app
 
 logger = logging.getLogger(__name__)
@@ -15,7 +17,7 @@ def run_server(
     log_level: str = "info"
 ):
     """Run the MCP stdio-to-HTTP proxy server.
-    
+
     Args:
         server_command: Command to run the MCP stdio server
         host: Host to bind to (default: 0.0.0.0)
@@ -25,11 +27,11 @@ def run_server(
     """
     # Set up logging
     logging.basicConfig(level=getattr(logging, log_level.upper()))
-    
+
     logger.info(f"Starting MCP stdio-to-HTTP proxy for: {' '.join(server_command)}")
-    
+
     # Create FastAPI app
     app = create_app(server_command, session_timeout)
-    
+
     # Run server without automatic trailing slash redirects
     uvicorn.run(app, host=host, port=port, log_level=log_level)

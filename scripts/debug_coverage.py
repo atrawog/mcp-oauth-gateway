@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""
-Debug script to verify coverage configuration in the auth container
-"""
+"""Debug script to verify coverage configuration in the auth container."""
 import os
 import sys
+
 
 print("=== Coverage Debug Information ===")
 print(f"Python executable: {sys.executable}")

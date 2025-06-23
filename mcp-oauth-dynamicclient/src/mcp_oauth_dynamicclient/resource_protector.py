@@ -2,16 +2,15 @@
 OAuth 2.0 Resource Protection using Authlib's ResourceProtector
 Following security best practices - NO AD-HOC IMPLEMENTATIONS!
 """
-import json
-from typing import Optional, Dict, Any
 from datetime import datetime, timezone
+from typing import Any, Optional
 
 import redis.asyncio as redis
+from authlib.jose import JsonWebToken
+from authlib.jose.errors import JoseError
 from authlib.oauth2 import ResourceProtector
 from authlib.oauth2.rfc6750 import BearerTokenValidator
 from authlib.oauth2.rfc6750.errors import InvalidTokenError as BearerTokenError
-from authlib.jose import JsonWebToken, JWTClaims
-from authlib.jose.errors import JoseError
 
 from .config import Settings
 from .keys import RSAKeyManager
@@ -23,19 +22,19 @@ class JWTBearerTokenValidator(BearerTokenValidator):
     This replaces the custom verify_jwt_token implementation with
     Authlib's battle-tested security framework.
     """
-    
+
     def __init__(self, settings: Settings, redis_client: redis.Redis, key_manager: RSAKeyManager):
         super().__init__()
         self.settings = settings
         self.redis_client = redis_client
         self.key_manager = key_manager
         self.jwt = JsonWebToken(algorithms=[settings.jwt_algorithm])
-    
-    async def authenticate_token(self, token_string: str) -> Optional[Dict[str, Any]]:
+
+    async def authenticate_token(self, token_string: str) -> Optional[dict[str, Any]]:
         """
         Authenticate the bearer token.
         This method is called by ResourceProtector to validate tokens.
-        
+
         Returns:
             Token claims if valid, None if invalid
         """
@@ -63,21 +62,21 @@ class JWTBearerTokenValidator(BearerTokenValidator):
                         "jti": {"essential": True}
                     }
                 )
-            
+
             # Validate claims
             claims.validate()
-            
+
             # Check if token exists in Redis (not revoked)
             jti = claims["jti"]
             token_data = await self.redis_client.get(f"oauth:token:{jti}")
-            
+
             if not token_data:
                 # Token has been revoked or doesn't exist
                 return None
-            
+
             # Return claims as dict for ResourceProtector
             return dict(claims)
-            
+
         except JoseError as e:
             # Token validation failed
             print(f"JWT validation error: {e}")
@@ -85,7 +84,7 @@ class JWTBearerTokenValidator(BearerTokenValidator):
         except Exception as e:
             print(f"Unexpected error during token validation: {e}")
             return None
-    
+
     def request_invalid(self, request) -> Optional[str]:
         """
         Check if the request is invalid.
@@ -93,20 +92,20 @@ class JWTBearerTokenValidator(BearerTokenValidator):
         """
         # Get authorization header
         auth_header = request.headers.get("Authorization", "")
-        
+
         if not auth_header:
             return "Missing Authorization header"
-        
+
         if not auth_header.startswith("Bearer "):
             return "Authorization header must use Bearer scheme"
-        
+
         # Token will be validated in authenticate_token
         return None
-    
-    def token_revoked(self, token: Dict[str, Any]) -> bool:
+
+    def token_revoked(self, token: dict[str, Any]) -> bool:
         """
         Check if the token has been revoked.
-        Since we already check Redis in authenticate_token, 
+        Since we already check Redis in authenticate_token,
         we can return False here.
         """
         return False
@@ -117,8 +116,8 @@ class IntrospectionBearerTokenValidator(JWTBearerTokenValidator):
     Extended validator for token introspection endpoint.
     Allows introspection of expired tokens.
     """
-    
-    async def authenticate_token(self, token_string: str) -> Optional[Dict[str, Any]]:
+
+    async def authenticate_token(self, token_string: str) -> Optional[dict[str, Any]]:
         """
         Authenticate token for introspection - allows expired tokens.
         """
@@ -144,7 +143,7 @@ class IntrospectionBearerTokenValidator(JWTBearerTokenValidator):
                         "exp": {"essential": False}
                     }
                 )
-            
+
             # Check if token exists in Redis
             jti = claims.get("jti")
             if jti:
@@ -153,10 +152,10 @@ class IntrospectionBearerTokenValidator(JWTBearerTokenValidator):
                     # Add active status based on expiration
                     claims["active"] = claims.get("exp", 0) > datetime.now(timezone.utc).timestamp()
                     return dict(claims)
-            
+
             # Token not in Redis - it's been revoked
             return {"active": False}
-            
+
         except JoseError:
             # Can't decode token - return inactive
             return {"active": False}
@@ -169,11 +168,11 @@ def create_resource_protector(settings: Settings, redis_client: redis.Redis, key
     """
     # Create the resource protector
     require_oauth = ResourceProtector()
-    
+
     # Register our JWT bearer token validator
     validator = JWTBearerTokenValidator(settings, redis_client, key_manager)
     require_oauth.register_token_validator(validator)
-    
+
     return require_oauth
 
 
@@ -184,11 +183,11 @@ def create_introspection_protector(settings: Settings, redis_client: redis.Redis
     """
     # Create the resource protector
     introspect_oauth = ResourceProtector()
-    
+
     # Register our introspection validator
     validator = IntrospectionBearerTokenValidator(settings, redis_client, key_manager)
     introspect_oauth.register_token_validator(validator)
-    
+
     return introspect_oauth
 
 

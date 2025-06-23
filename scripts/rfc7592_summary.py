@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Summary of RFC 7592 Bearer Token Implementation
-"""
+"""Summary of RFC 7592 Bearer Token Implementation."""
 
 print("""
 RFC 7592 Bearer Token Implementation Summary
@@ -38,6 +36,6 @@ RFC 7592 Bearer Token Implementation Summary
    - RFC 7592 security tests: PASSING
    - All tests updated to use Bearer tokens
 
-This implementation is now fully compliant with RFC 7592's requirement 
+This implementation is now fully compliant with RFC 7592's requirement
 to use registration_access_token Bearer authentication!
 """)

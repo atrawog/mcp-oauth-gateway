@@ -1,15 +1,16 @@
 """Comprehensive tests for all mcp-memory service functionalities using mcp-streamablehttp-client."""
 
 import json
-import asyncio
-import pytest
-import subprocess
 import os
+import subprocess
 import uuid
-from typing import Dict, Any, List
+from typing import Any
 
-from tests.conftest import ensure_services_ready
-from tests.test_constants import BASE_DOMAIN, MCP_CLIENT_ACCESS_TOKEN, MCP_PROTOCOL_VERSION
+import pytest
+
+from tests.test_constants import BASE_DOMAIN
+from tests.test_constants import MCP_CLIENT_ACCESS_TOKEN
+from tests.test_constants import MCP_PROTOCOL_VERSION
 
 
 @pytest.fixture
@@ -35,55 +36,55 @@ async def wait_for_services():
 
 class TestMCPMemoryComprehensive:
     """Comprehensive tests for all mcp-memory service functionalities."""
-    
-    def run_mcp_client(self, url: str, token: str, method: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+
+    def run_mcp_client(self, url: str, token: str, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Run mcp-streamablehttp-client and return the response."""
         # Set environment variables
         env = os.environ.copy()
         env["MCP_SERVER_URL"] = url
         env["MCP_CLIENT_ACCESS_TOKEN"] = token
-        
+
         # Build the raw JSON-RPC request
         request = {
             "jsonrpc": "2.0",
             "method": method,
             "params": params or {}
         }
-        
+
         # Add ID for requests (not notifications)
         if method != "notifications/initialized":
             request["id"] = f"test-{method.replace('/', '-')}-{uuid.uuid4().hex[:8]}"
-        
+
         # Convert to JSON string
         raw_request = json.dumps(request)
-        
+
         # Build the command
         cmd = [
             "pixi", "run", "mcp-streamablehttp-client",
             "--server-url", url,
             "--raw", raw_request
         ]
-        
+
         # Run the command
         result = subprocess.run(
             cmd,
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
             timeout=30,
             env=env
         )
-        
+
         if result.returncode != 0:
             # Check if it's an expected error
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}")
-        
+
         # Parse the output - find the JSON response
         try:
             # Look for JSON blocks in the output
             output = result.stdout
-            
+
             # Find all JSON objects in the output
             json_objects = []
             i = 0
@@ -93,7 +94,7 @@ class TestMCPMemoryComprehensive:
                     brace_count = 0
                     json_start = i
                     json_end = i
-                    
+
                     for j in range(i, len(output)):
                         if output[j] == '{':
                             brace_count += 1
@@ -102,7 +103,7 @@ class TestMCPMemoryComprehensive:
                             if brace_count == 0:
                                 json_end = j + 1
                                 break
-                    
+
                     if brace_count == 0:
                         json_str = output[json_start:json_end]
                         try:
@@ -117,17 +118,17 @@ class TestMCPMemoryComprehensive:
                         i += 1
                 else:
                     i += 1
-            
+
             if not json_objects:
                 pytest.fail(f"No JSON-RPC response found in output: {output}")
-            
+
             # Return the last JSON-RPC response
             response = json_objects[-1]
             return response
-            
+
         except Exception as e:
             pytest.fail(f"Failed to parse JSON response: {e}\\nOutput: {result.stdout}")
-    
+
     def initialize_session(self, url: str, token: str) -> None:
         """Initialize a new MCP session."""
         response = self.run_mcp_client(
@@ -148,27 +149,27 @@ class TestMCPMemoryComprehensive:
             }
         )
         assert "result" in response, f"Initialize failed: {response}"
-    
-    def get_tool_schema(self, url: str, token: str, tool_name: str) -> Dict[str, Any]:
+
+    def get_tool_schema(self, url: str, token: str, tool_name: str) -> dict[str, Any]:
         """Get the schema for a specific tool."""
         self.initialize_session(url, token)
-        
+
         response = self.run_mcp_client(
             url=url,
             token=token,
             method="tools/list",
             params={}
         )
-        
+
         assert "result" in response, f"tools/list failed: {response}"
         tools = response["result"]["tools"]
-        
+
         for tool in tools:
             if tool["name"] == tool_name:
                 return tool
-        
+
         pytest.fail(f"Tool '{tool_name}' not found in available tools: {[t['name'] for t in tools]}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_memory_create_entities(self, mcp_memory_url, client_token, wait_for_services):
@@ -177,7 +178,7 @@ class TestMCPMemoryComprehensive:
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "create_entities")
         print(f"\\nTesting create_entities tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
-        
+
         # Test creating entities
         entities_data = [
             {
@@ -187,11 +188,11 @@ class TestMCPMemoryComprehensive:
             },
             {
                 "name": "test_project",
-                "entityType": "project", 
+                "entityType": "project",
                 "observations": ["AI-powered memory system", "Uses knowledge graphs"]
             }
         ]
-        
+
         response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
             token=client_token,
@@ -203,9 +204,9 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         print(f"Create entities response: {json.dumps(response, indent=2)}")
-        
+
         if "result" in response:
             assert "content" in response["result"]
             content = response["result"]["content"]
@@ -215,13 +216,14 @@ class TestMCPMemoryComprehensive:
             text_content = "".join([item.get("text", "") for item in content if item.get("type") == "text"])
             # If entities were created, they should be in the response
             if text_content and text_content != "[]":
-                assert "test_user" in text_content and "test_project" in text_content
+                assert "test_user" in text_content
+                assert "test_project" in text_content
             print("✅ Entities operation completed successfully!")
         else:
             # Some test data might cause validation errors - that's acceptable for this test
             assert "error" in response
             print(f"Expected error (validation): {response['error']}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_memory_create_relations(self, mcp_memory_url, client_token, wait_for_services):
@@ -229,7 +231,7 @@ class TestMCPMemoryComprehensive:
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "create_relations")
         print(f"\\nTesting create_relations tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
-        
+
         # First create entities to relate
         self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -245,16 +247,16 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         # Create relations
         relations_data = [
             {
                 "from": "alice",
-                "to": "bob", 
+                "to": "bob",
                 "relationType": "knows"
             }
         ]
-        
+
         response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
             token=client_token,
@@ -266,9 +268,9 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         print(f"Create relations response: {json.dumps(response, indent=2)}")
-        
+
         if "result" in response:
             assert "content" in response["result"]
             content = response["result"]["content"]
@@ -276,7 +278,7 @@ class TestMCPMemoryComprehensive:
         else:
             assert "error" in response
             print(f"Create relations error: {response['error']}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_memory_add_observations(self, mcp_memory_url, client_token, wait_for_services):
@@ -284,7 +286,7 @@ class TestMCPMemoryComprehensive:
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "add_observations")
         print(f"\\nTesting add_observations tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
-        
+
         # Create an entity first
         self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -297,7 +299,7 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         # Add observations
         observations_data = [
             {
@@ -305,7 +307,7 @@ class TestMCPMemoryComprehensive:
                 "contents": ["Likes coffee", "Works remotely", "Prefers async communication"]
             }
         ]
-        
+
         response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
             token=client_token,
@@ -317,15 +319,15 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         print(f"Add observations response: {json.dumps(response, indent=2)}")
-        
+
         if "result" in response:
             assert "content" in response["result"]
         else:
             assert "error" in response
             print(f"Add observations error: {response['error']}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_memory_read_graph(self, mcp_memory_url, client_token, wait_for_services):
@@ -333,7 +335,7 @@ class TestMCPMemoryComprehensive:
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "read_graph")
         print(f"\\nTesting read_graph tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
-        
+
         response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
             token=client_token,
@@ -343,9 +345,9 @@ class TestMCPMemoryComprehensive:
                 "arguments": {}
             }
         )
-        
+
         print(f"Read graph response: {json.dumps(response, indent=2)}")
-        
+
         if "result" in response:
             assert "content" in response["result"]
             content = response["result"]["content"]
@@ -356,7 +358,7 @@ class TestMCPMemoryComprehensive:
         else:
             assert "error" in response
             print(f"Read graph error: {response['error']}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_memory_search_nodes(self, mcp_memory_url, client_token, wait_for_services):
@@ -364,7 +366,7 @@ class TestMCPMemoryComprehensive:
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "search_nodes")
         print(f"\\nTesting search_nodes tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
-        
+
         # Create some searchable content first
         self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -379,7 +381,7 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         # Search for nodes
         response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -392,15 +394,15 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         print(f"Search nodes response: {json.dumps(response, indent=2)}")
-        
+
         if "result" in response:
             assert "content" in response["result"]
         else:
             assert "error" in response
             print(f"Search nodes error: {response['error']}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_memory_open_nodes(self, mcp_memory_url, client_token, wait_for_services):
@@ -408,20 +410,20 @@ class TestMCPMemoryComprehensive:
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "open_nodes")
         print(f"\\nTesting open_nodes tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
-        
+
         # Create an entity to open
         self.run_mcp_client(
             url=f"{mcp_memory_url}",
             token=client_token,
             method="tools/call",
             params={
-                "name": "create_entities", 
+                "name": "create_entities",
                 "arguments": {
                     "entities": [{"name": "detailed_entity", "entityType": "person"}]
                 }
             }
         )
-        
+
         # Open the node
         response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -434,15 +436,15 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         print(f"Open nodes response: {json.dumps(response, indent=2)}")
-        
+
         if "result" in response:
             assert "content" in response["result"]
         else:
             assert "error" in response
             print(f"Open nodes error: {response['error']}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_memory_delete_entities(self, mcp_memory_url, client_token, wait_for_services):
@@ -450,7 +452,7 @@ class TestMCPMemoryComprehensive:
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "delete_entities")
         print(f"\\nTesting delete_entities tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
-        
+
         # Create entity to delete
         self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -463,7 +465,7 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         # Delete the entity
         response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -476,15 +478,15 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         print(f"Delete entities response: {json.dumps(response, indent=2)}")
-        
+
         if "result" in response:
             assert "content" in response["result"]
         else:
             assert "error" in response
             print(f"Delete entities error: {response['error']}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_memory_delete_relations(self, mcp_memory_url, client_token, wait_for_services):
@@ -492,7 +494,7 @@ class TestMCPMemoryComprehensive:
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "delete_relations")
         print(f"\\nTesting delete_relations tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
-        
+
         # Create entities and relation to delete
         self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -508,7 +510,7 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         self.run_mcp_client(
             url=f"{mcp_memory_url}",
             token=client_token,
@@ -520,7 +522,7 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         # Delete the relation
         response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -533,15 +535,15 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         print(f"Delete relations response: {json.dumps(response, indent=2)}")
-        
+
         if "result" in response:
             assert "content" in response["result"]
         else:
             assert "error" in response
             print(f"Delete relations error: {response['error']}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_memory_delete_observations(self, mcp_memory_url, client_token, wait_for_services):
@@ -549,7 +551,7 @@ class TestMCPMemoryComprehensive:
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "delete_observations")
         print(f"\\nTesting delete_observations tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
-        
+
         # Create entity with observations to delete
         self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -562,7 +564,7 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         # Delete observations
         response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -575,24 +577,24 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         print(f"Delete observations response: {json.dumps(response, indent=2)}")
-        
+
         if "result" in response:
             assert "content" in response["result"]
         else:
             assert "error" in response
             print(f"Delete observations error: {response['error']}")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_memory_complete_workflow(self, mcp_memory_url, client_token, wait_for_services):
         """Test a complete memory workflow with all operations."""
         print("\\n=== Starting complete memory workflow test ===")
-        
+
         # 1. Initialize and read initial state
         self.initialize_session(f"{mcp_memory_url}", client_token)
-        
+
         initial_graph = self.run_mcp_client(
             url=f"{mcp_memory_url}",
             token=client_token,
@@ -600,7 +602,7 @@ class TestMCPMemoryComprehensive:
             params={"name": "read_graph", "arguments": {}}
         )
         print(f"Initial graph state: {json.dumps(initial_graph, indent=2)}")
-        
+
         # 2. Create entities
         create_response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -616,7 +618,7 @@ class TestMCPMemoryComprehensive:
                             "observations": ["Testing complete workflow", "Comprehensive memory testing"]
                         },
                         {
-                            "name": "workflow_project", 
+                            "name": "workflow_project",
                             "entityType": "project",
                             "observations": ["MCP memory integration", "Knowledge graph testing"]
                         }
@@ -625,7 +627,7 @@ class TestMCPMemoryComprehensive:
             }
         )
         print(f"\\nEntities created: {create_response}")
-        
+
         # 3. Create relations
         relations_response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -641,7 +643,7 @@ class TestMCPMemoryComprehensive:
             }
         )
         print(f"\\nRelations created: {relations_response}")
-        
+
         # 4. Add more observations
         observations_response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -657,7 +659,7 @@ class TestMCPMemoryComprehensive:
             }
         )
         print(f"\\nObservations added: {observations_response}")
-        
+
         # 5. Search for created content
         search_response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -669,7 +671,7 @@ class TestMCPMemoryComprehensive:
             }
         )
         print(f"\\nSearch results: {search_response}")
-        
+
         # 6. Open specific nodes
         open_response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -681,7 +683,7 @@ class TestMCPMemoryComprehensive:
             }
         )
         print(f"\\nNode details: {open_response}")
-        
+
         # 7. Read final graph state
         final_graph = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -690,9 +692,9 @@ class TestMCPMemoryComprehensive:
             params={"name": "read_graph", "arguments": {}}
         )
         print(f"\\nFinal graph state: {json.dumps(final_graph, indent=2)}")
-        
+
         print("\\n=== Complete workflow test finished ===")
-        
+
         # Verify workflow completed (at least some operations succeeded)
         workflow_success = any([
             "result" in create_response,
@@ -702,16 +704,16 @@ class TestMCPMemoryComprehensive:
             "result" in open_response,
             "result" in final_graph
         ])
-        
+
         assert workflow_success, "Complete workflow failed - no operations succeeded"
         print("✅ Memory workflow completed successfully!")
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_memory_error_handling(self, mcp_memory_url, client_token, wait_for_services):
         """Test error handling for invalid operations."""
         self.initialize_session(f"{mcp_memory_url}", client_token)
-        
+
         # Test invalid entity creation
         invalid_entity_response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -724,9 +726,9 @@ class TestMCPMemoryComprehensive:
                 }
             }
         )
-        
+
         print(f"Invalid entity response: {json.dumps(invalid_entity_response, indent=2)}")
-        
+
         # Test searching non-existent entities
         search_missing_response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -737,9 +739,9 @@ class TestMCPMemoryComprehensive:
                 "arguments": {"query": "definitely_does_not_exist_12345"}
             }
         )
-        
+
         print(f"Search missing response: {json.dumps(search_missing_response, indent=2)}")
-        
+
         # Test opening non-existent nodes
         open_missing_response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -750,11 +752,11 @@ class TestMCPMemoryComprehensive:
                 "arguments": {"names": ["definitely_does_not_exist_54321"]}
             }
         )
-        
+
         print(f"Open missing response: {json.dumps(open_missing_response, indent=2)}")
-        
+
         # Verify that error handling works (operations either succeed or return proper errors)
         for response in [invalid_entity_response, search_missing_response, open_missing_response]:
             assert "result" in response or "error" in response, f"Response missing result or error: {response}"
-        
+
         print("✅ Error handling verification completed!")

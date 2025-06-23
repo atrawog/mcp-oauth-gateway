@@ -2,15 +2,17 @@
 Basic example of running the MCP OAuth server
 """
 import asyncio
-from mcp_oauth_dynamicclient import create_app, Settings
+
+from mcp_oauth_dynamicclient import Settings, create_app
+
 
 async def main():
     # Create settings (will load from .env)
     settings = Settings()
-    
+
     # Create the app
     app = create_app(settings)
-    
+
     # Run with uvicorn
     import uvicorn
     config = uvicorn.Config(

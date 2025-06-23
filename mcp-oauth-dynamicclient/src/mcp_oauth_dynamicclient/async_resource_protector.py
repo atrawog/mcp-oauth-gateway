@@ -3,17 +3,14 @@ Async-compatible ResourceProtector for FastAPI
 Since Authlib's ResourceProtector doesn't support async natively,
 we create a wrapper that works with FastAPI's async handlers.
 """
-import asyncio
-from typing import Optional, Dict, Any
-from functools import partial
+from typing import Any, Optional
 
-from fastapi import Request, HTTPException
-from authlib.oauth2.rfc6750.errors import InvalidTokenError as BearerTokenError
 import redis.asyncio as redis
+from fastapi import HTTPException, Request
 
-from .resource_protector import JWTBearerTokenValidator, handle_oauth_error
 from .config import Settings
 from .keys import RSAKeyManager
+from .resource_protector import JWTBearerTokenValidator
 
 
 class AsyncResourceProtector:
@@ -21,20 +18,20 @@ class AsyncResourceProtector:
     Async wrapper for Authlib's ResourceProtector that works with FastAPI.
     This maintains the security benefits of ResourceProtector while supporting async operations.
     """
-    
+
     def __init__(self, settings: Settings, redis_client: redis.Redis, key_manager: RSAKeyManager):
         self.settings = settings
         self.redis_client = redis_client
         self.key_manager = key_manager
         self.validator = JWTBearerTokenValidator(settings, redis_client, key_manager)
-    
-    async def validate_request(self, request: Request) -> Optional[Dict[str, Any]]:
+
+    async def validate_request(self, request: Request) -> Optional[dict[str, Any]]:
         """
         Validate the request and extract token information.
-        
+
         Args:
             request: FastAPI Request object
-            
+
         Returns:
             Token claims if valid, raises HTTPException if invalid
         """
@@ -49,7 +46,7 @@ class AsyncResourceProtector:
                 },
                 headers={"WWW-Authenticate": "Bearer"}
             )
-        
+
         # Extract token from Authorization header
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
@@ -61,12 +58,12 @@ class AsyncResourceProtector:
                 },
                 headers={"WWW-Authenticate": "Bearer"}
             )
-        
+
         token_string = auth_header[7:]  # Remove "Bearer " prefix
-        
+
         # Validate token asynchronously
         token_data = await self.validator.authenticate_token(token_string)
-        
+
         if not token_data:
             raise HTTPException(
                 status_code=401,
@@ -76,19 +73,19 @@ class AsyncResourceProtector:
                 },
                 headers={"WWW-Authenticate": 'Bearer error="invalid_token"'}
             )
-        
+
         return token_data
 
 
 def create_async_resource_protector(settings: Settings, redis_client: redis.Redis, key_manager: RSAKeyManager) -> AsyncResourceProtector:
     """
     Create an async-compatible ResourceProtector instance.
-    
+
     Args:
         settings: Application settings
         redis_client: Redis client for token storage
         key_manager: RSA key manager for JWT validation
-        
+
     Returns:
         AsyncResourceProtector instance
     """

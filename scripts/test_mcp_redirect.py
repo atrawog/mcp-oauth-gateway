@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Test MCP redirect behavior"""
-import httpx
+"""Test MCP redirect behavior."""
 import os
 import sys
+
+import httpx
+
 
 # Get OAuth token from environment
 oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")

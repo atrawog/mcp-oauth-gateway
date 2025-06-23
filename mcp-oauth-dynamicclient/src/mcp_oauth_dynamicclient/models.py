@@ -1,8 +1,9 @@
 """
 Pydantic models for OAuth 2.1 and RFC 7591 compliance
 """
-from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Any, Optional
+
+from pydantic import BaseModel
 
 
 # OAuth Client Registration Model (RFC 7591)
@@ -16,7 +17,7 @@ class ClientRegistration(BaseModel):
     tos_uri: Optional[str] = None
     policy_uri: Optional[str] = None
     jwks_uri: Optional[str] = None
-    jwks: Optional[Dict[str, Any]] = None
+    jwks: Optional[dict[str, Any]] = None
     software_id: Optional[str] = None
     software_version: Optional[str] = None
 

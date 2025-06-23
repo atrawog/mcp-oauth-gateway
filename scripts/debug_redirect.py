@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Debug MCP redirect issue"""
+"""Debug MCP redirect issue."""
+
 import httpx
-import sys
+
 
 # Test direct request
 print("Test 1: Direct request to /mcp (no redirect follow)")

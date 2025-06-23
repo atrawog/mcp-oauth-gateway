@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-import coverage
 import sys
+
+import coverage
+
 
 data_file = sys.argv[1] if len(sys.argv) > 1 else '.coverage'
 cov = coverage.Coverage(data_file=data_file)

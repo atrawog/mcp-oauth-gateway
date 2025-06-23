@@ -2,8 +2,9 @@
 """Run the auth service with coverage from source code."""
 
 import os
-import sys
 import subprocess
+import sys
+
 
 # Add source to Python path
 sys.path.insert(0, '/src')
@@ -16,4 +17,4 @@ subprocess.run([
     'python', '-m', 'coverage', 'run', '--source=/src',
     '-m', 'mcp_oauth_dynamicclient.server',
     '--host', '0.0.0.0', '--port', '8000'
-])
+], check=False)

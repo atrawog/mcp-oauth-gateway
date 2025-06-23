@@ -1,24 +1,24 @@
-"""
-Test PKCE S256 enforcement and plain method rejection per CLAUDE.md sacred laws
-"""
-import hashlib
+"""Test PKCE S256 enforcement and plain method rejection per CLAUDE.md sacred laws."""
 import base64
+import hashlib
 import secrets
+
 import pytest
-import httpx
-from urllib.parse import urlencode
-from .test_constants import AUTH_BASE_URL, TEST_CALLBACK_URL, GATEWAY_OAUTH_ACCESS_TOKEN
+
+from .test_constants import AUTH_BASE_URL
+from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import TEST_CALLBACK_URL
+
 
 class TestPKCES256Enforcement:
-    """Test PKCE S256 enforcement per CLAUDE.md sacred commandments"""
-    
+    """Test PKCE S256 enforcement per CLAUDE.md sacred commandments."""
+
     @pytest.mark.asyncio
     async def test_pkce_plain_method_rejected(self, http_client, wait_for_services):
-        """Verify that plain PKCE method is rejected per CLAUDE.md commandments"""
-        
+        """Verify that plain PKCE method is rejected per CLAUDE.md commandments."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
-        
+
         # Register a client
         register_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
@@ -32,7 +32,7 @@ class TestPKCES256Enforcement:
         )
         assert register_response.status_code == 201
         client_data = register_response.json()
-        
+
         # Attempt authorization with plain PKCE method
         code_verifier = secrets.token_urlsafe(43)
         auth_params = {
@@ -43,13 +43,13 @@ class TestPKCES256Enforcement:
             "code_challenge_method": "plain",
             "state": "test-state"
         }
-        
+
         auth_response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
             params=auth_params,
             follow_redirects=False
         )
-        
+
         # Should reject plain method
         assert auth_response.status_code == 400
         error_data = auth_response.json()
@@ -57,7 +57,7 @@ class TestPKCES256Enforcement:
         assert "error" in error_data["detail"]
         assert "plain" in error_data["detail"].get("error_description", "").lower() or \
                "s256" in error_data["detail"].get("error_description", "").lower()
-        
+
         # Cleanup: Delete the client registration using RFC 7592
         if "registration_access_token" in client_data and "client_id" in client_data:
             try:
@@ -73,11 +73,10 @@ class TestPKCES256Enforcement:
 
     @pytest.mark.asyncio
     async def test_pkce_s256_proper_validation(self, http_client, wait_for_services):
-        """Verify S256 PKCE validation actually works correctly"""
-        
+        """Verify S256 PKCE validation actually works correctly."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
-        
+
         # Register a client
         register_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
@@ -91,12 +90,12 @@ class TestPKCES256Enforcement:
         )
         assert register_response.status_code == 201
         client_data = register_response.json()
-        
+
         # Generate proper S256 challenge
         code_verifier = secrets.token_urlsafe(43)
         digest = hashlib.sha256(code_verifier.encode()).digest()
         code_challenge = base64.urlsafe_b64encode(digest).decode().rstrip("=")
-        
+
         # Authorize with S256
         auth_params = {
             "response_type": "code",
@@ -106,18 +105,18 @@ class TestPKCES256Enforcement:
             "code_challenge_method": "S256",
             "state": "test-state"
         }
-        
+
         auth_response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
             params=auth_params,
             follow_redirects=False
         )
-        
+
         # For now, we expect 307 redirect to GitHub (no user session)
         # The important part is it doesn't reject S256
         assert auth_response.status_code == 307
         assert "github.com/login/oauth/authorize" in auth_response.headers["location"]
-        
+
         # Cleanup: Delete the client registration using RFC 7592
         if "registration_access_token" in client_data and "client_id" in client_data:
             try:
@@ -133,18 +132,18 @@ class TestPKCES256Enforcement:
 
     @pytest.mark.asyncio
     async def test_pkce_s256_wrong_verifier_rejected(self, http_client, wait_for_services):
-        """Verify that incorrect PKCE verifier is rejected through full OAuth flow"""
+        """Verify that incorrect PKCE verifier is rejected through full OAuth flow."""
         # This test verifies PKCE validation by attempting authorization with wrong challenge
         # A full OAuth flow test would require simulating GitHub callback
         # For now we verify that S256 is required and plain is rejected
-        pass  # Covered by other tests
+        # Covered by other tests
 
     @pytest.mark.asyncio
     async def test_server_metadata_only_advertises_s256(self, http_client, wait_for_services):
-        """Verify server metadata only advertises S256 support"""
+        """Verify server metadata only advertises S256 support."""
         response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         assert response.status_code == 200
-        
+
         metadata = response.json()
         assert "code_challenge_methods_supported" in metadata
         assert metadata["code_challenge_methods_supported"] == ["S256"]

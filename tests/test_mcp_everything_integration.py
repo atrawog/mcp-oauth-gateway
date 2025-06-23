@@ -1,11 +1,14 @@
 """Tests for MCP Everything service integration."""
 
 import json
-import pytest
-import httpx
 
-from tests.conftest import ensure_services_ready
-from tests.test_constants import BASE_DOMAIN, GATEWAY_OAUTH_ACCESS_TOKEN, MCP_EVERYTHING_TESTS_ENABLED, MCP_EVERYTHING_URLS
+import httpx
+import pytest
+
+from tests.test_constants import BASE_DOMAIN
+from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
+from tests.test_constants import MCP_EVERYTHING_URLS
 
 
 @pytest.fixture
@@ -48,7 +51,7 @@ def parse_sse_response(response_text):
 
 class TestMCPEverythingIntegration:
     """Test the MCP Everything service integration."""
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
@@ -60,7 +63,7 @@ class TestMCPEverythingIntegration:
             response = await client.get(f"{base_url}/")
             # The root requires auth through Traefik
             assert response.status_code == 401
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
@@ -86,7 +89,7 @@ class TestMCPEverythingIntegration:
                 }
             )
             assert response.status_code == 401
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
@@ -111,7 +114,7 @@ class TestMCPEverythingIntegration:
                     "Authorization": f"Bearer {gateway_token}"
                 }
             )
-            
+
             assert response.status_code == 200
             data = parse_sse_response(response.text)
             assert data is not None
@@ -119,7 +122,7 @@ class TestMCPEverythingIntegration:
             assert data["result"]["protocolVersion"] == "2025-06-18"
             assert "serverInfo" in data["result"]
             assert data["result"]["serverInfo"]["name"] == "example-servers/everything"
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
@@ -146,14 +149,14 @@ class TestMCPEverythingIntegration:
                 }
             )
             assert init_response.status_code == 200
-            
+
             # Extract session ID if provided
             session_id = None
             for header in init_response.headers.get("mcp-session-id", "").split(","):
                 if header.strip():
                     session_id = header.strip()
                     break
-            
+
             # List tools
             headers = {
                 "Content-Type": "application/json",
@@ -162,7 +165,7 @@ class TestMCPEverythingIntegration:
             }
             if session_id:
                 headers["Mcp-Session-Id"] = session_id
-                
+
             response = await client.post(
                 f"{everything_base_url}",
                 json={
@@ -173,24 +176,24 @@ class TestMCPEverythingIntegration:
                 },
                 headers=headers
             )
-            
+
             assert response.status_code == 200
             data = parse_sse_response(response.text)
             assert data is not None
             assert "result" in data
             assert "tools" in data["result"]
-            
+
             # The everything server should have various test tools
             tools = data["result"]["tools"]
             assert isinstance(tools, list)
             assert len(tools) > 0
-            
+
             # Check that tools have proper structure
             for tool in tools:
                 assert "name" in tool
                 assert "description" in tool
                 assert "inputSchema" in tool
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
@@ -217,7 +220,7 @@ class TestMCPEverythingIntegration:
                 }
             )
             assert init_response.status_code == 200
-            
+
             # Try to call echo tool
             response = await client.post(
                 f"{everything_base_url}",
@@ -238,7 +241,7 @@ class TestMCPEverythingIntegration:
                     "Authorization": f"Bearer {gateway_token}"
                 }
             )
-            
+
             # The everything server might not have an echo tool, check the response
             if response.status_code == 400:
                 # Tool might not exist, that's OK
@@ -247,15 +250,15 @@ class TestMCPEverythingIntegration:
                 assert response.status_code == 200
                 data = parse_sse_response(response.text)
                 assert data is not None
-                
+
                 # If echo tool exists, check response
                 if "result" in data and not data.get("error"):
                     assert "content" in data["result"]
                     # Echo should return our message
                     content = data["result"]["content"]
-                    assert any("Hello from MCP Everything!" in str(item.get("text", "")) 
+                    assert any("Hello from MCP Everything!" in str(item.get("text", ""))
                               for item in content if isinstance(item, dict))
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
@@ -272,7 +275,7 @@ class TestMCPEverythingIntegration:
             assert "issuer" in data
             assert "authorization_endpoint" in data
             assert "token_endpoint" in data
-    
+
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
@@ -281,8 +284,8 @@ class TestMCPEverythingIntegration:
         # When using MCP_TESTING_URL, we might be testing against a different server
         # that doesn't have the same CORS configuration as production
         from tests.test_constants import MCP_TESTING_URL
-        is_testing_url = MCP_TESTING_URL and everything_base_url.startswith(MCP_TESTING_URL.rstrip('/'))
-        
+        MCP_TESTING_URL and everything_base_url.startswith(MCP_TESTING_URL.rstrip('/'))
+
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.options(
                 f"{everything_base_url}",
@@ -292,20 +295,20 @@ class TestMCPEverythingIntegration:
                     "Access-Control-Request-Headers": "content-type,authorization"
                 }
             )
-            
+
             # OPTIONS requests should return 200 or 204
             assert response.status_code in [200, 204]
-            
+
             # Check CORS headers if present - they may not be configured on all environments
             origin_header = response.headers.get("access-control-allow-origin")
             if origin_header:
                 # If CORS is configured, validate the headers
                 assert origin_header in ["https://claude.ai", "*"], f"Expected claude.ai or * origin, got {origin_header}"
-                
+
                 methods_header = response.headers.get("access-control-allow-methods", "")
                 if methods_header:
                     assert "POST" in methods_header
-                
+
                 allow_headers = response.headers.get("access-control-allow-headers", "")
                 if allow_headers:
                     assert allow_headers == "*" or "authorization" in allow_headers.lower()

@@ -1,5 +1,4 @@
-"""
-Summary of MCP Time Service Test Coverage
+"""Summary of MCP Time Service Test Coverage.
 
 This document summarizes the comprehensive functionality testing performed on the
 mcp-time service using mcp-streamablehttp-client.

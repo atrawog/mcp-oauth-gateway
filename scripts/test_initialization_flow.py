@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Test the initialization and notifications flow directly."""
 
-import httpx
-import json
 import os
+import sys
+
+import httpx
+
 
 # Get token from .env
 with open('.env') as f:
@@ -18,11 +20,11 @@ mcp_everything_urls = os.getenv('MCP_EVERYTHING_URLS', '').split(',') if os.gete
 
 if not mcp_everything_enabled:
     print("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
-    exit(0)
+    sys.exit(0)
 
 if not mcp_everything_urls:
     print("MCP_EVERYTHING_URLS environment variable not set")
-    exit(1)
+    sys.exit(1)
 
 url = mcp_everything_urls[0]
 

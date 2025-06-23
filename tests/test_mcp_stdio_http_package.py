@@ -1,14 +1,16 @@
 """Test that mcp-fetch service is using the correct package."""
-import pytest
 import httpx
+import pytest
+
 from tests.test_constants import MCP_CLIENT_ACCESS_TOKEN
+
 
 @pytest.mark.asyncio
 async def test_mcp_fetch_uses_package(mcp_fetch_url):
     """Verify mcp-fetch is running with the correct streamablehttp proxy."""
     if not MCP_CLIENT_ACCESS_TOKEN:
         pytest.skip("MCP_CLIENT_ACCESS_TOKEN not available")
-        
+
     async with httpx.AsyncClient() as client:
         # Use MCP protocol to check server info - per CLAUDE.md, no /health endpoints
         response = await client.post(
@@ -29,12 +31,12 @@ async def test_mcp_fetch_uses_package(mcp_fetch_url):
             }
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         server_info = data.get("result", {}).get("serverInfo", {})
-        
+
         # Should be running mcp-fetch server
         assert server_info.get("name") == "mcp-fetch"
-        
-        print(f"✅ MCP fetch service is running correctly")
+
+        print("✅ MCP fetch service is running correctly")
         print(f"   Server: {server_info.get('name')} v{server_info.get('version')}")
