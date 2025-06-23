@@ -19,14 +19,12 @@ from .test_constants import (
     GATEWAY_OAUTH_ACCESS_TOKEN
 )
 
-# MCP Client tokens from environment - MUST be loaded from .env
-from dotenv import load_dotenv
-load_dotenv()  # Ensure .env is loaded
-
-MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
-MCP_CLIENT_ID = os.getenv("MCP_CLIENT_ID")
-MCP_CLIENT_SECRET = os.getenv("MCP_CLIENT_SECRET")
-MCP_CLIENT_REFRESH_TOKEN = os.getenv("MCP_CLIENT_REFRESH_TOKEN")
+# MCP Client tokens from environment - NO .env loading in tests!
+# All configuration must come from environment variables
+MCP_CLIENT_ACCESS_TOKEN = os.environ.get("MCP_CLIENT_ACCESS_TOKEN")
+MCP_CLIENT_ID = os.environ.get("MCP_CLIENT_ID")
+MCP_CLIENT_SECRET = os.environ.get("MCP_CLIENT_SECRET")
+MCP_CLIENT_REFRESH_TOKEN = os.environ.get("MCP_CLIENT_REFRESH_TOKEN")
 
 
 @pytest.fixture

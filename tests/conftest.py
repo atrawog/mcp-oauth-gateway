@@ -1,7 +1,8 @@
 """
 Sacred Test Configuration - Following the divine commandment of NO MOCKING!
 All tests run against real deployed services
-NO HARDCODED VALUES - Everything from .env per Commandment 4!
+NO HARDCODED VALUES - Everything from environment per Commandment 4!
+Environment variables are loaded by 'just test' - NO .env loading in tests!
 """
 import pytest
 import httpx
@@ -14,13 +15,10 @@ import base64
 from datetime import datetime, timedelta
 from typing import AsyncGenerator, Dict, Tuple, Optional
 from pathlib import Path
-from dotenv import load_dotenv
 
-# SACRED LAW: Load .env file BEFORE importing test_constants
-# This ensures all environment variables are available!
-# Use explicit path to ensure .env is found regardless of working directory
-env_path = Path(__file__).parent.parent / ".env"
-load_dotenv(env_path)
+# SACRED LAW: Environment variables are already loaded by 'just test'
+# Tests read from environment, never load .env files directly!
+# This follows CLAUDE.md - using the blessed 'just' tool for all operations
 
 # Import all configuration from test_constants
 from .test_constants import (
