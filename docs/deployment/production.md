@@ -68,19 +68,13 @@ cp .env.example .env.production
 Edit `.env.production`:
 
 ```bash
-# Production settings
-ENVIRONMENT=production
-DEBUG=false
-LOG_LEVEL=INFO
-
 # Domain configuration
 BASE_DOMAIN=gateway.yourdomain.com
-LETSENCRYPT_EMAIL=admin@yourdomain.com
-LETSENCRYPT_STAGING=false
+ACME_EMAIL=admin@yourdomain.com
 
 # Security
 GATEWAY_JWT_SECRET=<generate-with-just-generate-jwt-secret>
-ALLOWED_GITHUB_USERS=user1,user2,org:yourorg
+ALLOWED_GITHUB_USERS=user1,user2
 
 # GitHub OAuth
 GITHUB_CLIENT_ID=<your-production-client-id>
@@ -88,12 +82,6 @@ GITHUB_CLIENT_SECRET=<your-production-client-secret>
 
 # Redis
 REDIS_PASSWORD=<strong-redis-password>
-REDIS_MAXMEMORY=2gb
-REDIS_MAXMEMORY_POLICY=allkeys-lru
-
-# Performance
-WORKERS=4
-WORKER_CONNECTIONS=1000
 ```
 
 ### 4. Generate Secrets
@@ -184,44 +172,7 @@ services:
 
 ## Monitoring Setup
 
-### Prometheus Metrics
-
-```yaml
-# prometheus.yml
-global:
-  scrape_interval: 15s
-
-scrape_configs:
-  - job_name: 'gateway'
-    static_configs:
-      - targets: ['auth:8000', 'traefik:8080']
-    metrics_path: '/metrics'
-```
-
-### Grafana Dashboards
-
-Import dashboards:
-- Traefik: Dashboard ID 12250
-- Redis: Dashboard ID 763
-- Custom MCP: See `monitoring/dashboards/`
-
-### Alerts
-
-```yaml
-# alerts.yml
-groups:
-  - name: gateway
-    rules:
-      - alert: HighErrorRate
-        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
-        annotations:
-          summary: "High error rate detected"
-          
-      - alert: TokenExpirationsSpiking
-        expr: rate(token_expirations_total[5m]) > 10
-        annotations:
-          summary: "Unusual number of token expirations"
-```
+Monitoring is done via Docker logs and the built-in health checks. Use the monitoring commands provided in the [Monitoring Guide](../usage/monitoring.md).
 
 ## Security Hardening
 

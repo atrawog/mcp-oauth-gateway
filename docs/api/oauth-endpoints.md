@@ -45,7 +45,6 @@ Exchanges authorization codes for access tokens or refreshes existing tokens.
 **Request Headers:**
 ```http
 Content-Type: application/x-www-form-urlencoded
-Authorization: Basic {base64(client_id:client_secret)}
 ```
 
 **Request Body (Authorization Code):**
@@ -55,20 +54,23 @@ Authorization: Basic {base64(client_id:client_secret)}
 | `code` | Yes | Authorization code from callback |
 | `redirect_uri` | Yes | Must match original request |
 | `code_verifier` | Yes | PKCE verifier |
+| `client_id` | Yes | Client identifier |
+| `client_secret` | Yes | Client secret |
 
 **Request Body (Refresh Token):**
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `grant_type` | Yes | `refresh_token` |
 | `refresh_token` | Yes | The refresh token |
+| `client_id` | Yes | Client identifier |
+| `client_secret` | Yes | Client secret |
 
 **Example Request:**
 ```http
 POST /token
-Authorization: Basic Y2xpZW50X2FiYzEyMzpzZWNyZXRfeHl6Nzg5
 Content-Type: application/x-www-form-urlencoded
 
-grant_type=authorization_code&code=auth_code_123&redirect_uri=https://app.example.com/callback&code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+grant_type=authorization_code&code=auth_code_123&redirect_uri=https://app.example.com/callback&code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk&client_id=client_abc123&client_secret=secret_xyz789
 ```
 
 **Success Response:**
@@ -214,59 +216,6 @@ Authorization: Bearer {registration_access_token}
 **Success Response:**
 - HTTP 204 No Content
 
-## Token Management Endpoints
-
-### `POST /revoke`
-
-Revokes an access or refresh token (RFC 7009).
-
-**Request Headers:**
-```http
-Content-Type: application/x-www-form-urlencoded
-Authorization: Basic {base64(client_id:client_secret)}
-```
-
-**Request Body:**
-| Parameter | Required | Description |
-|-----------|----------|-------------|
-| `token` | Yes | Token to revoke |
-| `token_type_hint` | No | `access_token` or `refresh_token` |
-
-**Success Response:**
-- HTTP 200 OK (even if token was already revoked)
-
-### `POST /introspect`
-
-Introspects a token to determine its validity (RFC 7662).
-
-**Request Headers:**
-```http
-Content-Type: application/x-www-form-urlencoded
-Authorization: Basic {base64(client_id:client_secret)}
-```
-
-**Request Body:**
-| Parameter | Required | Description |
-|-----------|----------|-------------|
-| `token` | Yes | Token to introspect |
-| `token_type_hint` | No | `access_token` or `refresh_token` |
-
-**Success Response:**
-```json
-{
-  "active": true,
-  "scope": "mcp:*",
-  "client_id": "client_abc123",
-  "username": "github_user",
-  "exp": 1706659200,
-  "iat": 1704067200,
-  "sub": "github_user_123",
-  "aud": "https://mcp-fetch.example.com",
-  "iss": "https://auth.example.com",
-  "jti": "token_unique_id"
-}
-```
-
 ## Discovery Endpoints
 
 ### `GET /.well-known/oauth-authorization-server`
@@ -280,35 +229,12 @@ Returns OAuth 2.0 Authorization Server Metadata (RFC 8414).
   "authorization_endpoint": "https://auth.example.com/authorize",
   "token_endpoint": "https://auth.example.com/token",
   "registration_endpoint": "https://auth.example.com/register",
-  "jwks_uri": "https://auth.example.com/jwks",
-  "revocation_endpoint": "https://auth.example.com/revoke",
-  "introspection_endpoint": "https://auth.example.com/introspect",
   "scopes_supported": ["mcp:*"],
   "response_types_supported": ["code"],
   "grant_types_supported": ["authorization_code", "refresh_token"],
   "code_challenge_methods_supported": ["S256"],
-  "token_endpoint_auth_methods_supported": ["client_secret_basic", "client_secret_post"],
+  "token_endpoint_auth_methods_supported": ["client_secret_post"],
   "service_documentation": "https://github.com/atrawog/mcp-oauth-gateway"
-}
-```
-
-### `GET /jwks`
-
-Returns the JSON Web Key Set for token verification.
-
-**Success Response:**
-```json
-{
-  "keys": [
-    {
-      "kty": "RSA",
-      "use": "sig",
-      "kid": "key_id_123",
-      "alg": "RS256",
-      "n": "modulus...",
-      "e": "AQAB"
-    }
-  ]
 }
 ```
 
@@ -337,18 +263,6 @@ HTTP/1.1 401 Unauthorized
 WWW-Authenticate: Bearer error="invalid_token"
 ```
 
-### `GET /health`
-
-Health check endpoint for monitoring.
-
-**Success Response:**
-```json
-{
-  "status": "healthy",
-  "timestamp": "2024-01-01T00:00:00Z"
-}
-```
-
 ## Error Handling
 
 All OAuth endpoints follow RFC 6749 error response format:
@@ -371,21 +285,15 @@ Common error codes:
 
 ## CORS Support
 
-All endpoints support CORS with configurable allowed origins:
+The `/register` endpoint supports CORS for browser-based dynamic client registration:
 
 ```http
-Access-Control-Allow-Origin: https://app.example.com
-Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
-Access-Control-Allow-Headers: Authorization, Content-Type
-Access-Control-Max-Age: 86400
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: POST, OPTIONS
+Access-Control-Allow-Headers: Content-Type
 ```
 
-## Rate Limiting
-
-The gateway implements rate limiting:
-- Registration: 10 requests per hour per IP
-- Token endpoint: 100 requests per minute per client
-- Authorization: 20 requests per minute per IP
+Other endpoints are accessed server-to-server and do not require CORS.
 
 ## Next Steps
 

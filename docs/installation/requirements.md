@@ -109,7 +109,6 @@ For development environments:
 ### Optional Tools
 
 - **VS Code** with Docker extension
-- **Postman** or similar for API testing
 - **Redis CLI** for debugging
 
 ## Pre-Installation Checklist

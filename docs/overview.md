@@ -27,8 +27,7 @@ The gateway provides a complete OAuth 2.1 authorization server with:
 - Authorization code flow with PKCE
 - Dynamic client registration (RFC 7591)
 - Client management endpoints (RFC 7592)
-- Token introspection and revocation
-- JWT-based access tokens
+- JWT-based access tokens with HS256 signing
 
 ### MCP Service Protection
 

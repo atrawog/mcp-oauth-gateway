@@ -107,7 +107,7 @@ The Auth Service is built with FastAPI and implements:
 ```
 oauth:client:{client_id}       # Client registration data
 oauth:state:{state}            # OAuth state (5min TTL)
-oauth:code:{code}              # Authorization codes (10min TTL)
+oauth:code:{code}              # Authorization codes (1year TTL)
 oauth:token:{jti}              # Token tracking (30day TTL)
 oauth:refresh:{token}          # Refresh tokens (1year TTL)
 oauth:user_tokens:{username}   # User token index
@@ -187,7 +187,7 @@ services:
       - "traefik.http.routers.mcp-service.rule=..."
       - "traefik.http.routers.mcp-service.middlewares=auth"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "-X", "POST", "http://localhost:3000/mcp", ...]
 ```
 
 ## Redis State Store
@@ -276,10 +276,9 @@ Each component implements health checks:
 GET /ping
 
 # Auth Service
-GET /health
+Internal health via Docker healthcheck
 
 # MCP Services
-GET /health
 POST /mcp (initialization check)
 
 # Redis
@@ -294,13 +293,13 @@ Centralized logging architecture:
 - Logs stored in `./logs/` directory
 - Structured JSON logging
 
-### Metrics
+### Monitoring
 
-Key metrics to monitor:
-- Request latency
-- Token validation time
-- MCP session count
-- Redis memory usage
+Key areas to monitor through logs and Docker stats:
+- Service uptime
+- Request patterns
+- Error rates
+- Resource usage
 
 ## Next Steps
 

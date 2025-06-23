@@ -65,8 +65,8 @@ Configure the following DNS A records pointing to your server's IP:
 
 ```
 auth.example.com         → YOUR_SERVER_IP
-mcp-fetch.example.com    → YOUR_SERVER_IP
-mcp-memory.example.com   → YOUR_SERVER_IP
+fetch.example.com    → YOUR_SERVER_IP
+memory.example.com   → YOUR_SERVER_IP
 # Add more as needed for each service
 ```
 
@@ -183,7 +183,7 @@ just mcp-client-token
 
 ```bash
 # Test MCP fetch service
-curl -X POST https://mcp-fetch.example.com/mcp \
+curl -X POST https://everything.example.com/mcp \
   -H "Authorization: Bearer $MCP_CLIENT_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

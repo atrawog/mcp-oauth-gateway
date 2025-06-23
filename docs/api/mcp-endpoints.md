@@ -46,11 +46,10 @@ MCP-Protocol-Version: 2025-06-18
 Accept: application/json, text/event-stream
 ```
 
-### Optional Headers
+### Session Headers
 
 ```http
-Mcp-Session-Id: {session_id}  # For stateful sessions
-X-Request-Id: {request_id}     # For tracing
+Mcp-Session-Id: {session_id}  # Required after initialization
 ```
 
 ## Protocol Flow
@@ -190,7 +189,6 @@ data:
 
 - **resources/list** - List available resources
 - **resources/read** - Read resource content
-- **resources/write** - Write resource content
 
 ## Service-Specific Endpoints
 
@@ -240,27 +238,8 @@ MCP-specific codes:
 
 - **-32001** - Not initialized
 - **-32002** - Session expired
-- **-32003** - Rate limit exceeded
 - **-32004** - Resource not found
 - **-32005** - Permission denied
-
-## Rate Limiting
-
-Default limits per service:
-
-```
-MCP endpoints: 100 requests/minute
-Burst: 20 requests
-Per client_id tracking
-```
-
-Rate limit headers:
-
-```http
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 95
-X-RateLimit-Reset: 1642444800
-```
 
 ## Examples
 
@@ -340,7 +319,7 @@ const result = await client.request('fetch', {
 
 ```bash
 # Initialize
-curl -X POST https://mcp-fetch.gateway.com/mcp \
+curl -X POST https://everything.gateway.com/mcp \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -H "MCP-Protocol-Version: 2025-06-18" \
@@ -362,8 +341,7 @@ curl -X POST https://mcp-fetch.gateway.com/mcp \
 2. **Handle Sessions** - Store and reuse session IDs
 3. **Check Capabilities** - Verify service supports required methods
 4. **Handle Errors** - Implement proper error handling
-5. **Respect Rate Limits** - Implement backoff strategies
-6. **Use Streaming** - For long-running operations
+5. **Use Streaming** - For long-running operations where supported
 
 ## Related Documentation
 

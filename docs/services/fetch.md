@@ -1,27 +1,30 @@
 # Fetch Service
 
-The MCP Fetch service provides secure web content retrieval capabilities, allowing Claude to access and process web resources through the OAuth-protected gateway.
+The MCP Fetch service provides secure web content retrieval capabilities through the OAuth-protected gateway. It wraps the official `@modelcontextprotocol/server-fetch` using `mcp-streamablehttp-proxy`.
 
 ## Overview
 
-The Fetch service enables:
-- HTTP/HTTPS content retrieval
-- HTML to markdown conversion
-- Content extraction and parsing
-- Header and metadata access
-- Configurable timeouts and limits
+The Fetch service is a proxy wrapper around the official MCP fetch server that enables:
+- HTTP/HTTPS content retrieval through MCP protocol
+- OAuth-protected access via Traefik ForwardAuth
+- Standard MCP protocol compliance
+
+## Architecture
+
+The service uses:
+- **Official Server**: `@modelcontextprotocol/server-fetch` from the MCP project
+- **Proxy Wrapper**: `mcp-streamablehttp-proxy` to bridge stdio to HTTP
+- **Port**: Exposes port 3000 for HTTP access
 
 ## Configuration
 
 ### Environment Variables
 
 ```bash
-# Service-specific settings
-MCP_FETCH_TIMEOUT=30              # Request timeout in seconds
-MCP_FETCH_MAX_SIZE=5242880        # Max response size (5MB)
-MCP_FETCH_USER_AGENT="MCP-Gateway/1.0"
-MCP_FETCH_FOLLOW_REDIRECTS=true
-MCP_FETCH_MAX_REDIRECTS=5
+# Core settings (from main .env)
+MCP_PROTOCOL_VERSION=2025-03-26   # Hardcoded - fetch server only supports this version
+MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}
+BASE_DOMAIN=${BASE_DOMAIN}
 ```
 
 ### Docker Compose
@@ -30,10 +33,12 @@ The service runs as `mcp-fetch` in the compose stack:
 
 ```yaml
 mcp-fetch:
-  image: mcp-oauth-gateway/mcp-fetch:latest
+  build:
+    context: ../
+    dockerfile: mcp-fetch/Dockerfile
   environment:
-    - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION}
-    - FETCH_TIMEOUT=${MCP_FETCH_TIMEOUT}
+    - MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}
+    - MCP_PROTOCOL_VERSION=2025-03-26
 ```
 
 ## Usage
@@ -61,172 +66,139 @@ Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
-### Available Methods
+### MCP Protocol
 
-#### fetch
+The service implements the standard MCP protocol. The specific methods available depend on the official `@modelcontextprotocol/server-fetch` implementation.
 
-Retrieve content from a URL:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "fetch",
-  "params": {
-    "url": "https://example.com",
-    "headers": {
-      "Accept": "text/html"
-    }
-  },
-  "id": "1"
-}
-```
-
-#### fetchWithOptions
-
-Advanced fetch with options:
+Example initialization:
 
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "fetchWithOptions",
+  "method": "initialize",
   "params": {
-    "url": "https://api.example.com/data",
-    "options": {
-      "method": "POST",
-      "headers": {
-        "Content-Type": "application/json"
-      },
-      "body": "{\"key\": \"value\"}"
+    "protocolVersion": "2025-03-26",
+    "capabilities": {},
+    "clientInfo": {
+      "name": "your-client",
+      "version": "1.0"
     }
   },
-  "id": "2"
+  "id": 1
 }
 ```
 
 ## Features
 
-### Content Processing
+The features provided are those of the official MCP fetch server:
+- Web content retrieval via MCP protocol
+- Standard MCP error handling
+- Session management via Mcp-Session-Id headers
 
-- **HTML Conversion** - Automatic HTML to Markdown
-- **Text Extraction** - Clean text from web pages
-- **JSON Parsing** - Structured data handling
-- **Binary Detection** - Prevents binary file issues
+## Security
 
-### Security Features
-
-- **URL Validation** - Prevents SSRF attacks
-- **Size Limits** - Prevents memory exhaustion
-- **Timeout Protection** - Prevents hanging requests
-- **Header Filtering** - Removes sensitive headers
-
-### Rate Limiting
-
-Per-client rate limits:
-- 100 requests per minute
-- 1000 requests per hour
-- Configurable via environment
+Security is enforced at the gateway level:
+- **Authentication**: Bearer token required, validated by Traefik ForwardAuth
+- **Authorization**: Token must be valid and user must be in allowed list
+- **No internal security**: The service itself has no authentication logic
 
 ## Examples
 
-### Basic Web Page Fetch
+### Using mcp-streamablehttp-client
 
 ```python
-# Example using mcp-streamablehttp-client
-import mcp_streamablehttp_client as mcp
+# Install: pixi add mcp-streamablehttp-client
+from mcp_streamablehttp_client import Client
 
-client = mcp.Client(
-    "https://mcp-fetch.gateway.yourdomain.com",
-    token=access_token
+# Initialize client with bearer token
+client = Client(
+    "https://fetch.gateway.yourdomain.com/mcp",
+    headers={"Authorization": f"Bearer {access_token}"}
 )
 
-result = await client.request("fetch", {
-    "url": "https://example.com"
-})
+# Initialize the session
+await client.initialize()
+
+# Use the fetch server methods as provided by the official server
+# (Refer to @modelcontextprotocol/server-fetch documentation for available methods)
 ```
 
-### API Request with Headers
+### Direct HTTP Request
 
-```python
-result = await client.request("fetchWithOptions", {
-    "url": "https://api.github.com/user",
-    "options": {
-        "headers": {
-            "Authorization": "token github_pat_..."
-        }
-    }
-})
+```bash
+# Initialize session
+curl -X POST https://fetch.gateway.yourdomain.com/mcp \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2025-03-26",
+      "capabilities": {},
+      "clientInfo": {"name": "curl-client", "version": "1.0"}
+    },
+    "id": 1
 ```
-
-## Limitations
-
-1. **Size Limits** - Default 5MB per response
-2. **Timeout** - 30 seconds default
-3. **Protocols** - HTTP/HTTPS only
-4. **Redirects** - Maximum 5 redirects
-5. **Binary Files** - Not supported
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### Timeout Errors
+#### 401 Unauthorized
 
-```json
-{
-  "error": {
-    "code": -32603,
-    "message": "Request timeout after 30 seconds"
-  }
-}
-```
-
-**Solution**: Increase `MCP_FETCH_TIMEOUT` or optimize target server
-
-#### Size Limit Exceeded
-
-```json
-{
-  "error": {
-    "code": -32603,
-    "message": "Response size exceeds limit"
-  }
-}
-```
-
-**Solution**: Increase `MCP_FETCH_MAX_SIZE` or request smaller resources
-
-#### SSL Certificate Errors
+**Cause**: Invalid or expired bearer token
 
 **Solution**: 
-- Verify target server certificates
-- Check `FETCH_VERIFY_SSL` setting
-- Update CA certificates in container
+- Verify token with `just validate-tokens`
+- Generate new token with `just generate-github-token`
 
-### Debug Mode
+#### Connection Refused
 
-Enable detailed logging:
+**Cause**: Service not running or unhealthy
+
+**Solution**:
+- Check service status: `just logs mcp-fetch`
+- Verify health: `just check-health`
+- Restart service: `just rebuild mcp-fetch`
+
+#### MCP Protocol Errors
+
+**Cause**: Invalid JSON-RPC format or unsupported method
+
+**Solution**:
+- Ensure proper JSON-RPC 2.0 format
+- Check protocol version matches (2025-03-26)
+- Refer to official MCP documentation
+
+### Debugging
+
+View service logs:
 
 ```bash
-# In mcp-fetch/.env
-DEBUG=true
-LOG_LEVEL=DEBUG
+# View logs
+just logs mcp-fetch
+
+# Follow logs
+just logs -f mcp-fetch
+
+# Check service health
+just check-health
 ```
 
 ## Best Practices
 
-1. **Set Appropriate Timeouts** - Balance between reliability and performance
-2. **Use Headers Wisely** - Only send necessary headers
-3. **Handle Errors Gracefully** - Implement retry logic in clients
-4. **Monitor Usage** - Track rate limits and quotas
-5. **Cache When Possible** - Reduce redundant fetches
+1. **Use the official client library** - `mcp-streamablehttp-client` for Python
+2. **Handle MCP sessions properly** - Initialize before making requests
+3. **Include required headers** - Authorization and Content-Type
+4. **Follow MCP protocol** - Use correct JSON-RPC format
 
-## Security Considerations
+## Architecture Notes
 
-- Never fetch internal network resources
-- Validate and sanitize URLs
-- Be cautious with authentication headers
-- Monitor for abuse patterns
-- Implement content filtering if needed
+- The service wraps the official `@modelcontextprotocol/server-fetch`
+- Uses `mcp-streamablehttp-proxy` to bridge stdio to HTTP
+- Runs on port 3000 internally
+- Authentication handled by Traefik/Auth service, not MCP service
 
 ## Related Services
 

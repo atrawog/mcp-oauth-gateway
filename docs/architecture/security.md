@@ -6,10 +6,9 @@ The MCP OAuth Gateway implements multiple layers of security to protect both the
 
 ### 1. Transport Security
 
-- **HTTPS Everywhere** - All traffic encrypted via TLS 1.3
-- **Let's Encrypt Integration** - Automatic certificate renewal
-- **HSTS Headers** - Enforce HTTPS connections
-- **Certificate Pinning** - Optional for high-security deployments
+- **HTTPS Everywhere** - All traffic encrypted via TLS
+- **Let's Encrypt Integration** - Automatic certificate renewal via Traefik
+- **SSL/TLS Termination** - Handled by Traefik reverse proxy
 
 ### 2. Authentication Security
 
@@ -17,15 +16,15 @@ The MCP OAuth Gateway implements multiple layers of security to protect both the
 
 - **PKCE Required** - S256 challenge method mandatory
 - **State Parameter** - CSRF protection on all flows
-- **Short-lived Codes** - 1-minute authorization code lifetime
-- **No Implicit Flow** - Removed as per OAuth 2.1
+- **Authorization Codes** - Stored in Redis with expiration
+- **No Implicit Flow** - Only authorization code flow supported
 
 #### Token Security
 
-- **JWT with RS256** - Asymmetric signing
-- **Short Expiry** - 30-day access tokens
-- **Secure Storage** - Redis with encryption at rest
-- **Token Binding** - Optional RFC 8705 support
+- **JWT with HS256** - HMAC signing with shared secret
+- **Token Expiry** - 30-day access tokens, 1-year refresh tokens
+- **Redis Storage** - Tokens stored with TTL matching expiration
+- **JTI Tracking** - Unique token identifiers prevent replay
 
 ### 3. Authorization Security
 
@@ -43,25 +42,23 @@ The MCP OAuth Gateway implements multiple layers of security to protect both the
 
 #### Access Control
 
-- **Per-Service Authorization** - Granular service access
-- **Scope Validation** - Required scopes enforced
-- **Resource Isolation** - Service boundaries maintained
+- **GitHub User Whitelist** - ALLOWED_GITHUB_USERS configuration
+- **Bearer Token Validation** - Traefik ForwardAuth middleware
+- **Service Isolation** - Each MCP service runs independently
 
 ### 4. Infrastructure Security
 
 #### Container Security
 
-- **Non-root Containers** - Minimal privileges
-- **Read-only Filesystems** - Where applicable
-- **Network Segmentation** - Internal service network
-- **Secret Management** - Environment variable injection
+- **Docker Compose** - Service orchestration
+- **Network Segmentation** - Internal `public` network for services
+- **Secret Management** - Environment variables via .env file
 
 #### Data Security
 
-- **Redis Encryption** - Data encrypted at rest
-- **No Persistent Secrets** - Tokens expire
-- **Audit Logging** - All auth events logged
-- **GDPR Compliance** - Minimal data retention
+- **Redis Storage** - Token and session data
+- **Token Expiration** - Access tokens expire after 30 days
+- **Logging** - Standard service logs via Docker
 
 ## Security Best Practices
 
@@ -90,22 +87,14 @@ The MCP OAuth Gateway implements multiple layers of security to protect both the
 
 ### Mitigation Strategies
 
-1. **Rate Limiting** - Per endpoint and client
-2. **Anomaly Detection** - Unusual patterns flagged
-3. **Fail Securely** - Deny by default
-4. **Defense in Depth** - Multiple security layers
+1. **Token Validation** - All requests verified
+2. **HTTPS Only** - No plaintext communication
+3. **Fail Securely** - Invalid tokens denied
+4. **Layered Architecture** - Traefik → Auth → MCP separation
 
 ## Security Headers
 
-Required headers on all responses:
-
-```
-Strict-Transport-Security: max-age=31536000; includeSubDomains
-X-Content-Type-Options: nosniff
-X-Frame-Options: DENY
-X-XSS-Protection: 1; mode=block
-Content-Security-Policy: default-src 'self'
-```
+Security headers are handled by Traefik reverse proxy configuration for HTTPS enforcement and basic security.
 
 ## Compliance
 
