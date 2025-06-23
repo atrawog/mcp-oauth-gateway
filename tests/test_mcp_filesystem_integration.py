@@ -185,11 +185,14 @@ class TestMCPFilesystemIntegration:
                     f"Test file content not found: {text_content}"
 
     @pytest.mark.asyncio
-    async def test_filesystem_oauth_discovery(self, http_client, mcp_filesystem_url):
+    async def test_filesystem_oauth_discovery(self, http_client):
         """Test that OAuth discovery endpoint is accessible on filesystem subdomain."""
+        # Use base domain for OAuth discovery, not the /mcp endpoint
+        oauth_discovery_url = f"https://filesystem.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
+        
         # OAuth discovery should be publicly accessible
         response = await http_client.get(
-            f"{mcp_filesystem_url}/.well-known/oauth-authorization-server",
+            oauth_discovery_url,
             timeout=TEST_HTTP_TIMEOUT,
             follow_redirects=False
         )

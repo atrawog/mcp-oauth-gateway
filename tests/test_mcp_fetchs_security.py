@@ -236,14 +236,15 @@ class TestMCPFetchsSecurity:
     
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_oauth_discovery_security(self, mcp_fetchs_url, wait_for_services):
+    async def test_fetchs_oauth_discovery_security(self, base_domain, wait_for_services):
         """Test OAuth discovery endpoint security."""
+        
+        # Use base domain for OAuth discovery, not the /mcp endpoint
+        oauth_discovery_url = f"https://fetchs.{base_domain}/.well-known/oauth-authorization-server"
         
         async with httpx.AsyncClient(verify=False) as client:
             # Discovery should be publicly accessible
-            response = await client.get(
-                f"{mcp_fetchs_url}/.well-known/oauth-authorization-server"
-            )
+            response = await client.get(oauth_discovery_url)
             
             assert response.status_code == 200
             data = response.json()

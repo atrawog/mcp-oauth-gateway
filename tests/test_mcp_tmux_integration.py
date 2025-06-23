@@ -127,10 +127,14 @@ class TestMCPTmuxIntegration:
             assert "protocolVersion" in response["result"]
             print(f"✅ MCP tmux service is healthy (protocol version: {response['result']['protocolVersion']})")
 
-    def test_tmux_oauth_discovery(self, mcp_tmux_url):
+    def test_tmux_oauth_discovery(self):
         """Test OAuth discovery endpoint routing."""
         import requests
-        response = requests.get(f"{mcp_tmux_url}/.well-known/oauth-authorization-server", timeout=10)
+        from tests.test_constants import BASE_DOMAIN
+        
+        # Use base domain for OAuth discovery, not the /mcp endpoint
+        oauth_discovery_url = f"https://tmux.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
+        response = requests.get(oauth_discovery_url, timeout=10, verify=False)
         assert response.status_code == 200
         
         oauth_config = response.json()

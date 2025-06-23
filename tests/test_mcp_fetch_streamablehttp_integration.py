@@ -262,13 +262,14 @@ async def test_fetch_native_unknown_method(mcp_fetchs_url, valid_oauth_token, wa
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_oauth_discovery(mcp_fetchs_url, wait_for_services):
+async def test_fetch_native_oauth_discovery(wait_for_services):
     """Test OAuth discovery endpoint routing."""
     
+    # Use base domain for OAuth discovery, not the /mcp endpoint
+    oauth_discovery_url = f"https://fetch.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
+    
     async with httpx.AsyncClient(verify=False) as client:
-        response = await client.get(
-            f"{mcp_fetchs_url}/.well-known/oauth-authorization-server"
-        )
+        response = await client.get(oauth_discovery_url)
         
     assert response.status_code == 200
     data = response.json()
