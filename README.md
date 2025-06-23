@@ -27,6 +27,10 @@ An OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Con
 - [pixi](https://pixi.sh/latest/) package manager
 - [just](https://github.com/casey/just) command runner
 - A GitHub OAuth App (for authentication)
+- **Public IP address and properly configured DNS** (MANDATORY - no exceptions!)
+  - All subdomains (auth.your-domain.com, fetch.your-domain.com, etc.) must resolve to your server
+  - Port 80 and 443 must be accessible from the internet for Let's Encrypt certificate provisioning
+  - NO localhost development - production-ready or nothing! This is the divine law!
 
 ### Initial Setup
 
@@ -46,7 +50,7 @@ An OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Con
    cp .env.example .env
    # Edit .env with your values:
    # - GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET from your GitHub OAuth App
-   # - BASE_DOMAIN (use 'localhost' for local development)
+   # - BASE_DOMAIN (MUST be a real domain - NO LOCALHOST!)
    # - Generate GATEWAY_JWT_SECRET with: just generate-jwt-secret
    ```
 
@@ -139,7 +143,7 @@ just analyze-oauth-logs      # Analyze OAuth flow logs
    # Edit .env file
    GITHUB_CLIENT_ID=your_github_client_id
    GITHUB_CLIENT_SECRET=your_github_client_secret
-   BASE_DOMAIN=your-domain.com  # or 'localhost' for local dev
+   BASE_DOMAIN=your-domain.com  # MUST be a real domain - NO LOCALHOST!
    ```
 
 3. **Generate JWT secret**
@@ -182,7 +186,7 @@ GITHUB_CLIENT_SECRET=your_github_client_secret
 GATEWAY_JWT_SECRET=your_jwt_secret_at_least_32_chars
 
 # Domain Configuration
-BASE_DOMAIN=localhost              # Your domain
+BASE_DOMAIN=your-domain.com        # MUST be a real domain!
 ACME_EMAIL=admin@example.com      # For Let's Encrypt
 
 # Redis Security

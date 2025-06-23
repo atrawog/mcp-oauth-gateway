@@ -16,7 +16,17 @@ Before starting, ensure you have:
 - **[pixi](https://pixi.sh)** package manager installed
 - **[just](https://github.com/casey/just)** command runner installed
 - A **GitHub account** for OAuth integration
-- A **domain name** (or use `localhost` for local development)
+- A **domain name** (REQUIRED - no localhost allowed!)
+- **MANDATORY for ALL deployments**:
+  - **Public IP address** with your server accessible from the internet
+  - **DNS configured** with all required subdomains pointing to your server:
+    - `auth.your-domain.com`
+    - `fetch.your-domain.com`
+    - `memory.your-domain.com`
+    - `time.your-domain.com`
+    - And all other service subdomains
+  - **Ports 80 and 443 open** in your firewall for Let's Encrypt certificate provisioning
+  - **GitHub OAuth callback URL** must be publicly accessible
 
 ## Step 1: Clone and Install
 
@@ -35,8 +45,8 @@ pixi install
 
 2. Fill in the application details:
    - **Application name**: `MCP OAuth Gateway` (or your preferred name)
-   - **Homepage URL**: `https://your-domain.com` (or `http://localhost` for local dev)
-   - **Authorization callback URL**: `https://auth.your-domain.com/callback` (or `http://auth.localhost/callback`)
+   - **Homepage URL**: `https://your-domain.com` (MUST be a real domain with HTTPS!)
+   - **Authorization callback URL**: `https://auth.your-domain.com/callback` (MUST be publicly accessible!)
 
 3. Click **"Register application"**
 
@@ -62,7 +72,7 @@ GITHUB_CLIENT_ID=Iv1.your_actual_client_id_here
 GITHUB_CLIENT_SECRET=your_actual_client_secret_here
 
 # Domain Configuration
-BASE_DOMAIN=your-domain.com  # or 'localhost' for local development
+BASE_DOMAIN=your-domain.com  # MUST be a real domain - NO LOCALHOST!
 ACME_EMAIL=admin@your-domain.com  # your email for Let's Encrypt
 
 # Redis Security
@@ -186,23 +196,27 @@ With `BASE_DOMAIN=example.com`, your services will be available at:
 | MCP Tmux | `https://tmux.example.com/mcp` |
 | MCP Playwright | `https://playwright.example.com/mcp` |
 
-### Local Development
 
-For local development with `BASE_DOMAIN=localhost`:
+### Deployment Requirements
 
-1. Services will be available at `http://service.localhost`
-2. No HTTPS/TLS certificates needed
-3. Use `http://` instead of `https://` in all URLs
+⚡ **THERE IS ONLY PRODUCTION! NO DEVELOPMENT MODE! PRODUCTION-READY OR DEATH!** ⚡
 
-### Production Deployment
+For ALL deployments:
 
-For production with a real domain:
-
-1. Ensure DNS is configured for all subdomains
-2. Let's Encrypt will automatically provision certificates
-3. Set `ALLOWED_GITHUB_USERS` to restrict access
-4. Use strong passwords for all secrets
-5. Consider using a secrets management system
+1. **Ensure DNS is properly configured**:
+   - Create A records for all subdomains pointing to your server's public IP
+   - Verify DNS propagation with `dig auth.your-domain.com`
+   - All subdomains must be publicly resolvable
+2. **Configure firewall**:
+   - Open ports 80 and 443 for incoming traffic
+   - Let's Encrypt requires port 80 for HTTP-01 challenge
+3. **Let's Encrypt will automatically provision certificates**:
+   - Requires public DNS resolution
+   - Requires accessible ports 80/443
+   - Certificates auto-renew every 60 days
+4. Set `ALLOWED_GITHUB_USERS` to restrict access
+5. Use strong passwords for all secrets
+6. Consider using a secrets management system
 
 ## Troubleshooting
 
