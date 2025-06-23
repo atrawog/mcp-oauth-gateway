@@ -544,9 +544,9 @@ class TestMainModuleIntegration:
     
     def test_cli_module_help(self):
         """Test that __main__.py can show help"""
-        # Test running the module with --help using just exec-auth
+        # Test running the module with --help using just exec
         result = subprocess.run(
-            ["just", "exec-auth", "python", "-m", "mcp_oauth_dynamicclient", "--help"],
+            ["just", "exec", "auth", "python", "-m", "mcp_oauth_dynamicclient", "--help"],
             capture_output=True,
             text=True,
             cwd="/home/atrawog/AI/atrawog/mcp-oauth-gateway"

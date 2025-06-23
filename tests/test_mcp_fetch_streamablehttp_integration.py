@@ -182,7 +182,7 @@ async def test_fetch_native_call_tool_fetch(mcp_fetchs_url, base_domain, valid_o
                 "params": {
                     "name": "fetch",
                     "arguments": {
-                        "url": f"https://auth.{base_domain}/health",
+                        "url": f"https://auth.{base_domain}/.well-known/oauth-authorization-server",
                         "method": "GET"
                     }
                 },
@@ -206,7 +206,7 @@ async def test_fetch_native_call_tool_fetch(mcp_fetchs_url, base_domain, valid_o
     
     content = result["content"][0]
     assert content["type"] == "text"
-    assert "healthy" in content["text"]  # Our auth service returns {"status": "healthy", ...}
+    assert "issuer" in content["text"]  # OAuth metadata contains issuer field
 
 
 @pytest.mark.integration

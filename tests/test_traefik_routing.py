@@ -212,7 +212,7 @@ class TestTraefikRouting:
             f"Failed to access service after HTTP->HTTPS redirect: {https_response.status_code}"
         )
         
-        # Verify we actually got the health response
-        health_data = https_response.json()
-        assert "status" in health_data, f"Invalid health response: {health_data}"
-        assert health_data["status"] == "healthy", f"Service not healthy: {health_data}"
+        # Verify we actually got the OAuth metadata response
+        metadata = https_response.json()
+        assert "issuer" in metadata, f"Invalid OAuth metadata response: {metadata}"
+        assert metadata["issuer"] == f"https://auth.{BASE_DOMAIN}", f"Incorrect issuer: {metadata}"

@@ -166,7 +166,7 @@ class TestMCPFetchsRealContent:
                     "params": {
                         "name": "fetch",
                         "arguments": {
-                            "url": f"https://auth.{base_domain}/health",
+                            "url": f"https://auth.{base_domain}/.well-known/oauth-authorization-server",
                             "method": "GET"
                         }
                     },
@@ -182,10 +182,10 @@ class TestMCPFetchsRealContent:
             data = response.json()
             content = data["result"]["content"][0]
             
-            # Should contain our auth service health response
-            assert 'healthy' in content["text"]
-            assert 'status' in content["text"]
-            assert 'service' in content["text"]
+            # Should contain OAuth metadata
+            assert 'issuer' in content["text"]
+            assert 'authorization_endpoint' in content["text"]
+            assert 'token_endpoint' in content["text"]
     
     @pytest.mark.integration
     @pytest.mark.asyncio
