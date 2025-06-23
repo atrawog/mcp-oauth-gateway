@@ -253,7 +253,7 @@ We welcome contributions! Please see our {doc}`development/contributing` guide f
 
 ## 📄 License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the Apache License 2.0. See the [LICENSE](https://github.com/atrawog/mcp-oauth-gateway/blob/main/LICENSE) file for details.
 
 ---
 

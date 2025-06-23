@@ -67,3 +67,7 @@ The fetch tool supports:
 - Automatic content type detection (text/image)
 - Response size limits
 - User agent customization
+
+## License
+
+Apache License 2.0 - see LICENSE file for details

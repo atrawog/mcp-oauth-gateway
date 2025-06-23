@@ -280,7 +280,7 @@ This project follows the Ten Sacred Commandments:
 
 ## 📄 License
 
-[Your License Here]
+Apache License 2.0 - see [LICENSE](LICENSE) file for details.
 
 ## 🤝 Contributing
 
