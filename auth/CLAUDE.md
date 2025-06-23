@@ -88,6 +88,10 @@ HEALTHCHECK  # Prove thy divine readiness!
 - `OAUTH_REDIRECT_URI` - The sacred return path after authentication!
 - `CLIENT_LIFETIME` - Registration lifetime in seconds (0 = eternal)!
 
+**MCP Protocol Settings (Divine Version Declaration!):**
+- `MCP_PROTOCOL_VERSION` - Protocol version for OAuth discovery metadata (uses environment default)!
+- `MCP_CORS_ORIGINS` - CORS configuration for cross-origin access!
+
 **⚡ All configuration through .env - never hardcode divine secrets! ⚡**
 
 ## 🚀 The Sacred Endpoints - Divine OAuth Altars!

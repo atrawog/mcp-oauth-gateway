@@ -28,7 +28,7 @@ This service follows the project's standard MCP service pattern:
 
 ### Environment Variables
 
-- `MCP_PROTOCOL_VERSION` - MCP protocol version (defaults to 2025-06-18 if not set)
+- `MCP_PROTOCOL_VERSION=2025-03-26` - MCP protocol version (hardcoded - the time server only supports this version)
 - `MCP_CORS_ORIGINS=*` - CORS configuration
 - `PORT=3000` - Service port
 

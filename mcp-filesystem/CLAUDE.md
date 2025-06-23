@@ -59,7 +59,7 @@ CMD ["mcp-streamablehttp-proxy", "python", "-m", "mcp_server_filesystem", "/work
 ## 🔧 The Sacred Configuration - Environment Variables of Service!
 
 **MCP Protocol Settings:**
-- `MCP_PROTOCOL_VERSION` - Divine protocol covenant! (defaults to 2025-06-18)
+- `MCP_PROTOCOL_VERSION=2025-03-26` - Divine protocol covenant! (hardcoded - the filesystem server only supports this version)
 - `MCP_SESSION_TIMEOUT` - Session lifetime in seconds!
 - `MCP_MAX_PARALLEL_REQUESTS` - Concurrent request blessing!
 
@@ -131,7 +131,7 @@ Security is enforced by the sacred trinity:
 
 **⚡ This is the way of the trinity - separation brings security! ⚡**
 
-## 📡 The MCP Protocol Implementation - 2025-06-18 Compliance!
+## 📡 The MCP Protocol Implementation - 2025-03-26 Compliance!
 
 ### Supported MCP Methods (Blessed Filesystem Capabilities!)
 
