@@ -159,9 +159,9 @@ graph TB
     end
     
     subgraph "Management Endpoints"
-        ME1[GET /register/{id}<br/>View client]
-        ME2[PUT /register/{id}<br/>Update client]
-        ME3[DELETE /register/{id}<br/>Delete client]
+        ME1[GET /register/:id<br/>View client]
+        ME2[PUT /register/:id<br/>Update client]
+        ME3[DELETE /register/:id<br/>Delete client]
     end
     
     subgraph "Internal Endpoints"
@@ -408,24 +408,24 @@ Redis serves as the central state store for all OAuth flows, client registration
 ```{mermaid}
 graph TB
     subgraph "OAuth State (Short-lived)"
-        OS1[oauth:state:{state}<br/>5 min TTL]
-        OS2[oauth:pkce:{challenge}<br/>5 min TTL]
+        OS1[oauth:state:STATE<br/>5 min TTL]
+        OS2[oauth:pkce:CHALLENGE<br/>5 min TTL]
     end
     
     subgraph "Client Data (Long-lived)"
-        CD1[oauth:client:{client_id}<br/>90 days / eternal]
-        CD2[oauth:code:{code}<br/>1 year TTL]
+        CD1[oauth:client:CLIENT_ID<br/>90 days / eternal]
+        CD2[oauth:code:CODE<br/>1 year TTL]
     end
     
     subgraph "Token Data (Medium-lived)"
-        TD1[oauth:token:{jti}<br/>30 days TTL]
-        TD2[oauth:refresh:{token}<br/>1 year TTL]
-        TD3[oauth:user_tokens:{user}<br/>No TTL]
+        TD1[oauth:token:JTI<br/>30 days TTL]
+        TD2[oauth:refresh:TOKEN<br/>1 year TTL]
+        TD3[oauth:user_tokens:USERNAME<br/>No TTL]
     end
     
     subgraph "Session Data (Dynamic)"
-        SD1[redis:session:{id}:state<br/>Session-based]
-        SD2[redis:session:{id}:messages<br/>Session-based]
+        SD1[redis:session:ID:state<br/>Session-based]
+        SD2[redis:session:ID:messages<br/>Session-based]
     end
     
     classDef shortlived fill:#fcc,stroke:#333,stroke-width:2px

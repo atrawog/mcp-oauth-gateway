@@ -60,12 +60,12 @@ graph TB
     
     subgraph "Storage Layer"
         R[(Redis :6379)]
-        R1[oauth:client:{id}]
-        R2[oauth:state:{state}]
-        R3[oauth:code:{code}]
-        R4[oauth:token:{jti}]
-        R5[oauth:refresh:{token}]
-        R6[redis:session:{id}]
+        R1[oauth:client:ID]
+        R2[oauth:state:STATE]
+        R3[oauth:code:CODE]
+        R4[oauth:token:JTI]
+        R5[oauth:refresh:TOKEN]
+        R6[redis:session:ID]
         R --> R1 & R2 & R3 & R4 & R5 & R6
     end
     
