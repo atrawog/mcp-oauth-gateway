@@ -1,222 +1,256 @@
 # mcp-streamablehttp-proxy
 
-A generic stdio-to-streamable-HTTP proxy for MCP (Model Context Protocol) servers. This package allows you to expose any MCP server that uses stdio communication as streamable HTTP endpoints compatible with the MCP 2025-06-18 transport specification.
+A generic stdio-to-streamable-HTTP proxy for MCP (Model Context Protocol) servers. This package enables any stdio-based MCP server to be exposed via HTTP endpoints, implementing the MCP 2025-06-18 Streamable HTTP transport specification.
 
-## Features
+## Overview
 
-- 🔄 **Universal Compatibility**: Works with any MCP server that communicates over stdio
-- 🌐 **Streamable HTTP Transport**: Exposes MCP servers via streamable HTTP endpoints following the 2025-06-18 specification
-- 🔐 **Session Management**: Supports multiple concurrent sessions with automatic cleanup
-- 🚀 **Easy Integration**: Simple command-line interface and Python API
-- 📊 **Health Checks**: Health monitoring via MCP protocol initialization
-- 🔧 **Configurable**: Customizable timeouts, ports, and logging
+This proxy acts as a bridge between:
+- **Input**: HTTP requests following the MCP Streamable HTTP specification
+- **Output**: stdio communication with any MCP server implementation
+- **Purpose**: Enable web-based access to MCP servers that only support stdio transport
+
+## Key Features
+
+- 🔄 **Universal MCP Server Compatibility**: Works with any stdio-based MCP server
+- 🌐 **Streamable HTTP Transport**: Full implementation of MCP 2025-06-18 specification
+- 📊 **Session Management**: Maintains MCP session state across HTTP requests
+- 🚀 **Production Ready**: Health checks via MCP protocol initialization
+- 🐳 **Docker Native**: Designed for containerized deployments
+- ⚡ **Subprocess Isolation**: Each session runs in its own process space
+- 🔧 **Zero Configuration**: Works out-of-the-box with sensible defaults
 
 ## Installation
 
 ```bash
-pip install mcp-streamablehttp-proxy
+# Via pixi (recommended)
+pixi add mcp-streamablehttp-proxy
+
+# Or from source
+cd mcp-streamablehttp-proxy
+pixi install -e .
 ```
 
 ## Quick Start
 
 ### Command Line Usage
 
-The simplest way to use the proxy is via the command line:
-
 ```bash
-# Expose an MCP server module via streamable HTTP
-mcp-streamablehttp-proxy python -m mcp_server_fetch
+# Wrap any stdio MCP server
+mcp-streamablehttp-proxy serve -- mcp-server-fetch
 
-# Expose a custom MCP server command via streamable HTTP
-mcp-streamablehttp-proxy /path/to/your/mcp-server --server-arg1 --server-arg2
+# With custom port
+mcp-streamablehttp-proxy serve --port 8080 -- mcp-server-fetch --config config.json
 
-# Run on a different port
-mcp-streamablehttp-proxy --port 8080 python -m mcp_server_fetch
-
-# Increase session timeout to 10 minutes
-mcp-streamablehttp-proxy --timeout 600 python -m mcp_server_fetch
+# With Node.js MCP servers
+mcp-streamablehttp-proxy serve -- npx @modelcontextprotocol/server-fetch
 ```
 
-### Python API Usage
-
-```python
-from mcp_streamablehttp_proxy import run_server
-
-# Run the streamable HTTP proxy
-run_server(
-    server_command=["python", "-m", "mcp_server_fetch"],
-    host="0.0.0.0",
-    port=3000,
-    session_timeout=300,
-    log_level="info"
-)
-```
-
-### Docker Usage
-
-Create a Dockerfile for your MCP server:
+### Docker Integration
 
 ```dockerfile
-FROM python:3.11-slim
+FROM node:20-slim
 
-# Install your MCP server (example: fetch server)
-RUN pip install "mcp-server-fetch @ git+https://github.com/modelcontextprotocol/servers.git#subdirectory=src/fetch"
+# Install MCP server
+RUN npm install -g @modelcontextprotocol/server-fetch
 
-# Install the streamable HTTP proxy
-RUN pip install mcp-streamablehttp-proxy
+# Install proxy
+COPY --from=ghcr.io/prefix-dev/pixi:latest /pixi /usr/local/bin/pixi
+RUN pixi add mcp-streamablehttp-proxy
 
-# Expose the HTTP port
 EXPOSE 3000
 
-# Run the streamable HTTP proxy wrapping your MCP server
-CMD ["mcp-streamablehttp-proxy", "python", "-m", "mcp_server_fetch"]
+# Health check via MCP protocol
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
+    CMD curl -s -X POST http://localhost:3000/mcp \
+        -H 'Content-Type: application/json' \
+        -H 'Accept: application/json, text/event-stream' \
+        -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}' \
+        | grep -q '"protocolVersion"'
+
+CMD ["pixi", "run", "mcp-streamablehttp-proxy", "serve", "--", "mcp-server-fetch"]
 ```
 
-## How It Works
+## Architecture
 
-The proxy acts as a bridge between streamable HTTP clients and stdio-based MCP servers:
+The proxy implements a three-layer architecture:
 
-1. **HTTP Request**: Client sends HTTP POST to `/mcp` endpoint
-2. **Session Management**: Proxy creates or reuses a session for the client
-3. **Stdio Communication**: Proxy forwards the request to the MCP server via stdin
-4. **Response Handling**: Proxy reads the response from stdout and returns it via streamable HTTP
+1. **HTTP Layer**: FastAPI server handling `/mcp` endpoint
+2. **Bridge Layer**: Translates between HTTP and stdio protocols
+3. **Process Layer**: Manages MCP server subprocess lifecycle
 
-## Endpoints
+### Request Flow
 
-### `/mcp` (POST)
-Main MCP endpoint for all protocol communication.
+```
+HTTP Client → POST /mcp → Session Manager → stdio → MCP Server
+    ↑                                                    ↓
+    ← HTTP Response ← Response Handler ← stdout ←────────┘
+```
 
-**Headers:**
+## API Reference
+
+### POST /mcp
+
+Main MCP protocol endpoint.
+
+**Request Headers:**
 - `Content-Type: application/json` (required)
-- `Mcp-Session-Id: <session-id>` (optional, returned by server after first request)
+- `Accept: application/json, text/event-stream` (required)
+- `Mcp-Session-Id: <session-id>` (optional, returned after initialization)
+- `MCP-Protocol-Version: 2025-06-18` (recommended)
 
 **Request Body:**
-JSON-RPC 2.0 formatted MCP request
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {},
+    "clientInfo": {
+      "name": "my-client",
+      "version": "1.0"
+    }
+  },
+  "id": 1
+}
+```
 
 **Response:**
-JSON-RPC 2.0 formatted MCP response with `Mcp-Session-Id` header
-
-### Health Monitoring
-Health checks are performed via MCP protocol initialization:
-
-```bash
-curl -X POST http://localhost:3000/mcp \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {},
+    "serverInfo": {
+      "name": "mcp-server-fetch",
+      "version": "1.0.0"
+    }
+  },
+  "id": 1
+}
 ```
 
 ## Session Management
 
-The proxy manages multiple concurrent sessions:
-
-- Each client gets its own MCP server subprocess
-- Sessions are identified by `Mcp-Session-Id` header
+- Sessions are created on first request
+- Session ID returned in `Mcp-Session-Id` response header
 - Sessions timeout after inactivity (default: 5 minutes)
-- Expired sessions are automatically cleaned up
+- Each session maintains its own MCP server subprocess
+- Automatic cleanup on session expiration or server crash
 
 ## Configuration
 
-### Command Line Options
-
-- `--host`: Host to bind to (default: 0.0.0.0)
-- `--port`: Port to bind to (default: 3000)
-- `--timeout`: Session timeout in seconds (default: 300)
-- `--log-level`: Logging level: debug, info, warning, error (default: info)
-
 ### Environment Variables
 
-You can also configure the proxy using environment variables:
+```bash
+# Proxy configuration
+PROXY_MAX_SESSIONS=1000          # Maximum concurrent sessions
+PROXY_SESSION_TIMEOUT=300        # Session timeout in seconds
+PROXY_REQUEST_TIMEOUT=30         # Individual request timeout
+PROXY_BUFFER_SIZE=65536         # stdio buffer size
+
+# Process management
+PROXY_RESTART_ON_ERROR=true     # Auto-restart failed processes
+PROXY_RESTART_DELAY=5           # Restart delay in seconds
+PROXY_MAX_RESTARTS=3           # Maximum restart attempts
+```
+
+### Command Line Options
 
 ```bash
-export MCP_PROXY_HOST=0.0.0.0
-export MCP_PROXY_PORT=3000
-export MCP_PROXY_TIMEOUT=300
-export MCP_PROXY_LOG_LEVEL=info
+mcp-streamablehttp-proxy serve [OPTIONS] -- <mcp-server-command>
+
+Options:
+  --host TEXT     Host to bind to [default: 0.0.0.0]
+  --port INTEGER  Port to bind to [default: 3000]
+  --help          Show this message and exit
 ```
 
-## Advanced Usage
+## Integration with MCP OAuth Gateway
 
-### Custom FastAPI Integration
+This proxy is designed to work seamlessly with the MCP OAuth Gateway:
 
-You can integrate the proxy into your existing FastAPI application:
-
-```python
-from fastapi import FastAPI
-from mcp_streamablehttp_proxy import create_app
-
-# Create your main app
-main_app = FastAPI()
-
-# Create MCP streamable HTTP proxy app
-mcp_app = create_app(
-    server_command=["python", "-m", "mcp_server_fetch"],
-    session_timeout=300
-)
-
-# Mount the MCP app
-main_app.mount("/mcp-proxy", mcp_app)
-```
-
-### Monitoring and Logging
-
-The proxy provides detailed logging for debugging:
-
-```python
-import logging
-
-# Configure logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-
-# Run with debug logging
-from mcp_streamablehttp_proxy import run_server
-
-run_server(
-    server_command=["python", "-m", "mcp_server_fetch"],
-    log_level="debug"
-)
+```yaml
+# Docker Compose example
+services:
+  mcp-fetch:
+    build: ./mcp-fetch
+    command: >
+      pixi run mcp-streamablehttp-proxy serve --
+      npx @modelcontextprotocol/server-fetch
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-fetch.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@docker"
+      - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
 ```
 
 ## Error Handling
 
-The proxy handles various error scenarios:
+The proxy provides detailed error responses:
 
-- **Server startup failures**: Returns 503 Service Unavailable
-- **Invalid requests**: Returns 400 Bad Request
-- **Session timeouts**: Returns 408 Request Timeout
-- **Server crashes**: Automatically cleans up and returns 500 Internal Server Error
+- **400 Bad Request**: Invalid JSON-RPC format
+- **404 Not Found**: Session not found
+- **408 Request Timeout**: Request processing timeout
+- **500 Internal Server Error**: MCP server crash or error
+- **503 Service Unavailable**: Unable to start MCP server
 
-## Contributing
+## Performance Considerations
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+- Each session spawns a separate process
+- Buffer sizes affect memory usage and latency
+- Session timeout balances resource usage vs user experience
+- Consider connection pooling for high-traffic scenarios
 
-### Development Setup
+## Development
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/mcp-streamablehttp-proxy.git
-cd mcp-streamablehttp-proxy
+# Clone repository
+git clone https://github.com/atrawog/mcp-oauth-gateway
+cd mcp-oauth-gateway/mcp-streamablehttp-proxy
 
-# Install development dependencies
-pip install -e ".[dev]"
+# Install dependencies
+pixi install -e .
 
 # Run tests
-pytest
+pixi run pytest tests/ -v
 
-# Run linting
-ruff check .
-black .
-mypy .
+# Run with debug logging
+LOG_LEVEL=DEBUG pixi run mcp-streamablehttp-proxy serve -- mcp-test-server
 ```
+
+## Troubleshooting
+
+### "Subprocess Failed to Start"
+- Verify MCP server command is correct
+- Check server is installed in container
+- Review subprocess error logs
+- Ensure executable permissions
+
+### "Session Lost"
+- Check session timeout configuration
+- Monitor subprocess memory usage
+- Review concurrent request handling
+- Verify session ID in headers
+
+### Performance Issues
+- Monitor subprocess CPU usage
+- Check stdio buffer sizes
+- Review request queuing
+- Consider process pooling
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+Apache License 2.0 - see [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## Author
 
-- Built for the [Model Context Protocol](https://modelcontextprotocol.io/)
-- Inspired by the need for HTTP transport compatibility
-- Thanks to the MCP community for feedback and contributions
+Andreas Trawoeger
+
+## Links
+
+- [Homepage](https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-streamablehttp-proxy)
+- [Repository](https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-streamablehttp-proxy)
+- [Documentation](https://atrawog.github.io/mcp-oauth-gateway)
+- [Issues](https://github.com/atrawog/mcp-oauth-gateway/issues)
