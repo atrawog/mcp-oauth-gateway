@@ -29,7 +29,7 @@ class TestMCPCORS:
         
     def test_mcp_preflight_cors_headers(self):
         """Test that MCP endpoints respond correctly to CORS preflight requests"""
-        mcp_url = f"{MCP_FETCH_URL}/mcp"
+        mcp_url = f"{MCP_FETCH_URL}"
         
         # If CORS is set to wildcard, test with a sample origin
         if self.cors_origins == ["*"]:
@@ -98,7 +98,7 @@ class TestMCPCORS:
                 
                 # Test the initialization response had CORS headers
                 init_response = await client.post(
-                    f"{mcp_url}/mcp",
+                    f"{mcp_url}",
                     headers={
                         "Origin": test_origin,
                         "Authorization": f"Bearer {oauth_token}",
@@ -190,7 +190,7 @@ class TestMCPCORS:
                 
                 # Test a tools/list request without Origin header
                 response = await client.post(
-                    f"{mcp_url}/mcp",
+                    f"{mcp_url}",
                     headers={
                         "Authorization": f"Bearer {oauth_token}",
                         "Content-Type": "application/json",
@@ -224,7 +224,7 @@ class TestMCPCORS:
         if "*" in self.cors_origins:
             pytest.skip("CORS wildcard (*) allows all origins")
             
-        mcp_url = f"{MCP_FETCH_URL}/mcp"
+        mcp_url = f"{MCP_FETCH_URL}"
         
         # Create an origin that is NOT in the configured list
         # Use a completely different domain that's unlikely to be configured

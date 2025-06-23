@@ -31,7 +31,7 @@ class TestMCPProtocolVersionNegotiation:
         
         # Request current protocol version
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -61,7 +61,7 @@ class TestMCPProtocolVersionNegotiation:
         
         # Request an old/unsupported version
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -102,7 +102,7 @@ class TestMCPJSONRPCCompliance:
         
         # Valid JSON-RPC 2.0 request
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -133,7 +133,7 @@ class TestMCPJSONRPCCompliance:
         
         # Initialize first to get session ID
         init_response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -151,7 +151,7 @@ class TestMCPJSONRPCCompliance:
         
         # Send invalid method to trigger error
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "invalid/method/name",
@@ -184,7 +184,7 @@ class TestMCPJSONRPCCompliance:
         
         # Initialize first
         await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -200,7 +200,7 @@ class TestMCPJSONRPCCompliance:
         
         # Send notification (no id)
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialized",
@@ -221,7 +221,7 @@ class TestMCPJSONRPCCompliance:
         
         # Test with number ID
         response1 = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -240,7 +240,7 @@ class TestMCPJSONRPCCompliance:
         
         # Test with string ID
         response2 = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/list",
@@ -264,7 +264,7 @@ class TestMCPLifecycleCompliance:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -300,7 +300,7 @@ class TestMCPLifecycleCompliance:
         # Fresh client with no initialization
         async with httpx.AsyncClient() as fresh_client:
             response = await fresh_client.post(
-                f"{mcp_test_url}/mcp",
+                f"{mcp_test_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -326,7 +326,7 @@ class TestMCPLifecycleCompliance:
         
         # Request specific capabilities
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -369,7 +369,7 @@ class TestMCPTransportCompliance:
         
         # Send without Content-Type
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             content=json.dumps({
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -397,7 +397,7 @@ class TestMCPTransportCompliance:
         
         # Send with MCP-Protocol-Version header
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -422,7 +422,7 @@ class TestMCPTransportCompliance:
         """Test that Authorization header is required for protected endpoints"""
         # No auth header
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -451,7 +451,7 @@ class TestMCPSecurityCompliance:
         
         # Send with suspicious Origin
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -476,7 +476,7 @@ class TestMCPSecurityCompliance:
         """Test that tokens are properly validated"""
         # Invalid token format
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -506,7 +506,7 @@ class TestMCPSecurityCompliance:
         for i in range(3):
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"{mcp_test_url}/mcp",
+                    f"{mcp_test_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "initialize",
@@ -553,7 +553,7 @@ class TestMCPErrorHandling:
         
         for request, expected_code in test_cases:
             response = await http_client.post(
-                f"{mcp_test_url}/mcp",
+                f"{mcp_test_url}",
                 json=request,
                 headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
                 timeout=60.0  # Increase timeout for error handling tests
@@ -573,7 +573,7 @@ class TestMCPErrorHandling:
         
         # Initialize
         init_response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -591,7 +591,7 @@ class TestMCPErrorHandling:
         
         # Send bad request
         bad_response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "bad_method",
@@ -606,7 +606,7 @@ class TestMCPErrorHandling:
         
         # Now send good request - session should still work
         good_response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/list",

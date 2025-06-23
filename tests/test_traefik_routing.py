@@ -48,7 +48,7 @@ class TestTraefikRouting:
         """Test that /mcp path is routed correctly but requires auth"""
         # Test /mcp without auth - should get 401
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "ping", "id": 1},
             headers={
                 "Content-Type": "application/json",
@@ -70,7 +70,7 @@ class TestTraefikRouting:
         """Test that /mcp redirects to /mcp/ with trailing slash"""
         # First, let's check if we get a redirect from /mcp to /mcp/
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "ping", "id": 1},
             headers={
                 "Content-Type": "application/json",

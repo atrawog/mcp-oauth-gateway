@@ -22,7 +22,7 @@ def everything_base_url():
     if not MCP_EVERYTHING_URLS:
         pytest.skip("MCP_EVERYTHING_URLS environment variable not set")
     # Extract base URL (without /mcp path)
-    return MCP_EVERYTHING_URLS[0].replace('/mcp', '')
+    return MCP_EVERYTHING_URLS[0].replace('/mcp', '')  # Keep base URL without /mcp for this test
 
 
 @pytest.fixture
@@ -67,7 +67,7 @@ class TestMCPEverythingIntegration:
         async with httpx.AsyncClient(verify=False) as client:
             # Try without auth
             response = await client.post(
-                f"{everything_base_url}/mcp",
+                f"{everything_base_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -92,7 +92,7 @@ class TestMCPEverythingIntegration:
         """Test MCP initialize method."""
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{everything_base_url}/mcp",
+                f"{everything_base_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -126,7 +126,7 @@ class TestMCPEverythingIntegration:
         async with httpx.AsyncClient(verify=False) as client:
             # First initialize
             init_response = await client.post(
-                f"{everything_base_url}/mcp",
+                f"{everything_base_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -162,7 +162,7 @@ class TestMCPEverythingIntegration:
                 headers["Mcp-Session-Id"] = session_id
                 
             response = await client.post(
-                f"{everything_base_url}/mcp",
+                f"{everything_base_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -197,7 +197,7 @@ class TestMCPEverythingIntegration:
         async with httpx.AsyncClient(verify=False) as client:
             # Initialize first
             init_response = await client.post(
-                f"{everything_base_url}/mcp",
+                f"{everything_base_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -218,7 +218,7 @@ class TestMCPEverythingIntegration:
             
             # Try to call echo tool
             response = await client.post(
-                f"{everything_base_url}/mcp",
+                f"{everything_base_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -276,7 +276,7 @@ class TestMCPEverythingIntegration:
         """Test CORS preflight request handling."""
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.options(
-                f"{everything_base_url}/mcp",
+                f"{everything_base_url}",
                 headers={
                     "Origin": "https://claude.ai",
                     "Access-Control-Request-Method": "POST",

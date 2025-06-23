@@ -14,7 +14,7 @@ class TestMCPAuthWorking:
         
         # Test 1: Request without auth should fail
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "test", "id": 1},
             headers={
                 "Content-Type": "application/json",
@@ -34,7 +34,7 @@ class TestMCPAuthWorking:
         
         # Test 2: Request with invalid token should fail
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "test", "id": 1},
             headers={
                 "Authorization": "Bearer invalid_token_12345",
@@ -59,7 +59,7 @@ class TestMCPAuthWorking:
         
         for auth_header in invalid_auth_headers:
             response = await http_client.post(
-                f"{mcp_fetch_url}/mcp",
+                f"{mcp_fetch_url}",
                 json={"jsonrpc": "2.0", "method": "test", "id": 1},
                 headers={
                     "Authorization": auth_header,
@@ -89,7 +89,7 @@ class TestMCPAuthWorking:
                 test_origin = f"https://app.{domain_parts[1]}"
         
         response = await http_client.options(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             headers={
                 "Origin": test_origin,
                 "Access-Control-Request-Method": "POST",

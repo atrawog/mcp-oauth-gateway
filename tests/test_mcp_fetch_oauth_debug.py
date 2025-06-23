@@ -108,7 +108,7 @@ async def test_debug_mcp_fetch_with_real_oauth(http_client, wait_for_services, m
     # Check if we can access without auth
     print(f"\n--- Testing without auth ---")
     response = await http_client.post(
-        f"{mcp_fetch_url}/mcp",
+        f"{mcp_fetch_url}",
         json={"jsonrpc": "2.0", "method": "test", "id": 1}
     )
     print(f"No auth status: {response.status_code}")

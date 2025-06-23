@@ -103,7 +103,7 @@ async def test_mcp_fetch_unauthorized_fails(http_client, wait_for_services, mcp_
     
     # Try to access without token
     response = await http_client.post(
-        f"{mcp_test_url}/mcp",
+        f"{mcp_test_url}",
         json={"jsonrpc": "2.0", "method": "test", "id": 1}
     )
     

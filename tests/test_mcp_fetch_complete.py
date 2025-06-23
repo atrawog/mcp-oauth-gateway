@@ -357,7 +357,7 @@ class TestMCPFetchComplete:
         
         # Test 1: No auth header at all
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json=mcp_request
         )
         
@@ -376,7 +376,7 @@ class TestMCPFetchComplete:
         
         # Test 3: Invalid bearer token
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json=mcp_request,
             headers={"Authorization": "Bearer completely-invalid-token"}
         )
@@ -388,7 +388,7 @@ class TestMCPFetchComplete:
         
         # Test 4: Wrong auth scheme
         response = await http_client.post(
-            f"{mcp_test_url}/mcp",
+            f"{mcp_test_url}",
             json=mcp_request,
             headers={"Authorization": "Basic dXNlcjpwYXNz"}  # Basic auth
         )
@@ -434,7 +434,7 @@ async def test_complete_oauth_flow_integration(http_client, wait_for_services, m
     
     # 2. Verify MCP endpoint requires auth
     mcp_response = await http_client.post(
-        f"{mcp_test_url}/mcp",
+        f"{mcp_test_url}",
         json={"jsonrpc": "2.0", "method": "ping", "id": 1}
     )
     assert mcp_response.status_code == 401, "MCP not enforcing auth!"

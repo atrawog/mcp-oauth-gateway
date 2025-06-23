@@ -32,7 +32,7 @@ class TestMCPFilesystemIntegration:
         """Test that MCP endpoint requires authentication."""
         # Request without auth should return 401
         response = await http_client.post(
-            f"{mcp_filesystem_url}/mcp",
+            f"{mcp_filesystem_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "filesystem/list",
@@ -54,7 +54,7 @@ class TestMCPFilesystemIntegration:
         
         # List workspace directory
         response = await http_client.post(
-            f"{mcp_filesystem_url}/mcp",
+            f"{mcp_filesystem_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "filesystem/list",
@@ -84,7 +84,7 @@ class TestMCPFilesystemIntegration:
         
         # First initialize the session
         init_response = await http_client.post(
-            f"{mcp_filesystem_url}/mcp",
+            f"{mcp_filesystem_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -129,7 +129,7 @@ class TestMCPFilesystemIntegration:
             
         # Send notification without expecting a response
         await http_client.post(
-            f"{mcp_filesystem_url}/mcp",
+            f"{mcp_filesystem_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "notifications/initialized",
@@ -150,7 +150,7 @@ class TestMCPFilesystemIntegration:
             headers["Mcp-Session-Id"] = session_id
             
         response = await http_client.post(
-            f"{mcp_filesystem_url}/mcp",
+            f"{mcp_filesystem_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -210,7 +210,7 @@ class TestMCPFilesystemIntegration:
         """Test CORS preflight handling for filesystem service."""
         # OPTIONS request should work without auth
         response = await http_client.options(
-            f"{mcp_filesystem_url}/mcp",
+            f"{mcp_filesystem_url}",
             headers={
                 "Origin": "https://claude.ai",
                 "Access-Control-Request-Method": "POST",

@@ -35,7 +35,7 @@ class TestMCPFetchsRealContent:
         async with httpx.AsyncClient(verify=False) as client:
             # Initialize session
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -53,7 +53,7 @@ class TestMCPFetchsRealContent:
             
             # Fetch example.com
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -100,7 +100,7 @@ class TestMCPFetchsRealContent:
         async with httpx.AsyncClient(verify=False) as client:
             # Test JSON response
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -127,7 +127,7 @@ class TestMCPFetchsRealContent:
             
             # Test user agent reflection
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -159,7 +159,7 @@ class TestMCPFetchsRealContent:
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -195,7 +195,7 @@ class TestMCPFetchsRealContent:
         async with httpx.AsyncClient(verify=False) as client:
             # httpbin.org/redirect/2 redirects twice
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -235,7 +235,7 @@ class TestMCPFetchsRealContent:
         async with httpx.AsyncClient(verify=False) as client:
             for url, expected_type, expected_content in content_type_tests:
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/call",
@@ -268,7 +268,7 @@ class TestMCPFetchsRealContent:
         async with httpx.AsyncClient(verify=False) as client:
             # Request 1KB of data
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -307,7 +307,7 @@ class TestMCPFetchsRealContent:
         async with httpx.AsyncClient(verify=False) as client:
             for status in status_codes:
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/call",

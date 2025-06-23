@@ -482,10 +482,10 @@ async def wait_for_services(http_client: httpx.AsyncClient):
     mcp_testing_url = os.getenv("MCP_TESTING_URL")
     if mcp_testing_url:
         # Use MCP_TESTING_URL if provided
-        services_to_check.append((mcp_testing_url, "/mcp", 401))
+        services_to_check.append((mcp_testing_url, "", 401))
     else:
         # Otherwise check the default MCP_FETCH_URL
-        services_to_check.append((MCP_FETCH_URL, "/mcp", 401))
+        services_to_check.append((MCP_FETCH_URL, "", 401))
     
     # Use retry configuration from test_constants - already validated!
     
@@ -508,7 +508,7 @@ def mcp_test_url():
     # First check for MCP_TESTING_URL
     testing_url = os.getenv("MCP_TESTING_URL")
     if testing_url:
-        return testing_url.rstrip('/').rstrip('/mcp')  # Remove trailing slash and /mcp if present
+        return testing_url.rstrip('/')  # Remove trailing slash only
     
     # Otherwise return the default MCP_FETCH_URL
     return MCP_FETCH_URL
@@ -523,7 +523,7 @@ def mcp_test_urls():
                     'SEQUENTIALTHINKING', 'TIME', 'TMUX', 'EVERYTHING']:
         urls_env = os.getenv(f"MCP_{service}_URLS")
         if urls_env and os.getenv(f"MCP_{service}_TESTS_ENABLED", "false").lower() == "true":
-            service_urls = [url.strip().rstrip('/').rstrip('/mcp') 
+            service_urls = [url.strip().rstrip('/') 
                            for url in urls_env.split(",") if url.strip()]
             urls.extend(service_urls)
     
@@ -531,7 +531,7 @@ def mcp_test_urls():
     if not urls:
         testing_url = os.getenv("MCP_TESTING_URL")
         if testing_url:
-            urls.append(testing_url.rstrip('/').rstrip('/mcp'))
+            urls.append(testing_url.rstrip('/'))
     
     # If still no URLs, use default MCP_FETCH_URL
     if not urls:
@@ -616,8 +616,8 @@ def mcp_fetch_url():
     if not MCP_FETCH_URLS:
         pytest.skip("MCP_FETCH_URLS environment variable not set")
     
-    # Return first URL from the list
-    return MCP_FETCH_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+    # Return first URL from the list (including /mcp path)
+    return MCP_FETCH_URLS[0]
 
 @pytest.fixture
 def mcp_fetchs_url():
@@ -629,8 +629,8 @@ def mcp_fetchs_url():
     if not MCP_FETCHS_URLS:
         pytest.skip("MCP_FETCHS_URLS environment variable not set")
     
-    # Return first URL from the list
-    return MCP_FETCHS_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+    # Return first URL from the list (including /mcp path)
+    return MCP_FETCHS_URLS[0]
 
 @pytest.fixture
 def mcp_filesystem_url():
@@ -642,8 +642,8 @@ def mcp_filesystem_url():
     if not MCP_FILESYSTEM_URLS:
         pytest.skip("MCP_FILESYSTEM_URLS environment variable not set")
     
-    # Return first URL from the list
-    return MCP_FILESYSTEM_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+    # Return first URL from the list (including /mcp path)
+    return MCP_FILESYSTEM_URLS[0]
 
 @pytest.fixture
 def mcp_memory_url():
@@ -655,8 +655,8 @@ def mcp_memory_url():
     if not MCP_MEMORY_URLS:
         pytest.skip("MCP_MEMORY_URLS environment variable not set")
     
-    # Return first URL from the list
-    return MCP_MEMORY_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+    # Return first URL from the list (including /mcp path)
+    return MCP_MEMORY_URLS[0]
 
 @pytest.fixture
 def mcp_playwright_url():
@@ -668,8 +668,8 @@ def mcp_playwright_url():
     if not MCP_PLAYWRIGHT_URLS:
         pytest.skip("MCP_PLAYWRIGHT_URLS environment variable not set")
     
-    # Return first URL from the list
-    return MCP_PLAYWRIGHT_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+    # Return first URL from the list (including /mcp path)
+    return MCP_PLAYWRIGHT_URLS[0]
 
 @pytest.fixture
 def mcp_sequentialthinking_url():
@@ -681,8 +681,8 @@ def mcp_sequentialthinking_url():
     if not MCP_SEQUENTIALTHINKING_URLS:
         pytest.skip("MCP_SEQUENTIALTHINKING_URLS environment variable not set")
     
-    # Return first URL from the list
-    return MCP_SEQUENTIALTHINKING_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+    # Return first URL from the list (including /mcp path)
+    return MCP_SEQUENTIALTHINKING_URLS[0]
 
 @pytest.fixture
 def mcp_time_url():
@@ -694,8 +694,8 @@ def mcp_time_url():
     if not MCP_TIME_URLS:
         pytest.skip("MCP_TIME_URLS environment variable not set")
     
-    # Return first URL from the list
-    return MCP_TIME_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+    # Return first URL from the list (including /mcp path)
+    return MCP_TIME_URLS[0]
 
 @pytest.fixture
 def mcp_tmux_url():
@@ -707,5 +707,5 @@ def mcp_tmux_url():
     if not MCP_TMUX_URLS:
         pytest.skip("MCP_TMUX_URLS environment variable not set")
     
-    # Return first URL from the list
-    return MCP_TMUX_URLS[0].replace('/mcp', '')  # Remove /mcp path if present
+    # Return first URL from the list (including /mcp path)
+    return MCP_TMUX_URLS[0]

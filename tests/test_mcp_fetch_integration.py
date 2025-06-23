@@ -36,7 +36,7 @@ class TestMCPFetchIntegration:
         
         # Test 1: Verify unauthenticated requests are rejected
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "ping", "id": 1}
         )
         
@@ -45,7 +45,7 @@ class TestMCPFetchIntegration:
         
         # Test 2: Verify authenticated requests work
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "ping", "id": 2},
             headers={"Authorization": f"Bearer {oauth_token}"}
         )
@@ -78,7 +78,7 @@ class TestMCPFetchIntegration:
         
         # Test 1: No authentication - should return 401
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json=mcp_request
         )
         
@@ -87,7 +87,7 @@ class TestMCPFetchIntegration:
         
         # Test 2: Invalid token - should return 401
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json=mcp_request,
             headers={"Authorization": "Bearer invalid_token_12345"}
         )
@@ -96,7 +96,7 @@ class TestMCPFetchIntegration:
         
         # Test 3: Malformed authorization header
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json=mcp_request,
             headers={"Authorization": "NotBearer some_token"}
         )
@@ -105,7 +105,7 @@ class TestMCPFetchIntegration:
         
         # Test 4: Test the MCP protocol version header
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json=mcp_request,
             headers={
                 "Authorization": "Bearer invalid_but_well_formed_jwt",
@@ -163,7 +163,7 @@ class TestMCPFetchIntegration:
         
         for invalid_request in invalid_requests:
             response = await http_client.post(
-                f"{mcp_fetch_url}/mcp",
+                f"{mcp_fetch_url}",
                 json=invalid_request
             )
             
@@ -176,20 +176,20 @@ class TestMCPFetchIntegration:
         """Test that MCP fetch endpoint supports required HTTP methods"""
         
         # Test GET method (required by MCP Streamable HTTP transport)
-        response = await http_client.get(f"{mcp_fetch_url}/mcp")
+        response = await http_client.get(f"{mcp_fetch_url}")
         # Should return 401 since we're not authenticated
         assert response.status_code == 401
         
         # Test POST method
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "test", "id": 1}
         )
         assert response.status_code == 401
         
         # Test unsupported methods
         response = await http_client.put(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={"test": "data"}
         )
         # Should return 405 Method Not Allowed or 401

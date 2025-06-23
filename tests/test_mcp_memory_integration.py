@@ -133,7 +133,7 @@ class TestMCPMemoryIntegration:
     async def test_memory_initialize(self, mcp_memory_url, client_token, wait_for_services):
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
-            url=f"{mcp_memory_url}/mcp",
+            url=f"{mcp_memory_url}",
             token=client_token,
             method="initialize",
             params={
@@ -168,7 +168,7 @@ class TestMCPMemoryIntegration:
         """Test listing available tools."""
         # First initialize
         self.run_mcp_client(
-            url=f"{mcp_memory_url}/mcp",
+            url=f"{mcp_memory_url}",
             token=client_token,
             method="initialize",
             params={
@@ -180,7 +180,7 @@ class TestMCPMemoryIntegration:
         
         # List tools
         response = self.run_mcp_client(
-            url=f"{mcp_memory_url}/mcp",
+            url=f"{mcp_memory_url}",
             token=client_token,
             method="tools/list",
             params={}
@@ -211,7 +211,7 @@ class TestMCPMemoryIntegration:
         """Test listing available resources."""
         # Initialize first
         self.run_mcp_client(
-            url=f"{mcp_memory_url}/mcp",
+            url=f"{mcp_memory_url}",
             token=client_token,
             method="initialize",
             params={
@@ -223,7 +223,7 @@ class TestMCPMemoryIntegration:
         
         # List resources
         response = self.run_mcp_client(
-            url=f"{mcp_memory_url}/mcp",
+            url=f"{mcp_memory_url}",
             token=client_token,
             method="resources/list",
             params={}
@@ -254,7 +254,7 @@ class TestMCPMemoryIntegration:
         """Test basic memory functionality if tools are available."""
         # Initialize
         self.run_mcp_client(
-            url=f"{mcp_memory_url}/mcp",
+            url=f"{mcp_memory_url}",
             token=client_token,
             method="initialize",
             params={
@@ -266,7 +266,7 @@ class TestMCPMemoryIntegration:
         
         # List tools to see what's available
         list_response = self.run_mcp_client(
-            url=f"{mcp_memory_url}/mcp",
+            url=f"{mcp_memory_url}",
             token=client_token,
             method="tools/list",
             params={}
@@ -295,7 +295,7 @@ class TestMCPMemoryIntegration:
             
             # Call the tool
             response = self.run_mcp_client(
-                url=f"{mcp_memory_url}/mcp",
+                url=f"{mcp_memory_url}",
                 token=client_token,
                 method="tools/call",
                 params={
@@ -321,7 +321,7 @@ class TestMCPMemoryIntegration:
         
         # Just verify we can initialize - this proves the service is healthy
         response = self.run_mcp_client(
-            url=f"{mcp_memory_url}/mcp",
+            url=f"{mcp_memory_url}",
             token=client_token,
             method="initialize",
             params={

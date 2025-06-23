@@ -60,7 +60,7 @@ class TestMCPFetchsProtocol:
         async with httpx.AsyncClient(verify=False) as client:
             for test in test_cases:
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json=test["request"],
                     headers={
                         "Content-Type": "application/json",
@@ -108,7 +108,7 @@ class TestMCPFetchsProtocol:
                     params = {"name": "fetch", "arguments": {"url": "https://example.com"}}
                 
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": method,
@@ -138,7 +138,7 @@ class TestMCPFetchsProtocol:
         async with httpx.AsyncClient(verify=False) as client:
             # Initialize without session
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -157,7 +157,7 @@ class TestMCPFetchsProtocol:
             
             # Use session for subsequent request
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -176,7 +176,7 @@ class TestMCPFetchsProtocol:
             
             # Try with invalid session
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -200,7 +200,7 @@ class TestMCPFetchsProtocol:
         async with httpx.AsyncClient(verify=False) as client:
             # Test with protocol version header
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -261,7 +261,7 @@ class TestMCPFetchsProtocol:
         async with httpx.AsyncClient(verify=False) as client:
             for scenario in error_scenarios:
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     content=scenario["body"],
                     headers={
                         "Content-Type": "application/json",
@@ -301,7 +301,7 @@ class TestMCPFetchsProtocol:
                     headers["Content-Type"] = content_type
                 
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
                     headers=headers
                 )
@@ -332,7 +332,7 @@ class TestMCPFetchsProtocol:
         async with httpx.AsyncClient(verify=False) as client:
             for request_id in id_values:
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/list",

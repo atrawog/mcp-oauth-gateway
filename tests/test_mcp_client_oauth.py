@@ -302,7 +302,7 @@ class TestMCPClientTokenValidation:
         
         # Test token against MCP endpoint
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -324,7 +324,7 @@ class TestMCPClientTokenValidation:
         """Test handling of expired tokens"""
         # Use an obviously invalid token
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialize", "params": {}, "id": 1},
             headers={"Authorization": "Bearer expired_token_12345"}
         )
@@ -489,7 +489,7 @@ class TestMCPClientRealWorldScenarios:
         
         async def make_mcp_request(request_id: int):
             response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",

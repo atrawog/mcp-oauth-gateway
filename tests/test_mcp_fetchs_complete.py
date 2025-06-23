@@ -37,7 +37,7 @@ class TestMCPFetchsComplete:
         # Step 1: Verify authentication is required
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={"jsonrpc": "2.0", "method": "initialize", "id": 1},
                 headers={"Content-Type": "application/json"}
             )
@@ -47,7 +47,7 @@ class TestMCPFetchsComplete:
         # Step 2: Initialize MCP session with authentication
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -79,7 +79,7 @@ class TestMCPFetchsComplete:
         # Step 3: List available tools
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -107,7 +107,7 @@ class TestMCPFetchsComplete:
         # Step 4: Fetch actual content
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -150,7 +150,7 @@ class TestMCPFetchsComplete:
         async with httpx.AsyncClient(verify=False) as client:
             # Initialize session
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -172,7 +172,7 @@ class TestMCPFetchsComplete:
             
             # Fetch content
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -210,7 +210,7 @@ class TestMCPFetchsComplete:
         async with httpx.AsyncClient(verify=False) as client:
             # Test missing URL
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -236,7 +236,7 @@ class TestMCPFetchsComplete:
             
             # Test invalid URL scheme
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -268,7 +268,7 @@ class TestMCPFetchsComplete:
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -306,7 +306,7 @@ class TestMCPFetchsComplete:
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -349,7 +349,7 @@ class TestMCPFetchsComplete:
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -392,7 +392,7 @@ class TestMCPFetchsComplete:
         async with httpx.AsyncClient(verify=False) as client:
             # Test 404 response
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -419,7 +419,7 @@ class TestMCPFetchsComplete:
             
             # Test invalid domain
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -453,7 +453,7 @@ class TestMCPFetchsComplete:
         async with httpx.AsyncClient(verify=False) as client:
             # Try with older protocol version
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -490,7 +490,7 @@ class TestMCPFetchsComplete:
             responses = []
             for i in range(2):
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "initialize",
@@ -517,7 +517,7 @@ class TestMCPFetchsComplete:
             # Verify sessions work (regardless of whether they're the same)
             for idx, session_id in enumerate(session_ids):
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/list",
@@ -542,7 +542,7 @@ class TestMCPFetchsComplete:
         
         async def make_fetch_request(client, request_id):
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",

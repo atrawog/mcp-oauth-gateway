@@ -30,7 +30,7 @@ class TestMCPFetchsCompliance:
         # Test supported version
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -77,7 +77,7 @@ class TestMCPFetchsCompliance:
         async with httpx.AsyncClient(verify=False) as client:
             # Test unsupported version in params
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -107,7 +107,7 @@ class TestMCPFetchsCompliance:
         async with httpx.AsyncClient(verify=False) as client:
             # Test mismatched header version
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -133,7 +133,7 @@ class TestMCPFetchsCompliance:
         async with httpx.AsyncClient(verify=False) as client:
             # Test without cursor
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -153,7 +153,7 @@ class TestMCPFetchsCompliance:
             
             # Test with cursor (should work even if no pagination)
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -175,7 +175,7 @@ class TestMCPFetchsCompliance:
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -215,7 +215,7 @@ class TestMCPFetchsCompliance:
         async with httpx.AsyncClient(verify=False) as client:
             # Test missing params
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -234,7 +234,7 @@ class TestMCPFetchsCompliance:
             
             # Test missing name
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -255,7 +255,7 @@ class TestMCPFetchsCompliance:
             
             # Test unknown tool
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -284,7 +284,7 @@ class TestMCPFetchsCompliance:
         async with httpx.AsyncClient(verify=False) as client:
             # Successful tool call
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -331,7 +331,7 @@ class TestMCPFetchsCompliance:
         async with httpx.AsyncClient(verify=False) as client:
             # Tool execution error (invalid URL)
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -372,7 +372,7 @@ class TestMCPFetchsCompliance:
         async with httpx.AsyncClient(verify=False) as client:
             # First request should return session ID
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -401,7 +401,7 @@ class TestMCPFetchsCompliance:
         async with httpx.AsyncClient(verify=False) as client:
             # POST /mcp should work
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -416,7 +416,7 @@ class TestMCPFetchsCompliance:
             
             # GET /mcp for SSE (may not be implemented)
             response = await client.get(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 headers={
                     "Authorization": f"Bearer {valid_token}",
                     "Accept": "text/event-stream"

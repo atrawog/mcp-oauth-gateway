@@ -142,7 +142,7 @@ class TestMCPTimeIntegration:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_time_initialize(self, mcp_time_url, client_token, wait_for_services):
-        time_url = f"{mcp_time_url}/mcp"
+        time_url = f"{mcp_time_url}"
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
             url=time_url,
@@ -179,7 +179,7 @@ class TestMCPTimeIntegration:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_time_list_tools(self, mcp_time_url, client_token, wait_for_services):
-        time_url = f"{mcp_time_url}/mcp"
+        time_url = f"{mcp_time_url}"
         """Test listing available tools."""
         # First initialize
         self.initialize_session(time_url, client_token)
@@ -215,7 +215,7 @@ class TestMCPTimeIntegration:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_time_list_resources(self, mcp_time_url, client_token, wait_for_services):
-        time_url = f"{mcp_time_url}/mcp"
+        time_url = f"{mcp_time_url}"
         """Test listing available resources."""
         # Initialize first
         self.initialize_session(time_url, client_token)
@@ -250,7 +250,7 @@ class TestMCPTimeIntegration:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_time_health_check(self, mcp_time_url, client_token, wait_for_services):
-        time_url = f"{mcp_time_url}/mcp"
+        time_url = f"{mcp_time_url}"
         """Test that the time service health endpoint is accessible."""
         # This test verifies the service is running and accessible
         # The actual health check is done via the docker health check

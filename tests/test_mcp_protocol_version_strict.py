@@ -33,7 +33,7 @@ class TestMCPProtocolVersionStrict:
         
         # Test 1: Correct version from .env MUST work
         correct_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -123,7 +123,7 @@ class TestMCPProtocolVersionStrict:
                     continue
                     
                 response = await http_client.post(
-                    f"{MCP_FETCH_URL}/mcp",
+                    f"{MCP_FETCH_URL}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/list",

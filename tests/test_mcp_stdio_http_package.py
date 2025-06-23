@@ -12,7 +12,7 @@ async def test_mcp_fetch_uses_package(mcp_fetch_url):
     async with httpx.AsyncClient() as client:
         # Use MCP protocol to check server info - per CLAUDE.md, no /health endpoints
         response = await client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",

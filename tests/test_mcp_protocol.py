@@ -18,7 +18,7 @@ class TestMCPProtocol:
         """Test that MCP endpoint requires authentication"""
         # Try to access without auth
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "ping",
@@ -48,7 +48,7 @@ class TestMCPProtocol:
         # Test without auth - endpoint should reject before checking JSON-RPC format
         for invalid_request in test_cases:
             response = await http_client.post(
-                f"{mcp_fetch_url}/mcp",
+                f"{mcp_fetch_url}",
                 json=invalid_request
             )
             
@@ -61,7 +61,7 @@ class TestMCPProtocol:
         """Test required headers for Streamable HTTP transport"""
         # Test required Accept header without auth
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "ping",
@@ -86,7 +86,7 @@ class TestMCPProtocol:
         
         # Send request with session ID (no auth)
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -109,7 +109,7 @@ class TestMCPProtocol:
     async def test_mcp_protocol_version(self, http_client, wait_for_services, mcp_fetch_url):
         """Test MCP protocol version negotiation"""
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -136,7 +136,7 @@ class TestMCPProtocol:
         """Test that MCP errors follow JSON-RPC 2.0 error format"""
         # This will fail auth, but we can check the error format
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "unknown_method",
@@ -162,7 +162,7 @@ class TestMCPProtocol:
         ]
         
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json=batch
         )
         
@@ -175,14 +175,14 @@ class TestMCPProtocol:
         """Test that MCP endpoint supports both POST and GET methods"""
         # Test POST method without auth
         post_response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "ping", "id": 1}
         )
         assert post_response.status_code == 401  # Auth required
         
         # Test GET method without auth
         get_response = await http_client.get(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             headers={"Mcp-Session-Id": "test-session"}
         )
         assert get_response.status_code == 401  # Auth required

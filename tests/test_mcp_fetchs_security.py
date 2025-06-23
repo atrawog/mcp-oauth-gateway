@@ -45,7 +45,7 @@ class TestMCPFetchsSecurity:
                     headers["Authorization"] = auth_header
                 
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "initialize",
@@ -76,7 +76,7 @@ class TestMCPFetchsSecurity:
         async with httpx.AsyncClient(verify=False) as client:
             for token in invalid_tokens:
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "initialize",
@@ -141,7 +141,7 @@ class TestMCPFetchsSecurity:
         async with httpx.AsyncClient(verify=False) as client:
             for url in dangerous_urls:
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/call",
@@ -181,7 +181,7 @@ class TestMCPFetchsSecurity:
         
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -219,7 +219,7 @@ class TestMCPFetchsSecurity:
             responses = []
             for i in range(10):
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/list",

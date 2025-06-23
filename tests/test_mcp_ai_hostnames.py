@@ -60,7 +60,7 @@ class TestMCPAIHostnames:
             
             try:
                 # First test without auth - should get 401
-                test_url = f"{url}/mcp" if not url.endswith("/mcp") else url
+                test_url = f"{url}" if not url.endswith("/mcp") else url
                 response = await http_client.post(test_url)
                 assert response.status_code == 401, f"{name} should require authentication"
                 
@@ -129,7 +129,7 @@ class TestMCPAIHostnames:
             try:
                 # Per CLAUDE.md, health is checked via MCP protocol, not /health endpoint
                 # Test that endpoint requires auth (returns 401)
-                test_url = f"{url}/mcp" if not url.endswith("/mcp") else url
+                test_url = f"{url}" if not url.endswith("/mcp") else url
                 response = await http_client.get(test_url)
                 assert response.status_code == 401, f"{name} should require authentication"
                 assert "WWW-Authenticate" in response.headers
@@ -174,7 +174,7 @@ class TestMCPAIHostnames:
         if not self.HOSTNAMES:
             pytest.skip("No MCP URLs found in MCP_FETCH_URLS - skipping hostname tests")
         name, base_url, _ = self.HOSTNAMES[0]
-        url = f"{base_url}/mcp" if not base_url.endswith("/mcp") else base_url
+        url = f"{base_url}" if not base_url.endswith("/mcp") else base_url
         print(f"\nTesting fetch capability on {name}")
         
         # Initialize session
@@ -241,7 +241,7 @@ class TestMCPAIHostnames:
         # Test actual accessibility
         for name, url, _ in self.HOSTNAMES:
             try:
-                test_url = f"{url}/mcp" if not url.endswith("/mcp") else url
+                test_url = f"{url}" if not url.endswith("/mcp") else url
                 response = await http_client.post(test_url)
                 if response.status_code == 401:  # Expected when no auth
                     accessible.append((name, url))

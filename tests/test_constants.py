@@ -48,18 +48,18 @@ def _get_mcp_service_urls(service_name: str, default_subdomain: str) -> list:
     urls_env = os.getenv(f"MCP_{service_name.upper()}_URLS")
     if urls_env:
         urls = [url.strip() for url in urls_env.split(",") if url.strip()]
-        # Ensure URLs don't have /mcp suffix (will be added by tests)
-        return [url.rstrip('/').rstrip('/mcp') for url in urls]
+        # Use URLs as-is from environment - they already include /mcp if needed
+        return [url.rstrip('/') for url in urls]
     
     # Then check for MCP_<SERVICE>_URL (singular) 
     url_env = os.getenv(f"MCP_{service_name.upper()}_URL")
     if url_env:
-        url = url_env.strip().rstrip('/').rstrip('/mcp')
+        url = url_env.strip().rstrip('/')
         return [url]
     
     # Fall back to MCP_TESTING_URL if provided
     if MCP_TESTING_URL:
-        url = MCP_TESTING_URL.strip().rstrip('/').rstrip('/mcp')
+        url = MCP_TESTING_URL.strip().rstrip('/')
         return [url]
     
     # Finally, construct from BASE_DOMAIN

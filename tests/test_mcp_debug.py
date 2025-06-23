@@ -35,7 +35,7 @@ async def test_simple_initialize(http_client: httpx.AsyncClient, wait_for_servic
     print(f"\nRequest: {json.dumps(request_data, indent=2)}")
     
     response = await http_client.post(
-        f"{mcp_fetch_url}/mcp",
+        f"{mcp_fetch_url}",
         json=request_data,
         headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
     )
@@ -59,7 +59,7 @@ async def test_simple_initialize(http_client: httpx.AsyncClient, wait_for_servic
             if session_id:
                 # Try tools/list with session ID
                 tools_response = await http_client.post(
-                    f"{mcp_fetch_url}/mcp",
+                    f"{mcp_fetch_url}",
                     json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
                     headers={
                         "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",

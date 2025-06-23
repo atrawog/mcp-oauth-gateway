@@ -35,7 +35,7 @@ class TestMCPProxySessionIssues:
         
         # Initialize session
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -53,7 +53,7 @@ class TestMCPProxySessionIssues:
         
         # Try to use the session - this SHOULD work but currently fails
         tools_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
         )
@@ -78,7 +78,7 @@ class TestMCPProxySessionIssues:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -117,7 +117,7 @@ class TestMCPProxyWorkarounds:
         async with httpx.AsyncClient() as client1:
             # Initialize and list tools in one go
             init_response = await client1.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -135,7 +135,7 @@ class TestMCPProxyWorkarounds:
         async with httpx.AsyncClient() as client2:
             # Must initialize this new session first
             init_response = await client2.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -151,7 +151,7 @@ class TestMCPProxyWorkarounds:
             
             # Now we can list tools
             tools_response = await client2.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
                 headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
             )

@@ -26,7 +26,7 @@ class TestClaudeAIRoutingScenario:
         """
         # This is what Claude.ai does - tries to POST to /mcp
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",

@@ -39,7 +39,7 @@ class TestMCPProtocolVersions:
         async with httpx.AsyncClient(verify=False) as client:
             # Test the server's protocol version
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -68,7 +68,7 @@ class TestMCPProtocolVersions:
         async with httpx.AsyncClient(verify=False) as client:
             # Test the server's protocol version
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -101,7 +101,7 @@ class TestMCPProtocolVersions:
             # Test in params
             for version in unsupported_versions:
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "initialize",
@@ -127,7 +127,7 @@ class TestMCPProtocolVersions:
             # Test in header
             for version in unsupported_versions:
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/list",
@@ -162,7 +162,7 @@ class TestMCPProtocolVersions:
                     params = {"name": "fetch", "arguments": {"url": "https://example.com"}}
                 
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json={
                         "jsonrpc": "2.0",
                         "method": method,
@@ -187,7 +187,7 @@ class TestMCPProtocolVersions:
         async with httpx.AsyncClient(verify=False) as client:
             # When client doesn't specify version, server should use default
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -216,7 +216,7 @@ class TestMCPProtocolVersions:
         async with httpx.AsyncClient(verify=False) as client:
             # Test uppercase header name (should work)
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -232,7 +232,7 @@ class TestMCPProtocolVersions:
             
             # Test lowercase header name (should also work per HTTP spec)
             response = await client.post(
-                f"{mcp_fetchs_url}/mcp",
+                f"{mcp_fetchs_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -275,7 +275,7 @@ class TestMCPProtocolVersions:
             
             for request in error_requests:
                 response = await client.post(
-                    f"{mcp_fetchs_url}/mcp",
+                    f"{mcp_fetchs_url}",
                     json=request,
                     headers={
                         "Content-Type": "application/json",

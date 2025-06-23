@@ -32,7 +32,7 @@ class TestMCPTmuxComprehensive:
         # Run mcp-streamablehttp-client
         cmd = [
             "pixi", "run", "python", "-m", "mcp_streamablehttp_client.cli",
-            "--server-url", f"{url}/mcp",
+            "--server-url", f"{url}",
             "--raw", raw_request
         ]
         

@@ -73,7 +73,7 @@ class TestMCPFetchSimple:
             
             # Test authentication works
             response = await http_client.post(
-                f"{mcp_fetch_url}/mcp",
+                f"{mcp_fetch_url}",
                 json=mcp_request,
                 headers={
                     "Authorization": f"Bearer {access_token}",
@@ -105,7 +105,7 @@ class TestMCPFetchSimple:
                 }
                 
                 fetch_response = await http_client.post(
-                    f"{mcp_fetch_url}/mcp",
+                    f"{mcp_fetch_url}",
                     json=fetch_request,
                     headers={
                         "Authorization": f"Bearer {access_token}",

@@ -31,7 +31,7 @@ class TestMCPTmuxIntegration:
         # Run mcp-streamablehttp-client
         cmd = [
             "pixi", "run", "python", "-m", "mcp_streamablehttp_client.cli",
-            "--server-url", f"{url}/mcp",
+            "--server-url", f"{url}",
             "--raw", raw_request
         ]
         
@@ -384,7 +384,7 @@ class TestMCPTmuxIntegration:
         
         # Test without token
         response = requests.post(
-            f"{mcp_tmux_url}/mcp",
+            f"{mcp_tmux_url}",
             json={
                 "jsonrpc": "2.0",
                 "id": 1,

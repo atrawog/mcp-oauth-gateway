@@ -26,7 +26,7 @@ async def test_fetch_native_health_check(mcp_fetchs_url, wait_for_services, vali
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
-            f"{mcp_fetchs_url}/mcp",
+            f"{mcp_fetchs_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -58,7 +58,7 @@ async def test_fetch_native_requires_auth(mcp_fetchs_url, wait_for_services):
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
-            f"{mcp_fetchs_url}/mcp",
+            f"{mcp_fetchs_url}",
             json={"jsonrpc": "2.0", "method": "initialize", "id": 1},
             headers={"Content-Type": "application/json"}
         )
@@ -74,7 +74,7 @@ async def test_fetch_native_cors_preflight(mcp_fetchs_url, wait_for_services):
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.options(
-            f"{mcp_fetchs_url}/mcp",
+            f"{mcp_fetchs_url}",
             headers={
                 "Origin": "https://claude.ai",
                 "Access-Control-Request-Method": "POST",
@@ -97,7 +97,7 @@ async def test_fetch_native_initialize(mcp_fetchs_url, valid_oauth_token, wait_f
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
-            f"{mcp_fetchs_url}/mcp",
+            f"{mcp_fetchs_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -138,7 +138,7 @@ async def test_fetch_native_list_tools(mcp_fetchs_url, valid_oauth_token, wait_f
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
-            f"{mcp_fetchs_url}/mcp",
+            f"{mcp_fetchs_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/list",
@@ -175,7 +175,7 @@ async def test_fetch_native_call_tool_fetch(mcp_fetchs_url, base_domain, valid_o
     # Fetch from our own auth service's health endpoint
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
-            f"{mcp_fetchs_url}/mcp",
+            f"{mcp_fetchs_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -217,7 +217,7 @@ async def test_fetch_native_invalid_json_rpc(mcp_fetchs_url, valid_oauth_token, 
     async with httpx.AsyncClient(verify=False) as client:
         # Missing jsonrpc version
         response = await client.post(
-            f"{mcp_fetchs_url}/mcp",
+            f"{mcp_fetchs_url}",
             json={"method": "test", "id": 1},
             headers={
                 "Content-Type": "application/json",
@@ -240,7 +240,7 @@ async def test_fetch_native_unknown_method(mcp_fetchs_url, valid_oauth_token, wa
     
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
-            f"{mcp_fetchs_url}/mcp",
+            f"{mcp_fetchs_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "unknown/method",

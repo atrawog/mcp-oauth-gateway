@@ -439,7 +439,7 @@ class TestSecurityModelValidation:
         
         # Step 3: Verify MCP endpoint requires authentication
         mcp_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "test",

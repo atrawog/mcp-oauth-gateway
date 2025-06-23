@@ -180,7 +180,7 @@ class TestMCPSequentialThinkingIntegration:
     @pytest.mark.asyncio
     async def test_sequentialthinking_list_tools(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test listing available tools."""
-        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}"
         # First initialize
         self.initialize_session(sequentialthinking_url, client_token)
         
@@ -215,7 +215,7 @@ class TestMCPSequentialThinkingIntegration:
     @pytest.mark.asyncio
     async def test_sequentialthinking_list_resources(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test listing available resources."""
-        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}"
         # Initialize first
         self.initialize_session(sequentialthinking_url, client_token)
         
@@ -250,7 +250,7 @@ class TestMCPSequentialThinkingIntegration:
     @pytest.mark.asyncio
     async def test_sequentialthinking_basic_functionality(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test basic sequential thinking functionality if tools are available."""
-        sequentialthinking_url = f"{mcp_sequentialthinking_url}/mcp"
+        sequentialthinking_url = f"{mcp_sequentialthinking_url}"
         # Initialize
         self.initialize_session(sequentialthinking_url, client_token)
         

@@ -31,7 +31,7 @@ class TestMCPProxyWithSessionHandling:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -64,7 +64,7 @@ class TestMCPProxyWithSessionHandling:
         
         # Initialize and get session ID
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -83,7 +83,7 @@ class TestMCPProxyWithSessionHandling:
         
         # Send initialized notification with session ID
         await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -93,7 +93,7 @@ class TestMCPProxyWithSessionHandling:
         
         # List tools using same session ID
         tools_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -114,7 +114,7 @@ class TestMCPProxyWithSessionHandling:
         
         # Try to list tools without session ID
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
         )
@@ -131,7 +131,7 @@ class TestMCPProxyWithSessionHandling:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
         
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -156,7 +156,7 @@ class TestMCPProtocolFlowWithSessions:
         
         # Step 1: Initialize
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -178,7 +178,7 @@ class TestMCPProtocolFlowWithSessions:
         
         # Step 2: Send initialized notification
         initialized_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -189,7 +189,7 @@ class TestMCPProtocolFlowWithSessions:
         
         # Step 3: List available tools
         tools_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -209,7 +209,7 @@ class TestMCPProtocolFlowWithSessions:
         
         # Step 4: Call the fetch tool
         tool_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -248,7 +248,7 @@ class TestMCPSessionIsolation:
             
             # Initialize first client
             response1 = await client1.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -266,7 +266,7 @@ class TestMCPSessionIsolation:
             
             # Initialize second client
             response2 = await client2.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -287,7 +287,7 @@ class TestMCPSessionIsolation:
             
             # Client 1 cannot use Client 2's session
             cross_response = await client1.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -311,7 +311,7 @@ class MCPClientHelper:
     async def initialize(self, client_name: str = "test-client") -> dict:
         """Initialize MCP session and store session ID"""
         response = await self.client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -347,7 +347,7 @@ class MCPClientHelper:
             request["id"] = request_id
         
         response = await self.client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json=request,
             headers=headers
         )

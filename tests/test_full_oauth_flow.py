@@ -26,7 +26,7 @@ class TestFullOAuthFlow:
         async with httpx.AsyncClient() as client:
             # Step 1: Try to access MCP endpoint without auth
             response = await client.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",

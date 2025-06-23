@@ -24,7 +24,7 @@ class TestRoutingBugRegression:
         """
         # This is the exact request that was failing
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "ping", "id": 1},
             headers={"Content-Type": "application/json"},
             follow_redirects=False
@@ -100,7 +100,7 @@ class TestRoutingBugRegression:
         # The /mcp path should go to MCP route (priority 2)
         # not the catch-all (priority 1)
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"test": "data"},
             headers={"Content-Type": "application/json"}
         )

@@ -50,7 +50,7 @@ class TestMCPFetchRealContent:
         }
         
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json=mcp_request,
             headers={
                 "Authorization": f"Bearer {oauth_token}",
@@ -95,7 +95,7 @@ class TestMCPFetchRealContent:
         
         # Without authentication
         response = await http_client.post(
-            f"{mcp_fetch_url}/mcp",
+            f"{mcp_fetch_url}",
             json=mcp_request
         )
         

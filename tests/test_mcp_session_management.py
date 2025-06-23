@@ -33,7 +33,7 @@ class TestMCPSessionCreation:
         
         # Send initialize request
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -69,7 +69,7 @@ class TestMCPSessionCreation:
             
             # Initialize first client
             response1 = await client1.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -89,7 +89,7 @@ class TestMCPSessionCreation:
             
             # Initialize second client
             response2 = await client2.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -126,7 +126,7 @@ class TestMCPSessionPersistence:
         
         # Initialize session
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -143,14 +143,14 @@ class TestMCPSessionPersistence:
         
         # Send initialized notification
         await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
         )
         
         # Now make another request - should use same session
         tools_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
         )
@@ -168,7 +168,7 @@ class TestMCPSessionPersistence:
         # Use a fresh client to ensure no existing session
         async with httpx.AsyncClient(timeout=TEST_HTTP_TIMEOUT) as fresh_client:
             response = await fresh_client.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
                 headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
             )
@@ -197,7 +197,7 @@ class TestMCPSessionTimeout:
         
         # Initialize session
         response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -214,14 +214,14 @@ class TestMCPSessionTimeout:
         
         # Verify session is active
         await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
         )
         
         # Session should still be active
         tools_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
         )
@@ -235,7 +235,7 @@ class TestMCPSessionTimeout:
         
         # Initialize session
         await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -254,7 +254,7 @@ class TestMCPSessionTimeout:
             await asyncio.sleep(1)  # Small delay between requests
             
             response = await http_client.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": i + 2},
                 headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
             )
@@ -273,7 +273,7 @@ class TestMCPSessionConcurrency:
         
         # Initialize session
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -290,7 +290,7 @@ class TestMCPSessionConcurrency:
         session_id = init_response.headers.get("Mcp-Session-Id")
         
         await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -301,7 +301,7 @@ class TestMCPSessionConcurrency:
         # Send multiple concurrent requests
         async def make_request(request_id: int):
             return await http_client.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": request_id},
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -328,7 +328,7 @@ class TestMCPSessionConcurrency:
         
         # Initialize session
         await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -344,13 +344,13 @@ class TestMCPSessionConcurrency:
         
         # Send requests with different ID types (string and number)
         response1 = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "string-id-1"},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
         )
         
         response2 = await http_client.post(
-            f"{MCP_FETCH_URL}/mcp",
+            f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 12345},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
         )
@@ -376,7 +376,7 @@ class TestMCPSessionCleanup:
         async with httpx.AsyncClient(timeout=TEST_HTTP_TIMEOUT) as temp_client:
             # Initialize session
             response = await temp_client.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -396,7 +396,7 @@ class TestMCPSessionCleanup:
         async with httpx.AsyncClient(timeout=TEST_HTTP_TIMEOUT) as new_client:
             # This should either fail or require re-initialization
             response = await new_client.post(
-                f"{MCP_FETCH_URL}/mcp",
+                f"{MCP_FETCH_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
                 headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}
             )
