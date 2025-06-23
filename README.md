@@ -19,6 +19,10 @@ An OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Con
 - **Zero Code Modification**: Protects any MCP server without requiring changes to the server code
 - **Protocol Proxy**: Uses `mcp-streamablehttp-proxy` to bridge stdio MCP servers to HTTP endpoints
 
+### Extensions Beyond MCP 2025-06-18 Protocol
+
+- **RFC 7592 Client Management**: This gateway and `mcp-streamablehttp-client` implement RFC 7592 (OAuth 2.0 Dynamic Client Registration Management Protocol), which is NOT part of the MCP 2025-06-18 specification. This provides complete client lifecycle management including read, update, and delete operations on registered clients.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -222,20 +226,20 @@ The gateway implements a complete OAuth 2.1 Authorization Server that protects M
 
 3. **MCP Servers** - Protected resources requiring no modification
    - Run unmodified official MCP servers
-   - Wrapped by `mcp-streamablehttp-proxy` for HTTP transport
+   - Wrapped by `mcp-streamablehttp-proxy` for HTTP transport when necessary
    - Protected by OAuth without any code changes
 
 ### Component Separation
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│     Traefik     │────▶│  Auth Service   │────▶│  GitHub OAuth   │
+│     Traefik     │───▶│  Auth Service   │───▶│  GitHub OAuth   │
 │ (Reverse Proxy) │     │ (OAuth AS + RS) │     │     (IdP)       │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
          │                       │                        
          │                       │ Token Validation       
          │                       ▼                        
-         └──────────────▶┌─────────────────┐             
+         └─────────────▶┌─────────────────┐             
                          │  MCP Services   │             
                          │ (Protected APIs)│             
                          └─────────────────┘             

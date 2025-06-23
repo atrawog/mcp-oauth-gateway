@@ -33,14 +33,13 @@ This gateway serves as a reference implementation for MCP protocol development a
 - **Zero Code Modification**: Protects any MCP server without changing the server code
 - **OAuth Authorization Server**: Issues and manages tokens for MCP clients
 - **GitHub Identity Provider**: Uses GitHub OAuth for user identity verification only
-- **Standards Compliant**: Full OAuth 2.1 with RFC 7591/7592 support
+- **MCP 2025-06-18 Compliant**: Full support for required OAuth 2.1 with RFC 7591
 
 ## ✨ Key Features
 
 ### 🔐 Security & Authentication
 - **OAuth 2.1 Compliant** - Full RFC 6749 implementation with modern security
-- **RFC 7591 Dynamic Registration** - Automatic client onboarding
-- **RFC 7592 Client Management** - Complete lifecycle management
+- **RFC 7591 Dynamic Registration** - Automatic client onboarding (required by MCP 2025-06-18)
 - **PKCE S256 Support** - Enhanced security for public clients
 - **JWT Token Security** - Stateless, secure authentication
 
@@ -55,6 +54,12 @@ This gateway serves as a reference implementation for MCP protocol development a
 - **Multiple Services** - Fetch, Memory, Time, Sequential Thinking, Filesystem
 - **Streamable HTTP** - HTTP transport for stdio-based servers
 - **Real Integration** - No mocking, production-grade testing
+
+### 🚨 Extensions Beyond MCP 2025-06-18 Protocol
+- **RFC 7592 Client Management** - This gateway implements RFC 7592 (OAuth 2.0 Dynamic Client Registration Management Protocol)
+- **NOT part of MCP spec** - RFC 7592 is an extension NOT included in MCP 2025-06-18
+- **Full lifecycle management** - Read, update, and delete operations on registered clients
+- **Supported by mcp-streamablehttp-client** - Our client library includes RFC 7592 support
 
 ### 🚀 Developer Experience
 - **Comprehensive Testing** - 100% real service testing
@@ -148,7 +153,7 @@ just generate-oauth-token
 
 | Package | Purpose | Features |
 |---------|---------|----------|
-| **mcp-oauth-dynamicclient** | OAuth client library | RFC 7591/7592, PKCE, token management |
+| **mcp-oauth-dynamicclient** | OAuth client library | RFC 7591 (MCP required), RFC 7592 (NOT in MCP spec), PKCE |
 | **mcp-streamablehttp-proxy** | Protocol bridge | stdio ↔ HTTP conversion |
 | **mcp-streamablehttp-client** | Testing client | Protocol testing, OAuth integration |
 | **mcp-fetch-streamablehttp-server** | Fetch server | Direct HTTP MCP implementation |
@@ -221,11 +226,19 @@ Integration guides for Claude.ai and custom MCP clients.
 
 ## 🛡️ Security & Compliance
 
+### MCP 2025-06-18 Protocol Requirements
 - **OAuth 2.1** - Modern authentication standard
-- **RFC 7591** - Dynamic client registration
-- **RFC 7592** - Client configuration management
+- **RFC 7591** - Dynamic client registration (REQUIRED by MCP 2025-06-18)
 - **PKCE** - Proof Key for Code Exchange
 - **TLS/HTTPS** - All communications encrypted
+
+### Extensions Beyond MCP 2025-06-18
+- **RFC 7592** - Client configuration management (NOT part of MCP 2025-06-18 spec!)
+  - Allows clients to read their registration (GET /register/{client_id})
+  - Allows clients to update their registration (PUT /register/{client_id})
+  - Allows clients to delete themselves (DELETE /register/{client_id})
+- **GitHub OAuth Integration** - User identity provider
+- **JWT Token Management** - Stateless authentication
 - **No Hardcoded Secrets** - Environment-based configuration
 
 ## 📊 Testing & Quality

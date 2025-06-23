@@ -71,7 +71,8 @@ graph TB
 The MCP OAuth Gateway **is** the Authorization Server, not just a proxy:
 
 - **Issues its own tokens**: The gateway creates and signs JWT access tokens
-- **Manages client registrations**: Implements RFC 7591 for dynamic registration
+- **Manages client registrations**: Implements RFC 7591 for dynamic registration (REQUIRED by MCP 2025-06-18)
+- **RFC 7592 Extension**: Implements RFC 7592 client management (NOT part of MCP 2025-06-18 spec!)
 - **Validates all requests**: Every MCP request goes through token validation
 - **Controls access**: Determines which users can access which resources
 
