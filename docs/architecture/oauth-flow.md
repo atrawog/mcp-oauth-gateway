@@ -1,41 +1,93 @@
 # OAuth 2.1 Flow
 
-The MCP OAuth Gateway implements a complete OAuth 2.1 authorization server with support for dynamic client registration (RFC 7591) and client management (RFC 7592).
+The MCP OAuth Gateway implements a **sophisticated OAuth 2.1 system** that combines client credential authentication with GitHub user authentication. This dual-authentication approach ensures both the OAuth client (e.g., Claude.ai) and the human user are properly verified.
 
-## Authorization Code Flow with PKCE
+## OAuth Architecture: Client Credentials + User Authentication
 
-The gateway implements the OAuth 2.1 authorization code flow with mandatory PKCE (Proof Key for Code Exchange) for enhanced security.
+```{mermaid}
+graph TB
+    subgraph "OAuth Client Registration"
+        CR[POST /register<br/>No auth required]
+        CR --> CC[client_id + client_secret<br/>OAuth credentials]
+        CR --> RT[registration_access_token<br/>Client management only]
+    end
+    
+    subgraph "User Authentication"
+        UA[GET /authorize<br/>Requires client_id]
+        UA --> GH[GitHub OAuth<br/>User authenticates]
+        GH --> CB[Callback with<br/>GitHub user info]
+        CB --> AC[Authorization code<br/>Binds client + user]
+    end
+    
+    subgraph "Token Exchange"
+        TE[POST /token<br/>client_id + client_secret<br/>+ auth code + PKCE]
+        TE --> JWT[JWT access_token<br/>Contains both identities]
+    end
+    
+    CC --> UA
+    AC --> TE
+    
+    classDef registration fill:#9cf,stroke:#333,stroke-width:2px
+    classDef auth fill:#fc9,stroke:#333,stroke-width:2px
+    classDef token fill:#9fc,stroke:#333,stroke-width:2px
+    
+    class CR,CC,RT registration
+    class UA,GH,CB,AC auth
+    class TE,JWT token
+```
 
-### Flow Overview
+## Complete Authorization Flow
 
 ```{mermaid}
 sequenceDiagram
-    participant Client as MCP Client
-    participant Gateway as OAuth Gateway
+    participant Client as OAuth Client<br/>(e.g., Claude.ai)
+    participant User as Human User
+    participant Gateway as MCP OAuth Gateway
     participant GitHub as GitHub OAuth
-    participant User as User Browser
+    participant Redis as Redis Store
     
-    Note over Client,User: 1. Client Registration (if needed)
-    Client->>Gateway: POST /register
-    Gateway->>Client: 201 Created<br/>{client_id, client_secret}
+    Note over Client,Redis: Step 1: Client Registration (One-time)
+    Client->>Gateway: POST /register<br/>{redirect_uris, client_name}
+    Gateway->>Redis: Store client registration
+    Gateway->>Client: 201 Created<br/>client_id: abc123<br/>client_secret: xyz789<br/>registration_access_token: reg_tok
     
-    Note over Client,User: 2. Authorization Request
-    Client->>Client: Generate code_verifier & code_challenge
-    Client->>User: Open browser to /authorize
-    User->>Gateway: GET /authorize?client_id=...<br/>&code_challenge=...
-    Gateway->>User: Redirect to GitHub
-    User->>GitHub: Authenticate
-    GitHub->>User: Redirect to callback
-    User->>Gateway: GET /callback?code=...
-    Gateway->>GitHub: Exchange code for token
-    GitHub->>Gateway: Access token + user info
-    Gateway->>User: Redirect with auth code
+    Note over Client,Redis: Step 2: User Authorization
+    User->>Client: Initiate connection
+    Client->>Client: Generate PKCE<br/>code_verifier & code_challenge
+    Client->>User: Open browser
+    User->>Gateway: GET /authorize<br/>?client_id=abc123<br/>&code_challenge=...
+    Gateway->>Redis: Validate client_id
+    Gateway->>User: 302 Redirect to GitHub
+    User->>GitHub: Login & Authorize
+    GitHub->>Gateway: GET /callback<br/>?code=gh_code
+    Gateway->>GitHub: Exchange for user info
+    GitHub->>Gateway: User: johndoe<br/>Email: john@example.com
+    Gateway->>Gateway: Check ALLOWED_GITHUB_USERS
+    Gateway->>Redis: Store auth code with<br/>client_id + user info
+    Gateway->>User: 302 Redirect<br/>?code=auth_code
+    User->>Client: Auth code received
     
-    Note over Client,User: 3. Token Exchange
-    Client->>Gateway: POST /token<br/>code + code_verifier
-    Gateway->>Gateway: Validate PKCE
-    Gateway->>Client: Access token (JWT)
+    Note over Client,Redis: Step 3: Token Exchange
+    Client->>Gateway: POST /token<br/>client_id=abc123<br/>client_secret=xyz789<br/>code=auth_code<br/>code_verifier=...
+    Gateway->>Redis: Validate client credentials
+    Gateway->>Redis: Get auth code data
+    Gateway->>Gateway: Validate PKCE<br/>Verify client matches
+    Gateway->>Gateway: Generate JWT with:<br/>- sub: github_user_id<br/>- username: johndoe<br/>- client_id: abc123
+    Gateway->>Redis: Store tokens
+    Gateway->>Client: 200 OK<br/>access_token: JWT<br/>refresh_token: opaque
+    
+    Note over Client,Redis: Step 4: Access Resources
+    Client->>Gateway: GET /mcp<br/>Authorization: Bearer JWT
+    Gateway->>Gateway: Validate JWT<br/>Extract identities
+    Gateway->>Client: MCP Response<br/>X-User-Name: johndoe
 ```
+
+### Key Points
+
+- **client_id + client_secret** authenticate the OAuth CLIENT (e.g., Claude.ai)
+- **GitHub OAuth** authenticates the human USER
+- The final **access_token** contains BOTH: which client AND which user
+- **registration_access_token** is ONLY for client management, NOT resource access
 
 ## Dynamic Client Registration (RFC 7591)
 

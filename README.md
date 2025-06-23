@@ -16,156 +16,333 @@ An OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Con
 
 ### Overview
 
-The MCP OAuth Gateway implements a complete OAuth 2.1 Authorization Server that protects MCP services without requiring any code modifications to the MCP servers themselves.
+The MCP OAuth Gateway is a **zero-modification authentication layer** for MCP servers. It implements OAuth 2.1 with dynamic client registration (RFC 7591/7592) and leverages GitHub as the identity provider for user authentication. The architecture follows these core principles:
+
+- **Complete Separation of Concerns**: Authentication, routing, and MCP protocol handling are strictly isolated
+- **No MCP Server Modifications**: Official MCP servers run unmodified, wrapped only for HTTP transport
+- **Standards Compliance**: Full OAuth 2.1, RFC 7591/7592, and MCP protocol compliance
+- **Production-Ready Security**: HTTPS everywhere, PKCE mandatory, JWT tokens, secure session management
+- **Dynamic Service Discovery**: Services can be enabled/disabled via configuration
 
 ### Component Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│          Traefik (The Divine Router)                        │
-│  • Routes OAuth paths → Auth Service                        │
-│  • Routes MCP paths → MCP Services (after auth)             │
-│  • Enforces authentication via ForwardAuth                  │
-│  • Provides HTTPS with Let's Encrypt certificates           │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│      Auth Service (OAuth Authorization Server)              │
-│  • Handles all OAuth endpoints (/register, /token, etc.)    │
-│  • Validates tokens via /verify for ForwardAuth             │
-│  • Integrates with GitHub OAuth for user authentication     │
-│  • Uses mcp-oauth-dynamicclient for RFC compliance          │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│    MCP Services (Pure Protocol Implementations)             │
-│  • Run official MCP servers from modelcontextprotocol       │
-│  • Wrapped with mcp-streamablehttp-proxy when needed        │
-│  • Know nothing about OAuth - pure protocol innocence       │
-│  • Each service isolated in its own container               │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                                   EXTERNAL CLIENTS                                  │
+│         (Claude.ai, MCP CLI tools, IDE extensions, Custom integrations)             │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+                                           │
+                                     HTTPS │ :443
+                                           ↓
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                               TRAEFIK REVERSE PROXY                                 │
+│                          (Layer 1: Routing & TLS Termination)                       │
+├─────────────────────────────────────────────────────────────────────────────────────┤
+│ • Let's Encrypt automatic HTTPS certificates for all subdomains                     │
+│ • Priority-based routing rules (OAuth > Verify > MCP > Catch-all)                  │
+│ • ForwardAuth middleware for MCP endpoints → Auth Service /verify                  │
+│ • Request routing based on subdomain and path:                                      │
+│   - auth.domain.com/* → Auth Service (no auth required)                            │
+│   - *.domain.com/.well-known/* → Auth Service (OAuth discovery)                    │
+│   - *.domain.com/mcp → MCP Services (auth required via ForwardAuth)                │
+│ • Docker service discovery via labels                                               │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+                    │                                              │
+                    │ OAuth/Auth Requests                          │ MCP Requests
+                    │ (unauthenticated)                           │ (authenticated)
+                    ↓                                              ↓
+┌───────────────────────────────────────────┐    ┌───────────────────────────────────┐
+│           AUTH SERVICE                    │    │         MCP SERVICES                │
+│   (Layer 2: OAuth Authorization Server)   │    │    (Layer 3: Protocol Handlers)     │
+├───────────────────────────────────────────┤    ├───────────────────────────────────┤
+│ Container: auth:8000                      │    │ Containers:                         │
+│ Package: mcp-oauth-dynamicclient          │    │ • mcp-fetch:3000                    │
+│                                           │    │ • mcp-filesystem:3000               │
+│ OAuth Endpoints:                          │    │ • mcp-memory:3000                   │
+│ • POST /register (RFC 7591)               │    │ • mcp-time:3000                     │
+│ • GET /authorize + /callback              │    │ • ... (dynamically enabled)         │
+│ • POST /token                             │    │                                     │
+│ • GET /.well-known/* (RFC 8414)          │    │ Architecture:                       │
+│ • POST /revoke, /introspect              │    │ • mcp-streamablehttp-proxy wrapper  │
+│                                           │    │ • Spawns official MCP stdio servers │
+│ Management Endpoints (RFC 7592):          │    │ • Bridges stdio ↔ HTTP/SSE          │
+│ • GET/PUT/DELETE /register/{client_id}    │    │ • No OAuth knowledge                │
+│                                           │    │ • Receives user identity in headers │
+│ Internal Endpoints:                       │    │                                     │
+│ • GET/POST /verify (ForwardAuth)         │    │ Protocol Endpoints:                 │
+│                                           │    │ • POST /mcp (JSON-RPC over HTTP)    │
+│ External Integration:                     │←---│ • GET /mcp (SSE for async messages) │
+│ • GitHub OAuth (user authentication)      │    │ • Health checks on /health          │
+└───────────────────────────────────────────┘    └───────────────────────────────────┘
+                    │                                              ↑
+                    │                                              │
+                    └──────────────┬───────────────────────────────┘
+                                   │
+                                   ↓
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│                                REDIS STORAGE LAYER                                  │
+│                            (Persistent State Management)                            │
+├─────────────────────────────────────────────────────────────────────────────────────┤
+│ Container: redis:6379                                                               │
+│ Persistence: AOF + RDB snapshots                                                    │
+│                                                                                     │
+│ Data Structures:                                                                    │
+│ • oauth:client:{client_id} → OAuth client registrations (90 days / eternal)        │
+│ • oauth:state:{state} → Authorization flow state (5 minutes)                       │
+│ • oauth:code:{code} → Authorization codes + user info (1 year)                     │
+│ • oauth:token:{jti} → JWT token tracking for revocation (30 days)                  │
+│ • oauth:refresh:{token} → Refresh token data (1 year)                              │
+│ • oauth:user_tokens:{username} → User's active tokens index                        │
+│ • redis:session:{id}:state → MCP session state (managed by proxy)                  │
+│ • redis:session:{id}:messages → MCP message queues                                 │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+
+NETWORK TOPOLOGY:
+• All services connected via 'public' Docker network
+• Internal service communication only (except Traefik ingress)
+• Redis exposed on localhost:6379 for debugging only
+• Each MCP service runs in isolated container with no shared state
 ```
 
-### Dual-Realm OAuth Architecture
+### Request Flow Scenarios
 
-The gateway implements a sophisticated **two-realm authentication system** that separates client registration from user authentication, providing both security and flexibility:
+#### 1. Client Registration Flow (RFC 7591)
+```
+Client → POST /register → Traefik → Auth Service
+                                    ↓
+                                    Creates client_id + client_secret
+                                    Stores in Redis
+                                    ↓
+                                    ← Returns credentials + registration_access_token
+```
+
+#### 2. User Authentication Flow (OAuth 2.1 + GitHub)
+```
+Client → GET /authorize → Traefik → Auth Service
+                                    ↓
+                                    Validates client_id
+                                    Stores PKCE challenge in Redis
+                                    ↓
+                                    → Redirect to GitHub OAuth
+                                    ↓
+User authenticates with GitHub ← ← ← ┘
+         ↓
+GitHub → GET /callback → Traefik → Auth Service
+                                    ↓
+                                    Validates GitHub user
+                                    Creates authorization code
+                                    Stores in Redis with user info
+                                    ↓
+                                    → Redirect to client with code
+```
+
+#### 3. Token Exchange Flow
+```
+Client → POST /token → Traefik → Auth Service
+        (client_id +              ↓
+         client_secret +          Validates client credentials
+         auth code +              Validates PKCE verifier
+         PKCE verifier)           Retrieves user info from Redis
+                                  Creates JWT with user + client claims
+                                  ↓
+                                  ← Returns access_token + refresh_token
+```
+
+#### 4. MCP Request Flow (Authenticated)
+```
+Client → POST /mcp → Traefik → ForwardAuth Middleware
+        (Bearer token)          ↓
+                               GET /verify → Auth Service
+                                            ↓
+                                            Validates JWT
+                                            Extracts user info
+                                            ↓
+                               ← Returns user headers ←
+                               ↓
+                               Routes to MCP Service
+                               (with X-User-Id, X-User-Name headers)
+                               ↓
+                               MCP Service processes request
+                               ↓
+                               ← Returns MCP protocol response
+```
+
+### Security Architecture
+
+#### Authentication Layers
+1. **TLS/HTTPS**: Enforced by Traefik for all external communication
+2. **OAuth Client Authentication**: client_id + client_secret at token endpoint
+3. **User Authentication**: GitHub OAuth with ALLOWED_GITHUB_USERS whitelist
+4. **Token Authentication**: JWT Bearer tokens for API access
+5. **PKCE Protection**: Mandatory S256 code challenges
+
+#### Security Boundaries
+- **Public Access**: Only /register and /.well-known/* endpoints
+- **Client-Authenticated**: /token endpoint requires client credentials
+- **User-Authenticated**: /authorize requires GitHub login
+- **Bearer-Authenticated**: All /mcp endpoints require valid JWT
+- **Registration-Token-Authenticated**: Client management endpoints (RFC 7592)
+
+#### Token Types and Scopes
+- **registration_access_token**: Bearer token for client management only
+- **access_token**: JWT containing user identity + client_id for MCP access
+- **refresh_token**: Opaque token for obtaining new access tokens
+- **authorization_code**: One-time code binding user to client
+
+### Architectural Decisions
+
+#### Why Three Layers?
+1. **Traefik (Routing)**: Centralizes TLS, routing, and auth enforcement
+2. **Auth Service (OAuth)**: Isolated OAuth implementation, no MCP knowledge
+3. **MCP Services (Protocol)**: Pure MCP protocol handlers, no auth knowledge
+
+#### Why mcp-streamablehttp-proxy?
+- Wraps official stdio-based MCP servers without modification
+- Provides HTTP/SSE transport required for web clients
+- Manages subprocess lifecycle and session state
+- Enables horizontal scaling possibilities
+
+#### Why Redis?
+- Fast, reliable state storage for OAuth flows
+- Supports atomic operations for security
+- Built-in TTL for automatic cleanup
+- Enables distributed deployment if needed
+
+#### Why GitHub OAuth?
+- Trusted identity provider for developers
+- No password management needed
+- Strong security with 2FA support
+- Rich user profile information
+
+### OAuth Architecture: Client Credentials + User Authentication
+
+The gateway implements a **sophisticated OAuth 2.1 system** that combines client credential authentication with GitHub user authentication:
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════════════════╗
-║                    REALM 1: MCP CLIENT REGISTRATION MANAGEMENT                    ║
-║                              (RFC 7591/7592 Compliance)                           ║
+║                        OAUTH CLIENT REGISTRATION (RFC 7591/7592)                  ║
 ╠═══════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                   ║
-║  📝 PUBLIC REGISTRATION ENDPOINT                                                  ║
+║  📝 STEP 1: CLIENT REGISTRATION (No Authentication Required)                      ║
 ║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
 ║  │ POST /register                                                              │  ║
-║  │ • No authentication required - open registration                            │  ║
-║  │ • Any MCP client can register dynamically                                   │  ║
-║  │ • Dynamic client registration (RFC 7591)                                    │  ║
+║  │ • Public endpoint - any MCP client can register                             │  ║
+║  │ • Creates OAuth client application credentials                              │  ║
 ║  │                                                                             │  ║
-║  │ Returns:                                                                    │  ║
-║  │ • registration_access_token (bearer token for management)                   │  ║
-║  │ • registration_client_uri (URI for client management)                       │  ║
-║  │ • client_id & client_secret (OAuth credentials)                             │  ║
-║  └─────────────────────────────────────────────────────────────────────────────┘  ║
-║                                       ↓                                           ║
-║  🔐 PROTECTED MANAGEMENT ENDPOINTS                                                ║
-║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
-║  │ Authorization: Bearer registration_access_token                             │  ║
-║  │ • GET /register/{client_id}    - View registration details                  │  ║
-║  │ • PUT /register/{client_id}    - Update client metadata                     │  ║
-║  │ • DELETE /register/{client_id} - Revoke client registration                 │  ║
+║  │ Request Body:                                                               │  ║
+║  │ {                                                                           │  ║
+║  │   "redirect_uris": ["https://example.com/callback"],                       │  ║
+║  │   "client_name": "My MCP Client"                                            │  ║
+║  │ }                                                                           │  ║
 ║  │                                                                             │  ║
-║  │ ⚠️  IMPORTANT: Store registration_access_token securely                     │  ║
+║  │ Response:                                                                   │  ║
+║  │ • client_id: "client_abc123..."          ← OAuth client credentials        │  ║
+║  │ • client_secret: "secret_xyz789..."      ← Used at /token endpoint         │  ║
+║  │ • registration_access_token: "reg_tok..."← ONLY for client management      │  ║
+║  │ • registration_client_uri: "https://auth.../register/client_abc123"        │  ║
 ║  └─────────────────────────────────────────────────────────────────────────────┘  ║
 ║                                                                                   ║
-║  🎯 PURPOSE: Manage client registration lifecycle                                 ║
-║  🔄 LIFECYCLE: Register → Manage → Expire/Delete → Re-register                    ║
-║  ⏰ LIFETIME: 90 days default (configurable, 0 = unlimited)                       ║
+║  🔧 OPTIONAL: CLIENT MANAGEMENT (Requires registration_access_token)              ║
+║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
+║  │ Authorization: Bearer <registration_access_token>                           │  ║
+║  │                                                                             │  ║
+║  │ • GET /register/{client_id}    - View client configuration                  │  ║
+║  │ • PUT /register/{client_id}    - Update redirect URIs, etc.                 │  ║
+║  │ • DELETE /register/{client_id} - Delete client registration                 │  ║
+║  │                                                                             │  ║
+║  │ Note: This token is ONLY for managing the client registration,             │  ║
+║  │       NOT for accessing MCP resources!                                      │  ║
+║  └─────────────────────────────────────────────────────────────────────────────┘  ║
 ║                                                                                   ║
 ╚═══════════════════════════════════════════════════════════════════════════════════╝
-                                         │
-                           STRICT SEPARATION
-                                         │
+
+                                         ↓
+                    Client has credentials, now needs user authorization
+                                         ↓
+
 ╔═══════════════════════════════════════════════════════════════════════════════════╗
-║                     REALM 2: USER AUTHENTICATION & RESOURCE ACCESS                ║
-║                               (OAuth 2.0/2.1 RFC 6749)                            ║
+║                           USER AUTHENTICATION FLOW (GitHub OAuth)                 ║
 ╠═══════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                   ║
-║  👤 GITHUB OAUTH FLOW (Human User Authentication)                                 ║
+║  👤 STEP 2: USER AUTHORIZATION (Human authenticates via GitHub)                   ║
 ║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
-║  │ /authorize → GitHub OAuth → /callback                                       │  ║
-║  │ • Human users authenticate through GitHub OAuth                             │  ║
-║  │ • PKCE S256 challenge method (RFC 7636)                                     │  ║
-║  │ • JWT tokens containing GitHub identity                                     │  ║
-║  │ • Per-subdomain authentication enforcement                                  │  ║
-║  │ • Access control via ALLOWED_GITHUB_USERS whitelist                         │  ║
+║  │ GET /authorize?client_id=client_abc123&redirect_uri=...&code_challenge=... │  ║
+║  │                                                                             │  ║
+║  │ 1. Gateway validates client_id exists                                       │  ║
+║  │ 2. Redirects user to GitHub OAuth:                                          │  ║
+║  │    → User logs into GitHub                                                  │  ║
+║  │    → GitHub authenticates the human user                                    │  ║
+║  │    → Returns to gateway /callback with GitHub user info                     │  ║
+║  │ 3. Gateway checks ALLOWED_GITHUB_USERS whitelist                            │  ║
+║  │ 4. Creates authorization code tied to:                                      │  ║
+║  │    • The OAuth client (client_id)                                           │  ║
+║  │    • The GitHub user (username, email, etc.)                                │  ║
+║  │ 5. Redirects back to client with code                                       │  ║
 ║  └─────────────────────────────────────────────────────────────────────────────┘  ║
-║                                       ↓                                           ║
-║  🎫 OAUTH TOKEN EXCHANGE (Client-Authenticated Resource Access)                   ║
+║                                                                                   ║
+║  🎫 STEP 3: TOKEN EXCHANGE (Client credentials + Authorization code)              ║
 ║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
 ║  │ POST /token                                                                 │  ║
-║  │ • Requires client credentials (client_id + client_secret)                   │  ║
-║  │ • Authorization codes exchanged for JWT access tokens                       │  ║
-║  │ • Bearer tokens grant access to protected MCP resources                     │  ║
-║  │ • Refresh tokens enable session renewal                                     │  ║
+║  │ Content-Type: application/x-www-form-urlencoded                             │  ║
+║  │                                                                             │  ║
+║  │ Request:                                                                    │  ║
+║  │ • client_id=client_abc123          ← Authenticates the OAuth client        │  ║
+║  │ • client_secret=secret_xyz789      ← Proves client identity                │  ║
+║  │ • code=auth_code_from_step_2       ← Contains GitHub user info             │  ║
+║  │ • code_verifier=pkce_verifier      ← PKCE verification                     │  ║
+║  │                                                                             │  ║
+║  │ Response:                                                                   │  ║
+║  │ • access_token: JWT containing:                                             │  ║
+║  │   - sub: GitHub user ID                                                     │  ║
+║  │   - username: GitHub username                                               │  ║
+║  │   - email: GitHub email                                                     │  ║
+║  │   - client_id: client_abc123                                                │  ║
+║  │ • refresh_token: For renewing access                                        │  ║
 ║  └─────────────────────────────────────────────────────────────────────────────┘  ║
-║                                       ↓                                           ║
-║  🛡️ RESOURCE ACCESS (MCP Service Communication)                                   ║
+║                                                                                   ║
+║  🛡️ STEP 4: RESOURCE ACCESS (Using the access token)                             ║
 ║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
 ║  │ Authorization: Bearer <access_token>                                        │  ║
-║  │ • Access to /mcp endpoints on all subdomains                                │  ║
-║  │ • Validated via Traefik ForwardAuth middleware                              │  ║
-║  │ • User identity passed to MCP services as headers                           │  ║
+║  │                                                                             │  ║
+║  │ • Token contains BOTH client_id AND user identity                           │  ║
+║  │ • Traefik ForwardAuth validates token via /verify                           │  ║
+║  │ • User identity passed to MCP services as headers:                          │  ║
+║  │   - X-User-Id: GitHub user ID                                               │  ║
+║  │   - X-User-Name: GitHub username                                            │  ║
+║  │ • Access granted to /mcp endpoints on all enabled services                  │  ║
 ║  └─────────────────────────────────────────────────────────────────────────────┘  ║
 ║                                                                                   ║
-║  🎯 PURPOSE: Grant access to protected MCP resources                              ║
-║  🔐 TOKENS: access_token, refresh_token (OAuth standard)                          ║
-║  👥 USERS: GitHub-authenticated users with whitelist access control               ║
-║                                                                                   ║
 ╚═══════════════════════════════════════════════════════════════════════════════════╝
-└─────────────────────────────────────────────────────────────────────────────────┘
+
+🔑 KEY POINTS:
+• client_id + client_secret authenticate the OAuth CLIENT (e.g., Claude.ai)
+• GitHub OAuth authenticates the human USER
+• The final access_token combines BOTH: which client AND which user
+• registration_access_token is ONLY for client management, NOT resource access
 ```
 
 ### OAuth Roles
 
-1. **MCP OAuth Gateway** - Dual-Realm Authorization Server
-   - **Realm 1**: RFC 7591/7592 dynamic client registration and management
-   - **Realm 2**: OAuth 2.1 authorization server for resource access
-   - Issues and validates two distinct types of tokens
-   - Maintains strict separation between client management and resource access
+1. **MCP OAuth Gateway** - OAuth 2.1 Authorization Server
+   - **Client Registration**: Implements RFC 7591/7592 for dynamic client registration
+   - **User Authentication**: Integrates with GitHub OAuth as the Identity Provider
+   - **Token Issuance**: Issues JWT access tokens containing both client and user identity
+   - **Token Types**:
+     - `registration_access_token`: Only for managing client registrations (RFC 7592)
+     - `access_token`: JWT with user claims + client_id for accessing MCP resources
+     - `refresh_token`: For renewing access tokens
 
 2. **GitHub OAuth** - Identity Provider (IdP) 
-   - Authenticates end users through GitHub's OAuth flow
-   - Provides user identity and profile information
-   - Operates exclusively in the User Authentication Realm
-   - No direct interaction with client registration processes
+   - Authenticates human users through GitHub's OAuth flow
+   - Provides user identity (ID, username, email) to the gateway
+   - Gateway validates users against ALLOWED_GITHUB_USERS whitelist
+   - User info is embedded in the final JWT access token
 
 3. **MCP Servers** - Protected Resources
-   - Run unmodified official MCP servers
+   - Run unmodified official MCP servers wrapped with mcp-streamablehttp-proxy
    - Protected by OAuth without any code changes  
-   - Access controlled via Bearer tokens from Realm 2 only
+   - Receive pre-authenticated requests with user identity in headers
    - Support various protocol versions based on implementation
-
-### Available MCP Services
-
-| Service | Description | Protocol Version |
-|---------|-------------|------------------|
-| mcp-fetch | Web content fetching | 2025-03-26 |
-| mcp-fetchs | Native Python fetch implementation | 2025-06-18 |
-| mcp-filesystem | File system access (sandboxed) | 2025-03-26 |
-| mcp-memory | Persistent memory/knowledge graph | 2024-11-05 |
-| mcp-sequentialthinking | Structured problem solving | 2024-11-05 |
-| mcp-time | Time and timezone operations | 2025-03-26 |
-| mcp-tmux | Terminal multiplexer integration | 2025-06-18 |
-| mcp-playwright | Browser automation | 2025-06-18 |
-| mcp-everything | Test server with all features | 2025-06-18 |
-
-### Extensions Beyond MCP Protocol
-
-- **RFC 7592 Client Management**: Complete client lifecycle management including read, update, and delete operations (NOT part of MCP 2025-06-18 specification)
-- **GitHub Integration**: User authentication through GitHub OAuth
-- **Dynamic Configuration**: All services configurable through environment variables
 
 ## 📋 Requirements
 
@@ -362,6 +539,33 @@ MCP_PROTOCOL_VERSION=2025-06-18
 # - mcp-fetch, mcp-filesystem, mcp-time: 2025-03-26
 # - Others: 2025-06-18
 ```
+
+##### Available MCP Services
+
+| Service | Description | Protocol Version | Container Port |
+|---------|-------------|------------------|----------------|
+| mcp-fetch | Web content fetching (stdio wrapper) | 2025-03-26 | 3000 |
+| mcp-fetchs | Native Python fetch implementation | 2025-06-18 | 3000 |
+| mcp-filesystem | File system access (sandboxed) | 2025-03-26 | 3000 |
+| mcp-memory | Persistent memory/knowledge graph | 2024-11-05 | 3000 |
+| mcp-sequentialthinking | Structured problem solving | 2024-11-05 | 3000 |
+| mcp-time | Time and timezone operations | 2025-03-26 | 3000 |
+| mcp-tmux | Terminal multiplexer integration | 2025-06-18 | 3000 |
+| mcp-playwright | Browser automation | 2025-06-18 | 3000 |
+| mcp-everything | Test server with all features | 2025-06-18 | 3000 |
+
+All services use `mcp-streamablehttp-proxy` to wrap official MCP stdio servers, exposing them via HTTP on port 3000.
+
+##### Gateway Extensions Beyond MCP Protocol
+
+The gateway adds several features not specified in the MCP protocol:
+
+- **RFC 7592 Client Management**: Complete client lifecycle management (GET/PUT/DELETE operations)
+- **GitHub OAuth Integration**: User authentication through GitHub as Identity Provider
+- **Dynamic Service Configuration**: Enable/disable services via environment variables
+- **Bearer Token Authentication**: JWT-based API access with user identity claims
+- **Automatic HTTPS**: Let's Encrypt certificates for all subdomains
+- **Session Persistence**: Redis-backed state management for OAuth flows
 
 #### 6. Test Configuration
 
