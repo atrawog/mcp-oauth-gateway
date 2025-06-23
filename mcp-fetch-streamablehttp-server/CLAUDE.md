@@ -23,21 +23,21 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    FastAPI Application                       │
+│                    FastAPI Application                      │
 │  • ASGI-compliant server with divine routing                │
-│  • Direct MCP protocol implementation                        │
+│  • Direct MCP protocol implementation                       │
 │  • Native async/await for blessed concurrency               │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│               Streamable HTTP Transport                      │
-│  • Native implementation from scratch                        │
+│               Streamable HTTP Transport                     │
+│  • Native implementation from scratch                       │
 │  • Stateless request handling for scalability               │
 │  • Future SSE support for streaming responses               │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                    Fetch Handler                             │
+│                    Fetch Handler                            │
 │  • GET/POST with full HTTP feature support                  │
 │  • Robots.txt compliance checking                           │
 │  • Automatic content type detection                         │
@@ -111,7 +111,7 @@ just test tests/test_mcp_fetch_streamablehttp_integration.py
 just up
 
 # Service available at:
-https://mcp-fetchs.yourdomain.com/mcp
+https://fetchs.yourdomain.com/mcp
 ```
 
 **Direct Python Execution:**

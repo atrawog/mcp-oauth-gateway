@@ -72,7 +72,7 @@ And these resources:
 
 ```bash
 # Using mcp-streamablehttp-client
-mcp-streamablehttp-client --server-url https://mcp-memory.yourdomain.com/mcp --command "create_memory content='User prefers morning meetings'"
+mcp-streamablehttp-client --server-url https://memory.yourdomain.com/mcp --command "create_memory content='User prefers morning meetings'"
 
 # Raw protocol
 mcp-streamablehttp-client --raw '{"method": "tools/call", "params": {"name": "search_memories", "arguments": {"query": "meetings"}}}'
@@ -135,10 +135,10 @@ The memory system organizes information into:
 just logs mcp-memory
 
 # Test authentication
-mcp-streamablehttp-client --server-url https://mcp-memory.yourdomain.com/mcp --test-auth
+mcp-streamablehttp-client --server-url https://memory.yourdomain.com/mcp --test-auth
 
 # Health check
-curl -X POST https://mcp-memory.yourdomain.com/mcp \
+curl -X POST https://memory.yourdomain.com/mcp \
   -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```

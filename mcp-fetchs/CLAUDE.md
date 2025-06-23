@@ -51,7 +51,7 @@ just up
 just rebuild mcp-fetchs
 
 # Check health
-curl -X POST https://mcp-fetchs.yourdomain.com/mcp \
+curl -X POST https://fetchs.yourdomain.com/mcp \
   -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```

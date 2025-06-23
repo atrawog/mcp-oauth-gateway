@@ -73,9 +73,9 @@ The MCP Tmux service enables secure interaction with tmux terminal sessions thro
 5. **MCP Access**: Authenticated requests forwarded to tmux service
 
 ### Endpoint Configuration
-- **Primary**: `https://mcp-tmux.${BASE_DOMAIN}/mcp`
+- **Primary**: `https://tmux.${BASE_DOMAIN}/mcp`
 - **Health**: Uses MCP protocol initialization
-- **Discovery**: `https://mcp-tmux.${BASE_DOMAIN}/.well-known/oauth-authorization-server`
+- **Discovery**: `https://tmux.${BASE_DOMAIN}/.well-known/oauth-authorization-server`
 
 ## Usage Examples
 
@@ -204,7 +204,7 @@ CMD ["/app/start.sh", "--shell-type=zsh"]
 
 ### Health Check Endpoint
 ```bash
-curl -X POST https://mcp-tmux.${BASE_DOMAIN}/mcp \
+curl -X POST https://tmux.${BASE_DOMAIN}/mcp \
   -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 ```
@@ -229,7 +229,7 @@ data: {"result":{"protocolVersion":"${MCP_PROTOCOL_VERSION}","capabilities":{...
 just rebuild mcp-tmux
 
 # Check health
-curl -X POST https://mcp-tmux.${BASE_DOMAIN}/mcp \
+curl -X POST https://tmux.${BASE_DOMAIN}/mcp \
   -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 
@@ -245,7 +245,7 @@ just mcp-client-token
     "tmux": {
       "command": "mcp-streamablehttp-client",
       "args": [
-        "--url", "https://mcp-tmux.${BASE_DOMAIN}/mcp",
+        "--url", "https://tmux.${BASE_DOMAIN}/mcp",
         "--oauth2"
       ],
       "env": {
@@ -301,7 +301,7 @@ docker exec mcp-oauth-gateway-mcp-tmux-1 tmux new-session -d -s default
 #### MCP Protocol Issues
 ```bash
 # Test MCP endpoint directly
-curl -X POST https://mcp-tmux.${BASE_DOMAIN}/mcp \
+curl -X POST https://tmux.${BASE_DOMAIN}/mcp \
   -H "Authorization: Bearer $GATEWAY_OAUTH_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -H "MCP-Protocol-Version: ${MCP_PROTOCOL_VERSION:-2025-06-18}" \

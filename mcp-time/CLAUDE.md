@@ -38,9 +38,9 @@ The time service is stateless and processes each request independently. No volum
 
 ## Endpoints
 
-- **Primary**: `https://mcp-time.${BASE_DOMAIN}/mcp`
+- **Primary**: `https://time.${BASE_DOMAIN}/mcp`
 - **Health Check**: Uses MCP protocol initialization
-- **OAuth Discovery**: `https://mcp-time.${BASE_DOMAIN}/.well-known/oauth-authorization-server`
+- **OAuth Discovery**: `https://time.${BASE_DOMAIN}/.well-known/oauth-authorization-server`
 
 ## Usage
 
@@ -83,10 +83,10 @@ Convert time between different timezones.
 
 ```bash
 # Using mcp-streamablehttp-client
-mcp-streamablehttp-client --server-url https://mcp-time.yourdomain.com/mcp --command "get_current_time timezone='America/New_York'"
+mcp-streamablehttp-client --server-url https://time.yourdomain.com/mcp --command "get_current_time timezone='America/New_York'"
 
 # Time conversion
-mcp-streamablehttp-client --server-url https://mcp-time.yourdomain.com/mcp --command "convert_time source_timezone='America/New_York' time='14:30' target_timezone='Asia/Tokyo'"
+mcp-streamablehttp-client --server-url https://time.yourdomain.com/mcp --command "convert_time source_timezone='America/New_York' time='14:30' target_timezone='Asia/Tokyo'"
 
 # Raw protocol
 mcp-streamablehttp-client --raw '{"method": "tools/call", "params": {"name": "get_current_time", "arguments": {"timezone": "Europe/London"}}}'
@@ -152,15 +152,15 @@ The service provides comprehensive time functionality for:
 just logs mcp-time
 
 # Test authentication
-mcp-streamablehttp-client --server-url https://mcp-time.yourdomain.com/mcp --test-auth
+mcp-streamablehttp-client --server-url https://time.yourdomain.com/mcp --test-auth
 
 # Health check
-curl -X POST https://mcp-time.yourdomain.com/mcp \
+curl -X POST https://time.yourdomain.com/mcp \
   -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 
 # List available tools
-mcp-streamablehttp-client --server-url https://mcp-time.yourdomain.com/mcp --list-tools
+mcp-streamablehttp-client --server-url https://time.yourdomain.com/mcp --list-tools
 ```
 
 ## Use Cases

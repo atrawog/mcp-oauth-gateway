@@ -173,7 +173,7 @@ Security is enforced by the sacred trinity:
 ```yaml
 labels:
   # Basic routing - priority 2
-  - "traefik.http.routers.mcp-filesystem.rule=Host(`mcp-filesystem.${BASE_DOMAIN}`)"
+  - "traefik.http.routers.mcp-filesystem.rule=Host(`filesystem.${BASE_DOMAIN}`)"
   - "traefik.http.routers.mcp-filesystem.priority=2"
   
   # ForwardAuth middleware - divine authentication
@@ -198,7 +198,7 @@ curl -X POST http://localhost:3000/mcp \
   -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
 
 # Test file read operation
-curl -X POST https://mcp-filesystem.${BASE_DOMAIN}/mcp \
+curl -X POST https://filesystem.${BASE_DOMAIN}/mcp \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -209,7 +209,7 @@ curl -X POST https://mcp-filesystem.${BASE_DOMAIN}/mcp \
   }'
 
 # Test directory listing
-curl -X POST https://mcp-filesystem.${BASE_DOMAIN}/mcp \
+curl -X POST https://filesystem.${BASE_DOMAIN}/mcp \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -246,7 +246,7 @@ curl -X POST https://mcp-filesystem.${BASE_DOMAIN}/mcp \
 
 ## 📜 The Integration Flow - How Requests Reach Filesystem!
 
-1. **Client Request** → `https://mcp-filesystem.domain.com/mcp`
+1. **Client Request** → `https://filesystem.yourdomain.com/mcp`
 2. **Traefik Routes** → Checks authentication via ForwardAuth
 3. **Auth Validates** → Token verification at /verify endpoint
 4. **Request Forwarded** → Reaches MCP-Filesystem on port 3000
@@ -290,7 +290,7 @@ docker exec mcp-filesystem ls -la /workspace
 curl -H "Authorization: Bearer $TOKEN" \
      -H "Content-Type: application/json" \
      -d '{"jsonrpc":"2.0","method":"filesystem/list","params":{"path":"/workspace"},"id":1}' \
-     https://mcp-filesystem.domain.com/mcp
+     https://filesystem.yourdomain.com/mcp
 
 # Monitor health endpoint
 # Monitor service via MCP protocol
