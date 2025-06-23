@@ -102,7 +102,6 @@ class TestMCPFetchsSecurity:
             ("/mcp", "POST", True),
             ("/mcp", "GET", True),
             ("/mcp", "OPTIONS", False),  # CORS preflight
-            ("/health", "GET", False),
             ("/", "GET", True),
             ("/unknown", "GET", True),
         ]

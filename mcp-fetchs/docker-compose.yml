@@ -37,8 +37,9 @@ services:
       # OAuth discovery endpoint
       - "traefik.http.routers.mcp-fetchs-oauth-discovery.rule=Host(`fetchs.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
       - "traefik.http.routers.mcp-fetchs-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-fetchs-oauth-discovery.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetchs-oauth-discovery.service=auth@docker"
-      - "traefik.http.routers.mcp-fetchs-oauth-discovery.middlewares=oauth-discovery-rewrite"
+      - "traefik.http.routers.mcp-fetchs-oauth-discovery.middlewares=mcp-fetchs-discovery-rewrite"
       - "traefik.http.routers.mcp-fetchs-oauth-discovery.tls=true"
       - "traefik.http.routers.mcp-fetchs-oauth-discovery.tls.certresolver=letsencrypt"
       
@@ -46,8 +47,8 @@ services:
       # Service definition
       - "traefik.http.services.mcp-fetchs.loadbalancer.server.port=3000"
       
-      # Middleware for OAuth discovery
-      - "traefik.http.middlewares.oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
+      # Middleware for OAuth discovery - defined locally in this service
+      - "traefik.http.middlewares.mcp-fetchs-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
     healthcheck:
       test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"'$$MCP_PROTOCOL_VERSION'\",\"capabilities\":{},\"clientInfo\":{\"name\":\"healthcheck\",\"version\":\"1.0\"}},\"id\":1}' | grep -q '\"protocolVersion\":\"'$$MCP_PROTOCOL_VERSION'\"'"]
       interval: 30s

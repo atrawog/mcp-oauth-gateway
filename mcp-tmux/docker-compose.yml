@@ -15,6 +15,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.mcp-tmux-oauth-discovery.rule=Host(`tmux.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
       - "traefik.http.routers.mcp-tmux-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-tmux-oauth-discovery.entrypoints=websecure"
       - "traefik.http.routers.mcp-tmux-oauth-discovery.service=auth@docker"
       - "traefik.http.routers.mcp-tmux-oauth-discovery.tls=true"
       - "traefik.http.routers.mcp-tmux-oauth-discovery.tls.certresolver=letsencrypt"
@@ -24,6 +25,7 @@ services:
       # CORS Preflight Route - Priority 6
       - "traefik.http.routers.mcp-tmux-cors.rule=Host(`tmux.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-tmux-cors.priority=6"
+      - "traefik.http.routers.mcp-tmux-cors.entrypoints=websecure"
       - "traefik.http.routers.mcp-tmux-cors.service=mcp-tmux"
       - "traefik.http.routers.mcp-tmux-cors.tls=true"
       - "traefik.http.routers.mcp-tmux-cors.tls.certresolver=letsencrypt"
@@ -32,6 +34,7 @@ services:
       # MCP Route with Auth - Priority 2
       - "traefik.http.routers.mcp-tmux.rule=Host(`tmux.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.mcp-tmux.priority=2"
+      - "traefik.http.routers.mcp-tmux.entrypoints=websecure"
       - "traefik.http.routers.mcp-tmux.service=mcp-tmux"
       - "traefik.http.routers.mcp-tmux.tls=true"
       - "traefik.http.routers.mcp-tmux.tls.certresolver=letsencrypt"
@@ -40,6 +43,7 @@ services:
       # Catch-all Route with Auth - Priority 1 (Lowest!)
       - "traefik.http.routers.mcp-tmux-catchall.rule=Host(`tmux.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-tmux-catchall.priority=1"
+      - "traefik.http.routers.mcp-tmux-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-tmux-catchall.service=mcp-tmux"
       - "traefik.http.routers.mcp-tmux-catchall.tls=true"
       - "traefik.http.routers.mcp-tmux-catchall.tls.certresolver=letsencrypt"

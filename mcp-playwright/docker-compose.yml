@@ -18,6 +18,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.mcp-playwright-oauth-discovery.rule=Host(`playwright.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
       - "traefik.http.routers.mcp-playwright-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-playwright-oauth-discovery.entrypoints=websecure"
       - "traefik.http.routers.mcp-playwright-oauth-discovery.service=auth@docker"
       - "traefik.http.routers.mcp-playwright-oauth-discovery.tls=true"
       - "traefik.http.routers.mcp-playwright-oauth-discovery.tls.certresolver=letsencrypt"
@@ -27,6 +28,7 @@ services:
       # Main MCP Route with Authentication (Priority 2)
       - "traefik.http.routers.mcp-playwright.rule=Host(`playwright.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.mcp-playwright.priority=2"
+      - "traefik.http.routers.mcp-playwright.entrypoints=websecure"
       - "traefik.http.routers.mcp-playwright.service=mcp-playwright"
       - "traefik.http.routers.mcp-playwright.tls=true"
       - "traefik.http.routers.mcp-playwright.tls.certresolver=letsencrypt"
