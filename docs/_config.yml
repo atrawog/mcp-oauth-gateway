@@ -51,6 +51,7 @@ sphinx:
     - sphinx.ext.napoleon
     - sphinx_copybutton
     - sphinx_design
+    - sphinxcontrib.mermaid
   local_extensions: {}
   recursive_update: false
   config:
