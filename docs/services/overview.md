@@ -261,9 +261,45 @@ just test tests/test_mcp_fetch_integration.py -v
 just test tests/test_mcp_memory_integration.py -v
 ```
 
+## Infrastructure Services
+
+In addition to MCP services, the gateway includes critical infrastructure:
+
+### [Auth Service](auth.md)
+- OAuth 2.1 authorization server
+- GitHub OAuth integration
+- JWT token management
+- ForwardAuth provider
+
+### [Redis Service](redis.md)
+- State persistence
+- Token storage
+- Session management
+- High-performance cache
+
+### [Traefik Service](traefik.md)
+- Reverse proxy
+- SSL/TLS termination
+- Authentication enforcement
+- Service routing
+
 ## Next Steps
 
+### MCP Services
 - [Fetch Service](fetch.md) - Web content fetching details
+- [Fetchs Service](fetchs.md) - Native fetch implementation
 - [Filesystem Service](filesystem.md) - File operations guide
 - [Memory Service](memory.md) - Knowledge graph usage
+- [Time Service](time.md) - Timezone operations
+- [Sequential Thinking Service](sequentialthinking.md) - Structured reasoning
+- [Playwright Service](playwright.md) - Browser automation
+- [Tmux Service](tmux.md) - Terminal management
+- [Everything Service](everything.md) - Test utilities
+
+### Infrastructure
+- [Auth Service](auth.md) - OAuth implementation
+- [Redis Service](redis.md) - State storage
+- [Traefik Service](traefik.md) - Routing and SSL
+
+### Development
 - [Adding Services](../development/adding-services.md) - Add new MCP services
