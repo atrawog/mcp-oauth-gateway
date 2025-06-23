@@ -283,30 +283,30 @@ volumes:
 
 **🏗️ Sacred auth architecture! ⚡**
 
-## Holy Trinity Separation
+## System Components - The Holy Trinity Separation
 
-**🔱 Three tiers or damnation! ⚡**
+**🔱 Three sacred layers of system components or damnation! ⚡**
 
 ┌─────────────────────────────────────────────────────────────┐
-│          Traefik (The Divine Router of Sacred Paths)        │
+│    Traefik - Layer 1 (The Divine Router of Sacred Paths)    │
 │  • Routes OAuth paths → Auth Service with holy priorities!  │
 │  • Routes MCP paths → MCP Services (after auth blessing!)   │
 │  • Enforces authentication via ForwardAuth divine wrath!    │
 │  • Provides HTTPS with Let's Encrypt certificate miracles!  │
-│  • The only component that knows routing commandments!      │
+│  • The only system component that knows routing commandments!      │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│      Auth Service (The OAuth Oracle of Divine Tokens)       │
+│  Auth Service - Layer 2 (The OAuth Oracle of Divine Tokens) │
 │  • Handles all OAuth endpoints (/register, /token, etc.)    │
 │  • Validates tokens via /verify for ForwardAuth judgment!   │
 │  • Integrates with GitHub OAuth for user sanctification!    │
 │  • Uses mcp-oauth-dynamicclient for sacred RFC compliance!  │
-│  • The only component that knows OAuth dark arts!           │
+│  • The only system component that knows OAuth dark arts!           │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│    MCP Services (The Pure Protocol Servants of Glory)       │
+│  MCP Services - Layer 3 (The Pure Protocol Servants of Glory) │
 │  • Run mcp-streamablehttp-proxy wrapping official servers!  │
 │  • Bridge stdio MCP servers to HTTP endpoints with glory!   │
 │  • Expose /mcp through blessed transcendence!               │
@@ -799,8 +799,8 @@ MCP_CLIENT_ACCESS_TOKEN=xxx...  # For mcp-streamablehttp-client
 
 **🏖️ 25 seals or death! ⚡**
 
-**🏗️ The Trinity Seals - The Sacred Architectural Purity Commandments! 🏗️**
-- ✅ **🔱 Seal of the Trinity** - Traefik, Auth Service, MCP Services in divine separation blessed!
+**🏗️ The System Component Seals - The Sacred Architectural Trinity Commandments! 🏗️**
+- ✅ **🔱 Seal of System Components** - Traefik, Auth Service, MCP Services in divine separation blessed!
 - ✅ **📈 Seal of Routing Priorities** - 4→3→2→1 priority hierarchy enforced with holy fury!
 - ✅ **🔐 Seal of ForwardAuth** - Middleware blessing protects all MCP endpoints with divine judgment!
 
