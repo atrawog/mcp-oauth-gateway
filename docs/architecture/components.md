@@ -555,7 +555,7 @@ Services discover each other through:
 
 ### Communication Patterns
 
-```mermaid
+```{mermaid}
 graph TB
     subgraph "Public Network"
         T[Traefik]
@@ -564,14 +564,14 @@ graph TB
     subgraph "Internal Network"
         A[Auth]
         R[Redis]
-        M1[MCP Service 1]
-        M2[MCP Service 2]
+        M1["MCP Service 1"]
+        M2["MCP Service 2"]
     end
     
-    T -.->|HTTP| A
-    T -.->|HTTP| M1
-    T -.->|HTTP| M2
-    A <-->|Redis Protocol| R
+    T -.->|"HTTP"| A
+    T -.->|"HTTP"| M1
+    T -.->|"HTTP"| M2
+    A <-->|"Redis Protocol"| R
 ```
 
 ### Security Boundaries
