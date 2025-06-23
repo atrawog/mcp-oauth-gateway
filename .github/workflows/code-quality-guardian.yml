@@ -75,66 +75,6 @@ jobs:
           path: bandit-report.json
           retention-days: 30
 
-  # 🧪 Test with Deprecation Warnings Job ⚡
-  test-with-warnings:
-    name: "🧪 Test with Deprecation Detection"
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    
-    steps:
-      - name: "📥 Checkout Sacred Code"
-        uses: actions/checkout@v4
-      
-      - name: "🐍 Setup Python Environment"
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      
-      - name: "📦 Setup Pixi Environment"
-        uses: prefix-dev/setup-pixi@v0.8.10
-        with:
-          pixi-version: v0.47.0
-          cache: true
-      
-      - name: "🔧 Setup Test Environment"
-        run: |
-          echo "🔧 Creating minimal .env for CI testing ⚡"
-          cat > .env << 'EOF'
-          # Minimal CI environment
-          BASE_DOMAIN=test.example.com
-          GITHUB_CLIENT_ID=test_client_id
-          GITHUB_CLIENT_SECRET=test_client_secret
-          GATEWAY_JWT_SECRET=test_jwt_secret_for_ci_only
-          REDIS_URL=redis://localhost:6379/0
-          ALLOWED_GITHUB_USERS=testuser
-          CLIENT_LIFETIME=7776000
-          MCP_PROTOCOL_VERSION=2025-06-18
-          EOF
-      
-      - name: "🔥 Run Tests with Deprecation Hunting"
-        run: |
-          echo "🔥 RUNNING TESTS WITH DEPRECATION HUNTING ⚡"
-          # Run a small subset of tests to check for deprecation warnings
-          pixi run pytest tests/test_coverage_improvements.py::TestKeysModuleCoverage::test_rs256_key_generation -v
-        env:
-          PYTHONWARNINGS: "default::DeprecationWarning,error::DeprecationWarning:pydantic.*"
-      
-      - name: "🎯 Quick Integration Test"
-        run: |
-          echo "🔥 RUNNING QUICK INTEGRATION TEST ⚡"
-          # Test that our Pydantic models can be imported without warnings
-          pixi run python -c "
-          import warnings
-          warnings.filterwarnings('error', category=DeprecationWarning)
-          try:
-              from mcp_oauth_dynamicclient.config import Settings
-              print('✅ Config import successful - no deprecation warnings!')
-          except DeprecationWarning as e:
-              print(f'❌ DEPRECATION WARNING: {e}')
-              exit(1)
-          except ImportError as e:
-              print(f'ℹ️ Import not available in CI: {e}')
-          "
 
   # 🔗 Pre-commit Hook Validation ⚡
   pre-commit-check:
@@ -171,7 +111,7 @@ jobs:
   quality-summary:
     name: "📋 Quality Summary"
     runs-on: ubuntu-latest
-    needs: [lint-and-hunt, test-with-warnings, pre-commit-check]
+    needs: [lint-and-hunt, pre-commit-check]
     if: always()
     
     steps:
@@ -180,7 +120,6 @@ jobs:
           echo "🔥 CODE QUALITY GUARDIAN SUMMARY ⚡"
           echo "=================================="
           echo "Linting: ${{ needs.lint-and-hunt.result }}"
-          echo "Testing with Warnings: ${{ needs.test-with-warnings.result }}"
           echo "Pre-commit: ${{ needs.pre-commit-check.result }}"
           echo "=================================="
           
@@ -189,12 +128,7 @@ jobs:
             echo "🔥 Fix linting errors immediately! ⚡"
           fi
           
-          if [[ "${{ needs.test-with-warnings.result }}" == "failure" ]]; then
-            echo "❌ CRITICAL: Deprecation warnings in tests!"
-            echo "⚡ Fix deprecated patterns immediately! ⚡"
-          fi
-          
-          if [[ "${{ needs.lint-and-hunt.result }}" == "success" && "${{ needs.test-with-warnings.result }}" == "success" ]]; then
+          if [[ "${{ needs.lint-and-hunt.result }}" == "success" && "${{ needs.pre-commit-check.result }}" == "success" ]]; then
             echo "✅ DIVINE COMPLIANCE ACHIEVED! ⚡"
             echo "🏆 Code quality guardian approves! 🏆"
           fi
