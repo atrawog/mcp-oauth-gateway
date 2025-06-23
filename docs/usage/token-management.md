@@ -80,17 +80,14 @@ just generate-github-token
 just mcp-client-token
 ```
 
-### Token Rotation
+### Token Refresh
 
 ```bash
-# Rotate JWT secret (invalidates all tokens)
-just rotate-jwt-secret
-
-# Refresh GitHub token
-just refresh-github-token
+# Refresh OAuth tokens
+just refresh-tokens
 
 # Generate new client token
-just mcp-client-token --force
+just mcp-client-token
 ```
 
 ## Token Storage
@@ -123,29 +120,30 @@ oauth:user_tokens:{user}  # User's active tokens
 
 ## Security Best Practices
 
-### 1. Regular Rotation
+### 1. Regular Maintenance
 
 ```bash
-# Recommended rotation schedule
-# JWT Secret: Every 90 days
-# Access Tokens: Every 30 days
-# Refresh Tokens: Every 180 days
+# Check token expiration
+just check-token-expiry
 
-# Set up rotation reminder
-just schedule-rotation
+# Purge expired tokens
+just oauth-purge-expired
+
+# Backup OAuth data
+just oauth-backup
 ```
 
-### 2. Token Revocation
+### 2. Token Management
 
 ```bash
-# Revoke specific token
-just revoke-token <jti>
+# Delete specific token by JTI
+just oauth-delete-token <jti>
 
-# Revoke all user tokens
-just revoke-user-tokens <username>
+# Delete client registration
+just oauth-delete-registration <client_id>
 
-# Revoke client registration
-just revoke-client <client_id>
+# Delete client and all associated data
+just oauth-delete-client-complete <client_id>
 ```
 
 ### 3. Monitoring
@@ -154,25 +152,25 @@ Track token usage:
 
 ```bash
 # View active tokens
-just list-tokens
+just oauth-list-tokens
 
-# Check token metrics
-just token-metrics
+# View registrations
+just oauth-list-registrations
 
-# Audit token usage
-just audit-tokens --user <username>
+# Show OAuth statistics
+just oauth-stats
 ```
 
 ## Token Validation
 
-### Manual Validation
+### Token Validation Commands
 
 ```bash
-# Validate a token
-just validate-token <token>
+# Validate all current tokens
+just validate-tokens
 
-# Decode token claims
-just decode-token <token>
+# Check logs for validation errors
+just logs auth | grep "token validation"
 ```
 
 ### Programmatic Validation
@@ -216,8 +214,8 @@ def validate_token(token, secret):
 
 **Solution**:
 ```bash
-# Refresh the token
-just refresh-token
+# Refresh OAuth tokens
+just refresh-tokens
 
 # Or generate new token
 just mcp-client-token
@@ -245,10 +243,10 @@ just mcp-client-token
 
 ```bash
 # Enable debug logging
-export TOKEN_DEBUG=true
+export DEBUG=true
 
 # Check token in Redis
-just redis-cli
+just exec redis redis-cli
 > GET oauth:token:<jti>
 
 # View auth service logs

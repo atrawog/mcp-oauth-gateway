@@ -14,15 +14,17 @@ Run `just --list` to see all available commands with descriptions.
 # Start all services
 just up
 
+# Start services with options
+just up --force-recreate
+
+# Start all services with fresh build
+just up-fresh
+
 # Stop all services  
 just down
 
-# Restart all services
-just restart
-
-# Restart specific service
-just restart auth
-just restart mcp-fetch
+# Stop with options (remove volumes/orphans)
+just down --volumes --remove-orphans
 ```
 
 ### Building and Rebuilding
@@ -31,10 +33,11 @@ just restart mcp-fetch
 # Build all services
 just build
 
-# Build without cache
-just build-no-cache
+# Build specific service(s)
+just build auth
+just build auth mcp-fetch  # Multiple services
 
-# Rebuild specific service
+# Rebuild specific service (with no-cache by default)
 just rebuild auth
 just rebuild mcp-fetch mcp-memory  # Multiple services
 ```
@@ -53,8 +56,14 @@ just logs traefik
 just logs -f
 just logs -f mcp-fetch
 
+# Follow specific service logs (alternate)
+just logs-follow auth
+
 # Last N lines
 just logs --tail=100
+
+# Purge all container logs
+just logs-purge
 ```
 
 ## Health Monitoring
@@ -62,6 +71,9 @@ just logs --tail=100
 ### Health Checks
 
 ```bash
+# Ensure all services are ready (used before tests)
+just ensure-services-ready
+
 # Comprehensive health check
 just check-health
 
@@ -70,19 +82,14 @@ just health-quick
 
 # Check SSL certificates
 just check-ssl
-
-# OAuth discovery endpoint check
-just check-oauth-discovery
 ```
 
 ### Service Status
 
 ```bash
-# Docker compose status
-just ps
-
-# Detailed service info
+# Execute commands in containers
 just exec auth curl http://localhost:8000/health
+just exec redis redis-cli ping
 ```
 
 ## OAuth Token Management
@@ -101,6 +108,9 @@ just generate-github-token
 
 # Generate MCP client token
 just mcp-client-token
+
+# Complete MCP client token flow with auth code
+just mcp-client-token-complete <auth_code>
 ```
 
 ### Token Operations
@@ -112,16 +122,19 @@ just validate-tokens
 # Show all OAuth data
 just oauth-show-all
 
+# Show OAuth statistics
+just oauth-stats
+
 # List active registrations
 just oauth-list-registrations
 
 # List active tokens
 just oauth-list-tokens
 
-# Count OAuth entities
-just oauth-count
+# Purge expired tokens (dry run)
+just oauth-purge-expired-dry
 
-# Purge expired tokens
+# Purge expired tokens (execute)
 just oauth-purge-expired
 ```
 
@@ -138,11 +151,17 @@ just oauth-backup-list
 just oauth-restore
 
 # Restore from specific backup
-just oauth-restore backups/oauth_backup_20240101_120000.json
+just oauth-restore-file oauth-backup-20240101-120000.json
 
 # View backup contents
 just oauth-backup-view
-just oauth-backup-view backups/oauth_backup_20240101_120000.json
+just oauth-backup-view-file oauth-backup-20240101-120000.json
+
+# Restore with clear (removes existing data first)
+just oauth-restore-clear
+
+# Dry run restore
+just oauth-restore-dry
 ```
 
 ## Testing
@@ -161,10 +180,12 @@ just test -k oauth
 
 # Run with verbose output
 just test -v
-just test-verbose
 
 # Run with debugging
 just test --pdb
+
+# Multiple options
+just test tests/test_oauth_flow.py -v -s
 ```
 
 ### Test Categories
@@ -179,24 +200,18 @@ just test-mcp-protocol
 # Claude.ai integration tests
 just test-claude-integration
 
-# Security tests
-just test-security
-
-# CORS tests
-just test-cors
+# MCP hostname tests
+just test-mcp-hostnames
 ```
 
 ### Coverage Analysis
 
 ```bash
-# Run tests with coverage
-just test-coverage
-
 # Production coverage with sidecar
 just test-sidecar-coverage
 
-# Generate HTML coverage report
-just coverage-html
+# Debug coverage setup
+just debug-coverage
 
 # View coverage report
 open htmlcov/index.html
@@ -210,9 +225,6 @@ just test-cleanup-show
 
 # Actually clean test data
 just test-cleanup
-
-# Clean test data older than N hours
-just test-cleanup-old 24
 ```
 
 ## Development Tools
@@ -220,17 +232,8 @@ just test-cleanup-old 24
 ### Code Quality
 
 ```bash
-# Run linting
+# Run linting and formatting
 just lint
-
-# Format code
-just format
-
-# Type checking
-just typecheck
-
-# Run all quality checks
-just quality
 ```
 
 ### Documentation
@@ -238,12 +241,6 @@ just quality
 ```bash
 # Build documentation
 just docs-build
-
-# Clean documentation build
-just docs-clean
-
-# Serve documentation locally
-just docs-serve
 ```
 
 ### Analysis Tools
@@ -252,14 +249,11 @@ just docs-serve
 # Analyze OAuth logs
 just analyze-oauth-logs
 
-# Analyze specific timeframe
-just analyze-oauth-logs-timeframe "2024-01-01 00:00:00" "2024-01-01 23:59:59"
+# Check MCP hostnames
+just check-mcp-hostnames
 
-# Session analysis
-just analyze-sessions
-
-# Performance analysis
-just analyze-performance
+# Diagnose test failures
+just diagnose-tests
 ```
 
 ## Utility Commands
@@ -270,88 +264,74 @@ just analyze-performance
 # Create Docker network
 just network-create
 
+# Create required volumes
+just volumes-create
+
 # Execute command in container
 just exec redis redis-cli
 just exec auth bash
 
-# Clean Docker resources
-just docker-clean
-
-# Show Docker disk usage
-just docker-usage
+# Generate docker-compose includes
+just generate-includes
 ```
 
 ### Configuration
 
 ```bash
-# Validate .env file
-just validate-env
+# Claude Code setup
+just setup-claude-code
 
-# Show current configuration
-just show-config
+# Create MCP config for Claude Code
+just create-mcp-config
 
-# Generate example .env
-just generate-env-example
+# Add MCP servers to Claude Code
+just mcp-add
 ```
 
-### Database Operations
+### Token Management
 
 ```bash
-# Redis CLI access
-just redis-cli
+# Check token expiration
+just check-token-expiry
 
-# Redis backup
-just redis-backup
+# Refresh OAuth tokens
+just refresh-tokens
 
-# Redis restore
-just redis-restore backup.rdb
+# Validate all tokens
+just validate-tokens
 
-# Clear Redis (DANGEROUS!)
-just redis-clear
+# Delete specific client registration
+just oauth-delete-registration <client_id>
+
+# Delete client registration and ALL associated tokens
+just oauth-delete-client-complete <client_id>
+
+# Delete specific token
+just oauth-delete-token <jti>
+
+# Delete all registrations (DANGEROUS!)
+just oauth-delete-all-registrations
+
+# Delete all tokens (DANGEROUS!)
+just oauth-delete-all-tokens
 ```
 
-## Advanced Commands
+## Script Runner
 
-### Debugging
+### Universal Script Runner
 
-```bash
-# Enable debug mode
-just debug-on
-
-# Disable debug mode
-just debug-off
-
-# Show debug status
-just debug-status
-
-# Trace specific request
-just trace-request <request-id>
-```
-
-### Performance
+The project includes a universal script runner for executing Python scripts:
 
 ```bash
-# Run performance tests
-just perf-test
+# Run any script from the scripts/ directory
+just run <script_name> [args...]
 
-# Memory profiling
-just profile-memory
-
-# CPU profiling
-just profile-cpu
-```
-
-### Security
-
-```bash
-# Security audit
-just security-audit
-
-# Update dependencies
-just update-deps
-
-# Check for vulnerabilities
-just check-vulnerabilities
+# Examples:
+just run generate_oauth_token
+just run refresh_tokens
+just run check_token_expiry
+just run manage_oauth_data list-registrations
+just run analyze_oauth_logs
 ```
 
 ## Command Patterns
@@ -369,6 +349,13 @@ just rebuild auth mcp-fetch mcp-memory
 
 # With options
 just test -v -k oauth
+
+# Aliases for common commands
+just t  # alias for test
+just b  # alias for build
+just u  # alias for up
+just d  # alias for down
+just r  # alias for rebuild
 ```
 
 ### Environment Variables
@@ -401,9 +388,9 @@ just test && just coverage-html
 just setup
 just generate-jwt-secret
 just generate-rsa-keys
-just network-create
 just up
 just check-health
+just generate-github-token
 ```
 
 ### Daily Operations
@@ -424,8 +411,8 @@ just down
 ```bash
 # Make changes
 just rebuild mcp-fetch
-just test tests/test_mcp_fetch_integration.py
-just logs mcp-fetch
+just test tests/test_mcp_protocol.py -v
+just logs -f mcp-fetch
 ```
 
 ### Troubleshooting
@@ -433,13 +420,14 @@ just logs mcp-fetch
 ```bash
 # Service issues
 just logs -f problematic-service
-just restart problematic-service
+just rebuild problematic-service
 just exec problematic-service bash
 
 # OAuth issues
 just oauth-show-all
 just analyze-oauth-logs
 just validate-tokens
+just diagnose-tests
 ```
 
 ## Getting Help
@@ -450,9 +438,6 @@ just --list
 
 # Show command definition
 just --show <command>
-
-# Command help
-just help
 ```
 
 ## Next Steps

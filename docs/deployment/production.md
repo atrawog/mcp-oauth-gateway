@@ -119,7 +119,7 @@ docker-compose pull
 just up -d
 
 # Verify health
-just health-check
+just check-health
 ```
 
 ### 6. SSL Certificate Setup
@@ -128,10 +128,10 @@ Let's Encrypt certificates are automatic:
 
 ```bash
 # Verify certificate generation
-docker logs traefik | grep -i "certificate"
+just logs traefik | grep -i "certificate"
 
 # Check certificate status
-just check-certs
+just check-ssl
 ```
 
 ## High Availability Setup
@@ -322,30 +322,30 @@ save 60 10000
 
 ## Maintenance
 
-### Rolling Updates
+### Service Updates
 
 ```bash
-# Update single service
-just update auth
+# Rebuild and update single service
+just rebuild auth
 
-# Update all services
-just update-all
+# Rebuild all services
+just rebuild
 
-# Rollback if needed
-just rollback
+# Check logs after update
+just logs -f
 ```
 
 ### Health Monitoring
 
 ```bash
 # Continuous health check
-watch -n 5 'just health-check'
+watch -n 5 'just check-health'
 
-# Service status
-just status
+# Quick health check
+just health-quick
 
 # Resource usage
-just stats
+docker stats
 ```
 
 ## Troubleshooting Production Issues
@@ -354,30 +354,30 @@ just stats
 
 ```bash
 # Check memory consumers
-just stats --memory
+docker stats
 
 # Clear Redis cache if needed
-just redis-cli FLUSHDB
+just exec redis redis-cli FLUSHDB
 ```
 
 ### SSL Certificate Issues
 
 ```bash
-# Force renewal
-just renew-certs
+# Check certificate status
+just check-ssl
 
-# Check certificate validity
-just check-certs --verbose
+# View Traefik logs for certificate issues
+just logs traefik | grep -i "acme"
 ```
 
 ### Performance Issues
 
 ```bash
-# Enable profiling
-just profile --duration 60
+# Analyze OAuth logs
+just analyze-oauth-logs
 
-# Analyze slow queries
-just analyze-performance
+# Check service logs for slow requests
+just logs | grep "duration"
 ```
 
 ## Disaster Recovery

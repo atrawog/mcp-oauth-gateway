@@ -187,20 +187,23 @@ async def test_claude_to_mcp_flow(docker_services):
 # Run all tests
 just test
 
-# Run specific category
-just test integration/
+# Run specific directory
+just test tests/integration/
 
-# Run single test
-just test tests/integration/test_oauth_flow.py::test_full_oauth_flow
+# Run single test file
+just test tests/test_oauth_flow.py
 
-# Run with coverage
-just test-coverage
+# Run specific test
+just test tests/test_oauth_flow.py -k test_full_oauth_flow
+
+# Run with verbose output
+just test -v
 
 # Run with debugging
 just test --pdb
 
-# Run performance tests
-just test-performance
+# Run with specific markers
+just test -m "not slow"
 ```
 
 ### Test Environment
@@ -208,14 +211,17 @@ just test-performance
 Tests run against real services:
 
 ```bash
-# Start test environment
-just test-env up
+# Start services
+just up
+
+# Ensure services are ready
+just ensure-services-ready
 
 # Run tests
 just test
 
 # Cleanup
-just test-env down
+just down
 ```
 
 ## Coverage Testing
@@ -234,11 +240,11 @@ if os.environ.get("COVERAGE_PROCESS_START"):
 ```
 
 ```bash
-# Run with coverage
+# Run with sidecar coverage pattern
 just test-sidecar-coverage
 
-# Generate report
-just coverage-report
+# Coverage report is generated automatically
+# View in htmlcov/index.html after test run
 ```
 
 ### Coverage Requirements
@@ -380,17 +386,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
+      - name: Setup environment
+        run: |
+          pixi install
+          just network-create
+          just volumes-create
+      
       - name: Start services
-        run: just up -d
+        run: just up
         
       - name: Wait for health
-        run: just wait-healthy
+        run: just ensure-services-ready
         
       - name: Run tests
-        run: just test-all
+        run: just test
         
-      - name: Coverage report
-        run: just coverage-report
+      - name: Run coverage tests
+        run: just test-sidecar-coverage
         
       - name: Cleanup
         run: just down -v
@@ -409,10 +421,14 @@ just test
 just test --pdb
 
 # Verbose output
-just test -vvv
+just test -v
+just test -vv
 
-# Keep services running
-just test --keep-services
+# Run specific test with output
+just test tests/test_oauth_flow.py -s
+
+# Diagnose test failures
+just diagnose-tests
 ```
 
 ### Common Issues

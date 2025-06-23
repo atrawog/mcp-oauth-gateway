@@ -1,51 +1,41 @@
 # Monitoring & Troubleshooting
 
-This guide covers monitoring the MCP OAuth Gateway and troubleshooting common issues.
+This guide covers monitoring the MCP OAuth Gateway and troubleshooting common issues using actual available commands.
 
 ## Monitoring Overview
 
-### Key Metrics
+The gateway provides several tools for monitoring:
 
-Monitor these critical metrics:
+1. **Health Checks** - Service readiness verification
+2. **Logs** - Real-time and historical logs
+3. **OAuth Analysis** - Token and registration analysis
+4. **SSL Monitoring** - Certificate status
 
-1. **Service Health**
-   - Container status
-   - Health check results
-   - Restart counts
-
-2. **Performance Metrics**
-   - Request latency
-   - Throughput (req/sec)
-   - Error rates
-
-3. **Resource Usage**
-   - CPU utilization
-   - Memory consumption
-   - Disk I/O
-
-4. **Application Metrics**
-   - Active tokens
-   - Authentication failures
-   - API usage by client
-
-## Built-in Monitoring
+## Health Monitoring
 
 ### Health Checks
 
-All services expose health endpoints:
-
 ```bash
-# Check all services
-just health-check
+# Comprehensive health check of all services
+just check-health
 
-# Individual service health
-curl https://auth.gateway.yourdomain.com/health
-curl https://mcp-fetch.gateway.yourdomain.com/health
+# Quick health check
+just health-quick
+
+# Ensure all services are ready
+just ensure-services-ready
 ```
 
-### Logs
+### SSL Certificate Monitoring
 
-Access logs through Docker:
+```bash
+# Check SSL certificates and ACME status
+just check-ssl
+```
+
+## Log Monitoring
+
+### View Logs
 
 ```bash
 # View all logs
@@ -56,95 +46,108 @@ just logs auth
 just logs mcp-fetch
 just logs traefik
 
-# Follow logs
+# Follow logs in real-time
 just logs -f
+just logs -f auth
 
-# Filter logs
+# Last N lines
+just logs --tail=100
+just logs --tail=50 traefik
+```
+
+### Log Management
+
+```bash
+# Purge all container logs (restarts services)
+just logs-purge
+```
+
+### Log Analysis
+
+```bash
+# Analyze OAuth logs
+just analyze-oauth-logs
+
+# Filter logs with grep
 just logs auth | grep ERROR
+just logs | grep "rate limit"
 ```
 
-### Metrics Endpoint
+## OAuth Monitoring
 
-Prometheus-compatible metrics:
+### Token and Registration Analysis
 
 ```bash
-# Auth service metrics
-curl https://auth.gateway.yourdomain.com/metrics
+# Show all OAuth data
+just oauth-show-all
 
-# Traefik metrics
-curl https://traefik.gateway.yourdomain.com/metrics
+# List active registrations
+just oauth-list-registrations
+
+# List active tokens
+just oauth-list-tokens
+
+# OAuth statistics
+just oauth-stats
+
+# Check for expired tokens (dry run)
+just oauth-purge-expired-dry
+
+# Actually purge expired tokens
+just oauth-purge-expired
 ```
 
-## Log Analysis
-
-### Log Format
-
-Structured JSON logging:
-
-```json
-{
-  "timestamp": "2024-01-15T10:30:45Z",
-  "level": "INFO",
-  "service": "auth",
-  "message": "Token validated successfully",
-  "user": "alice",
-  "client_id": "client_123",
-  "duration_ms": 15
-}
-```
-
-### Common Log Patterns
+### Token Validation
 
 ```bash
-# Authentication failures
-just logs auth | jq 'select(.level=="ERROR" and .message | contains("auth"))'
+# Validate current tokens
+just validate-tokens
 
-# Slow requests
-just logs | jq 'select(.duration_ms > 1000)'
-
-# Rate limit hits
-just logs | jq 'select(.message | contains("rate limit"))'
+# Check token expiration
+just check-token-expiry
 ```
 
 ## Troubleshooting Guide
 
 ### Service Won't Start
 
-#### Symptoms
-- Container exits immediately
-- Health checks failing
-- Service unreachable
+#### Check Service Status
 
-#### Diagnosis
 ```bash
-# Check container status
-docker ps -a
+# Use docker compose directly (for debugging only)
+docker compose ps
 
-# View startup logs
-just logs <service> --tail 100
+# View service logs
+just logs auth
+just logs mcp-fetch
 
-# Check configuration
-just validate-env
+# Ensure dependencies are ready
+just ensure-services-ready
 ```
 
 #### Common Causes
+
 1. **Missing environment variables**
    ```bash
-   ERROR: Required variable GITHUB_CLIENT_ID not set
+   # Check .env file
+   cat .env | grep GITHUB_CLIENT_ID
    ```
-   Solution: Check .env file
 
 2. **Port conflicts**
    ```bash
-   ERROR: bind: address already in use
+   # Check if ports are in use
+   sudo lsof -i :8000
+   sudo lsof -i :3000
    ```
-   Solution: Change port or stop conflicting service
 
-3. **Redis connection failure**
+3. **Redis connection issues**
    ```bash
-   ERROR: Could not connect to Redis
+   # Check Redis logs
+   just logs redis
+   
+   # Test Redis connection
+   just exec redis redis-cli ping
    ```
-   Solution: Ensure Redis is running
 
 ### Authentication Issues
 
@@ -155,254 +158,234 @@ just validate-env
    grep ALLOWED_GITHUB_USERS .env
    ```
 
-2. **Verify GitHub OAuth**
+2. **Verify OAuth flow**
    ```bash
+   # Run OAuth flow tests
+   just test-oauth-flow
+   
+   # Check auth logs
    just logs auth | grep "GitHub OAuth"
    ```
 
-3. **Test OAuth flow**
+3. **Check JWT configuration**
    ```bash
-   just test-oauth-flow
+   # Verify JWT secret exists
+   grep GATEWAY_JWT_SECRET .env
    ```
 
-#### Token Validation Failures
+#### Token Issues
 
-1. **Check JWT secret**
+1. **Expired tokens**
    ```bash
-   # Ensure secret matches across services
-   just show-config | grep JWT_SECRET
+   # List and check token expiration
+   just oauth-list-tokens
+   
+   # Purge expired tokens
+   just oauth-purge-expired
    ```
 
-2. **Verify token expiry**
+2. **Invalid registrations**
    ```bash
-   just decode-token <token>
-   ```
-
-3. **Check Redis connectivity**
-   ```bash
-   just redis-cli ping
+   # Show test registrations
+   just test-cleanup-show
+   
+   # Clean test data
+   just test-cleanup
    ```
 
 ### Performance Issues
 
-#### High Latency
+#### High Resource Usage
 
-1. **Check resource usage**
-   ```bash
-   just stats
-   ```
+```bash
+# Check container resource usage
+docker stats
 
-2. **Analyze slow endpoints**
-   ```bash
-   just logs | jq 'select(.duration_ms > 500) | {path, duration_ms}'
-   ```
+# View service logs for errors
+just logs -f
 
-3. **Review rate limits**
-   ```bash
-   grep RATE_LIMIT .env
-   ```
+# Rebuild services if needed
+just rebuild auth mcp-fetch
+```
 
-#### Memory Issues
+#### Redis Memory Issues
 
-1. **Check memory usage**
-   ```bash
-   docker stats
-   ```
+```bash
+# Check Redis memory usage
+just exec redis redis-cli INFO memory
 
-2. **Review Redis memory**
-   ```bash
-   just redis-cli INFO memory
-   ```
+# List all keys (be careful in production)
+just exec redis redis-cli --scan
 
-3. **Clear old tokens**
-   ```bash
-   just cleanup-tokens
-   ```
+# Purge expired OAuth data
+just oauth-purge-expired
+```
 
 ### SSL/Certificate Issues
 
-#### Certificate Not Renewing
-
-1. **Check Let's Encrypt logs**
-   ```bash
-   just logs traefik | grep -i "acme"
-   ```
-
-2. **Verify DNS**
-   ```bash
-   nslookup gateway.yourdomain.com
-   ```
-
-3. **Force renewal**
-   ```bash
-   just renew-certs
-   ```
-
-## Monitoring Tools
-
-### Prometheus Setup
-
-```yaml
-# prometheus.yml
-global:
-  scrape_interval: 15s
-
-scrape_configs:
-  - job_name: 'mcp-gateway'
-    static_configs:
-      - targets:
-        - 'auth:8000'
-        - 'traefik:8080'
-```
-
-### Grafana Dashboards
-
-Import provided dashboards:
-
 ```bash
-# Import dashboards
-just import-dashboards
+# Check certificate status
+just check-ssl
 
-# Access Grafana
-https://grafana.gateway.yourdomain.com
-```
+# View Traefik logs for ACME issues
+just logs traefik | grep -i "acme"
+just logs traefik | grep -i "certificate"
 
-### Alert Rules
-
-```yaml
-# alerts.yml
-groups:
-  - name: mcp-gateway
-    rules:
-      - alert: ServiceDown
-        expr: up{job="mcp-gateway"} == 0
-        for: 5m
-        
-      - alert: HighErrorRate
-        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
-        for: 5m
-        
-      - alert: SlowRequests
-        expr: http_request_duration_seconds{quantile="0.99"} > 2
-        for: 10m
-```
-
-## Debug Mode
-
-### Enable Debug Logging
-
-```bash
-# In .env
-DEBUG=true
-LOG_LEVEL=DEBUG
-
-# Restart services
-just restart
-```
-
-### Debug Endpoints
-
-```bash
-# Service debug info
-curl https://auth.gateway.yourdomain.com/debug
-
-# Token debug
-curl https://auth.gateway.yourdomain.com/debug/token/<jti>
+# Verify DNS resolution
+nslookup auth.${BASE_DOMAIN}
+nslookup mcp-fetch.${BASE_DOMAIN}
 ```
 
 ## Common Issues Reference
 
 ### Issue: 502 Bad Gateway
 
-**Causes**:
-- Service not running
-- Health check failing
-- Network connectivity
+**Diagnosis**:
+```bash
+# Check if service is running
+docker compose ps
+
+# Check service logs
+just logs auth
+just logs mcp-fetch
+
+# Ensure services are healthy
+just ensure-services-ready
+```
 
 **Solution**:
 ```bash
-just restart <service>
-just logs <service>
+# Rebuild and restart service
+just rebuild auth
 ```
 
 ### Issue: 401 Unauthorized
 
-**Causes**:
-- Expired token
-- Invalid token
-- User not allowed
+**Diagnosis**:
+```bash
+# Check token validity
+just validate-tokens
+
+# View auth logs
+just logs auth | grep "401"
+```
 
 **Solution**:
 ```bash
-just generate-token
-just validate-token <token>
+# Generate new token
+just generate-github-token
+
+# For MCP client token
+just mcp-client-token
 ```
 
-### Issue: Rate Limit Exceeded
+### Issue: Connection Refused
 
-**Causes**:
-- Too many requests
-- Misconfigured limits
+**Diagnosis**:
+```bash
+# Check network exists
+docker network ls | grep public
+
+# Test service connectivity
+just exec auth curl http://redis:6379
+```
 
 **Solution**:
 ```bash
-# Adjust limits in .env
-RATE_LIMIT_MCP=200/minute
-just restart
-```
-
-## Maintenance Commands
-
-### Regular Maintenance
-
-```bash
-# Clean up old tokens
-just cleanup-tokens
-
-# Vacuum Redis
-just redis-vacuum
-
-# Rotate logs
-just rotate-logs
-
-# Update services
-just update-all
-```
-
-### Emergency Procedures
-
-```bash
-# Stop all services
+# Create network and restart
+just network-create
 just down
+just up
+```
 
-# Emergency restart
-just emergency-restart
+## Maintenance Tasks
 
-# Backup before changes
-just backup-all
+### Regular Cleanup
 
-# Restore from backup
-just restore <backup-file>
+```bash
+# Clean test registrations
+just test-cleanup
+
+# Purge expired tokens
+just oauth-purge-expired
+
+# Backup OAuth data
+just oauth-backup
+```
+
+### Service Updates
+
+```bash
+# Rebuild services with fresh images
+just rebuild
+
+# Rebuild specific service
+just rebuild mcp-fetch
+
+# Fresh start with new build
+just up-fresh
+```
+
+## Debug Techniques
+
+### Enable Debug Logging
+
+1. Edit `.env` file:
+```bash
+DEBUG=true
+LOG_LEVEL=debug
+```
+
+2. Rebuild and monitor:
+```bash
+just rebuild auth
+just logs -f auth
+```
+
+### Diagnose Test Failures
+
+```bash
+# Run diagnostic script
+just diagnose-tests
+
+# Run specific test with verbose output
+just test tests/test_oauth_flow.py -v -s
+```
+
+### Access Service Shell
+
+```bash
+# Interactive shell access
+just exec auth bash
+just exec mcp-fetch sh
+
+# Check environment variables
+just exec auth env | grep GATEWAY
+just exec mcp-fetch env | grep MCP
 ```
 
 ## Getting Help
 
-### Diagnostic Bundle
+When reporting issues:
 
-Generate a diagnostic bundle:
+1. **Collect logs**:
+   ```bash
+   just logs > gateway-logs.txt
+   ```
 
-```bash
-just diagnostic-bundle
-```
+2. **Show configuration** (remove secrets):
+   ```bash
+   cat .env | grep -v SECRET | grep -v TOKEN
+   ```
 
-This creates a zip file with:
-- Configuration (sanitized)
-- Recent logs
-- Health check results
-- Performance metrics
+3. **Check service status**:
+   ```bash
+   docker compose ps
+   just check-health
+   ```
 
-### Support Channels
+## Related Documentation
 
-1. Check documentation first
-2. Review [GitHub issues](https://github.com/your-org/mcp-oauth-gateway/issues)
-3. Contact support with diagnostic bundle
+- [Service Management](service-management.md)
+- [Commands Reference](commands.md)
+- [Token Management](token-management.md)

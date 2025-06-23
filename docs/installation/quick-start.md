@@ -54,8 +54,9 @@ cd mcp-oauth-gateway
 # Install Python dependencies
 pixi install
 
-# Run initial setup
-just setup
+# Create required networks and volumes
+just network-create
+just volumes-create
 ```
 
 ## Step 3: Configure DNS
@@ -93,7 +94,6 @@ cp .env.example .env
 
 # Generate required secrets
 just generate-jwt-secret
-just generate-rsa-keys
 
 # Edit configuration
 nano .env
@@ -221,15 +221,15 @@ sudo netstat -tlnp | grep -E ':80|:443'
 just logs auth
 just logs mcp-fetch
 
-# Restart specific service
-just restart auth
+# Rebuild and restart specific service
+just rebuild auth
 ```
 
 ### Authentication Failures
 
 ```bash
-# Verify GitHub OAuth credentials
-just validate-tokens
+# Check OAuth tokens
+just oauth-list-tokens
 
 # Check Redis connectivity
 just exec redis redis-cli -a $REDIS_PASSWORD ping
@@ -250,7 +250,7 @@ Congratulations! Your MCP OAuth Gateway is now running. Here's what to do next:
 # Service management
 just up          # Start all services
 just down        # Stop all services
-just restart     # Restart all services
+just rebuild     # Rebuild all services
 just logs        # View logs
 
 # Token management

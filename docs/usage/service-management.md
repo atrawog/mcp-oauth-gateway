@@ -1,6 +1,6 @@
 # Service Management
 
-This guide covers managing MCP services in the gateway, including starting, stopping, scaling, and monitoring individual services.
+This guide covers managing MCP services in the gateway using the available `just` commands.
 
 ## Service Overview
 
@@ -13,122 +13,60 @@ The MCP OAuth Gateway manages multiple services:
 ### Start All Services
 
 ```bash
-# Start all services
+# Start all services in detached mode
 just up
 
-# Start in detached mode
-just up -d
-
-# Start with build
+# Start with specific docker-compose options
 just up --build
-```
+just up --force-recreate
 
-### Start Specific Services
-
-```bash
-# Start single service
-just up mcp-fetch
-
-# Start multiple services
-just up auth redis mcp-fetch
-
-# Start with dependencies
-just up --with-dependencies mcp-fetch
+# Start all services with fresh build
+just up-fresh
 ```
 
 ### Service Dependencies
 
 Services start in dependency order:
-1. Networks created
-2. Redis starts
-3. Auth service starts
-4. Traefik starts
-5. MCP services start
+1. Networks created via `just network-create`
+2. Volumes created via `just volumes-create` 
+3. Docker-compose includes generated
+4. All services start
 
 ## Stopping Services
 
-### Stop All Services
-
 ```bash
-# Stop all services gracefully
+# Stop all services
 just down
 
 # Stop and remove volumes
 just down -v
 
-# Stop immediately (force)
-just down --force
+# Stop and remove orphan containers
+just down --remove-orphans
 ```
 
-### Stop Specific Services
+## Building and Rebuilding Services
+
+### Build Services
 
 ```bash
-# Stop single service
-just stop mcp-fetch
+# Build all services
+just build
 
-# Stop multiple services
-just stop mcp-fetch mcp-filesystem
-
-# Stop with timeout
-just stop --timeout 30 mcp-fetch
+# Build specific services
+just build auth
+just build auth mcp-fetch mcp-memory
 ```
 
-## Restarting Services
-
-### Restart Commands
+### Rebuild Services
 
 ```bash
-# Restart all services
-just restart
+# Rebuild all services (with --no-cache by default)
+just rebuild
 
-# Restart specific service
-just restart auth
-
-# Restart with new config
-just restart --force-recreate mcp-fetch
-```
-
-### Rolling Restarts
-
-For zero-downtime updates:
-
-```bash
-# Scale service up
-just scale mcp-fetch=2
-
-# Update and restart instances
-just rolling-restart mcp-fetch
-
-# Scale back down
-just scale mcp-fetch=1
-```
-
-## Service Status
-
-### Check Status
-
-```bash
-# View all services
-just ps
-
-# View specific service
-just ps mcp-fetch
-
-# View with details
-just ps --format json
-```
-
-### Health Checks
-
-```bash
-# Check all health endpoints
-just health-check
-
-# Check specific service
-just health-check mcp-fetch
-
-# Continuous monitoring
-watch -n 5 'just health-check'
+# Rebuild specific services
+just rebuild auth
+just rebuild mcp-fetch mcp-memory
 ```
 
 ## Service Logs
@@ -142,234 +80,118 @@ just logs
 # Specific service logs
 just logs auth
 
-# Follow logs (tail -f)
+# Follow logs (real-time)
+just logs -f
 just logs -f mcp-fetch
 
 # Last N lines
-just logs --tail 100 auth
-
-# Filter by time
-just logs --since 1h mcp-fetch
+just logs --tail=100
+just logs --tail=50 auth
 ```
 
-### Log Analysis
+### Log Management
 
 ```bash
-# Search logs
-just logs | grep ERROR
-
-# Count errors by service
-just logs --format json | jq 'select(.level=="ERROR") | .service' | sort | uniq -c
-
-# Export logs
-just logs > gateway-logs.txt
+# Purge all container logs (restarts services)
+just logs-purge
 ```
 
 ## Service Configuration
 
 ### Update Configuration
 
+1. Edit the `.env` file:
 ```bash
-# Update environment variable
-echo "NEW_VAR=value" >> .env
-
-# Reload service with new config
-just restart mcp-fetch
-
-# Verify configuration
-just exec mcp-fetch env | grep NEW_VAR
+vim .env
 ```
 
-### Service-Specific Config
-
+2. Rebuild and restart the affected service:
 ```bash
-# Edit service config
-vim mcp-fetch/.env
-
-# Apply changes
-just rebuild mcp-fetch
-just restart mcp-fetch
+just rebuild auth
 ```
 
-## Scaling Services
+3. Verify configuration:
+```bash
+just exec auth env | grep NEW_VAR
+```
 
-### Manual Scaling
+## Service Health
+
+### Health Checks
 
 ```bash
-# Scale service replicas
-just scale mcp-fetch=3
+# Comprehensive health check
+just check-health
 
-# Scale multiple services
-just scale mcp-fetch=3 mcp-filesystem=2
+# Quick health check
+just health-quick
 
-# Scale down
-just scale mcp-fetch=1
+# Check SSL certificates
+just check-ssl
 ```
 
-### Auto-Scaling Configuration
-
-```yaml
-# docker-compose.yml
-services:
-  mcp-fetch:
-    deploy:
-      replicas: 3
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-```
-
-## Service Maintenance
-
-### Update Services
+### Service Readiness
 
 ```bash
-# Pull latest images
-just pull
-
-# Update specific service
-just pull mcp-fetch
-
-# Update and restart
-just update mcp-fetch
+# Ensure all services are ready
+just ensure-services-ready
 ```
 
-### Backup Service Data
+## Service Access
 
-```bash
-# Backup Redis data
-just backup redis
-
-# Backup service config
-just backup-config mcp-fetch
-
-# Full backup
-just backup-all
-```
-
-### Service Cleanup
-
-```bash
-# Remove stopped containers
-just cleanup
-
-# Prune unused images
-just prune-images
-
-# Deep clean (removes volumes)
-just deep-clean
-```
-
-## Monitoring Services
-
-### Resource Usage
-
-```bash
-# View resource stats
-just stats
-
-# Monitor specific service
-just stats mcp-fetch
-
-# Export metrics
-just stats --format json > metrics.json
-```
-
-### Performance Metrics
-
-```bash
-# Request latency
-just metrics latency
-
-# Throughput
-just metrics throughput
-
-# Error rates
-just metrics errors
-```
-
-## Service Debugging
-
-### Access Service Shell
+### Execute Commands in Services
 
 ```bash
 # Execute command in service
+just exec redis redis-cli
+just exec auth bash
 just exec mcp-fetch sh
-
-# Run interactive shell
-just exec -it auth bash
 
 # Check service environment
 just exec mcp-fetch env
 ```
 
-### Debug Mode
-
-```bash
-# Enable debug logging
-just debug mcp-fetch
-
-# View debug output
-just logs -f mcp-fetch
-
-# Disable debug mode
-just debug --off mcp-fetch
-```
-
 ## Common Tasks
 
-### Add New Service
+### Add New MCP Service
 
-1. Create service directory
-2. Add Dockerfile
-3. Update docker-compose.yml
-4. Configure routing in Traefik
-5. Test service
-
+1. Create service directory:
 ```bash
-# Create service structure
-just new-service mcp-custom
-
-# Start new service
-just up mcp-custom
+mkdir mcp-custom
 ```
 
-### Remove Service
+2. Add Dockerfile in `mcp-custom/`
 
+3. Add service to appropriate docker-compose file
+
+4. Enable service in `.env`:
 ```bash
-# Stop service
-just stop mcp-old
-
-# Remove from compose
-vim docker-compose.yml
-
-# Clean up
-just cleanup
+echo "ENABLE_MCP_CUSTOM=true" >> .env
 ```
 
-### Service Migration
+5. Generate includes and start:
+```bash
+just generate-includes
+just up
+```
+
+### Update Service
 
 ```bash
-# Export service data
-just export mcp-fetch
+# Rebuild specific service from scratch
+just rebuild mcp-fetch
 
-# Import to new instance
-just import mcp-fetch data.tar
-
-# Verify migration
-just test mcp-fetch
+# Check logs after update
+just logs -f mcp-fetch
 ```
 
 ## Best Practices
 
-1. **Monitor Health** - Regular health checks
-2. **Log Rotation** - Prevent disk fill
-3. **Resource Limits** - Set CPU/memory limits
-4. **Graceful Shutdown** - Use proper stop signals
-5. **Backup Data** - Regular service backups
-6. **Update Regularly** - Keep services current
-7. **Document Changes** - Track config updates
+1. **Always use `just` commands** - Never run docker commands directly
+2. **Check service health** - Use `just ensure-services-ready` before tests
+3. **Monitor logs** - Use `just logs -f` to watch for issues
+4. **Clean rebuilds** - Use `just rebuild` for clean slate
+5. **Manage OAuth data** - Use OAuth backup commands before major changes
 
 ## Troubleshooting
 
@@ -377,39 +199,30 @@ just test mcp-fetch
 
 ```bash
 # Check logs
-just logs service-name
+just logs auth
 
-# Verify config
-just validate-config service-name
+# Ensure dependencies are ready
+just ensure-services-ready
 
-# Check dependencies
-just deps service-name
+# Try fresh rebuild
+just rebuild auth
 ```
 
-### Service Crashes
+### View Docker Status
 
 ```bash
-# View crash logs
-just logs --tail 500 service-name
-
-# Check restart count
-just ps service-name
-
-# Increase resources
-just scale-resources service-name
+# Use docker compose directly (only for debugging)
+docker compose ps
 ```
 
 ### Network Issues
 
 ```bash
-# Test connectivity
-just exec service-name ping other-service
+# Ensure network exists
+just network-create
 
-# Check DNS
-just exec service-name nslookup auth
-
-# Verify networks
-docker network ls
+# Check service connectivity
+just exec auth curl http://redis:6379
 ```
 
 ## Related Documentation
