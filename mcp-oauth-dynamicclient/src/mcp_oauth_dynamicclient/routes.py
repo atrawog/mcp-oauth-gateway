@@ -60,7 +60,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         
         # Check if user is in allowed list
         allowed_users = settings.allowed_github_users.split(",") if settings.allowed_github_users else []
-        if allowed_users and username not in allowed_users:
+        # If ALLOWED_GITHUB_USERS is set to '*', allow any authenticated GitHub user
+        if allowed_users and '*' not in allowed_users and username not in allowed_users:
             raise HTTPException(
                 status_code=403,
                 detail={
@@ -374,7 +375,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         
         # Check if user is allowed
         allowed_users = settings.allowed_github_users.split(",") if settings.allowed_github_users else []
-        if allowed_users and user_info["login"] not in allowed_users:
+        # If ALLOWED_GITHUB_USERS is set to '*', allow any authenticated GitHub user
+        if allowed_users and '*' not in allowed_users and user_info["login"] not in allowed_users:
             return RedirectResponse(
                 url=f"{auth_data['redirect_uri']}?error=access_denied&state={auth_data['state']}"
             )

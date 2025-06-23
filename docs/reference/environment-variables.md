@@ -68,7 +68,7 @@ These variables are required for GitHub OAuth integration:
 
 | Variable | Description | Example | Default |
 |----------|-------------|---------|---------|
-| `ALLOWED_GITHUB_USERS` | Comma-separated list of allowed GitHub usernames | `user1,user2,user3` | (empty - all users allowed) |
+| `ALLOWED_GITHUB_USERS` | Comma-separated list of allowed GitHub usernames. Use `*` to allow any authenticated GitHub user | `user1,user2,user3` or `*` | (empty - all users allowed) |
 
 ### Token Lifetimes
 
@@ -206,7 +206,7 @@ MCP_PROTOCOL_VERSION=2025-03-26
 
 # ===== OPTIONAL CONFIGURATION =====
 
-# Access Control (comma-separated GitHub usernames)
+# Access Control (comma-separated GitHub usernames, or '*' to allow all)
 ALLOWED_GITHUB_USERS=johndoe,janedoe,teamlead
 
 # Token Lifetimes
@@ -308,6 +308,7 @@ HEALTH_CHECK_INTERVAL=5
 
 6. **Configure access control** (optional):
    - Add allowed GitHub usernames to `ALLOWED_GITHUB_USERS`
+   - Or set `ALLOWED_GITHUB_USERS=*` to allow any authenticated GitHub user
 
 7. **Generate OAuth tokens**:
    ```bash
@@ -335,7 +336,7 @@ just check-health
 1. **Never commit `.env` to version control** - it contains secrets!
 2. **Use strong, randomly generated passwords** for all secrets
 3. **Rotate tokens regularly** in production environments
-4. **Limit `ALLOWED_GITHUB_USERS`** to only trusted users
+4. **Limit `ALLOWED_GITHUB_USERS`** to only trusted users (unless intentionally set to `*`)
 5. **Use different values** for development, staging, and production
 6. **Monitor token usage** and revoke compromised tokens immediately
 

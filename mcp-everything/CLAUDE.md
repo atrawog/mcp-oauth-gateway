@@ -17,8 +17,8 @@ The mcp-everything service wraps the official Model Context Protocol "everything
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Traefik (Divine Router)                   │
-│  Routes: /mcp (auth), /.well-known/* (no auth)             │
+│                    Traefik (Divine Router)                  │
+│  Routes: /mcp (auth), /.well-known/* (no auth)              │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -27,7 +27,7 @@ The mcp-everything service wraps the official Model Context Protocol "everything
 │  • TypeScript/Node.js implementation                        │
 │  • Protocol version: 2025-06-18                             │
 │  • Server name: example-servers/everything                  │
-│  • Health: TCP port check (nc -z localhost 3000)           │
+│  • Health: TCP port check (nc -z localhost 3000)            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -87,7 +87,7 @@ Note: This service doesn't expose a dedicated /health endpoint. Instead, the hea
 
 ### Initialize Session (Auth Required)
 ```bash
-curl -k https://mcp-everything.${BASE_DOMAIN}/mcp \
+curl -k https://everything.${BASE_DOMAIN}/mcp \
   -H "Authorization: Bearer ${GATEWAY_OAUTH_ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{
@@ -108,7 +108,7 @@ curl -k https://mcp-everything.${BASE_DOMAIN}/mcp \
 ### List Available Tools
 ```bash
 # Use session ID from initialize response
-curl -k https://mcp-everything.${BASE_DOMAIN}/mcp \
+curl -k https://everything.${BASE_DOMAIN}/mcp \
   -H "Authorization: Bearer ${GATEWAY_OAUTH_ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -H "Mcp-Session-Id: ${SESSION_ID}" \
@@ -122,7 +122,7 @@ curl -k https://mcp-everything.${BASE_DOMAIN}/mcp \
 
 ### Call Echo Tool
 ```bash
-curl -k https://mcp-everything.${BASE_DOMAIN}/mcp \
+curl -k https://everything.${BASE_DOMAIN}/mcp \
   -H "Authorization: Bearer ${GATEWAY_OAUTH_ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -H "Mcp-Session-Id: ${SESSION_ID}" \

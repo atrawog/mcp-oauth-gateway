@@ -131,6 +131,23 @@ just oauth-delete-all-tokens
 # Edit ALLOWED_GITHUB_USERS in .env
 ```
 
+### How can I allow any GitHub user to access my gateway?
+
+You can configure the gateway to accept any authenticated GitHub user by setting the `ALLOWED_GITHUB_USERS` environment variable to `*`:
+
+```bash
+# In your .env file
+ALLOWED_GITHUB_USERS=*
+```
+
+This wildcard configuration means:
+- Any user with a valid GitHub account can authenticate
+- They still need to complete the full OAuth flow
+- All security measures remain in place
+- Only authentication is allowed - authorization still applies
+
+**Security Note**: Only use the wildcard if you intentionally want to allow any GitHub user. For production deployments, it's recommended to explicitly list allowed users.
+
 ### Is the system secure?
 
 Yes! The system implements:

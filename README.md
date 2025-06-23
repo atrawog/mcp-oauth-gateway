@@ -196,7 +196,7 @@ ACME_EMAIL=admin@example.com      # For Let's Encrypt
 REDIS_PASSWORD=your_redis_password
 
 # Access Control (optional)
-ALLOWED_GITHUB_USERS=user1,user2   # Comma-separated
+ALLOWED_GITHUB_USERS=user1,user2   # Comma-separated, or '*' to allow all
 
 # Token Lifetimes
 ACCESS_TOKEN_LIFETIME=86400        # 24 hours

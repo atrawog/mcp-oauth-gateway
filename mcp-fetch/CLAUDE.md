@@ -206,7 +206,7 @@ just test-mcp-fetch-auth
 
 ## 📜 The Integration Flow - How Requests Reach Fetch!
 
-1. **Client Request** → `https://mcp-fetch.domain.com/mcp`
+1. **Client Request** → `https://fetch.domain.com/mcp`
 2. **Traefik Routes** → Checks authentication via ForwardAuth
 3. **Auth Validates** → Token verification at /verify endpoint
 4. **Request Forwarded** → Reaches MCP-Fetch on port 3000
