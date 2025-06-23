@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "MCP OAuth Gateway Team", email = "mcp@example.com"},
+    {name = "MCP OAuth Gateway Team", email = "atrawog@gmail.com"},
 ]
 dependencies = [
     "mcp>=1.2.1",

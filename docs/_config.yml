@@ -1,79 +1,105 @@
-# MCP OAuth Gateway - Comprehensive Documentation
-title: "MCP OAuth Gateway: Complete Documentation"
-author: "MCP Development Team"
-copyright: "2025"
+# Book settings
+title: MCP OAuth Gateway Documentation
+author: MCP OAuth Gateway Project
+logo: ""
+copyright: "2024"
+exclude_patterns: []
 
-# Force-exclude patterns during the build
-exclude_patterns:
-  - _build
-  - Thumbs.db
-  - .DS_Store
-  - "**.ipynb_checkpoints"
-  - "**.pytest_cache"
-  - "**/htmlcov"
-  - "**/coverage"
-  - "**/logs"
-
-# Execution settings
+# Force re-execution of notebooks on each build
 execute:
   execute_notebooks: off
-  timeout: 60
+  timeout: -1
 
-# Define the name of the latex output file for PDF builds
-latex:
-  latex_documents:
-    targetname: mcp-oauth-gateway-docs.tex
+# HTML-specific settings
+html:
+  favicon: ""
+  use_issues_button: true
+  use_repository_button: true
+  use_edit_page_button: true
+  repository_url: https://github.com/atrawog/mcp-oauth-gateway
+  repository_branch: main
+  path_to_book: docs
+  extra_navbar: ""
+  extra_footer: |
+    <p>Built with <a href="https://jupyterbook.org">Jupyter Book</a></p>
+  home_page_in_navbar: true
+  baseurl: ""
+  comments:
+    hypothesis: false
+    utterances: false
+
+# Launch button settings
+launch_buttons:
+  notebook_interface: classic
+  binderhub_url: ""
+  jupyterhub_url: ""
+  thebe: false
+  colab_url: ""
 
 # Information about where the book exists on the web
 repository:
   url: https://github.com/atrawog/mcp-oauth-gateway
-  branch: main
   path_to_book: docs
+  branch: main
 
-# HTML-specific settings
-html:
-  use_issues_button: true
-  use_repository_button: true
-  use_edit_page_button: true
-  use_download_button: true
-  home_page_in_navbar: false
-  navbar_number_sections: false
-  show_navbar_depth: 2
-
-# LaTeX settings
-latex:
-  latex_engine: pdflatex
-
-# MyST extensions
-parse:
-  myst_enable_extensions:
-    - dollarmath
-    - amsmath
-    - deflist
-    - fieldlist
-    - html_admonition
-    - html_image
-    - colon_fence
-    - smartquotes
-    - replacements
-    - linkify
-    - substitution
-
-# Sphinx extensions
+# Advanced and power-user settings
 sphinx:
   extra_extensions:
     - sphinx.ext.autodoc
     - sphinx.ext.viewcode
-    - sphinx.ext.napoleon
     - sphinx.ext.intersphinx
+    - sphinx.ext.napoleon
+    - sphinx_copybutton
+    - sphinx_design
+  local_extensions: {}
+  recursive_update: false
   config:
+    html_theme: sphinx_book_theme
     html_theme_options:
-      repository_url: https://github.com/atrawog/mcp-oauth-gateway
+      search_bar_text: "Search documentation..."
+      repository_url: "https://github.com/atrawog/mcp-oauth-gateway"
       use_repository_button: true
-      use_edit_page_button: true
       use_issues_button: true
-    html_title: "MCP OAuth Gateway Documentation"
+      use_download_button: true
+      use_fullscreen_button: true
+      home_page_in_toc: true
+    language: en
+    html_show_copyright: true
+    suppress_warnings: ["myst.domains"]
     intersphinx_mapping:
       python:
         - "https://docs.python.org/3"
         - null
+      fastapi:
+        - "https://fastapi.tiangolo.com"
+        - null
+
+# MyST markdown settings
+parse:
+  myst_enable_extensions:
+    - amsmath
+    - colon_fence
+    - deflist
+    - dollarmath
+    - fieldlist
+    - html_admonition
+    - html_image
+    - linkify
+    - replacements
+    - smartquotes
+    - strikethrough
+    - substitution
+    - tasklist
+  myst_url_schemes: [mailto, http, https]
+  myst_dmath_double_inline: true
+  myst_dmath_allow_labels: true
+  myst_dmath_allow_space: true
+  myst_dmath_allow_digits: true
+
+
+# LaTeX settings
+latex:
+  latex_engine: pdflatex
+  use_jupyterbook_latex: true
+  latex_documents:
+    targetname: book.tex

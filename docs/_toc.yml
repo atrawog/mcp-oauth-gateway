@@ -1,113 +1,91 @@
-# MCP OAuth Gateway - Complete Documentation Structure
-# Learn more at https://jupyterbook.org/customize/toc.html
-
+# Table of contents
 format: jb-book
 root: index
-
-parts:
-  - caption: "Getting Started"
-    chapters:
-      - file: quickstart/index
-        sections:
-          - file: quickstart/installation
-          - file: quickstart/first-setup
-          - file: quickstart/basic-usage
-
-  - caption: "Architecture & Design"
-    chapters:
-      - file: architecture/index
-        sections:
-          - file: architecture/overview
-          - file: architecture/oauth-architecture
-          - file: architecture/trinity-separation
-          - file: architecture/oauth-flow
-          - file: architecture/mcp-protocol
-          - file: architecture/traefik-routing
-          - file: architecture/security-model
-
-  - caption: "MCP Services"
-    chapters:
-      - file: services/index
-        sections:
-          - file: services/mcp-fetch
-          - file: services/mcp-memory
-          - file: services/mcp-time
-          - file: services/mcp-sequentialthinking
-          - file: services/mcp-filesystem
-          - file: services/mcp-everything
-          - file: services/mcp-fetchs
-          - file: services/mcp-tmux
-          - file: services/mcp-playwright
-
-  - caption: "Python Packages"
-    chapters:
-      - file: packages/index
-        sections:
-          - file: packages/mcp-oauth-dynamicclient
-          - file: packages/mcp-streamablehttp-proxy
-          - file: packages/mcp-streamablehttp-client
-          - file: packages/mcp-fetch-streamablehttp-server
-
-  - caption: "API Reference"
-    chapters:
-      - file: api/index
-        sections:
-          - file: api/oauth-endpoints
-          - file: api/mcp-endpoints
-          - file: api/rfc7591-registration
-          - file: api/rfc7592-management
-          - file: api/authentication
-          - file: api/error-responses
-
-  - caption: "Development & Testing"
-    chapters:
-      - file: development/index
-        sections:
-          - file: development/setup
-          - file: development/testing-strategy
-          - file: development/adding-services
-          - file: development/debugging
-          - file: development/contributing
-
-  - caption: "Deployment & Operations"
-    chapters:
-      - file: deployment/index
-        sections:
-          - file: deployment/configuration
-          - file: deployment/environment-variables
-          - file: deployment/docker-compose
-          - file: deployment/traefik-setup
-          - file: deployment/ssl-certificates
-          - file: deployment/monitoring
-          - file: deployment/troubleshooting
-
-  - caption: "Integration Guides"
-    chapters:
-      - file: integration/index
-        sections:
-          - file: integration/claude-ai
-          - file: integration/mcp-clients
-          - file: integration/custom-clients
-          - file: integration/oauth-flows
-          - file: integration/testing-integration
-
-  - caption: "Advanced Topics"
-    chapters:
-      - file: advanced/index
-        sections:
-          - file: advanced/protocol-compliance
-          - file: advanced/security-considerations
-          - file: advanced/performance-tuning
-          - file: advanced/scaling
-          - file: advanced/custom-extensions
-
-  - caption: "Reference"
-    chapters:
-      - file: reference/index
-        sections:
-          - file: reference/command-reference
-          - file: reference/configuration-reference
-          - file: reference/environment-variables
-          - file: reference/error-codes
-          - file: reference/troubleshooting-guide
-          - file: reference/faq
+chapters:
+  - file: overview
+    title: Overview
+  - file: architecture
+    title: Architecture
+    sections:
+      - file: architecture/components
+        title: Component Architecture
+      - file: architecture/oauth-flow
+        title: OAuth 2.1 Flow
+      - file: architecture/mcp-integration
+        title: MCP Integration
+      - file: architecture/security
+        title: Security Architecture
+  - file: installation
+    title: Installation & Setup
+    sections:
+      - file: installation/requirements
+        title: Requirements
+      - file: installation/quick-start
+        title: Quick Start Guide
+      - file: installation/configuration
+        title: Configuration Reference
+      - file: installation/github-oauth
+        title: GitHub OAuth Setup
+  - file: services
+    title: MCP Services
+    sections:
+      - file: services/overview
+        title: Services Overview
+      - file: services/fetch
+        title: Fetch Service
+      - file: services/filesystem
+        title: Filesystem Service
+      - file: services/memory
+        title: Memory Service
+      - file: services/time
+        title: Time Service
+      - file: services/sequential-thinking
+        title: Sequential Thinking
+      - file: services/others
+        title: Other Services
+  - file: usage
+    title: Usage Guide
+    sections:
+      - file: usage/commands
+        title: Command Reference
+      - file: usage/service-management
+        title: Service Management
+      - file: usage/token-management
+        title: Token Management
+      - file: usage/testing
+        title: Testing
+      - file: usage/monitoring
+        title: Monitoring & Troubleshooting
+  - file: development
+    title: Development
+    sections:
+      - file: development/guidelines
+        title: Development Guidelines
+      - file: development/testing-approach
+        title: Testing Approach
+      - file: development/project-structure
+        title: Project Structure
+      - file: development/adding-services
+        title: Adding New Services
+  - file: api
+    title: API Reference
+    sections:
+      - file: api/oauth-endpoints
+        title: OAuth Endpoints
+      - file: api/mcp-endpoints
+        title: MCP Endpoints
+      - file: api/client-registration
+        title: Client Registration
+      - file: api/error-codes
+        title: Error Codes
+  - file: deployment
+    title: Deployment
+    sections:
+      - file: deployment/production
+        title: Production Deployment
+      - file: deployment/ssl-certificates
+        title: SSL Certificates
+      - file: deployment/scaling
+        title: Scaling Considerations
+      - file: deployment/backup-restore
+        title: Backup & Restore
