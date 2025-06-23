@@ -96,6 +96,21 @@ jobs:
           pixi-version: v0.47.0
           cache: true
       
+      - name: "🔧 Setup Test Environment"
+        run: |
+          echo "🔧 Creating minimal .env for CI testing ⚡"
+          cat > .env << 'EOF'
+          # Minimal CI environment
+          BASE_DOMAIN=test.example.com
+          GITHUB_CLIENT_ID=test_client_id
+          GITHUB_CLIENT_SECRET=test_client_secret
+          GATEWAY_JWT_SECRET=test_jwt_secret_for_ci_only
+          REDIS_URL=redis://localhost:6379/0
+          ALLOWED_GITHUB_USERS=testuser
+          CLIENT_LIFETIME=7776000
+          MCP_PROTOCOL_VERSION=2025-06-18
+          EOF
+      
       - name: "🔥 Run Tests with Deprecation Hunting"
         run: |
           echo "🔥 RUNNING TESTS WITH DEPRECATION HUNTING ⚡"

@@ -57,9 +57,8 @@ repos:
     rev: 1.7.9
     hooks:
       - id: bandit
-        args: [-c, pyproject.toml]
+        args: ['-r', '.', '-x', 'tests/']
         description: "🔒 Security vulnerability scanning"
-        exclude: ^tests/
 
 # Global configuration
 default_stages: [commit]
