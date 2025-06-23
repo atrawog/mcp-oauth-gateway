@@ -67,10 +67,32 @@ debug-coverage: ensure-services-ready
 docs-build:
     pixi run jupyter-book build docs/
 
-# Lint and format code
+# Lint and format code - The Divine Code Quality Commandments!
 lint:
     pixi run ruff check .
+
+# Fix linting issues automatically
+lint-fix:
+    pixi run ruff check . --fix
+
+# Format code with divine standards
+format:
     pixi run ruff format .
+
+# Hunt for Pydantic deprecations
+lint-pydantic:
+    pixi run python scripts/lint_pydantic_compliance.py
+
+# Complete linting with deprecation hunting
+lint-all:
+    pixi run ruff check .
+    pixi run python scripts/lint_pydantic_compliance.py
+
+# Comprehensive linting: fix, format, and hunt deprecations
+lint-comprehensive:
+    pixi run ruff check . --fix
+    pixi run ruff format .
+    pixi run python scripts/lint_pydantic_compliance.py
 
 
 # Docker operations

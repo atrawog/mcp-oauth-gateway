@@ -46,21 +46,109 @@ The MCP OAuth Gateway implements a complete OAuth 2.1 Authorization Server that 
 └─────────────────────────────────────────────────────────────┘
 ```
 
+### Dual-Realm OAuth Architecture
+
+The gateway implements a sophisticated **two-realm authentication system** that separates client registration from user authentication, providing both security and flexibility:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                          TWO-REALM AUTHENTICATION ARCHITECTURE                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║                    REALM 1: MCP CLIENT REGISTRATION MANAGEMENT                    ║
+║                              (RFC 7591/7592 Compliance)                           ║
+╠═══════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                   ║
+║  📝 PUBLIC REGISTRATION ENDPOINT                                                  ║
+║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
+║  │ POST /register                                                              │  ║
+║  │ • No authentication required - open registration                            │  ║
+║  │ • Any MCP client can register dynamically                                   │  ║
+║  │ • Dynamic client registration (RFC 7591)                                    │  ║
+║  │                                                                             │  ║
+║  │ Returns:                                                                    │  ║
+║  │ • registration_access_token (bearer token for management)                   │  ║
+║  │ • registration_client_uri (URI for client management)                       │  ║
+║  │ • client_id & client_secret (OAuth credentials)                             │  ║
+║  └─────────────────────────────────────────────────────────────────────────────┘  ║
+║                                       ↓                                           ║
+║  🔐 PROTECTED MANAGEMENT ENDPOINTS                                                ║
+║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
+║  │ Authorization: Bearer registration_access_token                             │  ║
+║  │ • GET /register/{client_id}    - View registration details                  │  ║
+║  │ • PUT /register/{client_id}    - Update client metadata                     │  ║
+║  │ • DELETE /register/{client_id} - Revoke client registration                 │  ║
+║  │                                                                             │  ║
+║  │ ⚠️  IMPORTANT: Store registration_access_token securely                     │  ║
+║  └─────────────────────────────────────────────────────────────────────────────┘  ║
+║                                                                                   ║
+║  🎯 PURPOSE: Manage client registration lifecycle                                 ║
+║  🔄 LIFECYCLE: Register → Manage → Expire/Delete → Re-register                    ║
+║  ⏰ LIFETIME: 90 days default (configurable, 0 = unlimited)                       ║
+║                                                                                   ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
+                                         │
+                           STRICT SEPARATION
+                                         │
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║                     REALM 2: USER AUTHENTICATION & RESOURCE ACCESS                ║
+║                               (OAuth 2.0/2.1 RFC 6749)                            ║
+╠═══════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                   ║
+║  👤 GITHUB OAUTH FLOW (Human User Authentication)                                 ║
+║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
+║  │ /authorize → GitHub OAuth → /callback                                       │  ║
+║  │ • Human users authenticate through GitHub OAuth                             │  ║
+║  │ • PKCE S256 challenge method (RFC 7636)                                     │  ║
+║  │ • JWT tokens containing GitHub identity                                     │  ║
+║  │ • Per-subdomain authentication enforcement                                  │  ║
+║  │ • Access control via ALLOWED_GITHUB_USERS whitelist                         │  ║
+║  └─────────────────────────────────────────────────────────────────────────────┘  ║
+║                                       ↓                                           ║
+║  🎫 OAUTH TOKEN EXCHANGE (Client-Authenticated Resource Access)                   ║
+║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
+║  │ POST /token                                                                 │  ║
+║  │ • Requires client credentials (client_id + client_secret)                   │  ║
+║  │ • Authorization codes exchanged for JWT access tokens                       │  ║
+║  │ • Bearer tokens grant access to protected MCP resources                     │  ║
+║  │ • Refresh tokens enable session renewal                                     │  ║
+║  └─────────────────────────────────────────────────────────────────────────────┘  ║
+║                                       ↓                                           ║
+║  🛡️ RESOURCE ACCESS (MCP Service Communication)                                   ║
+║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
+║  │ Authorization: Bearer <access_token>                                        │  ║
+║  │ • Access to /mcp endpoints on all subdomains                                │  ║
+║  │ • Validated via Traefik ForwardAuth middleware                              │  ║
+║  │ • User identity passed to MCP services as headers                           │  ║
+║  └─────────────────────────────────────────────────────────────────────────────┘  ║
+║                                                                                   ║
+║  🎯 PURPOSE: Grant access to protected MCP resources                              ║
+║  🔐 TOKENS: access_token, refresh_token (OAuth standard)                          ║
+║  👥 USERS: GitHub-authenticated users with whitelist access control               ║
+║                                                                                   ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
 ### OAuth Roles
 
-1. **MCP OAuth Gateway** - OAuth Authorization Server
-   - Implements OAuth 2.1 with RFC 7591 dynamic client registration
-   - Issues and validates access tokens for MCP clients
-   - Manages client registrations and credentials
+1. **MCP OAuth Gateway** - Dual-Realm Authorization Server
+   - **Realm 1**: RFC 7591/7592 dynamic client registration and management
+   - **Realm 2**: OAuth 2.1 authorization server for resource access
+   - Issues and validates two distinct types of tokens
+   - Maintains strict separation between client management and resource access
 
-2. **GitHub OAuth** - Identity Provider (IdP)
+2. **GitHub OAuth** - Identity Provider (IdP) 
    - Authenticates end users through GitHub's OAuth flow
    - Provides user identity and profile information
-   - No direct interaction with MCP clients
+   - Operates exclusively in the User Authentication Realm
+   - No direct interaction with client registration processes
 
-3. **MCP Servers** - Protected resources
+3. **MCP Servers** - Protected Resources
    - Run unmodified official MCP servers
-   - Protected by OAuth without any code changes
+   - Protected by OAuth without any code changes  
+   - Access controlled via Bearer tokens from Realm 2 only
    - Support various protocol versions based on implementation
 
 ### Available MCP Services
@@ -97,7 +185,7 @@ The MCP OAuth Gateway implements a complete OAuth 2.1 Authorization Server that 
 - **Public IP address and properly configured DNS** (MANDATORY - no exceptions!)
   - All subdomains must resolve to your server:
     - `auth.your-domain.com` - OAuth authorization server
-    - `mcp-*.your-domain.com` - Each MCP service subdomain
+    - `service.your-domain.com` - Each MCP service subdomain
   - Ports 80 and 443 must be accessible from the internet
   - Let's Encrypt certificate provisioning requires public access
   - **NO LOCALHOST DEPLOYMENTS** - The gateway requires real domains

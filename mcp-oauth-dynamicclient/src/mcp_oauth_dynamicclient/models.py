@@ -2,7 +2,7 @@
 Pydantic models for OAuth 2.1 and RFC 7591 compliance
 """
 from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 # OAuth Client Registration Model (RFC 7591)

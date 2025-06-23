@@ -1,0 +1,121 @@
+# 🔥 Sacred Ruff Configuration - The Divine Linting Commandments! ⚡
+# Enforces code quality, catches deprecations, and prevents future regressions
+
+# Set maximum line length (matches Black default)
+line-length = 88
+
+# Set target Python version
+target-version = "py312"
+
+[lint]
+# Select aggressive rule set for maximum code quality
+select = [
+    "E",    # pycodestyle errors (comprehensive style checking)
+    "W",    # pycodestyle warnings (style warnings)
+    "F",    # Pyflakes (logical errors, unused imports, etc.)
+    "UP",   # pyupgrade (modernization, catches deprecated patterns)
+    "B",    # flake8-bugbear (likely bugs and design problems)
+    "SIM",  # flake8-simplify (code simplification)
+    "I",    # isort (import sorting)
+    "N",    # pep8-naming (naming conventions)
+    "D",    # pydocstyle (docstring conventions)
+    "S",    # flake8-bandit (security issues)
+    "C4",   # flake8-comprehensions (better comprehensions)
+    "DTZ",  # flake8-datetimez (timezone awareness)
+    "T20",  # flake8-print (prevent print statements)
+    "PT",   # flake8-pytest-style (pytest best practices)
+    "RET",  # flake8-return (return statement improvements)
+    "SLF",  # flake8-self (private member access)
+    "ARG",  # flake8-unused-arguments (unused function arguments)
+    "PIE",  # flake8-pie (miscellaneous improvements)
+    "PL",   # Pylint (comprehensive code analysis)
+    "RUF",  # Ruff-specific rules (additional checks)
+]
+
+# Ignore specific rules that conflict with our coding style
+ignore = [
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+    "D105", # Missing docstring in magic method
+    "D107", # Missing docstring in __init__
+    "D203", # 1 blank line required before class docstring (conflicts with D211)
+    "D213", # Multi-line docstring summary should start at the second line (conflicts with D212)
+    "S101", # Use of assert detected (needed for tests)
+    "T201", # print found (needed for debugging)
+    "PLR0913", # Too many arguments to function call (sometimes necessary)
+    "PLR0915", # Too many statements (sometimes necessary)
+    "N999", # Invalid module name (allow our special naming)
+    "B008", # Do not perform function calls in argument defaults (FastAPI dependencies)
+    "S608", # Possible SQL injection via string concatenation (false positives)
+    "RET504", # Unnecessary variable assignment before return (sometimes clearer)
+]
+
+# Files to exclude from linting
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    ".env",
+    "build",
+    "dist",
+    "*.egg-info",
+    ".pytest_cache",
+    ".coverage",
+    "htmlcov",
+    "docs/_build",
+    "logs",
+    "reports",
+]
+
+[lint.per-file-ignores]
+# Test files can have additional freedoms
+"tests/**/*.py" = [
+    "S101",    # Allow assert in tests
+    "PLR2004", # Allow magic values in tests
+    "S106",    # Allow hardcoded passwords in tests
+    "ARG001",  # Allow unused function arguments in fixtures
+    "PLR0913", # Allow many arguments in test functions
+    "B018",    # Allow useless expressions in tests (for assertions)
+]
+
+# Config files and scripts can be more relaxed
+"scripts/**/*.py" = [
+    "T201",    # Allow print in scripts
+    "PLR0912", # Allow complex logic in scripts
+    "PLR0915", # Allow many statements in scripts
+]
+
+# Allow specific patterns in __init__.py files
+"**/__init__.py" = [
+    "F401",    # Allow unused imports in __init__.py (re-exports)
+    "D104",    # Missing docstring in public package
+]
+
+[lint.isort]
+# Configure import sorting
+known-first-party = ["mcp_oauth_dynamicclient", "mcp_streamablehttp_client", "mcp_streamablehttp_proxy"]
+force-single-line = true
+lines-after-imports = 2
+
+[lint.pylint]
+# Pylint-specific configurations
+max-branches = 15
+max-returns = 8
+max-statements = 60
+
+[lint.pydocstyle]
+# Use Google-style docstrings
+convention = "google"
+
+# 🔥 CRITICAL: Custom rules to catch Pydantic deprecations! ⚡
+[lint.flake8-bugbear]
+# Catch common bugs and deprecated patterns
+extend-immutable-calls = ["pydantic.BaseSettings", "pydantic_settings.BaseSettings"]
+
+# 🔥 ULTRA-IMPORTANT: pyupgrade rules catch deprecated syntax! ⚡
+[lint.pyupgrade]
+# Keep up with modern Python and library practices
+keep-runtime-typing = false

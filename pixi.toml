@@ -13,9 +13,13 @@ test-all = "pytest tests/ -v --tb=short"
 test-verbose = "pytest tests/ -v -s"
 test-coverage = "pytest tests/ -v --cov=auth --cov-report=html --cov-report=term"
 
-# Linting tasks
+# Linting tasks - The Divine Code Quality Commandments!
 lint = "ruff check ."
+lint-fix = "ruff check . --fix"
 format = "ruff format ."
+lint-pydantic = "python scripts/lint_pydantic_compliance.py"
+lint-all = { cmd = "ruff check . && python scripts/lint_pydantic_compliance.py", description = "Complete linting with deprecation hunting" }
+lint-comprehensive = { cmd = "ruff check . --fix && ruff format . && python scripts/lint_pydantic_compliance.py", description = "Fix, format, and hunt deprecations" }
 
 # Documentation tasks
 docs-build = "jupyter-book build docs/"

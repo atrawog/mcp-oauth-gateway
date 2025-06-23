@@ -136,7 +136,11 @@ class TestMCPPlaywrightIntegration:
     def test_playwright_oauth_discovery(self):
         """Test OAuth discovery endpoint routing."""
         import requests
+        import urllib3
         from tests.test_constants import BASE_DOMAIN
+        
+        # Suppress SSL warnings for test environment
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         
         # Use base domain for OAuth discovery, not the /mcp endpoint  
         oauth_discovery_url = f"https://playwright.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
