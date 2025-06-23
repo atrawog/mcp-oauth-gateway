@@ -34,7 +34,7 @@ def temp_env_file(tmp_path):
     """Create a temporary .env file for testing"""
     env_content = f"""
 # MCP Server Configuration
-MCP_SERVER_URL={MCP_FETCH_URL}/mcp
+MCP_SERVER_URL={MCP_FETCH_URL}
 
 # OAuth Configuration
 OAUTH_AUTHORIZATION_URL={AUTH_BASE_URL}/authorize
@@ -43,7 +43,7 @@ OAUTH_DEVICE_AUTH_URL={AUTH_BASE_URL}/device/code
 OAUTH_REGISTRATION_URL={AUTH_BASE_URL}/register
 
 # Discovery URL (optional but recommended)
-OAUTH_DISCOVERY_URL={MCP_FETCH_URL}/.well-known/oauth-authorization-server
+OAUTH_DISCOVERY_URL={MCP_FETCH_URL.replace('/mcp', '')}/.well-known/oauth-authorization-server
 
 # Logging
 LOG_LEVEL=INFO
