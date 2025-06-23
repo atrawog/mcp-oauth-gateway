@@ -18,6 +18,7 @@ parts:
       - file: architecture/index
         sections:
           - file: architecture/overview
+          - file: architecture/oauth-architecture
           - file: architecture/trinity-separation
           - file: architecture/oauth-flow
           - file: architecture/mcp-protocol

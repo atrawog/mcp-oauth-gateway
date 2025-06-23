@@ -14,7 +14,26 @@ Welcome to the comprehensive documentation for the MCP OAuth Gateway - a product
 
 ## Overview
 
-The MCP OAuth Gateway provides secure, scalable access to multiple MCP services through a unified authentication system. Built with production-grade architecture, it supports dynamic client registration, comprehensive testing, and seamless integration with AI systems like Claude.ai.
+The MCP OAuth Gateway is an OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Context Protocol) server without requiring code modifications. It acts as a complete Authorization Server while using GitHub as the Identity Provider (IdP) for user authentication.
+
+```{warning}
+**Reference Implementation and Test Platform**
+
+This gateway serves as a reference implementation for MCP protocol development and a test platform for future protocol iterations. While we follow security best practices, this implementation:
+
+- Is primarily intended for MCP protocol testing and development
+- Likely contains bugs and security vulnerabilities
+- Should NOT be used in production without thorough security review
+- Is experimental software that may change significantly
+
+**Use at your own risk** - especially in production environments.
+```
+
+**Key Points:**
+- **Zero Code Modification**: Protects any MCP server without changing the server code
+- **OAuth Authorization Server**: Issues and manages tokens for MCP clients
+- **GitHub Identity Provider**: Uses GitHub OAuth for user identity verification only
+- **Standards Compliant**: Full OAuth 2.1 with RFC 7591/7592 support
 
 ## ✨ Key Features
 

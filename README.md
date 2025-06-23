@@ -1,6 +1,23 @@
 # MCP OAuth Gateway
 
-A sacred OAuth 2.1 gateway implementing RFC 7591 dynamic client registration to protect MCP (Model Context Protocol) services. Built with zealous adherence to the divine commandments of CLAUDE.md.
+An OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Context Protocol) server without code modification. The gateway acts as an OAuth Authorization Server while using GitHub as the Identity Provider (IdP) for user authentication.
+
+## ⚠️ Important Notice
+
+**This is a reference implementation and test platform for the MCP protocol.** 
+
+- **Primary Purpose**: Reference implementation for MCP protocol development and testing
+- **Experimental Nature**: Used as a test platform for future MCP protocol iterations
+- **Security Disclaimer**: While we strive for security best practices, this implementation likely contains bugs and security vulnerabilities
+- **Production Warning**: NOT recommended for production use without thorough security review
+- **Use at Your Own Risk**: This is experimental software intended for development and testing
+
+## Key Architecture
+
+- **OAuth Authorization Server**: This gateway implements a complete OAuth 2.1 authorization server with RFC 7591 dynamic client registration
+- **GitHub as Identity Provider**: Uses GitHub OAuth for user identity verification and authentication
+- **Zero Code Modification**: Protects any MCP server without requiring changes to the server code
+- **Protocol Proxy**: Uses `mcp-streamablehttp-proxy` to bridge stdio MCP servers to HTTP endpoints
 
 ## 🚀 Quick Start
 
@@ -185,21 +202,45 @@ MCP_PROTOCOL_VERSION=2025-06-18
 
 ## 🏗️ Architecture
 
-The gateway follows the Trinity separation:
+The gateway implements a complete OAuth 2.1 Authorization Server that protects MCP services:
 
-1. **Traefik** - Routes requests and enforces authentication
-2. **Auth Service** - Handles OAuth flows and token validation
-3. **MCP Services** - Run MCP servers with no knowledge of auth
+### OAuth Roles
+
+1. **MCP OAuth Gateway** - Acts as the OAuth Authorization Server
+   - Implements OAuth 2.1 with RFC 7591 dynamic client registration
+   - Issues and validates access tokens for MCP clients
+   - Manages client registrations and credentials
+
+2. **GitHub OAuth** - Acts as the Identity Provider (IdP)
+   - Authenticates end users through GitHub's OAuth flow
+   - Provides user identity and profile information
+   - No direct interaction with MCP clients
+
+3. **MCP Servers** - Protected resources requiring no modification
+   - Run unmodified official MCP servers
+   - Wrapped by `mcp-streamablehttp-proxy` for HTTP transport
+   - Protected by OAuth without any code changes
+
+### Component Separation
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│     Traefik     │────▶│  Auth Service   │     │  MCP Services   │
-│  (Divine Router)│     │ (OAuth Oracle)  │     │ (Pure Servants) │
+│     Traefik     │────▶│  Auth Service   │────▶│  GitHub OAuth   │
+│ (Reverse Proxy) │     │ (OAuth AS + RS) │     │     (IdP)       │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
-         │                                                │
-         └────────────────────────────────────────────────┘
-                    (ForwardAuth Middleware)
+         │                       │                        
+         │                       │ Token Validation       
+         │                       ▼                        
+         └──────────────▶┌─────────────────┐             
+                         │  MCP Services   │             
+                         │ (Protected APIs)│             
+                         └─────────────────┘             
 ```
+
+- **Traefik**: Routes requests and enforces authentication via ForwardAuth
+- **Auth Service**: OAuth Authorization Server that validates tokens and manages clients
+- **GitHub**: Identity Provider for user authentication only
+- **MCP Services**: Protected resources running unmodified MCP servers
 
 ## 📊 Monitoring and Logs
 

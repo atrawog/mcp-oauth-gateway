@@ -2,6 +2,18 @@
 
 Welcome to the MCP OAuth Gateway! This guide will help you get up and running quickly with a fully functional OAuth 2.1 authenticated MCP service ecosystem.
 
+```{warning}
+**Reference Implementation Notice**
+
+This is a reference implementation and test platform for the MCP protocol:
+- Intended for development and testing, not production use
+- Likely contains security vulnerabilities
+- Requires thorough security review before any production deployment
+- Subject to significant changes as the MCP protocol evolves
+
+**Use at your own risk**, especially in production environments.
+```
+
 ## Prerequisites
 
 Before you begin, ensure you have:

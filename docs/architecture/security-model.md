@@ -2,6 +2,23 @@
 
 Comprehensive security architecture implementing defense-in-depth principles with dual authentication realms and zero-trust verification.
 
+```{danger}
+**Security Disclaimer**
+
+This is a reference implementation and test platform. Despite our efforts to follow security best practices:
+
+- **Known Limitations**: As an experimental platform, security vulnerabilities likely exist
+- **Not Production Ready**: Requires extensive security auditing before production use
+- **Evolving Codebase**: Security model may change as MCP protocol evolves
+- **Test Platform**: Primary purpose is protocol testing, not production security
+
+**DO NOT** deploy this in production without:
+1. Comprehensive security audit
+2. Penetration testing
+3. Code review by security professionals
+4. Risk assessment for your use case
+```
+
 ## Authentication Security
 
 ### Dual Authentication Realms
