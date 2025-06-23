@@ -21,8 +21,8 @@ def everything_base_url():
         pytest.skip("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
     if not MCP_EVERYTHING_URLS:
         pytest.skip("MCP_EVERYTHING_URLS environment variable not set")
-    # Extract base URL (without /mcp path)
-    return MCP_EVERYTHING_URLS[0].replace('/mcp', '')  # Keep base URL without /mcp for this test
+    # Use the full MCP URL including /mcp path
+    return MCP_EVERYTHING_URLS[0]
 
 
 @pytest.fixture
@@ -55,7 +55,9 @@ class TestMCPEverythingIntegration:
     async def test_everything_reachable_no_auth(self, everything_base_url, wait_for_services):
         """Test that service is reachable (root requires auth)."""
         async with httpx.AsyncClient(verify=False) as client:
-            response = await client.get(f"{everything_base_url}/")
+            # Get base URL without /mcp for root test
+            base_url = everything_base_url[:-4] if everything_base_url.endswith("/mcp") else everything_base_url
+            response = await client.get(f"{base_url}/")
             # The root requires auth through Traefik
             assert response.status_code == 401
     
@@ -260,8 +262,10 @@ class TestMCPEverythingIntegration:
     async def test_everything_oauth_discovery(self, everything_base_url, wait_for_services):
         """Test OAuth discovery endpoint is accessible."""
         async with httpx.AsyncClient(verify=False) as client:
+            # Get base URL without /mcp for OAuth discovery
+            base_url = everything_base_url[:-4] if everything_base_url.endswith("/mcp") else everything_base_url
             response = await client.get(
-                f"{everything_base_url}/.well-known/oauth-authorization-server"
+                f"{base_url}/.well-known/oauth-authorization-server"
             )
             assert response.status_code == 200
             data = response.json()

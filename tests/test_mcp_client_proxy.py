@@ -86,7 +86,9 @@ class TestMCPClientProxyBasics:
         assert "WWW-Authenticate" in response.headers
         
         # Check OAuth discovery is available
-        discovery_url = f"{MCP_FETCH_URL}/.well-known/oauth-authorization-server"
+        # Remove /mcp suffix from URL to get base domain
+        base_url = MCP_FETCH_URL[:-4] if MCP_FETCH_URL.endswith("/mcp") else MCP_FETCH_URL
+        discovery_url = f"{base_url}/.well-known/oauth-authorization-server"
         discovery_response = await http_client.get(discovery_url)
         
         assert discovery_response.status_code == 200
@@ -465,8 +467,10 @@ class TestProxyAuthenticationFlows:
     async def test_oauth_discovery_through_proxy(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test OAuth discovery endpoint through proxy domain"""
         # This should be publicly accessible
+        # Remove /mcp suffix from URL to get base domain
+        base_url = MCP_FETCH_URL[:-4] if MCP_FETCH_URL.endswith("/mcp") else MCP_FETCH_URL
         response = await http_client.get(
-            f"{MCP_FETCH_URL}/.well-known/oauth-authorization-server"
+            f"{base_url}/.well-known/oauth-authorization-server"
         )
         
         assert response.status_code == 200

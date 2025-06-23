@@ -26,15 +26,14 @@ class TestMCPAIHostnames:
         
         cls.HOSTNAMES = []
         for url in urls:
-            # Handle URLs with or without /mcp suffix
-            if url.endswith("/mcp"):
-                base_url = url[:-4]
-            else:
-                base_url = url
-            
             # Extract hostname from URL
-            if "://" in base_url:
-                hostname = base_url.split("://")[1].split("/")[0]
+            if "://" in url:
+                # Get the base URL without path
+                parts = url.split("://")
+                protocol = parts[0]
+                rest = parts[1]
+                hostname = rest.split("/")[0]
+                
                 # Extract service name from hostname
                 if "." in hostname:
                     service_part = hostname.split(".")[0]
@@ -43,7 +42,7 @@ class TestMCPAIHostnames:
                     name = hostname
                     service_part = hostname
                 
-                cls.HOSTNAMES.append((name, base_url, service_part))
+                cls.HOSTNAMES.append((name, url, service_part))
     
     @pytest.mark.asyncio
     async def test_hostname_connectivity(self, http_client: httpx.AsyncClient):
@@ -60,8 +59,7 @@ class TestMCPAIHostnames:
             
             try:
                 # First test without auth - should get 401
-                test_url = f"{url}" if not url.endswith("/mcp") else url
-                response = await http_client.post(test_url)
+                response = await http_client.post(url)
                 assert response.status_code == 401, f"{name} should require authentication"
                 
                 # Test with auth - initialize request
@@ -82,7 +80,7 @@ class TestMCPAIHostnames:
                 }
                 
                 response = await http_client.post(
-                    test_url,
+                    url,
                     json=init_request,
                     headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
                 )
@@ -100,7 +98,7 @@ class TestMCPAIHostnames:
                 session_id = response.headers.get("Mcp-Session-Id")
                 assert session_id, f"{name} should provide session ID"
                 
-                print(f"✅ {name} hostname working at {test_url}")
+                print(f"✅ {name} hostname working at {url}")
                 successful += 1
                 
             except httpx.ConnectError as e:
@@ -129,8 +127,7 @@ class TestMCPAIHostnames:
             try:
                 # Per CLAUDE.md, health is checked via MCP protocol, not /health endpoint
                 # Test that endpoint requires auth (returns 401)
-                test_url = f"{url}" if not url.endswith("/mcp") else url
-                response = await http_client.get(test_url)
+                response = await http_client.get(url)
                 assert response.status_code == 401, f"{name} should require authentication"
                 assert "WWW-Authenticate" in response.headers
                 
@@ -146,8 +143,9 @@ class TestMCPAIHostnames:
         
         for name, url, _ in self.HOSTNAMES:
             
-            # Construct discovery endpoint
-            discovery_url = f"{url}/.well-known/oauth-authorization-server"
+            # Construct discovery endpoint - remove /mcp suffix if present
+            base_url = url[:-4] if url.endswith("/mcp") else url
+            discovery_url = f"{base_url}/.well-known/oauth-authorization-server"
             
             try:
                 # Discovery endpoint should be public
@@ -173,8 +171,7 @@ class TestMCPAIHostnames:
         # Use the first available hostname for this test
         if not self.HOSTNAMES:
             pytest.skip("No MCP URLs found in MCP_FETCH_URLS - skipping hostname tests")
-        name, base_url, _ = self.HOSTNAMES[0]
-        url = f"{base_url}" if not base_url.endswith("/mcp") else base_url
+        name, url, _ = self.HOSTNAMES[0]
         print(f"\nTesting fetch capability on {name}")
         
         # Initialize session
@@ -241,8 +238,7 @@ class TestMCPAIHostnames:
         # Test actual accessibility
         for name, url, _ in self.HOSTNAMES:
             try:
-                test_url = f"{url}" if not url.endswith("/mcp") else url
-                response = await http_client.post(test_url)
+                response = await http_client.post(url)
                 if response.status_code == 401:  # Expected when no auth
                     accessible.append((name, url))
                 else:

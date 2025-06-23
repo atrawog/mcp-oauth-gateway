@@ -35,11 +35,12 @@ async def initialize_mcp_session(
     }
     
     init_response = await http_client.post(
-        f"{mcp_url}/mcp",
+        mcp_url,
         json=init_request,
         headers={
             "Authorization": f"Bearer {auth_token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream"
         }
     )
     
@@ -51,7 +52,20 @@ async def initialize_mcp_session(
     if not session_id:
         raise RuntimeError("No session ID returned from MCP initialization")
     
-    init_result = init_response.json()
+    # Parse response based on content type
+    content_type = init_response.headers.get("content-type", "")
+    if "text/event-stream" in content_type:
+        # Parse SSE response
+        init_result = None
+        for line in init_response.text.strip().split('\n'):
+            if line.startswith('data: '):
+                init_result = json.loads(line[6:])
+                break
+        if not init_result:
+            raise RuntimeError("Failed to parse SSE response from MCP initialization")
+    else:
+        init_result = init_response.json()
+    
     if "error" in init_result:
         raise RuntimeError(f"MCP initialization error: {init_result['error']}")
     
@@ -63,11 +77,12 @@ async def initialize_mcp_session(
     }
     
     notify_response = await http_client.post(
-        f"{mcp_url}/mcp",
+        mcp_url,
         json=initialized_notification,
         headers={
             "Authorization": f"Bearer {auth_token}",
             "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
             "Mcp-Session-Id": session_id
         }
     )
@@ -99,11 +114,12 @@ async def call_mcp_tool(
     }
     
     response = await http_client.post(
-        f"{mcp_url}/mcp",
+        mcp_url,
         json=request,
         headers={
             "Authorization": f"Bearer {auth_token}",
             "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
             "Mcp-Session-Id": session_id
         }
     )
@@ -111,7 +127,20 @@ async def call_mcp_tool(
     if response.status_code != 200:
         raise RuntimeError(f"Tool call failed: {response.status_code} - {response.text}")
     
-    return response.json()
+    # Parse response based on content type
+    content_type = response.headers.get("content-type", "")
+    if "text/event-stream" in content_type:
+        # Parse SSE response
+        result = None
+        for line in response.text.strip().split('\n'):
+            if line.startswith('data: '):
+                result = json.loads(line[6:])
+                break
+        if not result:
+            raise RuntimeError("Failed to parse SSE response from tool call")
+        return result
+    else:
+        return response.json()
 
 async def list_mcp_tools(
     http_client: httpx.AsyncClient,
@@ -130,11 +159,12 @@ async def list_mcp_tools(
     }
     
     response = await http_client.post(
-        f"{mcp_url}/mcp",
+        mcp_url,
         json=request,
         headers={
             "Authorization": f"Bearer {auth_token}",
             "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
             "Mcp-Session-Id": session_id
         }
     )
@@ -142,4 +172,17 @@ async def list_mcp_tools(
     if response.status_code != 200:
         raise RuntimeError(f"Tool listing failed: {response.status_code} - {response.text}")
     
-    return response.json()
+    # Parse response based on content type
+    content_type = response.headers.get("content-type", "")
+    if "text/event-stream" in content_type:
+        # Parse SSE response
+        result = None
+        for line in response.text.strip().split('\n'):
+            if line.startswith('data: '):
+                result = json.loads(line[6:])
+                break
+        if not result:
+            raise RuntimeError("Failed to parse SSE response from tool listing")
+        return result
+    else:
+        return response.json()
