@@ -218,7 +218,36 @@ Client → POST /mcp → Traefik → ForwardAuth Middleware
 
 ### OAuth Architecture: Client Credentials + User Authentication
 
-The gateway implements a **sophisticated OAuth 2.1 system** that combines client credential authentication with GitHub user authentication:
+The gateway implements a **sophisticated OAuth 2.1 system** with **three distinct authentication flows**:
+
+1. **GitHub Device Flow (RFC 8628)** - For command-line/browserless scenarios
+2. **GitHub OAuth Web Flow** - For browser-based end-user authentication  
+3. **Dynamic Client Registration (RFC 7591)** - For MCP client registration
+
+#### Authentication Flow Decision Tree
+
+```
+Need Authentication?
+├─> For Gateway's Own GitHub Access?
+│   └─> Use Device Flow: `just generate-github-token`
+│       - Shows code: "Visit github.com/login/device"
+│       - No browser redirect needed
+│       - Stores GITHUB_PAT in .env
+│
+├─> For MCP Client Token?
+│   └─> Use Device Flow: `just mcp-client-token`
+│       - Client uses device flow for browserless auth
+│       - Stores MCP_CLIENT_ACCESS_TOKEN in .env
+│
+└─> For End User Access (Browser)?
+    └─> Use Standard OAuth Flow
+        - User visits protected resource
+        - Redirected to GitHub for login
+        - Redirected back to gateway
+        - JWT issued with user+client identity
+```
+
+The gateway implements this sophisticated system that combines client credential authentication with GitHub user authentication:
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════════════════╗
@@ -367,10 +396,17 @@ The gateway implements a **sophisticated OAuth 2.1 system** that combines client
 
 ### GitHub OAuth App
 
-You'll need to create a GitHub OAuth App for user authentication:
-1. Go to GitHub Settings > Developer settings > OAuth Apps
-2. Click "New OAuth App"
-3. Configure with your domain (see setup instructions)
+You'll need to create a GitHub OAuth App that serves **two distinct purposes**:
+
+1. **End-User Authentication** (Browser-based OAuth flow)
+   - When users access protected MCP services via browser/Claude.ai
+   - Users are redirected to GitHub for authentication
+   - Requires callback URL: `https://auth.yourdomain.com/callback`
+
+2. **Gateway Self-Authentication** (Device flow)
+   - When the gateway itself needs GitHub access
+   - Uses device flow (no browser redirect)
+   - Initiated by `just generate-github-token`
 
 ## 🚀 Installation
 
@@ -664,12 +700,20 @@ just logs -f traefik   # Follow mode
 
 ### OAuth Token Management
 
+The gateway uses **GitHub Device Flow** ([RFC 8628](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#device-flow)) for authenticating the gateway itself with GitHub:
+
 ```bash
-# Generate gateway OAuth tokens (for testing)
+# Generate gateway OAuth tokens using GitHub Device Flow
 just generate-github-token
+# This will:
+# 1. Request a device code from GitHub
+# 2. Display: "Visit https://github.com/login/device and enter: XXXX-XXXX"
+# 3. Poll GitHub until you authorize
+# 4. Store the GitHub PAT as GITHUB_PAT in .env
 
 # Generate MCP client token (for mcp-streamablehttp-client)
 just mcp-client-token
+# Uses device flow for browserless authentication
 
 # View OAuth registrations and tokens
 just oauth-show-all
@@ -679,6 +723,19 @@ just oauth-list-tokens
 # Cleanup expired tokens
 just oauth-purge-expired
 ```
+
+#### Two OAuth Flows: Device Flow vs Browser Flow
+
+**1. GitHub Device Flow (RFC 8628)** - Used for:
+- **Gateway self-authentication**: `just generate-github-token`
+- **MCP client tokens**: `just mcp-client-token`
+- **When**: No browser available or command-line scenarios
+- **Process**: Shows code → User enters at github.com/login/device → Polls for completion
+
+**2. Standard OAuth Flow** - Used for:
+- **End-user authentication**: When users access MCP services
+- **When**: Browser-based access (Claude.ai, web clients)
+- **Process**: Redirect to GitHub → User logs in → Redirect back with auth code
 
 ### Testing
 

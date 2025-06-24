@@ -11,6 +11,8 @@ chapters:
         title: System Components
       - file: architecture/oauth-flow
         title: OAuth 2.1 Flow
+      - file: architecture/device-flow
+        title: GitHub Device Flow
       - file: architecture/mcp-integration
         title: MCP Integration
       - file: architecture/security

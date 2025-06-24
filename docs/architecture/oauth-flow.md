@@ -226,9 +226,11 @@ The gateway issues JWT access tokens with the following claims:
 
 ## GitHub Integration
 
-The gateway uses GitHub as the identity provider for user authentication.
+The gateway uses GitHub OAuth in **two distinct ways**:
 
-### Configuration
+### 1. GitHub OAuth Web Flow (For End Users)
+
+Used when end users access protected MCP services through a browser:
 
 ```env
 GITHUB_CLIENT_ID=your_github_oauth_app_id
@@ -236,15 +238,44 @@ GITHUB_CLIENT_SECRET=your_github_oauth_app_secret
 ALLOWED_GITHUB_USERS=user1,user2,user3  # or * for any user
 ```
 
-### User Authentication Flow
+#### User Authentication Flow (Browser-Based)
 
-1. Gateway redirects to GitHub authorization
-2. User authenticates with GitHub
-3. GitHub redirects back with authorization code
-4. Gateway exchanges code for GitHub access token
-5. Gateway fetches user info from GitHub API
-6. Gateway validates user against allowlist
-7. Gateway issues its own tokens
+1. User attempts to access protected MCP service
+2. Gateway redirects browser to GitHub authorization page
+3. User authenticates with GitHub (if not already logged in)
+4. User approves the OAuth app permissions
+5. GitHub redirects back to gateway with authorization code
+6. Gateway exchanges code for GitHub access token
+7. Gateway fetches user info from GitHub API
+8. Gateway validates user against ALLOWED_GITHUB_USERS
+9. Gateway issues JWT containing user identity
+
+### 2. GitHub Device Flow (For CLI/Gateway)
+
+Used when the gateway itself or CLI tools need GitHub authentication:
+
+#### Device Flow Process (RFC 8628)
+
+```bash
+# Initiated by: just generate-github-token
+```
+
+1. Gateway requests device code from GitHub `/login/device/code`
+2. Gateway displays:
+   - Verification URL: `https://github.com/login/device`
+   - User Code: `XXXX-XXXX`
+3. User manually visits URL and enters code
+4. Gateway polls GitHub `/login/oauth/access_token` endpoint
+5. Upon authorization, GitHub returns access token
+6. Gateway stores token as `GITHUB_PAT` in `.env`
+
+### When Each Flow Is Used
+
+| Component | Flow Type | Trigger | User Experience |
+|-----------|-----------|---------|-----------------|
+| End Users (Claude.ai, browsers) | OAuth Web Flow | Accessing `/authorize` endpoint | Automatic browser redirect |
+| Gateway Setup | Device Flow | `just generate-github-token` | Manual code entry |
+| MCP Client Setup | Device Flow | `just mcp-client-token` | Manual code entry |
 
 ## Security Features
 

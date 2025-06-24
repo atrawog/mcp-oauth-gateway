@@ -80,22 +80,44 @@ For organization-level control:
 
 ## Step 5: Test Authentication
 
-### Manual Test
+### Understanding the Two OAuth Flows
+
+The gateway uses **two different GitHub OAuth flows** for different purposes:
+
+#### 1. Browser-Based OAuth Flow (End Users)
+
+For end users accessing MCP services through a browser:
 
 1. Start the gateway: `just up`
 2. Navigate to: `https://gateway.yourdomain.com/authorize`
-3. You should be redirected to GitHub
-4. Authorize the application
-5. Check successful redirect back
+3. You will be **redirected to GitHub** in your browser
+4. Log in and authorize the application
+5. GitHub redirects back to the gateway
+6. Gateway issues JWT tokens for MCP access
 
-### Automated Test
+#### 2. Device Flow (Gateway & CLI Tools)
 
-Use the provided token generation:
+For command-line authentication without browser:
 
 ```bash
-# This will guide you through GitHub OAuth
+# Generate GitHub PAT for the gateway itself
 just generate-github-token
+
+# This will:
+# 1. Show: "Visit https://github.com/login/device"
+# 2. Display a code like: "ABCD-1234"
+# 3. You manually enter this code on GitHub
+# 4. Gateway polls until you authorize
+# 5. Stores GITHUB_PAT in .env
 ```
+
+### When Each Flow is Used
+
+| Scenario | Flow Type | Initiated By | User Action |
+|----------|-----------|--------------|-------------|
+| End user accessing MCP service | Browser OAuth | User clicks link/visits URL | Redirected to GitHub automatically |
+| Gateway needs GitHub token | Device Flow | `just generate-github-token` | Manually enter code at github.com/login/device |
+| MCP client needs token | Device Flow | `just mcp-client-token` | Manually enter code at github.com/login/device |
 
 ## Advanced Configuration
 

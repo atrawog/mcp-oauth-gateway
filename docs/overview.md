@@ -38,11 +38,19 @@ The gateway provides a complete OAuth 2.1 authorization server with:
 
 ### GitHub Integration
 
-The gateway uses GitHub as an Identity Provider (IdP) for:
-- User authentication
-- Access control based on GitHub usernames
-- Leveraging existing GitHub accounts
-- No password management required
+The gateway uses GitHub OAuth in two distinct ways:
+
+1. **Device Flow (RFC 8628)** - For command-line scenarios:
+   - Gateway setup: `just generate-github-token`
+   - MCP client tokens: `just mcp-client-token`
+   - Shows code to enter at `github.com/login/device`
+   - No browser redirect required
+
+2. **Standard OAuth Flow** - For end-user authentication:
+   - Users accessing MCP services via browser
+   - Automatic redirect to GitHub for login
+   - Seamless authentication experience
+   - Access control via `ALLOWED_GITHUB_USERS`
 
 ## Supported MCP Services
 

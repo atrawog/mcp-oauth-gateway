@@ -18,30 +18,47 @@ just generate-jwt-secret
 
 ### 2. GitHub OAuth Tokens
 
-For the gateway's own GitHub authentication:
+For the gateway's own GitHub authentication using **Device Flow**:
 
 ```bash
-# Generate GitHub tokens
+# Generate GitHub PAT using device flow (RFC 8628)
 just generate-github-token
 
-# This initiates OAuth flow and stores:
-# - GATEWAY_OAUTH_ACCESS_TOKEN
+# This initiates GitHub Device Flow:
+# 1. Requests device code from GitHub
+# 2. Shows: "Visit https://github.com/login/device"  
+# 3. Displays code: "XXXX-XXXX" for you to enter
+# 4. Polls GitHub until you authorize
+# 5. Stores the resulting GitHub PAT as GITHUB_PAT
+
+# Also generates and stores:
+# - GATEWAY_OAUTH_ACCESS_TOKEN (JWT for gateway)
 # - GATEWAY_OAUTH_REFRESH_TOKEN
-# - GATEWAY_OAUTH_CLIENT_ID
+# - GATEWAY_OAUTH_CLIENT_ID  
 # - GATEWAY_OAUTH_CLIENT_SECRET
 ```
 
+**Note**: This is different from end-user authentication, which uses standard OAuth flow with browser redirects.
+
 ### 3. MCP Client Tokens
 
-For external MCP clients (like Claude.ai):
+For external MCP clients (like Claude.ai) using **Device Flow**:
 
 ```bash
-# Generate client access token
+# Generate client access token using device flow
 just mcp-client-token
 
-# Stores as MCP_CLIENT_ACCESS_TOKEN
-# Used by mcp-streamablehttp-client
+# This also uses Device Flow (if needed):
+# 1. Attempts to register/authenticate the client
+# 2. If browser unavailable, initiates device flow
+# 3. Shows verification URL and code
+# 4. You manually authorize on GitHub
+# 5. Stores as MCP_CLIENT_ACCESS_TOKEN
+
+# Used by mcp-streamablehttp-client for OAuth-protected MCP servers
 ```
+
+**Key Point**: Both gateway tokens and MCP client tokens use device flow for browserless authentication scenarios.
 
 ## Token Lifecycle
 
