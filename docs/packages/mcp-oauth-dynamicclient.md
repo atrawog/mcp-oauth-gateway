@@ -94,7 +94,7 @@ pixi add mcp-oauth-dynamicclient
 
 ```bash
 cd mcp-oauth-dynamicclient
-pixi install -e .
+pixi install
 ```
 
 ## Configuration
@@ -397,7 +397,7 @@ pixi run pytest --cov=mcp_oauth_dynamicclient
 
 #### "Redis Connection Failed"
 - Check `REDIS_URL` configuration
-- Verify Redis is running: `redis-cli ping`
+- Verify Redis is running: `just exec redis redis-cli ping`
 - Check network connectivity
 
 #### "JWT Validation Failed"

@@ -304,7 +304,7 @@ just test tests/ -v -s --tb=long
 
 ```bash
 # Check authentication
-twine --version
+pixi run twine --version
 echo $TWINE_USERNAME
 echo $TWINE_PASSWORD
 
@@ -316,7 +316,7 @@ just pypi-check package-name
 
 ```bash
 # Check existing versions on PyPI
-pip index versions package-name
+pixi run pip index versions package-name
 
 # Update version in pyproject.toml
 # Rebuild and upload
@@ -385,7 +385,7 @@ pip index versions package-name
 just pypi-check package-name
 
 # Check for security vulnerabilities
-pip-audit dist/*.whl
+pixi run pip-audit dist/*.whl
 ```
 
 ## Automation

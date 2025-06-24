@@ -77,8 +77,14 @@ mcp_fetch_streamablehttp_server/
 ### Using pixi (Recommended)
 
 ```bash
+pixi add mcp-fetch-streamablehttp-server
+```
+
+### From Source
+
+```bash
 cd mcp-fetch-streamablehttp-server
-pixi install -e .
+pixi install
 ```
 
 ### Running the Server

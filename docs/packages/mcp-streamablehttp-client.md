@@ -107,7 +107,7 @@ pixi add mcp-streamablehttp-client
 
 ```bash
 cd mcp-streamablehttp-client
-pixi install -e .
+pixi install
 ```
 
 ## Quick Start
@@ -136,7 +136,7 @@ MCP_CLIENT_SECRET=
 
 ```bash
 # Run the client - it will guide through OAuth
-mcp-streamablehttp-client
+pixi run mcp-streamablehttp-client
 
 # Output:
 # 🔐 No valid authentication found. Starting OAuth flow...
@@ -171,7 +171,7 @@ Add to `claude_desktop_config.json`:
 ### Basic Usage
 
 ```bash
-mcp-streamablehttp-client [OPTIONS]
+pixi run mcp-streamablehttp-client [OPTIONS]
 
 Options:
   --env-file PATH         Path to .env file
@@ -184,13 +184,13 @@ Options:
 
 ```bash
 # Check and refresh tokens
-mcp-streamablehttp-client --token
+pixi run mcp-streamablehttp-client --token
 
 # Reset authentication (clear credentials)
-mcp-streamablehttp-client --reset-auth
+pixi run mcp-streamablehttp-client --reset-auth
 
 # Test authentication without running
-mcp-streamablehttp-client --test-auth
+pixi run mcp-streamablehttp-client --test-auth
 ```
 
 ### Tool Execution
@@ -199,16 +199,16 @@ Execute MCP tools directly from CLI:
 
 ```bash
 # Simple execution
-mcp-streamablehttp-client -c "echo Hello World"
+pixi run mcp-streamablehttp-client -c "echo Hello World"
 
 # With parameters
-mcp-streamablehttp-client -c "fetch https://example.com"
+pixi run mcp-streamablehttp-client -c "fetch https://example.com"
 
 # Key=value format
-mcp-streamablehttp-client -c "search query='python tutorial' limit=10"
+pixi run mcp-streamablehttp-client -c "search query='python tutorial' limit=10"
 
 # JSON format
-mcp-streamablehttp-client -c 'weather {"location": "San Francisco", "units": "celsius"}'
+pixi run mcp-streamablehttp-client -c 'weather {"location": "San Francisco", "units": "celsius"}'
 ```
 
 ### Discovery Commands
@@ -217,7 +217,7 @@ List server capabilities:
 
 ```bash
 # List all tools with descriptions
-mcp-streamablehttp-client --list-tools
+pixi run mcp-streamablehttp-client --list-tools
 
 # Example output:
 # Available tools:
@@ -232,10 +232,10 @@ mcp-streamablehttp-client --list-tools
 #     - message (string, required): Message to echo
 
 # List resources
-mcp-streamablehttp-client --list-resources
+pixi run mcp-streamablehttp-client --list-resources
 
 # List prompts
-mcp-streamablehttp-client --list-prompts
+pixi run mcp-streamablehttp-client --list-prompts
 ```
 
 ### Raw Protocol Mode
@@ -244,10 +244,10 @@ Send raw JSON-RPC requests for testing:
 
 ```bash
 # Direct protocol testing
-mcp-streamablehttp-client --raw '{"method": "tools/list", "params": {}}'
+pixi run mcp-streamablehttp-client --raw '{"method": "tools/list", "params": {}}'
 
 # Test specific methods
-mcp-streamablehttp-client --raw '{
+pixi run mcp-streamablehttp-client --raw '{
   "method": "tools/call",
   "params": {
     "name": "fetch",
@@ -256,7 +256,7 @@ mcp-streamablehttp-client --raw '{
 }'
 
 # Custom protocol testing
-mcp-streamablehttp-client --raw '{
+pixi run mcp-streamablehttp-client --raw '{
   "method": "resources/read",
   "params": {"uri": "file:///example.txt"}
 }'
@@ -268,7 +268,7 @@ Manage OAuth client registration:
 
 ```bash
 # View current registration
-mcp-streamablehttp-client --get-client-info
+pixi run mcp-streamablehttp-client --get-client-info
 
 # Output:
 # Client Registration Info:
@@ -278,16 +278,16 @@ mcp-streamablehttp-client --get-client-info
 # - Expires: Never
 
 # Update client metadata
-mcp-streamablehttp-client --update-client "client_name=Production MCP Client"
+pixi run mcp-streamablehttp-client --update-client "client_name=Production MCP Client"
 
 # Update multiple fields
-mcp-streamablehttp-client --update-client "client_name=My App,scope=read write admin"
+pixi run mcp-streamablehttp-client --update-client "client_name=My App,scope=read write admin"
 
 # Update redirect URIs (semicolon-separated)
-mcp-streamablehttp-client --update-client "redirect_uris=https://app1.com/cb;https://app2.com/cb"
+pixi run mcp-streamablehttp-client --update-client "redirect_uris=https://app1.com/cb;https://app2.com/cb"
 
 # Delete registration (PERMANENT!)
-mcp-streamablehttp-client --delete-client
+pixi run mcp-streamablehttp-client --delete-client
 ```
 
 ## Configuration Reference
@@ -427,19 +427,19 @@ The client supports multiple argument formats:
 
 ```bash
 # Positional arguments
-mcp-streamablehttp-client -c "echo Hello World"
+pixi run mcp-streamablehttp-client -c "echo Hello World"
 # Parsed as: {"message": "Hello World"}
 
 # Key=value pairs
-mcp-streamablehttp-client -c "search query=test limit=5"
+pixi run mcp-streamablehttp-client -c "search query=test limit=5"
 # Parsed as: {"query": "test", "limit": 5}
 
 # JSON objects
-mcp-streamablehttp-client -c 'tool {"key": "value", "num": 42}'
+pixi run mcp-streamablehttp-client -c 'tool {"key": "value", "num": 42}'
 # Parsed as: {"key": "value", "num": 42}
 
 # Mixed formats
-mcp-streamablehttp-client -c "fetch https://example.com method=POST"
+pixi run mcp-streamablehttp-client -c "fetch https://example.com method=POST"
 # Parsed as: {"url": "https://example.com", "method": "POST"}
 ```
 
@@ -522,7 +522,7 @@ Test MCP protocol compliance:
 
 ```bash
 # Test initialization
-mcp-streamablehttp-client --raw '{
+pixi run mcp-streamablehttp-client --raw '{
   "method": "initialize",
   "params": {
     "protocolVersion": "2025-06-18",
@@ -532,10 +532,10 @@ mcp-streamablehttp-client --raw '{
 }'
 
 # Test error handling
-mcp-streamablehttp-client --raw '{"method": "invalid/method"}'
+pixi run mcp-streamablehttp-client --raw '{"method": "invalid/method"}'
 
 # Test tool execution
-mcp-streamablehttp-client --raw '{
+pixi run mcp-streamablehttp-client --raw '{
   "method": "tools/call",
   "params": {"name": "echo", "arguments": {"message": "test"}}
 }'
@@ -547,11 +547,11 @@ Enable verbose logging:
 
 ```bash
 # Via command line
-mcp-streamablehttp-client --log-level DEBUG
+pixi run mcp-streamablehttp-client --log-level DEBUG
 
 # Via environment
 export LOG_LEVEL=DEBUG
-mcp-streamablehttp-client
+pixi run mcp-streamablehttp-client
 ```
 
 Debug output includes:
@@ -565,19 +565,19 @@ Debug output includes:
 
 ```bash
 # Test authentication
-mcp-streamablehttp-client --test-auth
+pixi run mcp-streamablehttp-client --test-auth
 
 # Check token status
-mcp-streamablehttp-client --token
+pixi run mcp-streamablehttp-client --token
 
 # List server capabilities
-mcp-streamablehttp-client --list-tools
+pixi run mcp-streamablehttp-client --list-tools
 
 # Test specific tool
-mcp-streamablehttp-client -c "echo test message"
+pixi run mcp-streamablehttp-client -c "echo test message"
 
 # Raw protocol test
-mcp-streamablehttp-client --raw '{"method": "tools/list", "params": {}}'
+pixi run mcp-streamablehttp-client --raw '{"method": "tools/list", "params": {}}'
 ```
 
 ## Troubleshooting

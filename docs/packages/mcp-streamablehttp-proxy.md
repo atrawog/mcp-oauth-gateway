@@ -118,7 +118,7 @@ pixi add mcp-streamablehttp-proxy
 
 ```bash
 cd mcp-streamablehttp-proxy
-pixi install -e .
+pixi install
 ```
 
 ## Usage
@@ -129,21 +129,21 @@ The proxy provides a simple CLI for wrapping any MCP server:
 
 ```bash
 # Basic usage
-mcp-streamablehttp-proxy serve -- mcp-server-command
+pixi run mcp-streamablehttp-proxy serve -- mcp-server-command
 
 # Examples
-mcp-streamablehttp-proxy serve -- python -m mcp_server_fetch
-mcp-streamablehttp-proxy serve -- npx @modelcontextprotocol/server-fetch
-mcp-streamablehttp-proxy serve -- /usr/local/bin/my-mcp-server
+pixi run mcp-streamablehttp-proxy serve -- python -m mcp_server_fetch
+pixi run mcp-streamablehttp-proxy serve -- npx @modelcontextprotocol/server-fetch
+pixi run mcp-streamablehttp-proxy serve -- /usr/local/bin/my-mcp-server
 
 # With options
-mcp-streamablehttp-proxy serve --port 8080 -- mcp-server-command
+pixi run mcp-streamablehttp-proxy serve --port 8080 -- mcp-server-command
 ```
 
 ### CLI Options
 
 ```bash
-mcp-streamablehttp-proxy serve [OPTIONS] -- <mcp-server-command>
+pixi run mcp-streamablehttp-proxy serve [OPTIONS] -- <mcp-server-command>
 
 Options:
   --host TEXT       Host to bind to [default: 0.0.0.0]
@@ -337,6 +337,36 @@ proxy = MCPProxy(
 )
 ```
 
+## Package Management Strategy
+
+This project uses a **hybrid package management approach** to support the diverse MCP ecosystem:
+
+- **🐍 pixi** - For Python package management and environment isolation
+  - Manages Python dependencies (FastAPI, uvicorn, etc.)
+  - Provides isolated environments for development
+  - Handles the mcp-streamablehttp-proxy package itself
+
+- **📦 npm/npx** - For Node.js MCP servers
+  - Many official MCP servers are implemented in Node.js
+  - Uses `npx -y` for dynamic execution without global installation
+  - Keeps Node.js dependencies separate from Python environment
+
+- **🐳 Docker** - For service isolation and deployment
+  - Combines both Python and Node.js environments safely
+  - Provides consistent runtime across different systems
+  - Enables easy scaling and deployment
+
+**Example usage combining both:**
+```bash
+# Install the proxy (Python)
+pixi add mcp-streamablehttp-proxy
+
+# Run proxy with Node.js MCP server
+pixi run mcp-streamablehttp-proxy serve -- npx @modelcontextprotocol/server-fetch
+```
+
+This approach ensures compatibility with the entire MCP ecosystem while maintaining clean environment separation.
+
 ## Supported MCP Servers
 
 The proxy works with any stdio-based MCP server:
@@ -357,13 +387,13 @@ Any executable that implements MCP over stdio:
 
 ```bash
 # Python server
-mcp-streamablehttp-proxy serve -- python my_mcp_server.py
+pixi run mcp-streamablehttp-proxy serve -- python my_mcp_server.py
 
 # Binary executable
-mcp-streamablehttp-proxy serve -- /usr/local/bin/custom-mcp-server
+pixi run mcp-streamablehttp-proxy serve -- /usr/local/bin/custom-mcp-server
 
 # Script with arguments
-mcp-streamablehttp-proxy serve -- ./mcp-server.sh --config prod.conf
+pixi run mcp-streamablehttp-proxy serve -- ./mcp-server.sh --config prod.conf
 ```
 
 ## Health Monitoring
@@ -517,7 +547,7 @@ Enable detailed logging:
 
 ```bash
 export LOG_LEVEL=DEBUG
-mcp-streamablehttp-proxy serve -- mcp-server
+pixi run mcp-streamablehttp-proxy serve -- mcp-server
 ```
 
 Debug output includes:
