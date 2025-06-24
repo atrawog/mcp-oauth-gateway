@@ -47,6 +47,10 @@ def main():
     if os.getenv("MCP_TMUX_ENABLED", "true").lower() == "true":
         includes.append("mcp-tmux/docker-compose.yml")
 
+    # Conditionally add mcp-echo
+    if os.getenv("MCP_ECHO_ENABLED", "true").lower() == "true":
+        includes.append("mcp-echo/docker-compose.yml")
+
     # Conditionally add mcp-everything
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
         includes.append("mcp-everything/docker-compose.yml")
@@ -109,6 +113,11 @@ def main():
         print("✅ mcp-tmux is ENABLED")
     else:
         print("❌ mcp-tmux is DISABLED")
+
+    if os.getenv("MCP_ECHO_ENABLED", "true").lower() == "true":
+        print("✅ mcp-echo is ENABLED")
+    else:
+        print("❌ mcp-echo is DISABLED")
 
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
         print("✅ mcp-everything is ENABLED")

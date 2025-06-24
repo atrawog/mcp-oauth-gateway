@@ -495,12 +495,12 @@ async def refresh_and_validate_tokens(ensure_services_ready):
         os.environ["MCP_CLIENT_ACCESS_TOKEN"] = gateway_token
         print("✅ Set MCP client token from gateway token")
 
-    # Validate all required environment variables
+    # Validate all required environment variables (centralized from check_services_ready.py)
     required_vars = {
         "GATEWAY_OAUTH_ACCESS_TOKEN": "Gateway OAuth access token",
-        "MCP_CLIENT_ACCESS_TOKEN": "MCP client access token",
+        "MCP_CLIENT_ACCESS_TOKEN": "MCP client access token", 
         "GITHUB_PAT": "GitHub Personal Access Token",
-        "BASE_DOMAIN": "Base domain",
+        "BASE_DOMAIN": "Base domain for services",
         "GITHUB_CLIENT_ID": "GitHub OAuth client ID",
         "GITHUB_CLIENT_SECRET": "GitHub OAuth client secret",
         "GATEWAY_JWT_SECRET": "JWT signing secret",
@@ -508,16 +508,18 @@ async def refresh_and_validate_tokens(ensure_services_ready):
         "JWT_ALGORITHM": "JWT algorithm (should be RS256)",
         "GATEWAY_OAUTH_CLIENT_ID": "Gateway OAuth client ID",
         "GATEWAY_OAUTH_CLIENT_SECRET": "Gateway OAuth client secret",
+        "REDIS_PASSWORD": "Redis password",
     }
 
     all_valid = True
     for key, desc in required_vars.items():
-        if not os.getenv(key):
-            print(f"❌ Missing: {desc} ({key})")
+        value = os.getenv(key)
+        if not value or len(value) < 5:  # Basic check that it's not empty (using same logic as check_services_ready.py)
+            print(f"❌ Missing or too short: {desc} ({key})")
             all_valid = False
 
     if not all_valid:
-        pytest.fail("❌ Required environment variables are missing!")
+        pytest.fail("❌ Required environment variables are missing or too short!")
 
     print("\n" + "=" * 60)
     print("✅ ALL TOKENS VALIDATED AND READY FOR TESTING!")

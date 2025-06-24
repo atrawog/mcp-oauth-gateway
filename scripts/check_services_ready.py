@@ -26,6 +26,16 @@ def run_command(cmd: list[str]) -> tuple[int, str, str]:
 
 def check_docker_service(service_name: str) -> bool:
     """Check if a Docker service is running."""
+    # Skip mcp-echo if it's disabled
+    if (
+        service_name == "mcp-echo"
+        and os.getenv("MCP_ECHO_ENABLED", "true").lower() != "true"
+    ):
+        print(
+            f"{YELLOW}⊝ Service {service_name} is disabled via MCP_ECHO_ENABLED{RESET}"
+        )
+        return True  # Consider it "passing" since it's intentionally disabled
+
     # Skip mcp-everything if it's disabled
     if (
         service_name == "mcp-everything"
@@ -145,6 +155,10 @@ async def wait_for_services(max_wait: int = 60) -> bool:
 
     services_to_check = ["traefik", "auth", "redis", "mcp-fetch"]
 
+    # Add mcp-echo if enabled
+    if os.getenv("MCP_ECHO_ENABLED", "true").lower() == "true":
+        services_to_check.append("mcp-echo")
+
     # Add mcp-everything if enabled
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
         services_to_check.append("mcp-everything")
@@ -195,29 +209,28 @@ async def wait_for_services(max_wait: int = 60) -> bool:
     return False
 
 
-def check_tokens() -> bool:
-    """Check that all required tokens are present."""
-    print(f"\n{YELLOW}Checking required tokens and credentials...{RESET}")
+def check_basic_config() -> bool:
+    """Check that basic configuration is present (tokens validated in test setup)."""
+    print(f"\n{YELLOW}Checking basic configuration...{RESET}")
 
-    required_vars = [
-        ("GATEWAY_OAUTH_ACCESS_TOKEN", "OAuth access token for tests"),
+    # Only check critical variables needed for service startup
+    # Token validation is now centralized in refresh_and_validate_tokens()
+    basic_vars = [
         ("BASE_DOMAIN", "Base domain for services"),
-        ("GITHUB_CLIENT_ID", "GitHub OAuth client ID"),
-        ("GITHUB_CLIENT_SECRET", "GitHub OAuth client secret"),
-        ("GATEWAY_JWT_SECRET", "JWT signing secret"),
         ("REDIS_PASSWORD", "Redis password"),
     ]
 
     all_present = True
 
-    for var_name, description in required_vars:
+    for var_name, description in basic_vars:
         value = os.getenv(var_name)
-        if value and len(value) > 5:  # Basic check that it's not empty
+        if value and len(value) > 1:  # Basic check that it's not empty
             print(f"{GREEN}✓ {var_name} is configured ({description}){RESET}")
         else:
             print(f"{RED}✗ {var_name} is missing or too short ({description}){RESET}")
             all_present = False
 
+    print(f"{YELLOW}Note: Full token validation happens during test setup via refresh_and_validate_tokens(){RESET}")
     return all_present
 
 
@@ -244,6 +257,8 @@ async def main():
 
     # Build services if needed
     base_services = ["traefik", "auth", "redis", "mcp-fetch"]
+    if os.getenv("MCP_ECHO_ENABLED", "true").lower() == "true":
+        base_services.append("mcp-echo")
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
         base_services.append("mcp-everything")
 
@@ -259,8 +274,8 @@ async def main():
     # Wait for health
     checks.append(("Docker Health Checks", await wait_for_services()))
 
-    # Check tokens
-    checks.append(("Tokens", check_tokens()))
+    # Check basic config (full token validation happens in test setup)
+    checks.append(("Basic Config", check_basic_config()))
 
     # Summary
     print(f"\n{YELLOW}{'=' * 60}{RESET}")
