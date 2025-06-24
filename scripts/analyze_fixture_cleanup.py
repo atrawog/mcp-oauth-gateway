@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Analyze test files that use the registered_client fixture
-to see if they clean up the registrations properly.
+"""Analyze test files that use the registered_client fixture.
+
+To see if they clean up the registrations properly.
 """
 
 import re

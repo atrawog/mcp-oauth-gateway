@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Backup OAuth Data from Redis
+"""Backup OAuth Data from Redis.
+
 Following the divine commandments of CLAUDE.md - NO MOCKING!
 """
 

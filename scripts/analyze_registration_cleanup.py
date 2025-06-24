@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Analyze test files to find which ones create client registrations
-but don't clean them up using RFC 7592 DELETE endpoint.
+"""Analyze test files to find which ones create client registrations.
+
+Find which files create client registrations but don't clean them up using RFC 7592 DELETE endpoint.
 """
 
 import re

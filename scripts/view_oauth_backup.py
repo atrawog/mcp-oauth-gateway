@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""View contents of OAuth backup file
+"""View contents of OAuth backup file.
+
 Following the divine commandments of CLAUDE.md.
 """
 
@@ -123,7 +124,7 @@ def view_backup(filepath: str):
         print("-" * 80)
         print(f"  Total: {len(data['refresh_tokens'])} tokens")
         # Show first few
-        for _i, (token_id, token_data) in enumerate(
+        for _i, (token_id, _token_data) in enumerate(
             list(data["refresh_tokens"].items())[:3]
         ):
             print(f"  • {token_id[:20]}...")

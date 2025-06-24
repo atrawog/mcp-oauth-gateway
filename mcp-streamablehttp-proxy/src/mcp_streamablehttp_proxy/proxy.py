@@ -9,6 +9,10 @@ import time
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
 logger = logging.getLogger(__name__)
 
 
@@ -106,9 +110,9 @@ class MCPSession:
             try:
                 response = await asyncio.wait_for(future, timeout=30.0)
                 return response
-            except asyncio.TimeoutError:
+            except asyncio.TimeoutError as e:
                 self.pending_responses.pop(request_id, None)
-                raise RuntimeError(f"Session {self.session_id}: Request timeout")
+                raise RuntimeError(f"Session {self.session_id}: Request timeout") from e
 
         return {}
 
@@ -219,7 +223,8 @@ class MCPSession:
             try:
                 self.process.terminate()
                 await self.process.wait()
-            except:
+            except (ProcessLookupError, OSError):
+                # Process already terminated or system error - this is fine
                 pass
             self.process = None
 
@@ -363,11 +368,6 @@ class MCPSessionManager:
                 break
             except Exception as e:
                 logger.error(f"Error in session cleanup: {e}")
-
-
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 
 def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI:

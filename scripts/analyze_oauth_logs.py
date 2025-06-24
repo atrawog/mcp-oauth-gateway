@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Sacred OAuth Log Analysis Script
+"""Sacred OAuth Log Analysis Script.
+
 Analyzes OAuth flow patterns and errors from logs.
 """
 
 import re
 from collections import defaultdict
+from datetime import UTC
 from datetime import datetime
 from pathlib import Path
 
@@ -71,7 +73,7 @@ def analyze_line(line: str, stats: dict):
 def generate_report(stats: dict) -> str:
     """Generate markdown report from stats."""
     report = f"""# OAuth Flow Analysis Report
-Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+Generated: {datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")}
 
 ## Summary Statistics
 
@@ -109,7 +111,7 @@ Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         report += "- ⚠️ Invalid client errors detected. Verify client registration.\n"
 
     if stats["client_registrations"] == 0 and stats["total_requests"] > 0:
-        report += "- ℹ️ No client registrations found. Ensure clients are registering properly.\n"
+        report += "- ⓘ No client registrations found. Ensure clients are registering properly.\n"
 
     return report
 

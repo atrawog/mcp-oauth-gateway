@@ -447,8 +447,9 @@ class OAuthClient:
                 response = await self.http_client.get(candidate)
                 if response.status_code == 200:
                     return candidate
-            except Exception:
+            except Exception as e:
                 # Continue trying other candidates if this one fails
+                logging.debug(f"OAuth discovery failed for {candidate}: {e}")
                 continue
 
         return None

@@ -25,8 +25,8 @@ def _get_env_int_or_fail(key: str) -> int:
     value = _get_env_or_fail(key)
     try:
         return int(value)
-    except ValueError:
-        raise ValueError(f"Environment variable {key} must be an integer, got: {value}")
+    except ValueError as e:
+        raise ValueError(f"Environment variable {key} must be an integer, got: {value}") from e
 
 
 def _get_env_float_or_fail(key: str) -> float:
@@ -34,8 +34,8 @@ def _get_env_float_or_fail(key: str) -> float:
     value = _get_env_or_fail(key)
     try:
         return float(value)
-    except ValueError:
-        raise ValueError(f"Environment variable {key} must be a float, got: {value}")
+    except ValueError as e:
+        raise ValueError(f"Environment variable {key} must be a float, got: {value}") from e
 
 
 def _get_env_optional(key: str, default=None):

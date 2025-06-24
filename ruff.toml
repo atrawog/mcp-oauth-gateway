@@ -107,6 +107,8 @@ exclude = [
     "D100",    # Allow missing module docstring in scripts
     "PLC0415", # Allow imports inside functions in scripts
     "PLR1730", # Allow if not x == y in scripts (clearer than if x != y sometimes)
+    "N802",    # Allow capitalized method names in AST visitors (visit_Call pattern)
+    "SIM102",  # Allow nested if statements for clarity in complex logic
 ]
 
 # Example and demo files need subprocess usage

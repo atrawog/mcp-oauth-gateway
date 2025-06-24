@@ -424,7 +424,8 @@ async def refresh_and_validate_tokens(ensure_services_ready):
                     error_detail = error_data.get("detail", {}).get(
                         "error_description", error_detail
                     )
-                except:
+                except (ValueError, KeyError, TypeError):
+                    # JSON parsing failed or response structure unexpected
                     pass
                 pytest.fail(
                     f"❌ Failed to refresh gateway token: {response.status_code} - {error_detail}"
