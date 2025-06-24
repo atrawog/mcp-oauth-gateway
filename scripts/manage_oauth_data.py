@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Manage OAuth registrations and tokens in Redis
+"""Manage OAuth registrations and tokens in Redis.
+
 Following the sacred commandments - direct access to real data!
 """
 
@@ -7,7 +8,9 @@ import asyncio
 import base64
 import json
 import os
+import subprocess
 import sys
+from datetime import UTC
 from datetime import datetime
 
 import redis.asyncio as redis
@@ -23,7 +26,6 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
 # Check if we should connect via Docker
-import subprocess
 
 
 try:
@@ -76,7 +78,7 @@ def decode_jwt_payload(token: str) -> dict | None:
 def format_timestamp(ts: int) -> str:
     """Format Unix timestamp to readable date."""
     try:
-        return datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
+        return datetime.fromtimestamp(ts, tz=UTC).strftime("%Y-%m-%d %H:%M:%S")
     except:
         return "N/A"
 

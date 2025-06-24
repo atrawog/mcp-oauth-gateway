@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Divine Test Data Cleanup Script - CLAUDE.md Compliant!
+
 Cleanses the Redis sanctuary of test-created OAuth artifacts.
 
 Identifies test registrations by client_name starting with "TEST "
@@ -14,6 +15,7 @@ Following the sacred commandments:
 import json
 import os
 import sys
+from datetime import UTC
 from datetime import datetime
 
 import redis
@@ -226,7 +228,7 @@ class TestDataCleaner:
                     token_info = json.loads(token_data)
                     exp = token_info.get("exp", 0)
 
-                    if exp < datetime.utcnow().timestamp():
+                    if exp < datetime.now(UTC).timestamp():
                         print(f"🗑️  Deleting expired token: {key}")
                         self.redis_client.delete(key)
                         expired_count += 1

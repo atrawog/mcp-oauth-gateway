@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Simple HTTP server to receive OAuth callbacks for token generation
+"""Simple HTTP server to receive OAuth callbacks for token generation.
+
 This runs on localhost to capture the authorization code.
 """
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Wrapper script to run mcp-streamablehttp-client with proper OAuth discovery.
+
 This handles the case where OAuth endpoints are on a different subdomain.
 """
 

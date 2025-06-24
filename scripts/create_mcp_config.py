@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Create MCP configuration for Claude Code with OAuth bearer token
+"""Create MCP configuration for Claude Code with OAuth bearer token.
+
 Following CLAUDE.md commandments: Real configuration, no hardcoded values.
 """
 

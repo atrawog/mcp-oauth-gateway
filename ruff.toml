@@ -109,6 +109,12 @@ exclude = [
     "PLR1730", # Allow if not x == y in scripts (clearer than if x != y sometimes)
     "N802",    # Allow capitalized method names in AST visitors (visit_Call pattern)
     "SIM102",  # Allow nested if statements for clarity in complex logic
+    "S105",    # Allow hardcoded passwords/tokens in test scripts
+    "S110",    # Allow try-except-pass in utility scripts
+    "PLW2901", # Allow overwriting loop variables
+    "ARG001",  # Allow unused arguments (for future compatibility)
+    "RUF001",  # Allow Unicode information symbols in output
+    "B007",    # Allow unused loop variables
 ]
 
 # Example and demo files need subprocess usage

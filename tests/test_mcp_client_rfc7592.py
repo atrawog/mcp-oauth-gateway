@@ -111,14 +111,9 @@ async def test_mcp_client_rfc7592_lifecycle():
         real_token = settings.registration_access_token
         settings.registration_access_token = "wrong-token-12345"
 
-        try:
+        with pytest.raises(RuntimeError, match=r"(Invalid registration access token|Access forbidden)"):
             await oauth.get_client_configuration()
-            raise AssertionError("Should have raised error with wrong token")
-        except RuntimeError as e:
-            assert "Invalid registration access token" in str(
-                e
-            ) or "Access forbidden" in str(e)
-            print("   ✓ Correctly rejected invalid token")
+        print("   ✓ Correctly rejected invalid token")
 
         # Restore real token
         settings.registration_access_token = real_token

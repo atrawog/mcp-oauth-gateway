@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Restore OAuth Data to Redis
+"""Restore OAuth Data to Redis.
+
 Following the divine commandments of CLAUDE.md - NO MOCKING!
 """
 
@@ -7,6 +8,7 @@ import asyncio
 import json
 import os
 import sys
+from datetime import UTC
 from datetime import datetime
 from pathlib import Path
 
@@ -47,7 +49,6 @@ class OAuthRestore:
                 if ":" in auth_part:
                     _, password = auth_part.split(":", 1)
                     self.redis_password = password or self.redis_password
-                host_port = host_port
 
             # Parse host and port
             if ":" in host_port:
@@ -105,7 +106,7 @@ class OAuthRestore:
                         "filename": filepath.name,
                         "path": str(filepath),
                         "size_mb": stat.st_size / (1024 * 1024),
-                        "created": datetime.fromtimestamp(stat.st_mtime).strftime(
+                        "created": datetime.fromtimestamp(stat.st_mtime, tz=UTC).strftime(
                             "%Y-%m-%d %H:%M:%S"
                         ),
                         "timestamp": data.get("timestamp", "Unknown"),
@@ -222,10 +223,7 @@ class OAuthRestore:
             for key, data in backup_data[category].items():
                 try:
                     # Construct full key
-                    if category == "sessions":
-                        full_key = key  # Session keys are already full
-                    else:
-                        full_key = f"{prefix}{key}"
+                    full_key = key if category == "sessions" else f"{prefix}{key}"
 
                     value = data["value"]
                     ttl = data.get("ttl", -1)

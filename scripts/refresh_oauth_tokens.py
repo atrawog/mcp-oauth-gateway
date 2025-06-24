@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""OAuth token refresh script for MCP OAuth Gateway
+"""OAuth token refresh script for MCP OAuth Gateway.
+
 Automatically refreshes expired tokens using refresh token.
 """
 

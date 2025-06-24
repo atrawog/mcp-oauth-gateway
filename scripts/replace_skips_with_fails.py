@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Replace all pytest.skip() calls for missing tokens with pytest.fail()
+"""Replace all pytest.skip() calls for missing tokens with pytest.fail().
+
 This ensures tests FAIL HARD when tokens are missing instead of being skipped.
 """
 

@@ -58,15 +58,15 @@ def load_env() -> dict[str, str]:
     if env_file.exists():
         with open(env_file) as f:
             for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    key, value = line.split("=", 1)
+                stripped_line = line.strip()
+                if stripped_line and not stripped_line.startswith("#") and "=" in stripped_line:
+                    key, value = stripped_line.split("=", 1)
                     env_vars[key.strip()] = value.strip()
 
     return env_vars
 
 
-def check_token(env_vars: dict[str, str], token: str, description: str) -> tuple[bool, str]:
+def check_token(env_vars: dict[str, str], token: str, _description: str) -> tuple[bool, str]:
     """Check if a token exists and return status."""
     value = env_vars.get(token, "")
 
@@ -139,9 +139,9 @@ def main():
         # Check if any testing tokens are configured
         test_tokens_configured = sum(1 for token in TESTING_TOKENS if check_token(env_vars, token, "")[0])
         if test_tokens_configured > 0:
-            print(f"\n{GREEN}ℹ️  {test_tokens_configured} testing tokens are also configured.{RESET}")
+            print(f"\n{GREEN}ⓘ  {test_tokens_configured} testing tokens are also configured.{RESET}")
         else:
-            print(f"\n{YELLOW}ℹ️  No testing tokens configured (this is fine for production).{RESET}")
+            print(f"\n{YELLOW}ⓘ  No testing tokens configured (this is fine for production).{RESET}")
             print("  To run tests, generate test tokens with:")
             print(f"  - {BLUE}just generate-github-token{RESET} (for GitHub PAT)")
             print(f"  - {BLUE}just mcp-client-token{RESET} (for MCP client testing)")

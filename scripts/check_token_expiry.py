@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Token expiry checker for MCP OAuth Gateway
+"""Token expiry checker for MCP OAuth Gateway.
+
 Checks if tokens are expired and suggests refresh.
 """
 
 import os
 import sys
 import time
+from datetime import UTC
 from datetime import datetime
 
 from jose import JWTError
@@ -26,9 +28,9 @@ def check_jwt_expiry(token_name: str, token: str) -> bool:
         iat = payload.get("iat", 0)
 
         print(f"\n🔍 {token_name}:")
-        print(f"   Issued: {datetime.fromtimestamp(iat)}")
-        print(f"   Expires: {datetime.fromtimestamp(exp)}")
-        print(f"   Current: {datetime.fromtimestamp(now)}")
+        print(f"   Issued: {datetime.fromtimestamp(iat, tz=UTC)}")
+        print(f"   Expires: {datetime.fromtimestamp(exp, tz=UTC)}")
+        print(f"   Current: {datetime.fromtimestamp(now, tz=UTC)}")
 
         if exp < now:
             expired_for = now - exp

@@ -4,6 +4,7 @@
 import asyncio
 import json
 import os
+from datetime import UTC
 from datetime import datetime
 
 import redis.asyncio as redis
@@ -105,7 +106,7 @@ async def main():
             print(f"Redirect URIs: {client['redirect_uris']}")
             if client["created"]:
                 print(
-                    f"Created: {datetime.fromtimestamp(client['created']).isoformat()}"
+                    f"Created: {datetime.fromtimestamp(client['created'], tz=UTC).isoformat()}"
                 )
 
         if not claude_clients:

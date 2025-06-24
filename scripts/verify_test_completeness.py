@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Sacred Test Completeness Verifier - Ensures tests follow CLAUDE.md
+"""Sacred Test Completeness Verifier - Ensures tests follow CLAUDE.md.
+
 This script checks that tests verify ACTUAL results, not just status codes!
 """
 
@@ -79,10 +80,10 @@ class TestCompletenessChecker(ast.NodeVisitor):
 
     def visit_Call(self, node):
         """Check for JSON parsing and result validation."""
-        if self.current_function and isinstance(node.func, ast.Attribute):
+        if (self.current_function and isinstance(node.func, ast.Attribute) and
+            node.func.attr == "json"):
             # Check for response.json() calls
-            if node.func.attr == "json":
-                self.has_functionality_check = True
+            self.has_functionality_check = True
 
         self.generic_visit(node)
 

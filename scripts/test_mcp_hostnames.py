@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Test all MCP Fetch AI Model Hostnames using mcp-streamablehttp-client
+"""Test all MCP Fetch AI Model Hostnames using mcp-streamablehttp-client.
+
 Verifies that all 10 hostnames are properly configured and responding.
 """
 

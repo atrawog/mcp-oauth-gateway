@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Sacred GitHub Token Generation Script - REAL OAuth Flow ONLY!
+
 Following CLAUDE.md Commandment 1: NO MOCKING, NO SIMULATION, REAL TESTS ONLY!
 
 This script generates ALL required OAuth tokens by completing REAL OAuth flows.

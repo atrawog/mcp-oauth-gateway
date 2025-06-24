@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Fix Claude.ai registration issue by creating an alias for the old client_id
+"""Fix Claude.ai registration issue by creating an alias for the old client_id.
+
 This is a temporary workaround for Claude.ai's failure to update stored credentials.
 """
 

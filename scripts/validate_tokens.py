@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Token validation script for MCP OAuth Gateway
+"""Token validation script for MCP OAuth Gateway.
+
 Validates all OAuth tokens before running tests.
 """
 
@@ -7,6 +8,7 @@ import asyncio
 import os
 import sys
 import time
+from datetime import UTC
 from datetime import datetime
 
 import httpx
@@ -53,9 +55,9 @@ def check_token_expiry(payload: dict) -> bool:
     now = int(time.time())
     iat = payload.get("iat", 0)
 
-    print(f"🕐 Token issued at: {datetime.fromtimestamp(iat)}")
-    print(f"🕐 Token expires at: {datetime.fromtimestamp(exp)}")
-    print(f"🕐 Current time: {datetime.fromtimestamp(now)}")
+    print(f"🕐 Token issued at: {datetime.fromtimestamp(iat, tz=UTC)}")
+    print(f"🕐 Token expires at: {datetime.fromtimestamp(exp, tz=UTC)}")
+    print(f"🕐 Current time: {datetime.fromtimestamp(now, tz=UTC)}")
 
     if exp < now:
         print(f"❌ TOKEN IS EXPIRED! (expired {now - exp} seconds ago)")

@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""Purge expired OAuth tokens from Redis
+"""Purge expired OAuth tokens from Redis.
+
 Can be run manually or via cron/systemd timer.
 """
 
 import asyncio
 import json
 import os
+import subprocess
 import sys
 import time
+from datetime import UTC
 from datetime import datetime
 
 import redis.asyncio as redis
@@ -22,7 +25,6 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
 # Check if we should connect via Docker
-import subprocess
 
 
 try:
@@ -87,7 +89,7 @@ async def purge_expired_tokens(dry_run: bool = False):
 
     try:
         print(
-            f"{'[DRY RUN] ' if dry_run else ''}Starting token purge at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            f"{'[DRY RUN] ' if dry_run else ''}Starting token purge at {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}"
         )
         print("=" * 60)
 
@@ -117,7 +119,7 @@ async def purge_expired_tokens(dry_run: bool = False):
                         await client.delete(key)
                     stats["access_tokens_expired"] += 1
                     print(
-                        f"{'Would delete' if dry_run else 'Deleted'} expired access token: {key} (expired: {datetime.fromtimestamp(expires_at)})"
+                        f"{'Would delete' if dry_run else 'Deleted'} expired access token: {key} (expired: {datetime.fromtimestamp(expires_at, tz=UTC)})"
                     )
 
         # Check refresh tokens (they have TTL but let's verify)
@@ -215,7 +217,7 @@ async def purge_expired_tokens(dry_run: bool = False):
                     await client.delete(key)
                     print(f"  Removed orphaned user token index: {key}")
 
-        print(f"\n✅ Purge completed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"\n✅ Purge completed at {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}")
 
     finally:
         await client.aclose()

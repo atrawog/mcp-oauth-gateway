@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Generate RSA private key and add it to .env file
+"""Generate RSA private key and add it to .env file.
+
 Following CLAUDE.md Commandment 4: Configure Only Through .env Files.
 """
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Check test files for OAuth client registration cleanup.
+
 This script identifies tests that create registrations but don't clean them up.
 """
 

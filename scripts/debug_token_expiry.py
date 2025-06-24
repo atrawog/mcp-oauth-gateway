@@ -5,6 +5,7 @@ import asyncio
 import json
 import os
 import time
+from datetime import UTC
 from datetime import datetime
 
 import redis.asyncio as redis
@@ -41,7 +42,7 @@ async def debug_expiry():
 
     try:
         now = int(time.time())
-        print(f"Current time: {now} ({datetime.fromtimestamp(now)})")
+        print(f"Current time: {now} ({datetime.fromtimestamp(now, tz=UTC)})")
         print("=" * 60)
 
         # Check all tokens
@@ -60,10 +61,10 @@ async def debug_expiry():
 
                     print(f"Token: {key}")
                     print(
-                        f"  Created: {datetime.fromtimestamp(created_at)} ({created_at})"
+                        f"  Created: {datetime.fromtimestamp(created_at, tz=UTC)} ({created_at})"
                     )
                     print(
-                        f"  Expires: {datetime.fromtimestamp(expires_at)} ({expires_at})"
+                        f"  Expires: {datetime.fromtimestamp(expires_at, tz=UTC)} ({expires_at})"
                     )
                     print(f"  Redis TTL: {ttl} seconds")
                     print(f"  Time until expiry: {expires_at - now} seconds")

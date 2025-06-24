@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Test failure diagnosis script for MCP OAuth Gateway
+"""Test failure diagnosis script for MCP OAuth Gateway.
+
 Runs comprehensive diagnostics to find root causes of test failures.
 """
 
 import asyncio
 import os
 import time
+from datetime import UTC
 from datetime import datetime
 
 import httpx
@@ -272,7 +274,7 @@ def analyze_token_issues():
         print("✅ Token format and claims are valid")
         print(f"   Subject: {payload.get('sub')}")
         print(f"   Username: {payload.get('username')}")
-        print(f"   Expires: {datetime.fromtimestamp(exp) if exp else 'Never'}")
+        print(f"   Expires: {datetime.fromtimestamp(exp, tz=UTC) if exp else 'Never'}")
 
         return True
 

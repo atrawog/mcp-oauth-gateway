@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Fix jose imports in test files by removing them
+"""Fix jose imports in test files by removing them.
+
 Most tests don't actually use JWT directly.
 """
 

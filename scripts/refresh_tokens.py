@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Automatically refresh OAuth tokens that can be refreshed before running tests.
+
 Validates all required tokens and fails if any are missing or invalid.
 Does NOT attempt to generate tokens that require manual intervention (like GitHub PAT).
 """

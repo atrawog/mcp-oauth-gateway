@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Helper script to save OAuth environment variables to .env file.
+
 This runs after mcp-streamablehttp-client to capture the env vars it set.
 """
 

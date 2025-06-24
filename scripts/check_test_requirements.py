@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Check if all requirements for running tests are met
+"""Check if all requirements for running tests are met.
+
 According to CLAUDE.md - tests MUST use real OAuth tokens!
 """
 

@@ -49,7 +49,6 @@ class OAuthBackup:
                 if ":" in auth_part:
                     _, password = auth_part.split(":", 1)
                     self.redis_password = password or self.redis_password
-                host_port = host_port
 
             # Parse host and port
             if ":" in host_port:
@@ -178,8 +177,8 @@ class OAuthBackup:
                             elif category == "user_tokens" and key_type == "list":
                                 tokens = json.loads(value)
                                 print(f"  👤 {key} → {len(tokens)} tokens")
-                        except:
-                            # Not JSON or display not needed
+                        except (json.JSONDecodeError, KeyError, TypeError):
+                            # Not JSON or display not needed - this is expected for some Redis values
                             pass
 
                         # Remove prefix for cleaner storage
@@ -247,7 +246,7 @@ class OAuthBackup:
                     "filename": filepath.name,
                     "path": str(filepath),
                     "size_mb": stat.st_size / (1024 * 1024),
-                    "created": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                    "created": datetime.fromtimestamp(stat.st_mtime, tz=UTC).isoformat(),
                     "timestamp": data.get("timestamp"),
                     "registrations": data["metadata"]["total_registrations"],
                     "tokens": data["metadata"]["total_tokens"],

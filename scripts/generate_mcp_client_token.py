@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Sacred MCP Client Token Generation Script
+"""Sacred MCP Client Token Generation Script.
+
 Uses mcp-streamablehttp-client's --token flag to generate OAuth tokens and saves them to .env.
 """
 

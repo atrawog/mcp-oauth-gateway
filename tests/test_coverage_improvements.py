@@ -354,12 +354,8 @@ class TestKeysModuleCoverage:
         key_manager = RSAKeyManager()
 
         # Should raise ValueError when no keys are found
-        try:
+        with pytest.raises(ValueError, match=r"No RSA keys found.*just generate-rsa-keys"):
             key_manager.load_or_generate_keys()
-            raise AssertionError("Expected ValueError to be raised")
-        except ValueError as e:
-            assert "No RSA keys found" in str(e)
-            assert "just generate-rsa-keys" in str(e)
 
     def test_rs256_key_loading_from_env(self, monkeypatch):
         """Test RS256 key loading from environment."""

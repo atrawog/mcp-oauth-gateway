@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Capture MCP client environment variables from command output and save to .env
+"""Capture MCP client environment variables from command output and save to .env.
+
 This version supports interactive input (e.g., entering authorization codes).
 """
 

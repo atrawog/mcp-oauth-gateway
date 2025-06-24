@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Complete MCP OAuth Flow Script
+"""Complete MCP OAuth Flow Script.
+
 Completes an OAuth flow that was started but not finished, using authorization code from MCP_AUTH_CODE.
 
 This handles the common case where:
