@@ -1,3 +1,4 @@
+from .test_constants import HTTP_OK
 """Test that mcp-fetch service is using the correct package."""
 
 import httpx

@@ -21,6 +21,7 @@ from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import TEST_CLIENT_NAME
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_REDIRECT_URI
+from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestAdditionalCoverage:
@@ -81,8 +82,7 @@ class TestAdditionalCoverage:
             reg_response = await http_client.post(
                 f"{AUTH_BASE_URL}/register",
                 json=registration_data,
-                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-            , timeout=30.0)
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
             assert reg_response.status_code == HTTP_CREATED
             client = reg_response.json()
@@ -94,8 +94,7 @@ class TestAdditionalCoverage:
                     "grant_type": "authorization_code",
                     "code": "some_code",
                     "client_secret": client["client_secret"],
-                },
-            , timeout=30.0)
+                }, timeout=30.0)
 
             # FastAPI returns 422 for missing required fields
             assert token_response.status_code == HTTP_UNPROCESSABLE_ENTITY
@@ -107,8 +106,7 @@ class TestAdditionalCoverage:
                     "grant_type": "authorization_code",
                     "code": "some_code",
                     "client_id": client["client_id"],
-                },
-            , timeout=30.0)
+                }, timeout=30.0)
 
             # Returns 400 for missing client_secret
             assert token_response.status_code == HTTP_BAD_REQUEST
@@ -129,8 +127,7 @@ class TestAdditionalCoverage:
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
                             "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
-                        },
-                    , timeout=30.0)
+                        }, timeout=30.0)
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
@@ -154,8 +151,7 @@ class TestAdditionalCoverage:
                 "token": "not_a_jwt_token",
                 "client_id": registered_client["client_id"],
                 "client_secret": registered_client["client_secret"],
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         result = response.json()
@@ -168,8 +164,7 @@ class TestAdditionalCoverage:
                 "token": "eyJ.invalid.jwt",
                 "client_id": registered_client["client_id"],
                 "client_secret": registered_client["client_secret"],
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         result = response.json()
@@ -194,8 +189,7 @@ class TestAdditionalCoverage:
             response = await http_client.post(
                 f"{AUTH_BASE_URL}/register",
                 json=registration_data,
-                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-            , timeout=30.0)
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
             assert response.status_code == HTTP_CREATED
             client = response.json()
@@ -225,8 +219,7 @@ class TestAdditionalCoverage:
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
                             "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
-                        },
-                    , timeout=30.0)
+                        }, timeout=30.0)
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
@@ -261,8 +254,7 @@ class TestAdditionalCoverage:
         # Try to verify
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": f"Bearer {invalid_token}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {invalid_token}"}, timeout=30.0)
 
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
@@ -285,8 +277,7 @@ class TestAdditionalCoverage:
             params={
                 "client_id": registered_client["client_id"],
                 "redirect_uri": registered_client["redirect_uris"][0],
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         # FastAPI returns 422 for missing required query parameters
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
@@ -294,8 +285,7 @@ class TestAdditionalCoverage:
         # Missing client_id
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
-            params={"response_type": "code", "redirect_uri": TEST_REDIRECT_URI},
-        , timeout=30.0)
+            params={"response_type": "code", "redirect_uri": TEST_REDIRECT_URI}, timeout=30.0)
 
         # FastAPI returns 422 for missing required query parameters
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY

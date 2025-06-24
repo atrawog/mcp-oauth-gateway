@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 import pytest
 
 from .test_constants import AUTH_BASE_URL
+from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestPKCEValidation:

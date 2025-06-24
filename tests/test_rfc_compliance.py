@@ -8,6 +8,7 @@ from .test_constants import AUTH_BASE_URL
 from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestRFCCompliance:

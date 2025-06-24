@@ -48,8 +48,7 @@ async def test_simple_initialize(
     response = await http_client.post(
         f"{mcp_fetch_url}",
         json=request_data,
-        headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-    , timeout=30.0)
+        headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
     print(f"\nResponse status: {response.status_code}")
     print(f"Response headers: {dict(response.headers)}")
@@ -74,7 +73,6 @@ async def test_simple_initialize(
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                     "Mcp-Session-Id": session_id,
-                },
-            , timeout=30.0)
+                }, timeout=30.0)
             print(f"\nTools response status: {tools_response.status_code}")
             print(f"Tools response: {tools_response.text}")

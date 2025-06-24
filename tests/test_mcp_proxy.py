@@ -63,8 +63,7 @@ class TestMCPProxyBasicFunctionality:
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"invalid": "request"},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
         # JSON-RPC errors return 200 with error in response body
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -99,8 +98,7 @@ class TestMCPProxyAuthentication:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
         assert response.status_code == HTTP_OK
         data = response.json()
         assert "result" in data
@@ -133,8 +131,7 @@ class TestMCPProxyAuthentication:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
         assert response.status_code == HTTP_OK
         data = response.json()
         assert "result" in data
@@ -149,8 +146,7 @@ class TestMCPProxyAuthentication:
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "ping", "id": 1},
-            headers={"Authorization": "Bearer invalid-token-12345"},
-        , timeout=30.0)
+            headers={"Authorization": "Bearer invalid-token-12345"}, timeout=30.0)
         assert response.status_code == HTTP_UNAUTHORIZED
 
 
@@ -180,8 +176,7 @@ class TestMCPProtocolInitialization:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -225,16 +220,14 @@ class TestMCPProtocolInitialization:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
         assert init_response.status_code == HTTP_OK
 
         # Send initialized notification (no id field for notifications)
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
         # Notifications don't get responses in JSON-RPC
         assert response.status_code in [200, 202]
 
@@ -265,8 +258,7 @@ class TestMCPFetchCapabilities:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -296,8 +288,7 @@ class TestMCPFetchCapabilities:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
         assert session_id
@@ -309,8 +300,7 @@ class TestMCPFetchCapabilities:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         # List tools with session ID
         response = await http_client.post(
@@ -319,8 +309,7 @@ class TestMCPFetchCapabilities:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -362,8 +351,7 @@ class TestMCPProxyErrorHandling:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
@@ -379,8 +367,7 @@ class TestMCPProxyErrorHandling:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK  # JSON-RPC errors still return 200
         data = response.json()
@@ -413,8 +400,7 @@ class TestMCPProxyErrorHandling:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -440,8 +426,7 @@ class TestMCPProxyHeaders:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
         # Should accept the header
         assert response.status_code in [200, 400]  # 400 if ping not supported
 

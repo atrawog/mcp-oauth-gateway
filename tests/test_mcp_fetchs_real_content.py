@@ -1,3 +1,4 @@
+from .test_constants import HTTP_OK
 """Real content fetching tests for mcp-fetchs native implementation."""
 
 import httpx

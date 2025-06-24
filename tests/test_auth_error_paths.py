@@ -14,6 +14,7 @@ from .test_constants import GATEWAY_OAUTH_CLIENT_SECRET
 from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_OK
 from .test_constants import JWT_SECRET
+from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestHealthCheckErrors:

@@ -1,3 +1,8 @@
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_FORBIDDEN
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 """RFC 7592 Security Tests - Ensure proper authentication and authorization.
 
 Key security requirements:

@@ -5,6 +5,8 @@ import pytest
 from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import TEST_HTTP_TIMEOUT
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 
 
 class TestMCPFilesystemIntegration:

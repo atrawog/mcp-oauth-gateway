@@ -10,19 +10,13 @@ import httpx
 import pytest
 
 from .test_constants import MCP_PROTOCOL_VERSION
+from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_NO_CONTENT
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import HTTP_NOT_FOUND
 from .test_constants import HTTP_UNPROCESSABLE_ENTITY
-from .test_constants import MCP_PROTOCOL_VERSION
-from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
-from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITYS_SUPPORTED
 
 
 # MCP Client tokens for external client testing
@@ -55,8 +49,7 @@ class TestMCPProtocolVersionNegotiation:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -86,8 +79,7 @@ class TestMCPProtocolVersionNegotiation:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -128,8 +120,7 @@ class TestMCPJSONRPCCompliance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -163,8 +154,7 @@ class TestMCPJSONRPCCompliance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
@@ -180,8 +170,7 @@ class TestMCPJSONRPCCompliance:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK  # JSON-RPC errors return 200
         data = response.json()
@@ -218,8 +207,7 @@ class TestMCPJSONRPCCompliance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         # Send notification (no id)
         response = await http_client.post(
@@ -230,8 +218,7 @@ class TestMCPJSONRPCCompliance:
                 "params": {},
                 # No id field - this is a notification
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         # Server should accept notification
         assert response.status_code in [200, 202, 204]
@@ -259,8 +246,7 @@ class TestMCPJSONRPCCompliance:
                 },
                 "id": 42,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response1.status_code == HTTP_OK
         assert response1.json()["id"] == 42
@@ -274,8 +260,7 @@ class TestMCPJSONRPCCompliance:
                 "params": {},
                 "id": "unique-string-id",
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response2.status_code == HTTP_OK
         assert response2.json()["id"] == "unique-string-id"
@@ -306,8 +291,7 @@ class TestMCPLifecycleCompliance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         result = response.json()["result"]
@@ -369,8 +353,7 @@ class TestMCPLifecycleCompliance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         capabilities = response.json()["result"]["capabilities"]
@@ -410,11 +393,13 @@ class TestMCPTransportCompliance:
                         "clientInfo": {"name": "content-type-test", "version": "1.0.0"},
                     },
                     "id": 1,
-                }, timeout=30.0),
+                }
+            ),
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"
                 # No Content-Type header
             },
+            timeout=30.0
         )
 
         # Should either work (defaulting to JSON) or fail
@@ -446,8 +431,7 @@ class TestMCPTransportCompliance:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         # Header should be accepted
@@ -469,8 +453,7 @@ class TestMCPTransportCompliance:
                     "clientInfo": {"name": "no-auth", "version": "1.0.0"},
                 },
                 "id": 1,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers
@@ -506,8 +489,7 @@ class TestMCPSecurityCompliance:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Origin": "http://evil.com",
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         # Should either accept (if CORS configured) or reject
         assert response.status_code in [200, 403]
@@ -530,8 +512,7 @@ class TestMCPSecurityCompliance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": "Bearer not-a-valid-jwt-token"},
-        , timeout=30.0)
+            headers={"Authorization": "Bearer not-a-valid-jwt-token"}, timeout=30.0)
 
         assert response.status_code == HTTP_UNAUTHORIZED
 
@@ -636,8 +617,7 @@ class TestMCPErrorHandling:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
@@ -648,8 +628,7 @@ class TestMCPErrorHandling:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         # Now send good request - session should still work
         good_response = await http_client.post(
@@ -658,8 +637,7 @@ class TestMCPErrorHandling:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert good_response.status_code == HTTP_OK
         data = good_response.json()

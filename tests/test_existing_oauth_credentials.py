@@ -21,6 +21,7 @@ from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import GITHUB_PAT
 from .test_constants import TEST_REDIRECT_URI
+from .test_constants import HTTP_BAD_REQUEST
 
 
 # Use the existing OAuth credentials from .env - these are optional
@@ -51,8 +52,7 @@ class TestExistingOAuthCredentials:
                 "redirect_uri": "https://example.com/callback",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         print(f"Response status: {response.status_code}")
         print(f"Response body: {response.text}")
@@ -78,8 +78,7 @@ class TestExistingOAuthCredentials:
                 "redirect_uri": "https://example.com/callback",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 # No client_secret - testing public client flow
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         # Should still fail because code is invalid
         assert response.status_code == HTTP_BAD_REQUEST
@@ -114,8 +113,7 @@ class TestExistingOAuthCredentials:
                 "token": test_token,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -142,8 +140,7 @@ class TestExistingOAuthCredentials:
                 "token": test_token,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         # Always returns 200 per RFC
         assert response.status_code == HTTP_OK
@@ -206,8 +203,7 @@ class TestCompleteFlowWithExistingClient:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        , timeout=30.0)
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0)
 
         # If client doesn't exist, fail with clear error
         if response.status_code == HTTP_BAD_REQUEST:
@@ -237,8 +233,7 @@ class TestCompleteFlowWithExistingClient:
         callback_response = await http_client.get(
             f"{AUTH_BASE_URL}/callback",
             params={"code": "fake_github_code", "state": github_state},
-            follow_redirects=False,
-        , timeout=30.0)
+            follow_redirects=False, timeout=30.0)
 
         # Will fail at GitHub token exchange
         assert callback_response.status_code in [307, 500]
@@ -253,8 +248,7 @@ class TestJWTOperations:
         # Test 1: Malformed JWT
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": "Bearer not.a.valid.jwt"},
-        , timeout=30.0)
+            headers={"Authorization": "Bearer not.a.valid.jwt"}, timeout=30.0)
 
         assert response.status_code == HTTP_UNAUTHORIZED
 
@@ -267,8 +261,7 @@ class TestJWTOperations:
 
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": f"Bearer {wrong_secret_token}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {wrong_secret_token}"}, timeout=30.0)
 
         assert response.status_code == HTTP_UNAUTHORIZED
 
@@ -281,8 +274,7 @@ class TestJWTOperations:
 
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": f"Bearer {no_jti_token}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {no_jti_token}"}, timeout=30.0)
 
         # Should fail without jti (jti is marked as essential in auth service)
         assert response.status_code == HTTP_UNAUTHORIZED
@@ -308,8 +300,7 @@ class TestJWTOperations:
                 "token": expired_token,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()

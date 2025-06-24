@@ -1,3 +1,5 @@
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 """Security-focused tests for mcp-fetchs native implementation."""
 
 import httpx

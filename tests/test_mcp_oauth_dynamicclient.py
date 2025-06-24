@@ -27,6 +27,7 @@ from .test_constants import REDIS_PASSWORD
 from .test_constants import REDIS_URL
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_REDIRECT_URI
+from .test_constants import HTTP_BAD_REQUEST
 
 
 # MCP Client tokens from environment
@@ -42,8 +43,7 @@ class TestMCPOAuthDynamicClientPackage:
     ):  # noqa: ARG002
         """Verify the auth service (using mcp-oauth-dynamicclient) is deployed and healthy."""
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-        , timeout=30.0)
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
 
         assert response.status_code == HTTP_OK
         oauth_data = response.json()
@@ -61,8 +61,7 @@ class TestMCPOAuthDynamicClientPackage:
     ):  # noqa: ARG002
         """Test the OAuth 2.0 authorization server metadata endpoint (RFC 8414)."""
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-        , timeout=30.0)
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
 
         assert response.status_code == HTTP_OK
         metadata = response.json()
@@ -109,8 +108,7 @@ class TestMCPOAuthDynamicClientPackage:
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json=registration_data,
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_CREATED  # Created
         client_data = response.json()
@@ -161,8 +159,7 @@ class TestMCPOAuthDynamicClientPackage:
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 assert delete_response.status_code in (204, 404)
         except Exception as e:
             print(f"Warning: Error during client cleanup: {e}")
@@ -180,8 +177,7 @@ class TestMCPOAuthDynamicClientPackage:
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={"client_name": "TEST test_client_registration_validation"},
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_BAD_REQUEST  # RFC 7591 compliant
         error = response.json()
@@ -194,8 +190,7 @@ class TestMCPOAuthDynamicClientPackage:
                 "redirect_uris": ["not-a-valid-uri"],
                 "client_name": "TEST test_client_registration_validation_invalid_uri",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
         # Service might be more permissive and accept any string
         if response.status_code == HTTP_CREATED:
@@ -212,8 +207,7 @@ class TestMCPOAuthDynamicClientPackage:
                 "redirect_uris": [],
                 "client_name": "TEST test_client_registration_validation_empty_uris",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
         # Service may return 400 or 422 for validation errors
         assert response.status_code in [400, 422]
@@ -235,8 +229,7 @@ class TestMCPOAuthDynamicClientPackage:
                 "client_name": client_name,
                 "scope": TEST_CLIENT_SCOPE,
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -251,8 +244,7 @@ class TestMCPOAuthDynamicClientPackage:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        , timeout=30.0)
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0)
 
         # Should redirect to GitHub for authentication
         assert response.status_code == 307
@@ -268,8 +260,7 @@ class TestMCPOAuthDynamicClientPackage:
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client['registration_access_token']}"
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -288,8 +279,7 @@ class TestMCPOAuthDynamicClientPackage:
                 "client_id": "invalid_client",
                 "client_secret": "invalid_secret",
                 "redirect_uri": TEST_REDIRECT_URI,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
@@ -312,8 +302,7 @@ class TestMCPOAuthDynamicClientPackage:
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={"redirect_uris": [TEST_REDIRECT_URI], "client_name": client_name},
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -356,8 +345,7 @@ class TestMCPOAuthDynamicClientPackage:
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client['registration_access_token']}"
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -374,8 +362,7 @@ class TestMCPOAuthDynamicClientPackage:
                 "redirect_uris": [TEST_REDIRECT_URI],
                 "client_name": "TEST test_pkce_support",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -395,8 +382,7 @@ class TestMCPOAuthDynamicClientPackage:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        , timeout=30.0)
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0)
 
         # Should redirect to GitHub
         assert response.status_code == 307
@@ -427,8 +413,7 @@ class TestMCPOAuthDynamicClientPackage:
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client['registration_access_token']}"
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -451,8 +436,7 @@ class TestMCPOAuthDynamicClientPackage:
                     "client_name": f"TEST test_concurrent_client_registrations_{index}",
                     "scope": "openid profile",
                 },
-                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-            , timeout=30.0)
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
             assert response.status_code == HTTP_CREATED
             return response.json()
 
@@ -488,8 +472,7 @@ class TestMCPOAuthDynamicClientPackage:
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
                             "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
-                        },
-                    , timeout=30.0)
+                        }, timeout=30.0)
                     assert delete_response.status_code in (204, 404)
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
@@ -506,8 +489,7 @@ class TestMCPOAuthDynamicClientPackage:
                 "redirect_uris": [TEST_REDIRECT_URI],
                 "client_name": "TEST test_invalid_grant_types",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -522,8 +504,7 @@ class TestMCPOAuthDynamicClientPackage:
                     "grant_type": grant_type,
                     "client_id": client["client_id"],
                     "client_secret": client["client_secret"],
-                },
-            , timeout=30.0)
+                }, timeout=30.0)
 
             assert response.status_code == HTTP_BAD_REQUEST
             error = response.json()
@@ -538,8 +519,7 @@ class TestMCPOAuthDynamicClientPackage:
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client['registration_access_token']}"
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -566,8 +546,7 @@ class TestMCPOAuthDynamicClientIntegration:
                 "client_name": client_name,
                 "scope": "read write",
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -582,8 +561,7 @@ class TestMCPOAuthDynamicClientIntegration:
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client['registration_access_token']}"
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -601,8 +579,7 @@ class TestMCPOAuthDynamicClientIntegration:
                 "redirect_uris": [TEST_REDIRECT_URI],
                 "client_name": "TEST test_auth_service_handles_invalid_tokens",
             },
-            headers={"Authorization": "Bearer invalid_token_12345"},
-        , timeout=30.0)
+            headers={"Authorization": "Bearer invalid_token_12345"}, timeout=30.0)
 
         client_data = None
         if response.status_code == HTTP_CREATED:
@@ -611,8 +588,7 @@ class TestMCPOAuthDynamicClientIntegration:
             # Try a protected endpoint instead
             response = await http_client.get(
                 f"{AUTH_BASE_URL}/verify",
-                headers={"Authorization": "Bearer invalid_token_12345"},
-            , timeout=30.0)
+                headers={"Authorization": "Bearer invalid_token_12345"}, timeout=30.0)
             assert response.status_code == HTTP_UNAUTHORIZED
             print("✅ Auth service properly validates tokens on protected endpoints")
         else:
@@ -632,8 +608,7 @@ class TestMCPOAuthDynamicClientIntegration:
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(

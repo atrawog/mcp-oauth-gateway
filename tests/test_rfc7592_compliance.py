@@ -1,3 +1,11 @@
+from .test_constants import HTTP_BAD_REQUEST
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_FORBIDDEN
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_NO_CONTENT
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 """Comprehensive RFC 7592 (OAuth 2.0 Dynamic Client Registration Management Protocol) compliance tests.
 
 Tests all three endpoints with proper security validation:

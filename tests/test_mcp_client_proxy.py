@@ -50,8 +50,7 @@ class TestMCPClientProxyBasics:
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json=request_data,
-            headers={"Content-Type": "application/json"},
-        , timeout=30.0)
+            headers={"Content-Type": "application/json"}, timeout=30.0)
         assert response.status_code == HTTP_UNAUTHORIZED, "MCP endpoint should require authentication"
 
         # If we have a token, test with auth
@@ -62,8 +61,7 @@ class TestMCPClientProxyBasics:
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                },
-            , timeout=30.0)
+                }, timeout=30.0)
             assert response.status_code == HTTP_OK, (
                 "MCP health check should succeed with valid token"
             )
@@ -85,8 +83,7 @@ class TestMCPClientProxyBasics:
         # Try to access MCP endpoint without auth
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
-            json={"jsonrpc": "2.0", "method": "initialize", "params": {}, "id": 1},
-        , timeout=30.0)
+            json={"jsonrpc": "2.0", "method": "initialize", "params": {}, "id": 1}, timeout=30.0)
 
         assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers
@@ -135,8 +132,7 @@ class TestMCPProtocolHandling:
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json=request_data,
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         result = response.json()
@@ -183,8 +179,7 @@ class TestMCPProtocolHandling:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert init_response.status_code == HTTP_OK
 
@@ -200,8 +195,7 @@ class TestMCPProtocolHandling:
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                     "Mcp-Session-Id": session_id,
-                },
-            , timeout=30.0)
+                }, timeout=30.0)
 
             assert tools_response.status_code == HTTP_OK
             print("✅ Session can be used for subsequent requests")
@@ -232,8 +226,7 @@ class TestMCPProtocolHandling:
                     },
                     "id": 1,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-            , timeout=30.0)
+                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
             assert response.status_code == HTTP_OK
             result = response.json()
@@ -272,8 +265,7 @@ class TestProxyErrorHandling:
             response = await http_client.post(
                 f"{MCP_FETCH_URL}",
                 json=request,
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-            , timeout=30.0)
+                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
             # Should return 200 with JSON-RPC error
             assert response.status_code == HTTP_OK
@@ -301,8 +293,7 @@ class TestProxyErrorHandling:
                 "params": {},
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         result = response.json()
@@ -321,8 +312,7 @@ class TestProxyErrorHandling:
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialize", "params": {}, "id": 1},
-            headers={"Authorization": "Bearer expired_token_12345"},
-        , timeout=30.0)
+            headers={"Authorization": "Bearer expired_token_12345"}, timeout=30.0)
 
         assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers
@@ -354,8 +344,7 @@ class TestProxyRealWorldScenarios:
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                     "Mcp-Session-Id": session_id,
-                },
-            , timeout=30.0)
+                }, timeout=30.0)
 
             assert response.status_code == HTTP_OK
             result = response.json()
@@ -397,8 +386,7 @@ class TestProxyRealWorldScenarios:
                     },
                     "id": session_num,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-            , timeout=30.0)
+                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
             if response.status_code == HTTP_OK:
                 return response.headers.get("Mcp-Session-Id")
@@ -467,8 +455,7 @@ class TestProxyRealWorldScenarios:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         if response.status_code == HTTP_OK:
             return response.headers.get("Mcp-Session-Id")
@@ -504,8 +491,7 @@ class TestProxyAuthenticationFlows:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Content-Type": "application/json",
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         print("✅ Bearer token authentication working")
@@ -521,8 +507,7 @@ class TestProxyAuthenticationFlows:
             MCP_FETCH_URL[:-4] if MCP_FETCH_URL.endswith("/mcp") else MCP_FETCH_URL
         )
         response = await http_client.get(
-            f"{base_url}/.well-known/oauth-authorization-server"
-        , timeout=30.0)
+            f"{base_url}/.well-known/oauth-authorization-server", timeout=30.0)
 
         assert response.status_code == HTTP_OK
         metadata = response.json()
@@ -555,8 +540,7 @@ class TestProxyAuthenticationFlows:
             response = await http_client.post(
                 f"{MCP_FETCH_URL}",
                 json={"jsonrpc": "2.0", "method": "test", "params": {}, "id": 1},
-                headers=headers,
-            , timeout=30.0)
+                headers=headers, timeout=30.0)
 
             assert response.status_code == HTTP_UNAUTHORIZED
             assert "WWW-Authenticate" in response.headers
@@ -601,8 +585,7 @@ class TestProxyPerformance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
         mcp_time = time.time() - start
 
         assert response.status_code == HTTP_OK
@@ -635,8 +618,7 @@ class TestProxyPerformance:
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                     "Content-Type": "application/json",
-                },
-            , timeout=30.0)
+                }, timeout=30.0)
             assert response.status_code == HTTP_OK
 
         print("✅ Connection reuse working efficiently")

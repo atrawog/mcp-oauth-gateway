@@ -12,6 +12,7 @@ from .test_constants import AUTH_BASE_URL
 from .test_constants import GITHUB_CLIENT_ID
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_FORBIDDEN
 
 
 class TestGitHubCredentialsValid:

@@ -1,3 +1,5 @@
+from .test_constants import HTTP_BAD_REQUEST
+from .test_constants import HTTP_OK
 """Strict MCP 2025-06-18 protocol compliance tests for mcp-fetchs."""
 
 import httpx

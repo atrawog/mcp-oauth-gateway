@@ -87,8 +87,7 @@ class TestMCPAIHostnames:
                 response = await http_client.post(
                     url,
                     json=init_request,
-                    headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-                , timeout=30.0)
+                    headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
                 assert response.status_code == HTTP_OK, (
                     f"{name} failed to initialize: {response.text}"
@@ -221,8 +220,7 @@ class TestMCPAIHostnames:
         }
 
         tools_response = await http_client.post(
-            url, json=list_tools_request, headers=headers
-        , timeout=30.0)
+            url, json=list_tools_request, headers=headers, timeout=30.0)
         assert tools_response.status_code == HTTP_OK
 
         tools_result = tools_response.json()

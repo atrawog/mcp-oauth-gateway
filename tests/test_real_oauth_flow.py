@@ -33,6 +33,7 @@ from .test_constants import GATEWAY_OAUTH_CLIENT_SECRET
 from .test_constants import GATEWAY_OAUTH_REFRESH_TOKEN
 from .test_constants import GITHUB_PAT
 from .test_constants import TEST_CALLBACK_URL
+from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestRealOAuthFlow:
@@ -67,8 +68,7 @@ class TestRealOAuthFlow:
         }
 
         auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        , timeout=30.0)
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0)
 
         if auth_response.status_code == HTTP_BAD_REQUEST:
             error = auth_response.json()
@@ -119,8 +119,7 @@ class TestRealOAuthFlow:
                 "redirect_uri": TEST_CALLBACK_URL,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         # Should get invalid_grant (not invalid_client) proving client is valid
         assert token_response.status_code == HTTP_BAD_REQUEST
@@ -136,8 +135,7 @@ class TestRealOAuthFlow:
                     "refresh_token": GATEWAY_OAUTH_REFRESH_TOKEN,
                     "client_id": GATEWAY_OAUTH_CLIENT_ID,
                     "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
-                },
-            , timeout=30.0)
+                }, timeout=30.0)
 
             if refresh_response.status_code == HTTP_OK:
                 new_tokens = refresh_response.json()
@@ -151,8 +149,7 @@ class TestRealOAuthFlow:
                         "token": new_tokens["access_token"],
                         "client_id": GATEWAY_OAUTH_CLIENT_ID,
                         "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
 
                 assert introspect_response.status_code == HTTP_OK
                 introspect_data = introspect_response.json()
@@ -166,8 +163,7 @@ class TestRealOAuthFlow:
                         "token": new_tokens["access_token"],
                         "client_id": GATEWAY_OAUTH_CLIENT_ID,
                         "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
 
                 assert revoke_response.status_code == HTTP_OK
                 print("✓ Token revocation successful")
@@ -175,8 +171,7 @@ class TestRealOAuthFlow:
                 # Verify token is now revoked
                 verify_response = await http_client.get(
                     f"{AUTH_BASE_URL}/verify",
-                    headers={"Authorization": f"Bearer {new_tokens['access_token']}"},
-                , timeout=30.0)
+                    headers={"Authorization": f"Bearer {new_tokens['access_token']}"}, timeout=30.0)
 
                 assert verify_response.status_code == HTTP_UNAUTHORIZED
                 print("✓ Token revocation verified")
@@ -223,8 +218,7 @@ class TestRealPKCEFlow:
         }
 
         auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        , timeout=30.0)
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0)
 
         if auth_response.status_code == HTTP_BAD_REQUEST:
             error = auth_response.json()
@@ -289,8 +283,7 @@ class TestRealJWTTokens:
                 "token": real_token,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert introspect_response.status_code == HTTP_OK
         introspect_data = introspect_response.json()
@@ -310,8 +303,7 @@ class TestRealJWTTokens:
 
         verify_response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": f"Bearer {expired_token}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {expired_token}"}, timeout=30.0)
 
         assert verify_response.status_code == HTTP_UNAUTHORIZED
         error = verify_response.json()
@@ -324,8 +316,7 @@ class TestRealJWTTokens:
                 "token": real_token,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         # Always returns 200 per RFC 7009
         assert revoke_response.status_code == HTTP_OK

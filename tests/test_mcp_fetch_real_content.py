@@ -1,3 +1,6 @@
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 """Test MCP Fetch with real content - Following CLAUDE.md
 This test attempts to create a valid token and fetch real content.
 """

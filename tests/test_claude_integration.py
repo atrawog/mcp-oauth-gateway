@@ -18,6 +18,7 @@ from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
+from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestClaudeIntegration:

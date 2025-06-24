@@ -22,6 +22,7 @@ from .test_constants import HTTP_NOT_FOUND
 from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import MCP_FETCH_URL
+from .test_constants import HTTP_BAD_REQUEST
 
 
 # MCP Client tokens from environment
@@ -53,8 +54,7 @@ class TestMCPClientOAuthRegistration:
 
         # Register without authentication (public endpoint)
         response = await http_client.post(
-            f"{AUTH_BASE_URL}/register", json=registration_data
-        , timeout=30.0)
+            f"{AUTH_BASE_URL}/register", json=registration_data, timeout=30.0)
 
         assert response.status_code == HTTP_CREATED
         client_data = response.json()
@@ -83,8 +83,7 @@ class TestMCPClientOAuthRegistration:
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -116,8 +115,7 @@ class TestMCPClientOAuthRegistration:
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json=registration_data,
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_CREATED
         client_data = response.json()
@@ -132,8 +130,7 @@ class TestMCPClientOAuthRegistration:
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -161,8 +158,7 @@ class TestMCPClientOAuthFlows:
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": client_name,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -177,8 +173,7 @@ class TestMCPClientOAuthFlows:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        , timeout=30.0)
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0)
 
         # Should redirect to GitHub for authentication
         assert response.status_code == 307
@@ -195,8 +190,7 @@ class TestMCPClientOAuthFlows:
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client['registration_access_token']}"
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -217,8 +211,7 @@ class TestMCPClientOAuthFlows:
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": "TEST test_pkce_flow_for_cli_clients",
                 "token_endpoint_auth_method": "none",  # Public client
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -248,8 +241,7 @@ class TestMCPClientOAuthFlows:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        , timeout=30.0)
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0)
 
         assert response.status_code == 307
         print("✅ PKCE flow initiated successfully")
@@ -261,8 +253,7 @@ class TestMCPClientOAuthFlows:
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client['registration_access_token']}"
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -285,8 +276,7 @@ class TestMCPClientOAuthFlows:
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": "TEST test_token_refresh_flow",
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -299,8 +289,7 @@ class TestMCPClientOAuthFlows:
                 "refresh_token": "invalid_refresh_token",
                 "client_id": client["client_id"],
                 "client_secret": client["client_secret"],
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
@@ -315,8 +304,7 @@ class TestMCPClientOAuthFlows:
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client['registration_access_token']}"
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -352,8 +340,7 @@ class TestMCPClientTokenValidation:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         print("✅ MCP client token is valid and working")
@@ -367,8 +354,7 @@ class TestMCPClientTokenValidation:
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialize", "params": {}, "id": 1},
-            headers={"Authorization": "Bearer expired_token_12345"},
-        , timeout=30.0)
+            headers={"Authorization": "Bearer expired_token_12345"}, timeout=30.0)
 
         assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers
@@ -385,8 +371,7 @@ class TestMCPClientTokenValidation:
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": "TEST test_token_introspection",
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -399,8 +384,7 @@ class TestMCPClientTokenValidation:
                     "token": MCP_CLIENT_ACCESS_TOKEN,
                     "client_id": client["client_id"],
                     "client_secret": client["client_secret"],
-                },
-            , timeout=30.0)
+                }, timeout=30.0)
 
             assert response.status_code == HTTP_OK
             result = response.json()
@@ -419,8 +403,7 @@ class TestMCPClientTokenValidation:
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client['registration_access_token']}"
-                    },
-                , timeout=30.0)
+                    }, timeout=30.0)
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -444,8 +427,7 @@ class TestMCPClientCredentialStorage:
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": "TEST test_credential_format",
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -514,8 +496,7 @@ class TestMCPClientErrorScenarios:
     ):  # noqa: ARG002
         """Test OAuth discovery endpoint that clients use to find auth URLs."""
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-        , timeout=30.0)
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
 
         assert response.status_code == HTTP_OK
         metadata = response.json()
@@ -562,8 +543,7 @@ class TestMCPClientRealWorldScenarios:
                     },
                     "id": request_id,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-            , timeout=30.0)
+                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
             return response
 
         # Make 5 concurrent requests
@@ -589,8 +569,7 @@ class TestMCPClientRealWorldScenarios:
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": client_name,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response1.status_code == HTTP_CREATED
         client1 = response1.json()
@@ -601,8 +580,7 @@ class TestMCPClientRealWorldScenarios:
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": client_name,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response2.status_code == HTTP_CREATED
         client2 = response2.json()
@@ -622,8 +600,7 @@ class TestMCPClientRealWorldScenarios:
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
                             "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
-                        },
-                    , timeout=30.0)
+                        }, timeout=30.0)
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(

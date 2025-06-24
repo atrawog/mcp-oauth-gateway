@@ -11,6 +11,7 @@ import pytest
 from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import TEST_HTTP_TIMEOUT
+from .test_constants import HTTP_OK
 
 
 # MCP Client tokens for external client testing
@@ -42,8 +43,7 @@ class TestMCPProxyWithSessionHandling:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         assert "Mcp-Session-Id" in response.headers
@@ -79,8 +79,7 @@ class TestMCPProxyWithSessionHandling:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers["Mcp-Session-Id"]
@@ -92,8 +91,7 @@ class TestMCPProxyWithSessionHandling:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         # List tools using same session ID
         tools_response = await http_client.post(
@@ -102,8 +100,7 @@ class TestMCPProxyWithSessionHandling:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert tools_response.status_code == HTTP_OK
         data = tools_response.json()
@@ -124,8 +121,7 @@ class TestMCPProxyWithSessionHandling:
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert response.status_code == HTTP_OK  # JSON-RPC errors return 200
         data = response.json()
@@ -148,8 +144,7 @@ class TestMCPProxyWithSessionHandling:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": "invalid-session-id-12345",
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -183,8 +178,7 @@ class TestMCPProtocolFlowWithSessions:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        , timeout=30.0)
+            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers["Mcp-Session-Id"]
@@ -199,8 +193,7 @@ class TestMCPProtocolFlowWithSessions:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
         assert initialized_response.status_code in [200, 202]
 
         # Step 3: List available tools
@@ -210,8 +203,7 @@ class TestMCPProtocolFlowWithSessions:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert tools_response.status_code == HTTP_OK
         tools_data = tools_response.json()
@@ -238,8 +230,7 @@ class TestMCPProtocolFlowWithSessions:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
-            },
-        , timeout=30.0)
+            }, timeout=30.0)
 
         assert tool_response.status_code == HTTP_OK
         tool_data = tool_response.json()

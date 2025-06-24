@@ -1,3 +1,5 @@
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 """Comprehensive integration tests for MCP Playwright service.
 Tests all browser automation functionality including navigation, interaction, and content extraction.
 """

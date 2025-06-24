@@ -35,6 +35,8 @@ from .test_constants import JWT_PRIVATE_KEY_B64
 from .test_constants import REDIS_URL
 from .test_constants import TEST_CLIENT_NAME
 from .test_constants import TEST_REDIRECT_URI
+from .test_constants import HTTP_BAD_REQUEST
+from .test_constants import HTTP_FORBIDDEN
 
 
 class TestAuthAuthlibErrorHandling:

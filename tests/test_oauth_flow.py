@@ -18,6 +18,7 @@ from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import TEST_CALLBACK_URL
 from .test_constants import TEST_INVALID_REDIRECT_URI
+from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestOAuthFlow:

@@ -17,6 +17,8 @@ from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_BAD_REQUEST
+from .test_constants import HTTP_INTERNAL_SERVER_ERROR
 
 
 # JWT Algorithm is a protocol constant, not configuration

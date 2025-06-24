@@ -8,6 +8,8 @@ import os
 import httpx
 import pytest
 
+from .test_constants import HTTP_OK
+
 
 class TestAuthCORS:
     """Test that Auth service has proper CORS configuration."""

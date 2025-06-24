@@ -1,3 +1,5 @@
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 """Test that MCP authentication is working correctly
 Following CLAUDE.md - NO MOCKING, real services only!
 """

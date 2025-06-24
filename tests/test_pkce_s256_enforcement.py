@@ -11,6 +11,7 @@ from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_OK
 from .test_constants import TEST_CALLBACK_URL
+from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestPKCES256Enforcement:

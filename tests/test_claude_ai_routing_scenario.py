@@ -51,8 +51,7 @@ class TestClaudeAIRoutingScenario:
                 "Accept": "application/json,text/event-stream",
                 "MCP-Protocol-Version": "2025-06-18",
             },
-            follow_redirects=False,
-        , timeout=30.0)
+            follow_redirects=False, timeout=30.0)
 
         # CRITICAL: Should get 401, not 404!
         assert response.status_code == HTTP_UNAUTHORIZED, f"Expected 401, got {response.status_code}"
@@ -85,8 +84,7 @@ class TestClaudeAIRoutingScenario:
                     "Content-Type": "application/json",
                     "Accept": "application/json,text/event-stream",
                 },
-                follow_redirects=True,  # Allow following redirects
-            , timeout=30.0)
+                follow_redirects=True, timeout=30.0)  # Allow following redirects
 
             # Should eventually get 401 (after any redirects)
             assert response.status_code == HTTP_UNAUTHORIZED, (
@@ -135,13 +133,11 @@ class TestClaudeAIRoutingScenario:
                     f"{MCP_FETCH_URL}{test['path']}",
                     json={"jsonrpc": "2.0", "method": "ping", "id": 1},
                     headers={"Content-Type": "application/json"},
-                    follow_redirects=True,
-                , timeout=30.0)
+                    follow_redirects=True, timeout=30.0)
             else:
                 # GET request for other endpoints
                 response = await http_client.get(
-                    f"{MCP_FETCH_URL}{test['path']}", follow_redirects=True
-                , timeout=30.0)
+                    f"{MCP_FETCH_URL}{test['path']}", follow_redirects=True, timeout=30.0)
 
             assert response.status_code == test["expected"], (
                 f"{test['description']} ({test['path']}) returned {response.status_code}, expected {test['expected']}"  # TODO: Break long line
@@ -162,8 +158,7 @@ class TestClaudeAIRoutingScenario:
         response = await http_client.post(
             MCP_FETCH_URL,
             json={"test": "data"},
-            headers={"Content-Type": "application/json"},
-        , timeout=30.0)
+            headers={"Content-Type": "application/json"}, timeout=30.0)
         assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio

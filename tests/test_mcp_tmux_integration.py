@@ -1,3 +1,5 @@
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 """Comprehensive integration tests for MCP Tmux service.
 Tests all tmux functionality including session management, pane operations, and command execution.
 """
