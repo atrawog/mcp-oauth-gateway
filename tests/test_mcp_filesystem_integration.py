@@ -20,8 +20,8 @@ class TestMCPFilesystemIntegration:
             f"{mcp_filesystem_url}/health", timeout=TEST_HTTP_TIMEOUT
         )
 
-        assert response.status_code == 401, (
-            f"Health check must require authentication per divine CLAUDE.md: {response.status_code} - {response.text}"
+        assert response.status_code == HTTP_UNAUTHORIZED, (
+            f"Health check must require authentication per divine CLAUDE.md: {response.status_code} - {response.text}"  # TODO: Break long line
         )
 
     @pytest.mark.asyncio
@@ -40,7 +40,7 @@ class TestMCPFilesystemIntegration:
             timeout=TEST_HTTP_TIMEOUT,
         )
 
-        assert response.status_code == 401, (
+        assert response.status_code == HTTP_UNAUTHORIZED, (
             f"Expected 401 without auth, got {response.status_code}"
         )
 
@@ -67,7 +67,7 @@ class TestMCPFilesystemIntegration:
             timeout=TEST_HTTP_TIMEOUT,
         )
 
-        assert response.status_code == 200, (
+        assert response.status_code == HTTP_OK, (
             f"List request failed: {response.status_code} - {response.text}"
         )
 
@@ -103,7 +103,7 @@ class TestMCPFilesystemIntegration:
             timeout=TEST_HTTP_TIMEOUT,
         )
 
-        assert init_response.status_code == 200, (
+        assert init_response.status_code == HTTP_OK, (
             f"Initialize failed: {init_response.status_code} - {init_response.text}"
         )
 
@@ -164,7 +164,7 @@ class TestMCPFilesystemIntegration:
             timeout=TEST_HTTP_TIMEOUT,
         )
 
-        assert response.status_code == 200, (
+        assert response.status_code == HTTP_OK, (
             f"Read request failed: {response.status_code} - {response.text}"
         )
 
@@ -205,7 +205,7 @@ class TestMCPFilesystemIntegration:
             f"OAuth discovery failed: {response.status_code} - {response.text}"
         )
 
-        if response.status_code == 200:
+        if response.status_code == HTTP_OK:
             # Verify it's valid OAuth metadata
             metadata = response.json()
             assert "issuer" in metadata, "Missing issuer in OAuth metadata"

@@ -9,6 +9,12 @@ import httpx
 import pytest
 
 from .test_constants import BASE_DOMAIN
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_NO_CONTENT
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import MCP_FETCH_URL
 
 
@@ -19,9 +25,10 @@ class TestClaudeAIRoutingScenario:
     async def test_claude_ai_mcp_endpoint_discovery(
         self,
         http_client,
-        wait_for_services,  # noqa: ARG002
-    ):
+        wait_for_services
+    ):  # noqa: ARG002
         """Test the exact flow Claude.ai uses:
+
         1. Try to access /mcp endpoint
         2. Get 401 with WWW-Authenticate header
         3. Should NOT get 404!
@@ -45,10 +52,10 @@ class TestClaudeAIRoutingScenario:
                 "MCP-Protocol-Version": "2025-06-18",
             },
             follow_redirects=False,
-        )
+        , timeout=30.0)
 
         # CRITICAL: Should get 401, not 404!
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code == HTTP_UNAUTHORIZED, f"Expected 401, got {response.status_code}"
 
         # Should have WWW-Authenticate header for OAuth discovery
         assert "www-authenticate" in response.headers, "Missing WWW-Authenticate header"
@@ -65,8 +72,8 @@ class TestClaudeAIRoutingScenario:
     async def test_mcp_path_accessible_with_and_without_trailing_slash(
         self,
         http_client,
-        wait_for_services,  # noqa: ARG002
-    ):
+        wait_for_services
+    ):  # noqa: ARG002
         """Test that /mcp works with and without trailing slash."""
         paths = ["/mcp", "/mcp/"]
 
@@ -79,16 +86,17 @@ class TestClaudeAIRoutingScenario:
                     "Accept": "application/json,text/event-stream",
                 },
                 follow_redirects=True,  # Allow following redirects
-            )
+            , timeout=30.0)
 
             # Should eventually get 401 (after any redirects)
-            assert response.status_code == 401, (
+            assert response.status_code == HTTP_UNAUTHORIZED, (
                 f"Path {path} returned {response.status_code}"
             )
 
     @pytest.mark.asyncio
-    async def test_traefik_path_routing_exists(self, http_client, wait_for_services):
+    async def test_traefik_path_routing_exists(self, http_client, wait_for_services):  # noqa: ARG002
         """Test that Traefik routing includes PathPrefix rule.
+
         This is the test that would have caught our bug!
         """
         # Test different paths to ensure PathPrefix routing works
@@ -128,39 +136,40 @@ class TestClaudeAIRoutingScenario:
                     json={"jsonrpc": "2.0", "method": "ping", "id": 1},
                     headers={"Content-Type": "application/json"},
                     follow_redirects=True,
-                )
+                , timeout=30.0)
             else:
                 # GET request for other endpoints
                 response = await http_client.get(
                     f"{MCP_FETCH_URL}{test['path']}", follow_redirects=True
-                )
+                , timeout=30.0)
 
             assert response.status_code == test["expected"], (
-                f"{test['description']} ({test['path']}) returned {response.status_code}, expected {test['expected']}"
+                f"{test['description']} ({test['path']}) returned {response.status_code}, expected {test['expected']}"  # TODO: Break long line
             )
 
     @pytest.mark.asyncio
     async def test_base_domain_without_path_requires_auth(
         self,
         http_client,
-        wait_for_services,  # noqa: ARG002
-    ):
+        wait_for_services
+    ):  # noqa: ARG002
         """Test that accessing base domain without path requires auth."""
         # Just accessing the base domain should trigger auth
-        response = await http_client.get(MCP_FETCH_URL)
-        assert response.status_code == 401
+        response = await http_client.get(MCP_FETCH_URL, timeout=30.0)
+        assert response.status_code == HTTP_UNAUTHORIZED
 
         # Same for POST
         response = await http_client.post(
             MCP_FETCH_URL,
             json={"test": "data"},
             headers={"Content-Type": "application/json"},
-        )
-        assert response.status_code == 401
+        , timeout=30.0)
+        assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_exact_claude_ai_error_scenario(self, http_client, wait_for_services):
+    async def test_exact_claude_ai_error_scenario(self, http_client, wait_for_services):  # noqa: ARG002
         """Reproduce the EXACT error Claude.ai encountered.
+
         This test would FAIL with the old configuration!
         """
         # Simulate Claude.ai's exact request
@@ -195,7 +204,7 @@ class TestClaudeAIRoutingScenario:
                 "Make sure fetch router includes PathPrefix(`/mcp`) in the rule."
             )
 
-            assert response.status_code == 401, (
+            assert response.status_code == HTTP_UNAUTHORIZED, (
                 f"Expected 401 Unauthorized, got {response.status_code}"
             )
 

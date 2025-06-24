@@ -51,7 +51,7 @@ class TestMCPFetchsRealContent:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             session_id = response.headers.get("Mcp-Session-Id")
 
             # Fetch example.com
@@ -73,7 +73,7 @@ class TestMCPFetchsRealContent:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert data["jsonrpc"] == "2.0"
             assert data["id"] == 2
@@ -120,7 +120,7 @@ class TestMCPFetchsRealContent:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             content = data["result"]["content"][0]
             assert content["type"] == "text"
@@ -148,7 +148,7 @@ class TestMCPFetchsRealContent:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             content = data["result"]["content"][0]
             assert "MCP-Fetchs-Test/2.0" in content["text"]
@@ -168,7 +168,7 @@ class TestMCPFetchsRealContent:
                     "params": {
                         "name": "fetch",
                         "arguments": {
-                            "url": f"https://auth.{base_domain}/.well-known/oauth-authorization-server",
+                            "url": f"https://auth.{base_domain}/.well-known/oauth-authorization-server",  # TODO: Break long line
                             "method": "GET",
                         },
                     },
@@ -180,7 +180,7 @@ class TestMCPFetchsRealContent:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             content = data["result"]["content"][0]
 
@@ -217,7 +217,7 @@ class TestMCPFetchsRealContent:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             content = data["result"]["content"][0]
 
@@ -255,7 +255,7 @@ class TestMCPFetchsRealContent:
                     },
                 )
 
-                assert response.status_code == 200
+                assert response.status_code == HTTP_OK
                 data = response.json()
                 content = data["result"]["content"][0]
                 assert content["type"] == "text"
@@ -290,7 +290,7 @@ class TestMCPFetchsRealContent:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
 
             # Binary data should be represented somehow
@@ -329,7 +329,7 @@ class TestMCPFetchsRealContent:
                     },
                 )
 
-                assert response.status_code == 200
+                assert response.status_code == HTTP_OK
                 data = response.json()
 
                 if status >= 400:

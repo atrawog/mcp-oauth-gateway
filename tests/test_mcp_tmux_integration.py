@@ -111,7 +111,7 @@ class TestMCPTmuxIntegration:
 
         # First verify that /health requires authentication
         response = requests.get(f"{mcp_tmux_url}/health", timeout=10)
-        assert response.status_code == 401, (
+        assert response.status_code == HTTP_UNAUTHORIZED, (
             "/health endpoint must require authentication per divine CLAUDE.md"
         )
 
@@ -131,7 +131,7 @@ class TestMCPTmuxIntegration:
         if "result" in response:
             assert "protocolVersion" in response["result"]
             print(
-                f"✅ MCP tmux service is healthy (protocol version: {response['result']['protocolVersion']})"
+                f"✅ MCP tmux service is healthy (protocol version: {response['result']['protocolVersion']})"  # TODO: Break long line
             )
 
     def test_tmux_oauth_discovery(self):
@@ -147,7 +147,7 @@ class TestMCPTmuxIntegration:
             f"https://tmux.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
         )
         response = requests.get(oauth_discovery_url, timeout=10, verify=False)
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
         oauth_config = response.json()
         assert oauth_config["issuer"]
@@ -176,7 +176,7 @@ class TestMCPTmuxIntegration:
         assert "capabilities" in result
         assert "serverInfo" in result
 
-    def test_tmux_list_tools(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_list_tools(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test listing available tmux tools."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url, token=mcp_client_token, method="tools/list"
@@ -220,7 +220,7 @@ class TestMCPTmuxIntegration:
                     "default" in session_info["text"] or len(session_info["text"]) > 0
                 )
 
-    def test_tmux_capture_pane(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_capture_pane(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test capturing pane content."""
         # First list sessions to get a valid session
         sessions_response = self.run_mcp_client_raw(
@@ -274,7 +274,7 @@ class TestMCPTmuxIntegration:
             result = response["result"]
             assert "content" in result
 
-    def test_tmux_new_session(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_new_session(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test creating a new tmux session."""
         session_name = "test-session-123"
 
@@ -331,7 +331,7 @@ class TestMCPTmuxIntegration:
             result = response["result"]
             assert "contents" in result
 
-    def test_tmux_send_keys(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_send_keys(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test sending keys to a tmux pane."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,
@@ -393,5 +393,5 @@ class TestMCPTmuxIntegration:
             headers={"Content-Type": "application/json"},
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers

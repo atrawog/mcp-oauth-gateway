@@ -8,6 +8,12 @@ import httpx
 import pytest
 
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_NO_CONTENT
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import MCP_PROTOCOL_VERSION
 
 
@@ -54,8 +60,8 @@ class TestMCPAIHostnames:
 
             try:
                 # First test without auth - should get 401
-                response = await http_client.post(url)
-                assert response.status_code == 401, (
+                response = await http_client.post(url, timeout=30.0)
+                assert response.status_code == HTTP_UNAUTHORIZED, (
                     f"{name} should require authentication"
                 )
 
@@ -82,9 +88,9 @@ class TestMCPAIHostnames:
                     url,
                     json=init_request,
                     headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-                )
+                , timeout=30.0)
 
-                assert response.status_code == 200, (
+                assert response.status_code == HTTP_OK, (
                     f"{name} failed to initialize: {response.text}"
                 )
 
@@ -131,8 +137,8 @@ class TestMCPAIHostnames:
             try:
                 # Per CLAUDE.md, health is checked via MCP protocol, not /health endpoint
                 # Test that endpoint requires auth (returns 401)
-                response = await http_client.get(url)
-                assert response.status_code == 401, (
+                response = await http_client.get(url, timeout=30.0)
+                assert response.status_code == HTTP_UNAUTHORIZED, (
                     f"{name} should require authentication"
                 )
                 assert "WWW-Authenticate" in response.headers
@@ -155,8 +161,8 @@ class TestMCPAIHostnames:
 
             try:
                 # Discovery endpoint should be public
-                response = await http_client.get(discovery_url)
-                assert response.status_code == 200, f"{name} OAuth discovery failed"
+                response = await http_client.get(discovery_url, timeout=30.0)
+                assert response.status_code == HTTP_OK, f"{name} OAuth discovery failed"
 
                 metadata = response.json()
                 assert "issuer" in metadata
@@ -198,8 +204,8 @@ class TestMCPAIHostnames:
 
         headers = {"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
 
-        init_response = await http_client.post(url, json=init_request, headers=headers)
-        assert init_response.status_code == 200
+        init_response = await http_client.post(url, json=init_request, headers=headers, timeout=30.0)
+        assert init_response.status_code == HTTP_OK
 
         # Get session ID
         session_id = init_response.headers.get("Mcp-Session-Id")
@@ -216,8 +222,8 @@ class TestMCPAIHostnames:
 
         tools_response = await http_client.post(
             url, json=list_tools_request, headers=headers
-        )
-        assert tools_response.status_code == 200
+        , timeout=30.0)
+        assert tools_response.status_code == HTTP_OK
 
         tools_result = tools_response.json()
         assert "result" in tools_result
@@ -246,8 +252,8 @@ class TestMCPAIHostnames:
         # Test actual accessibility
         for name, url, _ in self.HOSTNAMES:
             try:
-                response = await http_client.post(url)
-                if response.status_code == 401:  # Expected when no auth
+                response = await http_client.post(url, timeout=30.0)
+                if response.status_code == HTTP_UNAUTHORIZED:  # Expected when no auth
                     accessible.append((name, url))
                 else:
                     inaccessible.append(
@@ -277,7 +283,7 @@ class TestMCPAIHostnames:
         assert len(configured) > 0, "Should have at least one AI hostname configured"
 
         print(
-            f"\n📈 Summary: {len(configured)} configured, {len(accessible)} accessible, {len(inaccessible)} not ready"
+            f"\n📈 Summary: {len(configured)} configured, {len(accessible)} accessible, {len(inaccessible)} not ready"  # TODO: Break long line
         )
 
         # At least some should be accessible

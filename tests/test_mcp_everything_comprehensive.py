@@ -77,7 +77,7 @@ class TestMCPEverythingComprehensive:
     @pytest.mark.skipif(
         not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled"
     )
-    async def test_echo_tool(self, everything_url, client_token, wait_for_services):
+    async def test_echo_tool(self, everything_url, client_token, wait_for_services):  # noqa: ARG002
         """Test the echo tool with a message."""
         returncode, stdout, stderr = self.run_client_command(
             url=everything_url,
@@ -97,7 +97,7 @@ class TestMCPEverythingComprehensive:
     @pytest.mark.skipif(
         not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled"
     )
-    async def test_add_tool(self, everything_url, client_token, wait_for_services):
+    async def test_add_tool(self, everything_url, client_token, wait_for_services):  # noqa: ARG002
         """Test the add tool with two numbers."""
         # Test with JSON format
         returncode, stdout, stderr = self.run_client_command(
@@ -136,7 +136,7 @@ class TestMCPEverythingComprehensive:
     @pytest.mark.skipif(
         not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled"
     )
-    async def test_printenv_tool(self, everything_url, client_token, wait_for_services):
+    async def test_printenv_tool(self, everything_url, client_token, wait_for_services):  # noqa: ARG002
         """Test the printEnv tool."""
         returncode, stdout, stderr = self.run_client_command(
             url=everything_url, token=client_token, command="printEnv"

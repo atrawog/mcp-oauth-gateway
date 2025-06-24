@@ -136,7 +136,7 @@ class TestMCPFetchsProtocol:
                     },
                 )
 
-                assert response.status_code == 200
+                assert response.status_code == HTTP_OK
                 data = response.json()
 
                 if should_succeed:
@@ -167,7 +167,7 @@ class TestMCPFetchsProtocol:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             assert "Mcp-Session-Id" in response.headers
             session_id = response.headers["Mcp-Session-Id"]
 
@@ -182,7 +182,7 @@ class TestMCPFetchsProtocol:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "result" in data
 
@@ -198,7 +198,7 @@ class TestMCPFetchsProtocol:
             )
 
             # Should still work (stateless implementation)
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -223,7 +223,7 @@ class TestMCPFetchsProtocol:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
 
             # Check response headers
             assert response.headers.get("Content-Type").startswith("application/json")
@@ -326,7 +326,7 @@ class TestMCPFetchsProtocol:
                     print(f"\nFailed for content type: {content_type}")
                     print(f"Response status: {response.status_code}")
                     print(f"Response body: {response.text}")
-                assert response.status_code == 200
+                assert response.status_code == HTTP_OK
                 data = response.json()
                 assert "result" in data or "error" in data
 
@@ -356,7 +356,7 @@ class TestMCPFetchsProtocol:
                     },
                 )
 
-                assert response.status_code == 200
+                assert response.status_code == HTTP_OK
                 data = response.json()
                 # Response ID must match request ID exactly
                 assert data["id"] == request_id

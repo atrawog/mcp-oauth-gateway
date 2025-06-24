@@ -41,7 +41,7 @@ async def test_rfc7592_get_client_configuration(http_client):
     response = await http_client.post(
         f"{AUTH_BASE_URL}/register", json=registration_data
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     client = response.json()
 
     client_id = client["client_id"]
@@ -57,7 +57,7 @@ async def test_rfc7592_get_client_configuration(http_client):
         f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
     )
 
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     config = response.json()
 
     # Verify all registered metadata is returned
@@ -71,7 +71,7 @@ async def test_rfc7592_get_client_configuration(http_client):
 
     # Test 2: GET without authentication - MUST return 401
     response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}")
-    assert response.status_code == 401
+    assert response.status_code == HTTP_UNAUTHORIZED
     assert response.headers.get("WWW-Authenticate") == 'Bearer realm="auth"'
 
     # Test 3: GET with wrong token - MUST return 403
@@ -79,21 +79,21 @@ async def test_rfc7592_get_client_configuration(http_client):
     response = await http_client.get(
         f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": wrong_auth}
     )
-    assert response.status_code == 403
+    assert response.status_code == HTTP_FORBIDDEN
 
     # Test 4: GET with wrong client_id in URL - MUST return 404 (client not found)
     response = await http_client.get(
         f"{AUTH_BASE_URL}/register/client_wrong_id",
         headers={"Authorization": auth_header},
     )
-    assert response.status_code == 404  # Client doesn't exist
+    assert response.status_code == HTTP_NOT_FOUND  # Client doesn't exist
 
     # Test 5: GET non-existent client - MUST return 404
     fake_auth = create_bearer_auth_header("reg-fake-token")
     response = await http_client.get(
         f"{AUTH_BASE_URL}/register/client_fake", headers={"Authorization": fake_auth}
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTP_NOT_FOUND
 
     # Clean up
     await http_client.delete(
@@ -113,7 +113,7 @@ async def test_rfc7592_put_update_client(http_client):
     }
 
     response = await http_client.post(f"{AUTH_BASE_URL}/register", json=initial_data)
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     client = response.json()
 
     client_id = client["client_id"]
@@ -144,7 +144,7 @@ async def test_rfc7592_put_update_client(http_client):
         headers={"Authorization": auth_header},
     )
 
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     updated = response.json()
 
     # Verify updates were applied
@@ -163,7 +163,7 @@ async def test_rfc7592_put_update_client(http_client):
         f"{AUTH_BASE_URL}/register/{client_id}",
         json={"client_name": "Unauthorized Update"},
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTP_UNAUTHORIZED
     assert response.headers.get("WWW-Authenticate") == 'Bearer realm="auth"'
 
     # Test 3: PUT with wrong token - MUST return 403
@@ -174,7 +174,7 @@ async def test_rfc7592_put_update_client(http_client):
         json={"client_name": "Wrong Auth Update"},
         headers={"Authorization": wrong_auth},
     )
-    assert response.status_code == 403
+    assert response.status_code == HTTP_FORBIDDEN
 
     # Test 4: PUT to wrong client_id - MUST return 404 (client not found)
     response = await http_client.put(
@@ -182,7 +182,7 @@ async def test_rfc7592_put_update_client(http_client):
         json={"client_name": "Cross-client Update"},
         headers={"Authorization": auth_header},
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTP_NOT_FOUND
 
     # Test 5: PUT with invalid metadata - MUST return 400
     response = await http_client.put(
@@ -190,13 +190,13 @@ async def test_rfc7592_put_update_client(http_client):
         json={"redirect_uris": []},  # Empty redirect_uris not allowed
         headers={"Authorization": auth_header},
     )
-    assert response.status_code == 400
+    assert response.status_code == HTTP_BAD_REQUEST
 
     # Test 6: Verify updates persist
     response = await http_client.get(
         f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     persisted = response.json()
     assert persisted["client_name"] == "TEST Updated Name via RFC 7592"
 
@@ -217,7 +217,7 @@ async def test_rfc7592_delete_client(http_client):
             "client_name": "TEST Client to Delete",
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     client = response.json()
 
     client_id = client["client_id"]
@@ -230,7 +230,7 @@ async def test_rfc7592_delete_client(http_client):
 
     # Test 1: DELETE without authentication - MUST return 401
     response = await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}")
-    assert response.status_code == 401
+    assert response.status_code == HTTP_UNAUTHORIZED
     assert response.headers.get("WWW-Authenticate") == 'Bearer realm="auth"'
 
     # Test 2: DELETE with wrong token - MUST return 403
@@ -239,26 +239,26 @@ async def test_rfc7592_delete_client(http_client):
     response = await http_client.delete(
         f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": wrong_auth}
     )
-    assert response.status_code == 403
+    assert response.status_code == HTTP_FORBIDDEN
 
     # Test 3: Valid DELETE with authentication
     response = await http_client.delete(
         f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
     )
-    assert response.status_code == 204
+    assert response.status_code == HTTP_NO_CONTENT
     assert not response.content  # No content on 204
 
     # Test 4: Verify client is deleted - GET should return 404
     response = await http_client.get(
         f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTP_NOT_FOUND
 
     # Test 5: DELETE already deleted client - MUST return 404
     response = await http_client.delete(
         f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTP_NOT_FOUND
 
     # Test 6: DELETE non-existent client - MUST return 404
     fake_token = "reg-fake-token-nonexistent"
@@ -267,7 +267,7 @@ async def test_rfc7592_delete_client(http_client):
         f"{AUTH_BASE_URL}/register/client_nonexistent",
         headers={"Authorization": fake_auth},
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTP_NOT_FOUND
 
 
 @pytest.mark.asyncio
@@ -281,7 +281,7 @@ async def test_rfc7592_requires_correct_bearer_token(http_client):
             "client_name": "TEST Bearer Token Test",
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     client = response.json()
 
     client_id = client["client_id"]
@@ -319,13 +319,13 @@ async def test_rfc7592_requires_correct_bearer_token(http_client):
                 headers={"Authorization": f"Bearer {wrong_bearer_token}"},
             )
 
-        assert response.status_code == 403, (
+        assert response.status_code == HTTP_FORBIDDEN, (
             f"{method} {path} should reject wrong Bearer tokens"
         )
 
     # Test with NO auth header - should return 401
     response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}")
-    assert response.status_code == 401
+    assert response.status_code == HTTP_UNAUTHORIZED
     assert response.headers.get("WWW-Authenticate") == 'Bearer realm="auth"'
 
     # Test with Basic auth - should return 401 (wrong auth method)
@@ -337,7 +337,7 @@ async def test_rfc7592_requires_correct_bearer_token(http_client):
     response = await http_client.get(
         f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": basic_auth}
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTP_UNAUTHORIZED
     assert response.headers.get("WWW-Authenticate") == 'Bearer realm="auth"'
 
     # Clean up with correct token
@@ -358,7 +358,7 @@ async def test_rfc7592_client_isolation(http_client):
             "client_name": "TEST Client 1",
         },
     )
-    assert response1.status_code == 201
+    assert response1.status_code == HTTP_CREATED
     client1 = response1.json()
 
     response2 = await http_client.post(
@@ -368,7 +368,7 @@ async def test_rfc7592_client_isolation(http_client):
             "client_name": "TEST Client 2",
         },
     )
-    assert response2.status_code == 201
+    assert response2.status_code == HTTP_CREATED
     client2 = response2.json()
 
     # Create auth headers for both clients using their registration tokens
@@ -384,7 +384,7 @@ async def test_rfc7592_client_isolation(http_client):
         f"{AUTH_BASE_URL}/register/{client2['client_id']}",
         headers={"Authorization": auth1},
     )
-    assert response.status_code == 403
+    assert response.status_code == HTTP_FORBIDDEN
 
     # Test 2: Client 1 cannot UPDATE Client 2's configuration
     response = await http_client.put(
@@ -392,21 +392,21 @@ async def test_rfc7592_client_isolation(http_client):
         json={"client_name": "Hacked by Client 1"},
         headers={"Authorization": auth1},
     )
-    assert response.status_code == 403
+    assert response.status_code == HTTP_FORBIDDEN
 
     # Test 3: Client 1 cannot DELETE Client 2
     response = await http_client.delete(
         f"{AUTH_BASE_URL}/register/{client2['client_id']}",
         headers={"Authorization": auth1},
     )
-    assert response.status_code == 403
+    assert response.status_code == HTTP_FORBIDDEN
 
     # Test 4: Verify Client 2 is unaffected
     response = await http_client.get(
         f"{AUTH_BASE_URL}/register/{client2['client_id']}",
         headers={"Authorization": auth2},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     assert response.json()["client_name"] == "TEST Client 2"
 
     # Clean up both clients
@@ -431,7 +431,7 @@ async def test_rfc7592_malformed_requests(http_client):
             "client_name": "TEST Malformed Test Client",
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     client = response.json()
 
     client_id = client["client_id"]
@@ -467,8 +467,8 @@ async def test_rfc7592_malformed_requests(http_client):
         ]:
             assert response.status_code in [401, 403]  # Either is acceptable
         else:
-            assert response.status_code == 401, (
-                f"Expected 401 for auth header: {bad_auth!r}, got {response.status_code}"
+            assert response.status_code == HTTP_UNAUTHORIZED, (
+                f"Expected 401 for auth header: {bad_auth!r}, got {response.status_code}"  # TODO: Break long line
             )
 
     # Test 2: Invalid JSON in PUT request
@@ -477,7 +477,7 @@ async def test_rfc7592_malformed_requests(http_client):
         content="not json",
         headers={"Authorization": auth_header, "Content-Type": "application/json"},
     )
-    assert response.status_code == 422  # Unprocessable Entity
+    assert response.status_code == HTTP_UNPROCESSABLE_ENTITY  # Unprocessable Entity
 
     # Test 3: Invalid client_id format in URL
     invalid_client_ids = [
@@ -511,7 +511,7 @@ async def test_rfc7592_concurrent_updates(http_client):
             "scope": "openid",
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     client = response.json()
 
     client_id = client["client_id"]
@@ -542,7 +542,7 @@ async def test_rfc7592_concurrent_updates(http_client):
 
     # All requests should succeed (last write wins)
     success_count = sum(
-        1 for r in responses if not isinstance(r, Exception) and r.status_code == 200
+        1 for r in responses if not isinstance(r, Exception) and r.status_code == HTTP_OK
     )
     assert success_count == 5
 
@@ -550,7 +550,7 @@ async def test_rfc7592_concurrent_updates(http_client):
     response = await http_client.get(
         f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     final_state = response.json()
     assert final_state["client_id"] == client_id
     assert final_state["scope"] == "openid profile"
@@ -575,7 +575,7 @@ async def test_rfc7592_client_lifetime_handling(http_client):
             "client_name": "TEST Lifetime Test Client",
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     client = response.json()
 
     client_id = client["client_id"]
@@ -604,7 +604,7 @@ async def test_rfc7592_client_lifetime_handling(http_client):
         },
         headers={"Authorization": auth_header},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     updated = response.json()
 
     # Expiration should not change on update

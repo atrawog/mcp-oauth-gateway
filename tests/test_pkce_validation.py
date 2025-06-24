@@ -54,7 +54,7 @@ class TestPKCEValidation:
         assert metadata["code_challenge_methods_supported"] == ["S256"]
 
         # Plain method should now be rejected at authorize endpoint
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
 
     @pytest.mark.asyncio
     async def test_pkce_s256_verification_fixed(

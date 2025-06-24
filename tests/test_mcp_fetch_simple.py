@@ -13,6 +13,9 @@ from .jwt_test_helper import encode as jwt_encode
 from .test_constants import ACCESS_TOKEN_LIFETIME
 from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_JWT_SECRET
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import REDIS_URL
 
 
@@ -84,7 +87,7 @@ class TestMCPFetchSimple:
             print(f"Response status: {response.status_code}")
             print(f"Response headers: {dict(response.headers)}")
 
-            if response.status_code == 200:
+            if response.status_code == HTTP_OK:
                 # Success! MCP is working
                 result = response.json()
                 print(f"MCP Response: {json.dumps(result, indent=2)}")
@@ -109,7 +112,7 @@ class TestMCPFetchSimple:
                     },
                 )
 
-                if fetch_response.status_code == 200:
+                if fetch_response.status_code == HTTP_OK:
                     fetch_result = fetch_response.json()
                     print(f"Fetch result: {json.dumps(fetch_result, indent=2)}")
 
@@ -129,9 +132,9 @@ class TestMCPFetchSimple:
                 print(f"Response body: {response.text}")
 
                 # Check if it's an auth issue or service issue
-                if response.status_code == 401:
+                if response.status_code == HTTP_UNAUTHORIZED:
                     print("Authentication failed - token not accepted")
-                elif response.status_code == 404:
+                elif response.status_code == HTTP_NOT_FOUND:
                     print(
                         "Endpoint not found - service may not be configured correctly"
                     )

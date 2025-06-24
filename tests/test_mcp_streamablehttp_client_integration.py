@@ -175,7 +175,7 @@ class TestMCPStreamableHTTPClientCommand:
 
         # Either authentication should fail OR it should NOT successfully fetch the content
         assert auth_failed or not any(success_indicators), (
-            f"Command succeeded with invalid token! Exit code: {result.returncode}, Output: {output_combined[:1000]}"
+            f"Command succeeded with invalid token! Exit code: {result.returncode}, Output: {output_combined[:1000]}"  # TODO: Break long line
         )
 
         print("✅ Command properly rejected invalid token")

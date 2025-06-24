@@ -24,7 +24,7 @@ class TestMCPSessionCreation:
     @pytest.mark.asyncio
     async def test_session_created_on_initialize(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that a session is created when client initializes."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -45,9 +45,9 @@ class TestMCPSessionCreation:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
         # Check for session-related headers
         # The proxy might return a session ID in headers
@@ -56,7 +56,7 @@ class TestMCPSessionCreation:
     @pytest.mark.asyncio
     async def test_multiple_sessions_isolated(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that multiple clients get isolated sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -83,7 +83,7 @@ class TestMCPSessionCreation:
                 },
                 headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
             )
-            assert response1.status_code == 200
+            assert response1.status_code == HTTP_OK
 
             # Initialize second client
             response2 = await client2.post(
@@ -100,7 +100,7 @@ class TestMCPSessionCreation:
                 },
                 headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
             )
-            assert response2.status_code == 200
+            assert response2.status_code == HTTP_OK
 
             # Both should get successful but independent responses
             data1 = response1.json()
@@ -119,7 +119,7 @@ class TestMCPSessionPersistence:
     @pytest.mark.asyncio
     async def test_session_persists_between_requests(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that session state persists between requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -140,30 +140,30 @@ class TestMCPSessionPersistence:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
-        assert init_response.status_code == 200
+        , timeout=30.0)
+        assert init_response.status_code == HTTP_OK
 
         # Send initialized notification
         await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
         # Now make another request - should use same session
         tools_response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert tools_response.status_code == 200
+        assert tools_response.status_code == HTTP_OK
         # If session wasn't maintained, this would fail as uninitialized
 
     @pytest.mark.asyncio
     async def test_session_requires_initialization(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that operations fail without initialization."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -181,7 +181,7 @@ class TestMCPSessionPersistence:
 
             # Should either fail or return an error
             assert response.status_code in [200, 400]
-            if response.status_code == 200:
+            if response.status_code == HTTP_OK:
                 data = response.json()
                 # Should have an error about not being initialized
                 assert "error" in data
@@ -194,7 +194,7 @@ class TestMCPSessionTimeout:
     @pytest.mark.slow
     async def test_session_timeout_configuration(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that sessions respect timeout configuration."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -220,27 +220,27 @@ class TestMCPSessionTimeout:
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
         # Verify session is active
         await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
         # Session should still be active
         tools_response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
-        assert tools_response.status_code == 200
+        , timeout=30.0)
+        assert tools_response.status_code == HTTP_OK
 
     @pytest.mark.asyncio
     async def test_session_activity_updates(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that session activity is updated on each request."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -261,7 +261,7 @@ class TestMCPSessionTimeout:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
         # Make multiple requests with delays
         for i in range(3):
@@ -276,9 +276,9 @@ class TestMCPSessionTimeout:
                     "id": i + 2,
                 },
                 headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-            )
+            , timeout=30.0)
             # Session should remain active
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
 
 
 class TestMCPSessionConcurrency:
@@ -287,7 +287,7 @@ class TestMCPSessionConcurrency:
     @pytest.mark.asyncio
     async def test_concurrent_requests_same_session(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that concurrent requests to same session are handled properly."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -308,8 +308,8 @@ class TestMCPSessionConcurrency:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
-        assert init_response.status_code == 200
+        , timeout=30.0)
+        assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
         await http_client.post(
@@ -319,7 +319,7 @@ class TestMCPSessionConcurrency:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
             },
-        )
+        , timeout=30.0)
 
         # Send multiple concurrent requests
         async def make_request(request_id: int):
@@ -335,7 +335,7 @@ class TestMCPSessionConcurrency:
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                     "Mcp-Session-Id": session_id,
                 },
-            )
+            , timeout=30.0)
 
         # Launch concurrent requests
         tasks = [make_request(i + 10) for i in range(5)]
@@ -343,7 +343,7 @@ class TestMCPSessionConcurrency:
 
         # All should succeed
         for response in responses:
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "result" in data
             assert "tools" in data["result"]
@@ -351,7 +351,7 @@ class TestMCPSessionConcurrency:
     @pytest.mark.asyncio
     async def test_request_id_uniqueness(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that request IDs are properly tracked per session."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -372,7 +372,7 @@ class TestMCPSessionConcurrency:
                 "id": "init-1",
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
         # Send requests with different ID types (string and number)
         response1 = await http_client.post(
@@ -384,19 +384,19 @@ class TestMCPSessionConcurrency:
                 "id": "string-id-1",
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
         response2 = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 12345},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
         # Both should succeed and echo back their IDs
-        assert response1.status_code == 200
+        assert response1.status_code == HTTP_OK
         assert response1.json()["id"] == "string-id-1"
 
-        assert response2.status_code == 200
+        assert response2.status_code == HTTP_OK
         assert response2.json()["id"] == 12345
 
 
@@ -406,7 +406,7 @@ class TestMCPSessionCleanup:
     @pytest.mark.asyncio
     async def test_session_cleanup_on_client_disconnect(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that sessions are cleaned up when client disconnects."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -430,7 +430,7 @@ class TestMCPSessionCleanup:
                 },
                 headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
             )
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
 
         # Client is now closed
         # Try to use the same client connection - should fail or create new session
@@ -444,7 +444,7 @@ class TestMCPSessionCleanup:
 
             # Should need to initialize again
             assert response.status_code in [200, 400]
-            if response.status_code == 200:
+            if response.status_code == HTTP_OK:
                 data = response.json()
                 # If it worked, it's likely because a new session was created
                 # or there's an error about not being initialized

@@ -10,6 +10,12 @@ import pytest
 
 from .jwt_test_helper import encode as jwt_encode
 from .test_constants import ACCESS_TOKEN_LIFETIME
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_NO_CONTENT
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import TEST_CLIENT_NAME
@@ -24,31 +30,29 @@ class TestAdditionalCoverage:
     async def test_missing_authorization_header_formats(
         self,
         http_client,
-        wait_for_services,  # noqa: ARG002
-    ):
+        wait_for_services
+    ):  # noqa: ARG002
         """Test various missing/malformed authorization headers."""
         # Test with no Authorization header at all (already covered)
-        response = await http_client.get(f"{AUTH_BASE_URL}/verify")
-        assert response.status_code == 401
+        response = await http_client.get(f"{AUTH_BASE_URL}/verify", timeout=30.0)
+        assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test with empty Authorization header
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify", headers={"Authorization": ""}
-        )
-        assert response.status_code == 401
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": ""}, timeout=30.0)
+        assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test with Authorization but no Bearer
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
             headers={"Authorization": "InvalidScheme token123"},
-        )
-        assert response.status_code == 401
+            timeout=30.0)
+        assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test with Bearer but no token
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer"}
-        )
-        assert response.status_code == 401
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer"}, timeout=30.0)
+        assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test with Bearer and space but no token - Skip this as httpx doesn't allow it
         # httpx validates headers and won't send "Bearer " with trailing space
@@ -57,8 +61,8 @@ class TestAdditionalCoverage:
     async def test_token_endpoint_missing_client_credentials(
         self,
         http_client,
-        wait_for_services,  # noqa: ARG002
-    ):
+        wait_for_services
+    ):  # noqa: ARG002
         """Test token endpoint with missing client credentials."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -78,9 +82,9 @@ class TestAdditionalCoverage:
                 f"{AUTH_BASE_URL}/register",
                 json=registration_data,
                 headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-            )
+            , timeout=30.0)
 
-            assert reg_response.status_code == 201
+            assert reg_response.status_code == HTTP_CREATED
             client = reg_response.json()
 
             # Test with missing client_id
@@ -91,10 +95,10 @@ class TestAdditionalCoverage:
                     "code": "some_code",
                     "client_secret": client["client_secret"],
                 },
-            )
+            , timeout=30.0)
 
             # FastAPI returns 422 for missing required fields
-            assert token_response.status_code == 422
+            assert token_response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
             # Test with missing client_secret for confidential client
             token_response = await http_client.post(
@@ -104,10 +108,10 @@ class TestAdditionalCoverage:
                     "code": "some_code",
                     "client_id": client["client_id"],
                 },
-            )
+            , timeout=30.0)
 
             # Returns 400 for missing client_secret
-            assert token_response.status_code == 400
+            assert token_response.status_code == HTTP_BAD_REQUEST
             # FastAPI may return different error format
             error_data = token_response.json()
             # Check for error in either format
@@ -124,13 +128,13 @@ class TestAdditionalCoverage:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client['registration_access_token']}"
+                            "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
                         },
-                    )
+                    , timeout=30.0)
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
-                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"
+                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
                         )
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
@@ -139,7 +143,8 @@ class TestAdditionalCoverage:
     async def test_introspect_with_malformed_token(
         self,
         http_client,
-        wait_for_services,  # noqa: ARG002, registered_client
+        wait_for_services,  # noqa: ARG002
+        registered_client,
     ):
         """Test introspect endpoint with various malformed tokens."""
         # Test with non-JWT token
@@ -150,9 +155,9 @@ class TestAdditionalCoverage:
                 "client_id": registered_client["client_id"],
                 "client_secret": registered_client["client_secret"],
             },
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         result = response.json()
         assert result["active"] is False
 
@@ -164,14 +169,14 @@ class TestAdditionalCoverage:
                 "client_id": registered_client["client_id"],
                 "client_secret": registered_client["client_secret"],
             },
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         result = response.json()
         assert result["active"] is False
 
     @pytest.mark.asyncio
-    async def test_registration_with_minimal_data(self, http_client, wait_for_services):
+    async def test_registration_with_minimal_data(self, http_client, wait_for_services):  # noqa: ARG002
         """Test client registration with only required fields."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -190,9 +195,9 @@ class TestAdditionalCoverage:
                 f"{AUTH_BASE_URL}/register",
                 json=registration_data,
                 headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-            )
+            , timeout=30.0)
 
-            assert response.status_code == 201
+            assert response.status_code == HTTP_CREATED
             client = response.json()
 
             # Should have generated defaults
@@ -219,13 +224,13 @@ class TestAdditionalCoverage:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client['registration_access_token']}"
+                            "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
                         },
-                    )
+                    , timeout=30.0)
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
-                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"
+                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
                         )
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
@@ -234,7 +239,8 @@ class TestAdditionalCoverage:
     async def test_jwt_with_invalid_signature(
         self,
         http_client,
-        wait_for_services,  # noqa: ARG002, registered_client
+        wait_for_services,  # noqa: ARG002
+        registered_client,
     ):
         """Test JWT verification with invalid signature."""
         # Create a JWT with wrong secret
@@ -256,9 +262,9 @@ class TestAdditionalCoverage:
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
             headers={"Authorization": f"Bearer {invalid_token}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
         assert (
             "The access token is invalid or expired"
@@ -269,7 +275,8 @@ class TestAdditionalCoverage:
     async def test_authorize_endpoint_missing_parameters(
         self,
         http_client,
-        wait_for_services,  # noqa: ARG002, registered_client
+        wait_for_services,  # noqa: ARG002
+        registered_client,
     ):
         """Test authorize endpoint with missing required parameters."""
         # Missing response_type
@@ -279,16 +286,16 @@ class TestAdditionalCoverage:
                 "client_id": registered_client["client_id"],
                 "redirect_uri": registered_client["redirect_uris"][0],
             },
-        )
+        , timeout=30.0)
 
         # FastAPI returns 422 for missing required query parameters
-        assert response.status_code == 422
+        assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
         # Missing client_id
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
             params={"response_type": "code", "redirect_uri": TEST_REDIRECT_URI},
-        )
+        , timeout=30.0)
 
         # FastAPI returns 422 for missing required query parameters
-        assert response.status_code == 422
+        assert response.status_code == HTTP_UNPROCESSABLE_ENTITY

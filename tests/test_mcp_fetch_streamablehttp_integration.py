@@ -44,7 +44,7 @@ async def test_fetch_native_health_check(
             },
         )
 
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     data = response.json()
     assert "result" in data
     assert data["result"]["protocolVersion"] == "2025-06-18"
@@ -63,7 +63,7 @@ async def test_fetch_native_requires_auth(mcp_fetchs_url, wait_for_services):
             headers={"Content-Type": "application/json"},
         )
 
-    assert response.status_code == 401
+    assert response.status_code == HTTP_UNAUTHORIZED
     assert response.headers["WWW-Authenticate"] == "Bearer"
 
 
@@ -81,7 +81,7 @@ async def test_fetch_native_cors_preflight(mcp_fetchs_url, wait_for_services):
             },
         )
 
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     assert response.headers["Access-Control-Allow-Origin"] == "*"
     assert "POST" in response.headers["Access-Control-Allow-Methods"]
     # Check for expected headers - Authorization might be handled differently
@@ -111,7 +111,7 @@ async def test_fetch_native_initialize(
             },
         )
 
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     data = response.json()
     assert data["jsonrpc"] == "2.0"
     assert data["id"] == 1
@@ -144,7 +144,7 @@ async def test_fetch_native_list_tools(
             },
         )
 
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     data = response.json()
     assert data["jsonrpc"] == "2.0"
     assert data["id"] == 2
@@ -177,7 +177,7 @@ async def test_fetch_native_call_tool_fetch(
                 "params": {
                     "name": "fetch",
                     "arguments": {
-                        "url": f"https://auth.{base_domain}/.well-known/oauth-authorization-server",
+                        "url": f"https://auth.{base_domain}/.well-known/oauth-authorization-server",  # TODO: Break long line
                         "method": "GET",
                     },
                 },
@@ -189,7 +189,7 @@ async def test_fetch_native_call_tool_fetch(
             },
         )
 
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     data = response.json()
     assert data["jsonrpc"] == "2.0"
     assert data["id"] == 3
@@ -221,7 +221,7 @@ async def test_fetch_native_invalid_json_rpc(
             },
         )
 
-    assert response.status_code == 400
+    assert response.status_code == HTTP_BAD_REQUEST
     data = response.json()
     assert data["jsonrpc"] == "2.0"
     assert "error" in data
@@ -245,7 +245,7 @@ async def test_fetch_native_unknown_method(
             },
         )
 
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     data = response.json()
     assert data["jsonrpc"] == "2.0"
     assert "error" in data
@@ -265,7 +265,7 @@ async def test_fetch_native_oauth_discovery(wait_for_services):
     async with httpx.AsyncClient(verify=False) as client:
         response = await client.get(oauth_discovery_url)
 
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     data = response.json()
 
     # Should be routed to auth service

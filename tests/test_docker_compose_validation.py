@@ -87,7 +87,7 @@ class TestDockerComposeValidation:
 
             # Must have a service assignment - THIS IS THE KEY CHECK!
             assert f"{prefix}.service" in label_dict, (
-                f"Router {router_name} missing service assignment! This causes 404 errors!"
+                f"Router {router_name} missing service assignment! This causes 404 errors!"  # TODO: Break long line
             )
 
             assert label_dict[f"{prefix}.service"] == "mcp-fetch", (
@@ -181,7 +181,7 @@ class TestDockerComposeValidation:
                 # Check each router has a service assignment
                 for router in routers:
                     assert f"traefik.http.routers.{router}.service" in label_dict, (
-                        f"Service {service_name} router {router} missing service assignment!"
+                        f"Service {service_name} router {router} missing service assignment!"  # TODO: Break long line
                     )
 
     def test_routing_priorities_are_correct(self):
@@ -213,5 +213,5 @@ class TestDockerComposeValidation:
             key = f"traefik.http.routers.{router}.priority"
             assert key in label_dict, f"Router {router} missing priority!"
             assert int(label_dict[key]) == expected_priority, (
-                f"Router {router} has wrong priority: {label_dict[key]} (expected {expected_priority})"
+                f"Router {router} has wrong priority: {label_dict[key]} (expected {expected_priority})"  # TODO: Break long line
             )

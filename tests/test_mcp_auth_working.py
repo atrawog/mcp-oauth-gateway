@@ -23,7 +23,7 @@ class TestMCPAuthWorking:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers
         assert response.headers["WWW-Authenticate"] == "Bearer"
 
@@ -44,7 +44,7 @@ class TestMCPAuthWorking:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
         assert "detail" in error
 
@@ -69,8 +69,8 @@ class TestMCPAuthWorking:
                 },
             )
 
-            assert response.status_code == 401, (
-                f"Expected 401 for auth header '{auth_header}', got {response.status_code}"
+            assert response.status_code == HTTP_UNAUTHORIZED, (
+                f"Expected 401 for auth header '{auth_header}', got {response.status_code}"  # TODO: Break long line
             )
 
         print("✅ MCP correctly rejects all invalid auth formats")
@@ -103,7 +103,7 @@ class TestMCPAuthWorking:
         )
 
         # CORS MUST be configured for web clients
-        assert response.status_code == 200, (
+        assert response.status_code == HTTP_OK, (
             "❌ MCP MUST support CORS preflight requests!"
         )
         assert "access-control-allow-origin" in response.headers, (

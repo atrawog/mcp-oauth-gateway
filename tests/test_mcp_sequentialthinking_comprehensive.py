@@ -60,7 +60,7 @@ class TestMCPSequentialThinkingComprehensive:
 
         if result.returncode != 0:
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}"
+                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}"  # TODO: Break long line
             )
 
         # Parse the output to find the actual response
@@ -120,7 +120,7 @@ class TestMCPSequentialThinkingComprehensive:
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}"
+                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}"  # TODO: Break long line
             )
 
         # Parse the output - find the JSON response
@@ -575,7 +575,7 @@ class TestMCPSequentialThinkingComprehensive:
             },
         )
         print(
-            f"Step 1 - Problem identification: {'✅ Success' if 'result' in step1 else '❌ Error'}"
+            f"Step 1 - Problem identification: {'✅ Success' if 'result' in step1 else '❌ Error'}"  # TODO: Break long line
         )
 
         # Step 2: Analysis
@@ -613,7 +613,7 @@ class TestMCPSequentialThinkingComprehensive:
             },
         )
         print(
-            f"Step 3 - Solution exploration: {'✅ Success' if 'result' in step3 else '❌ Error'}"
+            f"Step 3 - Solution exploration: {'✅ Success' if 'result' in step3 else '❌ Error'}"  # TODO: Break long line
         )
 
         # Step 4: Refinement
@@ -653,7 +653,7 @@ class TestMCPSequentialThinkingComprehensive:
             },
         )
         print(
-            f"Step 5 - Final solution: {'✅ Success' if 'result' in step5 else '❌ Error'}"
+            f"Step 5 - Final solution: {'✅ Success' if 'result' in step5 else '❌ Error'}"  # TODO: Break long line
         )
 
         print("=== Sequential Thinking Workflow Complete ===\n")

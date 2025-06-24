@@ -8,13 +8,15 @@ import pytest
 
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_UNAUTHORIZED
 
 
 class TestRegisterEndpointSecurity:
     """Test OAuth client registration endpoint security."""
 
     @pytest.mark.asyncio
-    async def test_register_is_public_endpoint(self, http_client, wait_for_services):
+    async def test_register_is_public_endpoint(self, http_client, wait_for_services):  # noqa: ARG002
         """Test that /register endpoint is public per RFC 7591."""
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
@@ -28,7 +30,7 @@ class TestRegisterEndpointSecurity:
         )
 
         # Registration should succeed without authentication
-        assert response.status_code == 201
+        assert response.status_code == HTTP_CREATED
         client_data = response.json()
         assert "client_id" in client_data
         assert "client_secret" in client_data
@@ -42,7 +44,7 @@ class TestRegisterEndpointSecurity:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -69,7 +71,7 @@ class TestRegisterEndpointSecurity:
         )
 
         # Should succeed regardless of auth header
-        assert response.status_code == 201
+        assert response.status_code == HTTP_CREATED
         client_data = response.json()
         assert "client_id" in client_data
         assert (
@@ -83,7 +85,7 @@ class TestRegisterEndpointSecurity:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -106,7 +108,7 @@ class TestRegisterEndpointSecurity:
             f"{AUTH_BASE_URL}/register", json=registration_data
         )
 
-        assert response.status_code == 201
+        assert response.status_code == HTTP_CREATED
         client_data = response.json()
         client_id = client_data["client_id"]
 
@@ -133,7 +135,7 @@ class TestRegisterEndpointSecurity:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -163,7 +165,7 @@ class TestRegisterEndpointSecurity:
         )
 
         # Should succeed regardless of token presence
-        assert response.status_code == 201
+        assert response.status_code == HTTP_CREATED
         client_data = response.json()
         assert "client_id" in client_data
         assert "client_secret" in client_data
@@ -178,7 +180,7 @@ class TestRegisterEndpointSecurity:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -199,7 +201,7 @@ class TestRegisterEndpointSecurity:
             },
         )
 
-        assert reg_response.status_code == 201
+        assert reg_response.status_code == HTTP_CREATED
         client = reg_response.json()
 
         # Now try to get tokens without proper client authentication
@@ -215,7 +217,7 @@ class TestRegisterEndpointSecurity:
         )
 
         # Should fail due to invalid client authentication
-        assert token_response.status_code == 401
+        assert token_response.status_code == HTTP_UNAUTHORIZED
         error = token_response.json()
         assert error["detail"]["error"] == "invalid_client"
 
@@ -252,7 +254,7 @@ class TestRegisterEndpointSecurity:
             )
 
             # All registrations should succeed
-            assert response.status_code == 201
+            assert response.status_code == HTTP_CREATED
             client_data = response.json()
             assert "client_id" in client_data
             assert "client_secret" in client_data
@@ -273,7 +275,7 @@ class TestRegisterEndpointSecurity:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client['registration_access_token']}"
+                            "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
                         },
                     )
                     assert delete_response.status_code in (204, 404)
@@ -302,7 +304,7 @@ class TestRegisterEndpointBootstrap:
             },
         )
 
-        assert response1.status_code == 201
+        assert response1.status_code == HTTP_CREATED
         client1 = response1.json()
 
         # Register second client also without authentication
@@ -315,7 +317,7 @@ class TestRegisterEndpointBootstrap:
             },
         )
 
-        assert response2.status_code == 201
+        assert response2.status_code == HTTP_CREATED
         client2 = response2.json()
 
         # Ensure clients have different IDs
@@ -332,7 +334,7 @@ class TestRegisterEndpointBootstrap:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client['registration_access_token']}"
+                            "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
                         },
                     )
                     assert delete_response.status_code in (204, 404)

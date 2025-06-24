@@ -117,7 +117,7 @@ class TestMCPPlaywrightIntegration:
 
         # First verify that /health requires authentication
         response = requests.get(f"{mcp_playwright_url}/health", timeout=10)
-        assert response.status_code == 401, (
+        assert response.status_code == HTTP_UNAUTHORIZED, (
             "/health endpoint must require authentication per divine CLAUDE.md"
         )
 
@@ -137,7 +137,7 @@ class TestMCPPlaywrightIntegration:
         if "result" in response:
             assert "protocolVersion" in response["result"]
             print(
-                f"✅ MCP playwright service is healthy (protocol version: {response['result']['protocolVersion']})"
+                f"✅ MCP playwright service is healthy (protocol version: {response['result']['protocolVersion']})"  # TODO: Break long line
             )
 
     def test_playwright_oauth_discovery(self):
@@ -155,7 +155,7 @@ class TestMCPPlaywrightIntegration:
             f"https://playwright.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
         )
         response = requests.get(oauth_discovery_url, timeout=10, verify=False)
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
         oauth_config = response.json()
         assert oauth_config["issuer"]
@@ -461,5 +461,5 @@ class TestMCPPlaywrightIntegration:
             headers={"Content-Type": "application/json"},
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers

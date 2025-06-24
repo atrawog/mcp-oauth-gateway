@@ -19,6 +19,12 @@ import pytest
 # Import all configuration from test_constants - NO HARDCODED VALUES!
 from .jwt_test_helper import encode as jwt_encode
 from .test_constants import AUTH_BASE_URL
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_NO_CONTENT
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
@@ -33,7 +39,7 @@ class TestRealOAuthFlow:
     """Test REAL OAuth flow with REAL GitHub authentication - NO SIMULATION!"""
 
     @pytest.mark.asyncio
-    async def test_complete_github_oauth_flow(self, http_client, wait_for_services):
+    async def test_complete_github_oauth_flow(self, http_client, wait_for_services):  # noqa: ARG002
         """Test complete OAuth flow using REAL stored tokens from successful auth."""
         # REQUIRE real OAuth tokens - fail if not available
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
@@ -62,13 +68,13 @@ class TestRealOAuthFlow:
 
         auth_response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        )
+        , timeout=30.0)
 
-        if auth_response.status_code == 400:
+        if auth_response.status_code == HTTP_BAD_REQUEST:
             error = auth_response.json()
             if error.get("detail", {}).get("error") == "invalid_client":
                 pytest.fail(
-                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. "
+                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. "  # TODO: Break long line
                     f"Run: just generate-github-token to register a new client."
                 )
 
@@ -84,7 +90,7 @@ class TestRealOAuthFlow:
                 "GITHUB_PAT not set - TESTS MUST NOT BE SKIPPED! GitHub PAT is REQUIRED!"
             )
 
-        async with httpx.AsyncClient() as github_client:
+        async with httpx.AsyncClient(timeout=30.0) as github_client:
             user_response = await github_client.get(
                 "https://api.github.com/user",
                 headers={
@@ -95,7 +101,7 @@ class TestRealOAuthFlow:
 
             if user_response.status_code != 200:
                 pytest.fail(
-                    f"ERROR: GitHub token is invalid (status: {user_response.status_code}). "
+                    f"ERROR: GitHub token is invalid (status: {user_response.status_code}). "  # TODO: Break long line
                     f"Response: {user_response.text}. "
                     f"Token refresh should have handled this."
                 )
@@ -114,10 +120,10 @@ class TestRealOAuthFlow:
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
             },
-        )
+        , timeout=30.0)
 
         # Should get invalid_grant (not invalid_client) proving client is valid
-        assert token_response.status_code == 400
+        assert token_response.status_code == HTTP_BAD_REQUEST
         error = token_response.json()
         assert error["detail"]["error"] == "invalid_grant"  # Not invalid_client!
 
@@ -131,9 +137,9 @@ class TestRealOAuthFlow:
                     "client_id": GATEWAY_OAUTH_CLIENT_ID,
                     "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
                 },
-            )
+            , timeout=30.0)
 
-            if refresh_response.status_code == 200:
+            if refresh_response.status_code == HTTP_OK:
                 new_tokens = refresh_response.json()
                 assert "access_token" in new_tokens
                 print("✓ Refresh token flow successful")
@@ -146,9 +152,9 @@ class TestRealOAuthFlow:
                         "client_id": GATEWAY_OAUTH_CLIENT_ID,
                         "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
                     },
-                )
+                , timeout=30.0)
 
-                assert introspect_response.status_code == 200
+                assert introspect_response.status_code == HTTP_OK
                 introspect_data = introspect_response.json()
                 assert introspect_data["active"] is True
                 print("✓ Token introspection successful")
@@ -161,18 +167,18 @@ class TestRealOAuthFlow:
                         "client_id": GATEWAY_OAUTH_CLIENT_ID,
                         "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
                     },
-                )
+                , timeout=30.0)
 
-                assert revoke_response.status_code == 200
+                assert revoke_response.status_code == HTTP_OK
                 print("✓ Token revocation successful")
 
                 # Verify token is now revoked
                 verify_response = await http_client.get(
                     f"{AUTH_BASE_URL}/verify",
                     headers={"Authorization": f"Bearer {new_tokens['access_token']}"},
-                )
+                , timeout=30.0)
 
-                assert verify_response.status_code == 401
+                assert verify_response.status_code == HTTP_UNAUTHORIZED
                 print("✓ Token revocation verified")
             else:
                 print(
@@ -186,7 +192,7 @@ class TestRealPKCEFlow:
     """Test REAL PKCE flow with REAL OAuth client."""
 
     @pytest.mark.asyncio
-    async def test_pkce_with_real_client(self, http_client, wait_for_services):
+    async def test_pkce_with_real_client(self, http_client, wait_for_services):  # noqa: ARG002
         """Test PKCE verification with REAL OAuth client."""
         # REQUIRE real OAuth client credentials
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
@@ -218,9 +224,9 @@ class TestRealPKCEFlow:
 
         auth_response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        )
+        , timeout=30.0)
 
-        if auth_response.status_code == 400:
+        if auth_response.status_code == HTTP_BAD_REQUEST:
             error = auth_response.json()
             if error.get("detail", {}).get("error") == "invalid_client":
                 pytest.fail(
@@ -248,7 +254,7 @@ class TestRealJWTTokens:
     """Test REAL JWT token operations with REAL credentials."""
 
     @pytest.mark.asyncio
-    async def test_real_jwt_token_operations(self, http_client, wait_for_services):
+    async def test_real_jwt_token_operations(self, http_client, wait_for_services):  # noqa: ARG002
         """Test JWT operations using REAL tokens and REAL Redis storage."""
         # REQUIRE real OAuth client for token operations
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
@@ -284,9 +290,9 @@ class TestRealJWTTokens:
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
             },
-        )
+        , timeout=30.0)
 
-        assert introspect_response.status_code == 200
+        assert introspect_response.status_code == HTTP_OK
         introspect_data = introspect_response.json()
         # Token is not active because it's not stored in Redis
         assert introspect_data["active"] is False
@@ -305,9 +311,9 @@ class TestRealJWTTokens:
         verify_response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
             headers={"Authorization": f"Bearer {expired_token}"},
-        )
+        , timeout=30.0)
 
-        assert verify_response.status_code == 401
+        assert verify_response.status_code == HTTP_UNAUTHORIZED
         error = verify_response.json()
         assert "expired" in error["detail"]["error_description"].lower()
 
@@ -319,9 +325,9 @@ class TestRealJWTTokens:
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
             },
-        )
+        , timeout=30.0)
 
         # Always returns 200 per RFC 7009
-        assert revoke_response.status_code == 200
+        assert revoke_response.status_code == HTTP_OK
 
         print("✓ All REAL JWT operations completed successfully")

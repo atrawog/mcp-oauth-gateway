@@ -87,7 +87,7 @@ class TestMCPEverythingClientFull:
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}"
+                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}"  # TODO: Break long line
             )
 
         # Parse the output - find the JSON response
@@ -595,7 +595,7 @@ class TestMCPEverythingClientFull:
                 params={"uri": resource["uri"]},
             )
             print(
-                f"Resource response: {'success' if 'result' in resource_response else 'error'}"
+                f"Resource response: {'success' if 'result' in resource_response else 'error'}"  # TODO: Break long line
             )
 
         print("\n=== Workflow test completed ===")
@@ -603,5 +603,5 @@ class TestMCPEverythingClientFull:
         # Verify we tested multiple capabilities
         assert len(tools) > 0 or len(resources) > 0 or len(prompts) > 0
         print(
-            f"Successfully tested everything server with {len(tools)} tools, {len(resources)} resources, {len(prompts)} prompts"
+            f"Successfully tested everything server with {len(tools)} tools, {len(resources)} resources, {len(prompts)} prompts"  # TODO: Break long line
         )

@@ -9,6 +9,12 @@ import httpx
 import pytest
 
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_NO_CONTENT
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 
@@ -24,30 +30,29 @@ class TestMCPProxyBasicFunctionality:
     @pytest.mark.asyncio
     async def test_health_endpoint_accessible(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that the MCP service is accessible (health is checked via MCP protocol)."""
         # According to CLAUDE.md, health checks use MCP protocol, not /health endpoint
         # We test accessibility by checking if auth is required
-        response = await http_client.get(f"{MCP_FETCH_URL}")
-        assert response.status_code == 401  # Should require auth
+        response = await http_client.get(f"{MCP_FETCH_URL}", timeout=30.0)
+        assert response.status_code == HTTP_UNAUTHORIZED  # Should require auth
         assert "WWW-Authenticate" in response.headers
 
     @pytest.mark.asyncio
     async def test_mcp_endpoint_requires_auth(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that the MCP endpoint requires authentication."""
         response = await http_client.post(
-            f"{MCP_FETCH_URL}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}
-        )
-        assert response.status_code == 401
+            f"{MCP_FETCH_URL}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}, timeout=30.0)
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers
         assert response.headers["WWW-Authenticate"].startswith("Bearer")
 
     @pytest.mark.asyncio
     async def test_invalid_json_rpc_request(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that invalid JSON-RPC requests are properly rejected."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -59,9 +64,9 @@ class TestMCPProxyBasicFunctionality:
             f"{MCP_FETCH_URL}",
             json={"invalid": "request"},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
         # JSON-RPC errors return 200 with error in response body
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert "error" in data
         # The proxy returns -32002 for missing session ID on non-initialize requests
@@ -74,7 +79,7 @@ class TestMCPProxyAuthentication:
     @pytest.mark.asyncio
     async def test_gateway_token_authentication(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test authentication using gateway OAuth token."""
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
             pytest.fail(
@@ -95,8 +100,8 @@ class TestMCPProxyAuthentication:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-        )
-        assert response.status_code == 200
+        , timeout=30.0)
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert "result" in data
         # Server may negotiate a different protocol version
@@ -105,7 +110,7 @@ class TestMCPProxyAuthentication:
     @pytest.mark.asyncio
     async def test_mcp_client_token_authentication(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test authentication using MCP client token."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -129,8 +134,8 @@ class TestMCPProxyAuthentication:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
-        assert response.status_code == 200
+        , timeout=30.0)
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert "result" in data
         # Server may negotiate a different protocol version
@@ -139,14 +144,14 @@ class TestMCPProxyAuthentication:
     @pytest.mark.asyncio
     async def test_invalid_token_rejected(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that invalid tokens are rejected."""
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "ping", "id": 1},
             headers={"Authorization": "Bearer invalid-token-12345"},
-        )
-        assert response.status_code == 401
+        , timeout=30.0)
+        assert response.status_code == HTTP_UNAUTHORIZED
 
 
 class TestMCPProtocolInitialization:
@@ -155,7 +160,7 @@ class TestMCPProtocolInitialization:
     @pytest.mark.asyncio
     async def test_initialize_request(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test the initialize request following MCP 2025-06-18 spec."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -176,9 +181,9 @@ class TestMCPProtocolInitialization:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
 
         # Verify response structure per MCP spec
@@ -200,7 +205,7 @@ class TestMCPProtocolInitialization:
     @pytest.mark.asyncio
     async def test_initialized_notification(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test sending initialized notification after initialize."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -221,15 +226,15 @@ class TestMCPProtocolInitialization:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
-        assert init_response.status_code == 200
+        , timeout=30.0)
+        assert init_response.status_code == HTTP_OK
 
         # Send initialized notification (no id field for notifications)
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
         # Notifications don't get responses in JSON-RPC
         assert response.status_code in [200, 202]
 
@@ -240,7 +245,7 @@ class TestMCPFetchCapabilities:
     @pytest.mark.asyncio
     async def test_fetch_capability_available(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that mcp-server-fetch reports fetch capability."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -261,9 +266,9 @@ class TestMCPFetchCapabilities:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         capabilities = data["result"]["capabilities"]
 
@@ -271,7 +276,7 @@ class TestMCPFetchCapabilities:
         assert "tools" in capabilities
 
     @pytest.mark.asyncio
-    async def test_list_tools(self, http_client: httpx.AsyncClient, wait_for_services):
+    async def test_list_tools(self, http_client: httpx.AsyncClient, wait_for_services):  # noqa: ARG002
         """Test listing available tools from mcp-server-fetch."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -292,8 +297,8 @@ class TestMCPFetchCapabilities:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
-        assert init_response.status_code == 200
+        , timeout=30.0)
+        assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
         assert session_id
 
@@ -305,7 +310,7 @@ class TestMCPFetchCapabilities:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
             },
-        )
+        , timeout=30.0)
 
         # List tools with session ID
         response = await http_client.post(
@@ -315,9 +320,9 @@ class TestMCPFetchCapabilities:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
             },
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert "result" in data
         assert "tools" in data["result"]
@@ -337,7 +342,7 @@ class TestMCPProxyErrorHandling:
     @pytest.mark.asyncio
     async def test_method_not_found(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that unknown methods return proper JSON-RPC error."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -358,8 +363,8 @@ class TestMCPProxyErrorHandling:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
-        assert init_response.status_code == 200
+        , timeout=30.0)
+        assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
         # Now test non-existent method with session ID
@@ -375,9 +380,9 @@ class TestMCPProxyErrorHandling:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
             },
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200  # JSON-RPC errors still return 200
+        assert response.status_code == HTTP_OK  # JSON-RPC errors still return 200
         data = response.json()
         assert "error" in data
         assert "code" in data["error"]
@@ -389,7 +394,7 @@ class TestMCPProxyErrorHandling:
     @pytest.mark.asyncio
     async def test_invalid_params(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that invalid parameters return proper error."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -409,9 +414,9 @@ class TestMCPProxyErrorHandling:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert "error" in data or data["result"]["protocolVersion"] != "1999-01-01"
 
@@ -422,7 +427,7 @@ class TestMCPProxyHeaders:
     @pytest.mark.asyncio
     async def test_mcp_protocol_version_header(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that MCP-Protocol-Version header is handled."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -436,19 +441,19 @@ class TestMCPProxyHeaders:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
             },
-        )
+        , timeout=30.0)
         # Should accept the header
         assert response.status_code in [200, 400]  # 400 if ping not supported
 
     @pytest.mark.asyncio
     async def test_cors_headers_on_options(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test CORS headers on OPTIONS request."""
         response = await http_client.options(
             f"{MCP_FETCH_URL}", headers={"Origin": "https://claude.ai"}
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         # Check that some CORS headers are present
         assert (
             "Access-Control-Allow-Origin" in response.headers

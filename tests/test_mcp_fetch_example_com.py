@@ -75,7 +75,7 @@ class TestMCPFetchExampleCom:
 
                 # Check for "Example Domain"
                 assert "Example Domain" in content_text, (
-                    f"Expected 'Example Domain' in fetched content, but got: {content_text[:500]}..."
+                    f"Expected 'Example Domain' in fetched content, but got: {content_text[:500]}..."  # TODO: Break long line
                 )
 
                 print("✅ SUCCESS! Found 'Example Domain' in fetched content!")
@@ -83,8 +83,8 @@ class TestMCPFetchExampleCom:
 
             if "error" in response_data:
                 pytest.fail(
-                    f"SACRED VIOLATION: MCP fetch returned error: {response_data['error']}\n"
-                    f"Tests MUST verify actual functionality, not just authentication!\n"
+                    f"SACRED VIOLATION: MCP fetch returned error: {response_data['error']}\n"  # TODO: Break long line
+                    f"Tests MUST verify actual functionality, not just authentication!\n"  # TODO: Break long line
                     f"This test requires successful fetching of example.com content!"
                 )
 

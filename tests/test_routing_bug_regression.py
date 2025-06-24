@@ -7,6 +7,7 @@ when accessing /mcp endpoint is fixed and stays fixed.
 
 import pytest
 
+from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_FETCH_URL
 
 
@@ -33,7 +34,7 @@ class TestRoutingBugRegression:
         )
 
         # CRITICAL: Must be 401 (requires auth), not 404 (not found)
-        assert response.status_code == 401, (
+        assert response.status_code == HTTP_UNAUTHORIZED, (
             f"REGRESSION: Got {response.status_code} instead of 401. "
             f"The PathPrefix routing rule may be missing!"
         )
@@ -45,8 +46,9 @@ class TestRoutingBugRegression:
         assert "Authorization header" in str(error["detail"])
 
     @pytest.mark.asyncio
-    async def test_traefik_labels_include_path_routing(self, wait_for_services):
+    async def test_traefik_labels_include_path_routing(self, wait_for_services):  # noqa: ARG002
         """Verify the docker-compose.yml includes PathPrefix in routing rules.
+
         This test would fail with the old configuration.
         """
         # Read the fetch docker-compose.yml
@@ -72,7 +74,7 @@ class TestRoutingBugRegression:
         )
 
     @pytest.mark.asyncio
-    async def test_all_required_routes_configured(self, http_client, wait_for_services):
+    async def test_all_required_routes_configured(self, http_client, wait_for_services):  # noqa: ARG002
         """Test that all required routes are properly configured with correct priorities."""
         routes_to_test = [
             # (path, expected_status, description)
@@ -91,8 +93,9 @@ class TestRoutingBugRegression:
             )
 
     @pytest.mark.asyncio
-    async def test_routing_priorities_correct(self, http_client, wait_for_services):
+    async def test_routing_priorities_correct(self, http_client, wait_for_services):  # noqa: ARG002
         """Verify routing priorities are set correctly:
+
         - OAuth discovery: Priority 10 (highest)
         - CORS preflight: Priority 4
         - MCP route: Priority 2
@@ -105,4 +108,4 @@ class TestRoutingBugRegression:
             json={"test": "data"},
             headers={"Content-Type": "application/json"},
         )
-        assert response.status_code == 401  # Auth required
+        assert response.status_code == HTTP_UNAUTHORIZED  # Auth required

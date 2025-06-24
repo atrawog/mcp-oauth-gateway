@@ -8,6 +8,8 @@ import pytest
 
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_OK
 from .test_constants import TEST_CALLBACK_URL
 
 
@@ -15,7 +17,7 @@ class TestPKCES256Enforcement:
     """Test PKCE S256 enforcement per CLAUDE.md sacred commandments."""
 
     @pytest.mark.asyncio
-    async def test_pkce_plain_method_rejected(self, http_client, wait_for_services):
+    async def test_pkce_plain_method_rejected(self, http_client, wait_for_services):  # noqa: ARG002
         """Verify that plain PKCE method is rejected per CLAUDE.md commandments."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -33,7 +35,7 @@ class TestPKCES256Enforcement:
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
-        assert register_response.status_code == 201
+        assert register_response.status_code == HTTP_CREATED
         client_data = register_response.json()
 
         # Attempt authorization with plain PKCE method
@@ -52,7 +54,7 @@ class TestPKCES256Enforcement:
         )
 
         # Should reject plain method
-        assert auth_response.status_code == 400
+        assert auth_response.status_code == HTTP_BAD_REQUEST
         error_data = auth_response.json()
         assert "detail" in error_data
         assert "error" in error_data["detail"]
@@ -67,19 +69,19 @@ class TestPKCES256Enforcement:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
-                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}"
+                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}"  # TODO: Break long line
                     )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_pkce_s256_proper_validation(self, http_client, wait_for_services):
+    async def test_pkce_s256_proper_validation(self, http_client, wait_for_services):  # noqa: ARG002
         """Verify S256 PKCE validation actually works correctly."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -97,7 +99,7 @@ class TestPKCES256Enforcement:
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
-        assert register_response.status_code == 201
+        assert register_response.status_code == HTTP_CREATED
         client_data = register_response.json()
 
         # Generate proper S256 challenge
@@ -130,13 +132,13 @@ class TestPKCES256Enforcement:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
-                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}"
+                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}"  # TODO: Break long line
                     )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -159,7 +161,7 @@ class TestPKCES256Enforcement:
         response = await http_client.get(
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
         metadata = response.json()
         assert "code_challenge_methods_supported" in metadata

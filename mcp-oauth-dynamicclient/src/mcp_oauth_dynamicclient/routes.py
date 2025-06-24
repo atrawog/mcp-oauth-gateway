@@ -66,7 +66,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 status_code=403,
                 detail={
                     "error": "access_denied",
-                    "error_description": f"User '{username}' not authorized for client registration",
+                    "error_description": f"User '{username}' not authorized for client registration",  # TODO: Break long line
                 },
             )
 
@@ -136,7 +136,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             # RFC 7591 - Must be HTTPS (except localhost)
             if uri.startswith("http://"):
                 if not any(
-                    uri.startswith(f"http://{host}") for host in ["localhost", "127.0.0.1", "[::1]"]
+                    uri.startswith(f"http://{host}") for host in ["localhost", "127.0.0.1", "[::1]"]  # TODO: Break long line
                 ):
                     raise HTTPException(
                         status_code=400,
@@ -184,7 +184,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # Store with expiration matching client lifetime
         if settings.client_lifetime > 0:
             await redis_client.setex(
-                f"oauth:client:{client_id}", settings.client_lifetime, json.dumps(client_data)
+                f"oauth:client:{client_id}", settings.client_lifetime, json.dumps(client_data)  # TODO: Break long line
             )
         else:
             await redis_client.set(f"oauth:client:{client_id}", json.dumps(client_data))
@@ -199,7 +199,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "client_name": registration.client_name,
             "scope": registration.scope,
             "registration_access_token": registration_access_token,
-            "registration_client_uri": f"https://auth.{settings.base_domain}/register/{client_id}",
+            "registration_client_uri": f"https://auth.{settings.base_domain}/register/{client_id}",  # TODO: Break long line
         }
 
         # Echo back all registered metadata
@@ -283,6 +283,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 </body>
                 </html>
                 """,
+
             )
 
         # Validate redirect_uri
@@ -322,7 +323,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "code_challenge_method": code_challenge_method,
         }
 
-        await redis_client.setex(f"oauth:state:{auth_state}", 300, json.dumps(auth_data))
+        await redis_client.setex(f"oauth:state:{auth_state}", 300, json.dumps(auth_data))  # TODO: Break long line
 
         # Redirect to GitHub OAuth
         github_params = {
@@ -332,7 +333,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "state": auth_state,
         }
 
-        github_url = f"https://github.com/login/oauth/authorize?{urlencode(github_params)}"
+        github_url = f"https://github.com/login/oauth/authorize?{urlencode(github_params)}"  # TODO: Break long line
         return RedirectResponse(url=github_url)
 
     # Callback endpoint
@@ -362,7 +363,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
 
         if not user_info:
             return RedirectResponse(
-                url=f"{auth_data['redirect_uri']}?error=server_error&state={auth_data['state']}"
+                url=f"{auth_data['redirect_uri']}?error=server_error&state={auth_data['state']}"  # TODO: Break long line
             )
 
         # Check if user is allowed
@@ -372,7 +373,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # If ALLOWED_GITHUB_USERS is set to '*', allow any authenticated GitHub user
         if allowed_users and "*" not in allowed_users and user_info["login"] not in allowed_users:
             return RedirectResponse(
-                url=f"{auth_data['redirect_uri']}?error=access_denied&state={auth_data['state']}"
+                url=f"{auth_data['redirect_uri']}?error=access_denied&state={auth_data['state']}"  # TODO: Break long line
             )
 
         # Generate authorization code
@@ -387,7 +388,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "name": user_info.get("name", ""),
         }
 
-        await redis_client.setex(f"oauth:code:{auth_code}", 31536000, json.dumps(code_data))
+        await redis_client.setex(f"oauth:code:{auth_code}", 31536000, json.dumps(code_data))  # TODO: Break long line
 
         # Clean up state
         await redis_client.delete(f"oauth:state:{state}")
@@ -395,13 +396,13 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # Handle out-of-band redirect URI
         if auth_data["redirect_uri"] == "urn:ietf:wg:oauth:2.0:oob":
             return RedirectResponse(
-                url=f"https://auth.{settings.base_domain}/success?code={auth_code}&state={auth_data['state']}"
+                url=f"https://auth.{settings.base_domain}/success?code={auth_code}&state={auth_data['state']}"  # TODO: Break long line
             )
 
         # Normal redirect
         redirect_params = {"code": auth_code, "state": auth_data["state"]}
 
-        return RedirectResponse(url=f"{auth_data['redirect_uri']}?{urlencode(redirect_params)}")
+        return RedirectResponse(url=f"{auth_data['redirect_uri']}?{urlencode(redirect_params)}")  # TODO: Break long line
 
     # Token endpoint
     @router.post("/token")

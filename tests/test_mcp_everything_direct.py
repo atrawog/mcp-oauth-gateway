@@ -105,7 +105,7 @@ class TestMCPEverythingDirect:
             assert result["protocolVersion"] == "2025-06-18"
             assert "serverInfo" in result
             print(
-                f"Server: {result['serverInfo']['name']} v{result['serverInfo']['version']}"
+                f"Server: {result['serverInfo']['name']} v{result['serverInfo']['version']}"  # TODO: Break long line
             )
             print(f"Capabilities: {list(result.get('capabilities', {}).keys())}")
 

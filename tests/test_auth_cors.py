@@ -61,8 +61,8 @@ class TestAuthCORS:
                     )
 
                     # CORS preflight should return 200 OK
-                    assert response.status_code == 200, (
-                        f"CORS preflight failed for {endpoint} with origin {test_origin}"
+                    assert response.status_code == HTTP_OK, (
+                        f"CORS preflight failed for {endpoint} with origin {test_origin}"  # TODO: Break long line
                     )
 
                     # Check CORS headers
@@ -96,7 +96,7 @@ class TestAuthCORS:
                         f"Missing Access-Control-Allow-Headers header for {endpoint}"
                     )
                     assert "access-control-allow-credentials" in response.headers, (
-                        f"Missing Access-Control-Allow-Credentials header for {endpoint}"
+                        f"Missing Access-Control-Allow-Credentials header for {endpoint}"  # TODO: Break long line
                     )
                     assert (
                         response.headers["access-control-allow-credentials"].lower()
@@ -119,7 +119,7 @@ class TestAuthCORS:
         with httpx.Client(verify=False, timeout=10.0) as client:
             response = client.get(metadata_url, headers={"Origin": test_origin})
 
-            assert response.status_code == 200, (
+            assert response.status_code == HTTP_OK, (
                 f"Metadata request failed: {response.status_code}"
             )
 
@@ -132,11 +132,11 @@ class TestAuthCORS:
             allowed_origin = response.headers["access-control-allow-origin"]
             if self.cors_origins == ["*"]:
                 assert allowed_origin in ["*", test_origin], (
-                    f"CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"
+                    f"CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"  # TODO: Break long line
                 )
             else:
                 assert allowed_origin == test_origin, (
-                    f"CORS origin mismatch, expected '{test_origin}', got '{allowed_origin}'"
+                    f"CORS origin mismatch, expected '{test_origin}', got '{allowed_origin}'"  # TODO: Break long line
                 )
 
             # Check exposed headers
@@ -165,7 +165,7 @@ class TestAuthCORS:
         with httpx.Client(verify=False, timeout=10.0) as client:
             response = client.get(health_url, headers={"Origin": test_origin})
 
-            assert response.status_code == 200, "OAuth discovery check failed"
+            assert response.status_code == HTTP_OK, "OAuth discovery check failed"
 
             # OAuth discovery endpoint should also have CORS headers
             assert "access-control-allow-origin" in response.headers, (
@@ -176,7 +176,7 @@ class TestAuthCORS:
             allowed_origin = response.headers["access-control-allow-origin"]
             if self.cors_origins == ["*"]:
                 assert allowed_origin in ["*", test_origin], (
-                    f"CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"
+                    f"CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"  # TODO: Break long line
                 )
 
     def test_cors_headers_without_origin(self):
@@ -189,7 +189,7 @@ class TestAuthCORS:
             response = client.get(metadata_url)
 
             # Should still work without Origin header
-            assert response.status_code == 200, (
+            assert response.status_code == HTTP_OK, (
                 f"Request failed without Origin header: {response.status_code}"
             )
 

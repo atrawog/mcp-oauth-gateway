@@ -10,6 +10,8 @@ import redis.asyncio as redis
 
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_OK
 from .test_constants import REDIS_URL
 
 
@@ -17,7 +19,7 @@ class TestSacredSealsCompliance:
     """Test all 25 Sacred Seals for 100% divine compliance."""
 
     @pytest.mark.asyncio
-    async def test_redis_key_patterns_and_ttls(self, http_client, wait_for_services):
+    async def test_redis_key_patterns_and_ttls(self, http_client, wait_for_services):  # noqa: ARG002
         """Test SEAL OF REDIS PATTERNS - Sacred key hierarchies preserve all state."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -39,7 +41,7 @@ class TestSacredSealsCompliance:
                 },
                 headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
             )
-            assert register_response.status_code == 201
+            assert register_response.status_code == HTTP_CREATED
             client_data = register_response.json()
             client_id = client_data["client_id"]
 
@@ -142,7 +144,7 @@ class TestSacredSealsCompliance:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -150,7 +152,7 @@ class TestSacredSealsCompliance:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_dual_realms_architecture(self, http_client, wait_for_services):
+    async def test_dual_realms_architecture(self, http_client, wait_for_services):  # noqa: ARG002
         """Test SEAL OF DUAL REALMS - Client auth and user auth never intermingle."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -168,7 +170,7 @@ class TestSacredSealsCompliance:
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
-        assert client_register.status_code == 201
+        assert client_register.status_code == HTTP_CREATED
         client_data = client_register.json()
 
         # Client gets credentials for gateway access
@@ -219,7 +221,7 @@ class TestSacredSealsCompliance:
         )
 
         # Client can introspect but token is invalid (different realm)
-        assert introspect_response.status_code == 200
+        assert introspect_response.status_code == HTTP_OK
         introspect_data = introspect_response.json()
         assert introspect_data["active"] is False
 
@@ -234,7 +236,7 @@ class TestSacredSealsCompliance:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)

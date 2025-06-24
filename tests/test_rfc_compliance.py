@@ -5,6 +5,9 @@ import json
 import pytest
 
 from .test_constants import AUTH_BASE_URL
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 
 
 class TestRFCCompliance:
@@ -26,7 +29,7 @@ class TestRFCCompliance:
             follow_redirects=False,
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         try:
             error = response.json()
             assert error["detail"]["error"] == "invalid_client"
@@ -55,7 +58,7 @@ class TestRFCCompliance:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert response.headers.get("WWW-Authenticate") == "Basic"
         error = response.json()
         assert error["detail"]["error"] == "invalid_client"
@@ -69,7 +72,7 @@ class TestRFCCompliance:
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         metadata = response.json()
         assert metadata["registration_endpoint"] == f"{AUTH_BASE_URL}/register"
         assert metadata["issuer"] == AUTH_BASE_URL
@@ -91,7 +94,7 @@ class TestRFCCompliance:
             },
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "invalid_redirect_uri"
         assert "localhost" in error["detail"]["error_description"]
@@ -113,7 +116,7 @@ class TestRFCCompliance:
             },
         )
 
-        assert response.status_code == 201
+        assert response.status_code == HTTP_CREATED
         client = response.json()
         assert "client_id" in client
         assert "client_secret" in client
@@ -131,7 +134,7 @@ class TestRFCCompliance:
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
-                        f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"
+                        f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
                     )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -144,7 +147,7 @@ class TestRFCCompliance:
         )
 
         # RFC 7591 - Returns 400 with proper error format
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "invalid_client_metadata"
         assert "redirect_uris is required" in error["detail"]["error_description"]

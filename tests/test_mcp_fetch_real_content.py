@@ -41,7 +41,7 @@ class TestMCPFetchRealContent:
         )
 
         # Currently the MCP service has issues, so we'll check what we can
-        if response.status_code == 404:
+        if response.status_code == HTTP_NOT_FOUND:
             # The service might not be fully configured yet
             print("⚠️  MCP service returned 404 - service configuration issue")
             print(f"Response: {response.text[:200]}")
@@ -51,7 +51,7 @@ class TestMCPFetchRealContent:
             )
             return
 
-        if response.status_code == 200:
+        if response.status_code == HTTP_OK:
             # Parse the response
             result = response.json()
             if "result" in result:
@@ -77,7 +77,7 @@ class TestMCPFetchRealContent:
         # Without authentication
         response = await http_client.post(f"{mcp_fetch_url}", json=mcp_request)
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers
         assert response.headers["WWW-Authenticate"] == "Bearer"
 

@@ -27,6 +27,10 @@ from .test_constants import AUTH_BASE_URL
 from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_OAUTH_CLIENT_ID
 from .test_constants import GATEWAY_OAUTH_CLIENT_SECRET
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import JWT_PRIVATE_KEY_B64
 from .test_constants import REDIS_URL
 from .test_constants import TEST_CLIENT_NAME
@@ -68,7 +72,7 @@ class TestAuthAuthlibErrorHandling:
             f"{AUTH_BASE_URL}/verify",
             headers={"Authorization": f"Bearer {wrong_token}"},
         )
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
     async def test_verify_jwt_token_unexpected_error(
@@ -80,10 +84,10 @@ class TestAuthAuthlibErrorHandling:
             f"{AUTH_BASE_URL}/verify",
             headers={"Authorization": "Bearer not.a.jwt.token.at.all"},
         )
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_create_refresh_token(self, http_client, wait_for_services):
+    async def test_create_refresh_token(self, http_client, wait_for_services):  # noqa: ARG002
         """Test refresh token creation via OAuth flow."""
         # This test requires full OAuth flow with GitHub which is complex
         # The refresh token functionality is already tested in other integration tests
@@ -115,7 +119,7 @@ class TestResourceProtectorErrorHandling:
     ):
         """Test bearer token validation with missing token."""
         response = await http_client.get(f"{AUTH_BASE_URL}/verify")
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert response.headers["WWW-Authenticate"] == "Bearer"
 
     @pytest.mark.asyncio
@@ -126,7 +130,7 @@ class TestResourceProtectorErrorHandling:
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify", headers={"Authorization": "NotBearer token"}
         )
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
     async def test_bearer_token_validator_expired_token(
@@ -152,7 +156,7 @@ class TestResourceProtectorErrorHandling:
             f"{AUTH_BASE_URL}/verify",
             headers={"Authorization": f"Bearer {expired_token}"},
         )
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
     async def test_bearer_token_validator_revoked_token(
@@ -202,7 +206,7 @@ class TestResourceProtectorErrorHandling:
             print(f"Token verification failed: {response.status_code}")
             print(f"Response: {response.text}")
             print(f"Token payload: {payload}")
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
         # Now revoke the token by deleting it from Redis
         await redis_client.delete(f"oauth:token:{jti}")
@@ -212,7 +216,7 @@ class TestResourceProtectorErrorHandling:
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {test_token}"}
         )
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
 
 class TestRoutesErrorHandling:
@@ -226,11 +230,11 @@ class TestRoutesErrorHandling:
         )
 
     @pytest.mark.asyncio
-    async def test_callback_missing_state(self, http_client, wait_for_services):
+    async def test_callback_missing_state(self, http_client, wait_for_services):  # noqa: ARG002
         """Test callback endpoint with missing state."""
         response = await http_client.get(f"{AUTH_BASE_URL}/callback?code=test_code")
         # FastAPI returns 422 for missing required query parameters
-        assert response.status_code == 422
+        assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
         json_response = response.json()
         assert "detail" in json_response
         assert any(
@@ -238,13 +242,13 @@ class TestRoutesErrorHandling:
         )
 
     @pytest.mark.asyncio
-    async def test_callback_invalid_state(self, http_client, wait_for_services):
+    async def test_callback_invalid_state(self, http_client, wait_for_services):  # noqa: ARG002
         """Test callback endpoint with invalid state."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/callback?code=test_code&state=invalid_state"
         )
         # Should return 400 for invalid state
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         json_response = response.json()
         assert json_response["detail"]["error"] == "invalid_request"
         assert (
@@ -252,7 +256,7 @@ class TestRoutesErrorHandling:
         )
 
     @pytest.mark.asyncio
-    async def test_callback_github_error(self, http_client, wait_for_services):
+    async def test_callback_github_error(self, http_client, wait_for_services):  # noqa: ARG002
         """Test callback endpoint with GitHub error."""
         # First create a valid state by registering a client and starting auth flow
         client_response = await http_client.post(
@@ -281,10 +285,10 @@ class TestRoutesErrorHandling:
         # Test that callback without code parameter fails
         response = await http_client.get(f"{AUTH_BASE_URL}/callback?state={state}")
         # FastAPI returns 422 for missing required parameter
-        assert response.status_code == 422
+        assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
     @pytest.mark.asyncio
-    async def test_introspect_malformed_token(self, http_client, wait_for_services):
+    async def test_introspect_malformed_token(self, http_client, wait_for_services):  # noqa: ARG002
         """Test introspect endpoint with malformed token."""
         response = await http_client.post(
             f"{AUTH_BASE_URL}/introspect",
@@ -294,12 +298,12 @@ class TestRoutesErrorHandling:
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
             },
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert data["active"] is False
 
     @pytest.mark.asyncio
-    async def test_introspect_token_not_in_redis(self, http_client, wait_for_services):
+    async def test_introspect_token_not_in_redis(self, http_client, wait_for_services):  # noqa: ARG002
         """Test introspect endpoint with token not in Redis."""
         # Create a valid JWT that's not in Redis
         private_key = self.get_rsa_private_key()
@@ -324,7 +328,7 @@ class TestRoutesErrorHandling:
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
             },
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert data["active"] is False
 
@@ -470,7 +474,7 @@ class TestRFC7592ErrorHandling:
     """Test RFC 7592 error handling."""
 
     @pytest.mark.asyncio
-    async def test_update_client_not_found(self, http_client, wait_for_services):
+    async def test_update_client_not_found(self, http_client, wait_for_services):  # noqa: ARG002
         """Test updating non-existent client."""
         response = await http_client.put(
             f"{AUTH_BASE_URL}/register/non_existent_client",
@@ -478,11 +482,11 @@ class TestRFC7592ErrorHandling:
             json={"redirect_uris": ["https://example.com/new"]},
         )
         # Should return 404 when client doesn't exist
-        assert response.status_code == 404
+        assert response.status_code == HTTP_NOT_FOUND
         assert "Client not found" in response.text
 
     @pytest.mark.asyncio
-    async def test_update_client_invalid_token(self, http_client, wait_for_services):
+    async def test_update_client_invalid_token(self, http_client, wait_for_services):  # noqa: ARG002
         """Test updating client with invalid registration token."""
         # First register a client
         client_response = await http_client.post(
@@ -501,22 +505,22 @@ class TestRFC7592ErrorHandling:
             json={"redirect_uris": ["https://example.com/new"]},
         )
         # Should return 403 when token is invalid
-        assert response.status_code == 403
+        assert response.status_code == HTTP_FORBIDDEN
         assert "Invalid or expired registration access token" in response.text
 
     @pytest.mark.asyncio
-    async def test_delete_client_not_found(self, http_client, wait_for_services):
+    async def test_delete_client_not_found(self, http_client, wait_for_services):  # noqa: ARG002
         """Test deleting non-existent client."""
         response = await http_client.delete(
             f"{AUTH_BASE_URL}/register/non_existent_client",
             headers={"Authorization": "Bearer fake_token"},
         )
         # Should return 404 when client doesn't exist
-        assert response.status_code == 404
+        assert response.status_code == HTTP_NOT_FOUND
         assert "Client not found" in response.text
 
     @pytest.mark.asyncio
-    async def test_get_client_with_expired_secret(self, http_client, wait_for_services):
+    async def test_get_client_with_expired_secret(self, http_client, wait_for_services):  # noqa: ARG002
         """Test getting client with expired secret check."""
         # Register a client
         client_response = await http_client.post(
@@ -535,7 +539,7 @@ class TestRFC7592ErrorHandling:
                 "Authorization": f"Bearer {client_data['registration_access_token']}"
             },
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert "client_secret_expires_at" in data
 
@@ -589,7 +593,7 @@ class TestEdgeCasesAndBranches:
             },
         )
         # The actual response is 400 for invalid refresh token
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         json_response = response.json()
         # Handle both direct error and detail.error formats
         if "detail" in json_response:
@@ -621,10 +625,10 @@ class TestEdgeCasesAndBranches:
             },
         )
         # FastAPI returns 422 for invalid enum values
-        assert response.status_code == 422
+        assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
     @pytest.mark.asyncio
-    async def test_concurrent_token_operations(self, http_client, wait_for_services):
+    async def test_concurrent_token_operations(self, http_client, wait_for_services):  # noqa: ARG002
         """Test concurrent token operations don't cause race conditions."""
         # Register a client
         client_response = await http_client.post(
@@ -682,7 +686,7 @@ class TestEdgeCasesAndBranches:
         assert len(set(states)) == 3  # All states should be unique
 
     @pytest.mark.asyncio
-    async def test_error_response_formats(self, http_client, wait_for_services):
+    async def test_error_response_formats(self, http_client, wait_for_services):  # noqa: ARG002
         """Test various error response formats."""
         # Test invalid client credentials format
         response = await http_client.post(
@@ -693,7 +697,7 @@ class TestEdgeCasesAndBranches:
                 "client_secret": "secret",
             },
         )
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers
 
         # Test missing grant type
@@ -705,7 +709,7 @@ class TestEdgeCasesAndBranches:
             },
         )
         # FastAPI returns 422 for missing required fields
-        assert response.status_code == 422
+        assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
         json_response = response.json()
         assert "detail" in json_response
         assert any(

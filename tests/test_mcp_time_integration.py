@@ -68,7 +68,7 @@ class TestMCPTimeIntegration:
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"
+                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"  # TODO: Break long line
             )
 
         # Parse the output - find the JSON response
@@ -139,7 +139,7 @@ class TestMCPTimeIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_initialize(self, mcp_time_url, client_token, wait_for_services):
+    async def test_time_initialize(self, mcp_time_url, client_token, wait_for_services):  # noqa: ARG002
         time_url = f"{mcp_time_url}"
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
@@ -163,7 +163,7 @@ class TestMCPTimeIntegration:
         result = response["result"]
         # Time server should use one of the officially supported protocol versions
         assert result["protocolVersion"] in MCP_PROTOCOL_VERSIONS_SUPPORTED, (
-            f"Time server protocol version {result['protocolVersion']} not in supported versions: {MCP_PROTOCOL_VERSIONS_SUPPORTED}"
+            f"Time server protocol version {result['protocolVersion']} not in supported versions: {MCP_PROTOCOL_VERSIONS_SUPPORTED}"  # TODO: Break long line
         )
         assert "serverInfo" in result
         # Server name should indicate time functionality
@@ -175,7 +175,7 @@ class TestMCPTimeIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_list_tools(self, mcp_time_url, client_token, wait_for_services):
+    async def test_time_list_tools(self, mcp_time_url, client_token, wait_for_services):  # noqa: ARG002
         time_url = f"{mcp_time_url}"
         """Test listing available tools."""
         # First initialize
@@ -227,7 +227,7 @@ class TestMCPTimeIntegration:
         if "error" in response:
             # Time server doesn't support resources - this is acceptable
             print(
-                f"Time server doesn't support resources/list: {response['error']['message']}"
+                f"Time server doesn't support resources/list: {response['error']['message']}"  # TODO: Break long line
             )
             assert response["error"]["code"] == -32601  # Method not found
         else:

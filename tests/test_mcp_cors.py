@@ -9,6 +9,8 @@ import httpx
 import pytest
 
 from .mcp_helpers import initialize_mcp_session
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 
@@ -58,7 +60,7 @@ class TestMCPCORS:
                 )
 
                 # CORS preflight should return 200 OK
-                assert response.status_code == 200, (
+                assert response.status_code == HTTP_OK, (
                     f"CORS preflight failed for origin {test_origin}"
                 )
 
@@ -146,7 +148,7 @@ class TestMCPCORS:
                 )
 
                 # Should get a successful response
-                assert init_response.status_code == 200, (
+                assert init_response.status_code == HTTP_OK, (
                     f"Request failed: {init_response.status_code}"
                 )
 
@@ -159,11 +161,11 @@ class TestMCPCORS:
                 allowed_origin = init_response.headers["access-control-allow-origin"]
                 if self.cors_origins == ["*"]:
                     assert allowed_origin in ["*", test_origin], (
-                        f"CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"
+                        f"CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"  # TODO: Break long line
                     )
                 else:
                     assert allowed_origin == test_origin, (
-                        f"CORS origin mismatch, expected '{test_origin}', got '{allowed_origin}'"
+                        f"CORS origin mismatch, expected '{test_origin}', got '{allowed_origin}'"  # TODO: Break long line
                     )
 
                 # Check exposed headers
@@ -204,7 +206,7 @@ class TestMCPCORS:
             response = client.get(health_url, headers={"Origin": test_origin})
 
             # Per divine CLAUDE.md, health checks use /mcp and require auth
-            assert response.status_code == 401, (
+            assert response.status_code == HTTP_UNAUTHORIZED, (
                 "Health endpoint must require authentication per divine CLAUDE.md"
             )
 
@@ -217,7 +219,7 @@ class TestMCPCORS:
             allowed_origin = response.headers["access-control-allow-origin"]
             if self.cors_origins == ["*"]:
                 assert allowed_origin in ["*", test_origin], (
-                    f"CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"
+                    f"CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"  # TODO: Break long line
                 )
 
     async def test_cors_headers_without_origin(self):
@@ -257,7 +259,7 @@ class TestMCPCORS:
                 )
 
                 # Should still work without Origin header
-                assert response.status_code == 200, (
+                assert response.status_code == HTTP_OK, (
                     f"Request failed without Origin header: {response.status_code}"
                 )
 
@@ -332,8 +334,8 @@ class TestMCPCORS:
                 response = client.get(health_url, headers={"Origin": test_origin})
 
                 # Per divine CLAUDE.md, health checks use /mcp and require auth
-                assert response.status_code == 401, (
-                    f"Service {service} health endpoint must require authentication per divine CLAUDE.md"
+                assert response.status_code == HTTP_UNAUTHORIZED, (
+                    f"Service {service} health endpoint must require authentication per divine CLAUDE.md"  # TODO: Break long line
                 )
                 assert "access-control-allow-origin" in response.headers, (
                     f"Service {service} missing CORS headers on 401 response"
@@ -343,11 +345,11 @@ class TestMCPCORS:
                 allowed_origin = response.headers["access-control-allow-origin"]
                 if self.cors_origins == ["*"]:
                     assert allowed_origin in ["*", test_origin], (
-                        f"Service {service}: CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"
+                        f"Service {service}: CORS origin should be '*' or '{test_origin}', got '{allowed_origin}'"  # TODO: Break long line
                     )
                 else:
                     assert allowed_origin == test_origin, (
-                        f"Service {service}: expected '{test_origin}', got '{allowed_origin}'"
+                        f"Service {service}: expected '{test_origin}', got '{allowed_origin}'"  # TODO: Break long line
                     )
 
                 print(f"✓ Service {service} has CORS properly configured")

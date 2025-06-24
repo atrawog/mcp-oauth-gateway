@@ -12,7 +12,7 @@ async def test_mcp_fetch_uses_package(mcp_fetch_url):
     if not MCP_CLIENT_ACCESS_TOKEN:
         pytest.skip("MCP_CLIENT_ACCESS_TOKEN not available")
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         # Use MCP protocol to check server info - per CLAUDE.md, no /health endpoints
         response = await client.post(
             f"{mcp_fetch_url}",
@@ -31,7 +31,7 @@ async def test_mcp_fetch_uses_package(mcp_fetch_url):
                 "Content-Type": "application/json",
             },
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
         data = response.json()
         server_info = data.get("result", {}).get("serverInfo", {})

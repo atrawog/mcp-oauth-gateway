@@ -11,6 +11,8 @@ from .mcp_helpers import call_mcp_tool
 from .mcp_helpers import initialize_mcp_session
 from .mcp_helpers import list_mcp_tools
 from .test_constants import AUTH_BASE_URL
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 
 
@@ -19,6 +21,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(
     http_client, wait_for_services, mcp_fetch_url
 ):
     """Test the COMPLETE MCP fetch workflow:
+
     1. Use REAL OAuth token
     2. Initialize MCP session
     3. Fetch REAL content from a URL
@@ -81,7 +84,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(
         )
 
         print(
-            f"Fetch response (first 1000 chars): {json.dumps(fetch_result, indent=2)[:1000]}"
+            f"Fetch response (first 1000 chars): {json.dumps(fetch_result, indent=2)[:1000]}"  # TODO: Break long line
         )
 
         # Check the result directly (no need to parse JSON again)
@@ -105,7 +108,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(
                     assert (
                         "Example Domain" in content or "example" in content.lower()
                     ), (
-                        f"Didn't get expected content from example.com! Got: {content[:200]}"
+                        f"Didn't get expected content from example.com! Got: {content[:200]}"  # TODO: Break long line
                     )
 
                     print("\n✅ SUCCESS! Fetched content from example.com")
@@ -129,7 +132,7 @@ async def test_mcp_fetch_unauthorized_fails(
         f"{mcp_test_url}", json={"jsonrpc": "2.0", "method": "test", "id": 1}
     )
 
-    assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+    assert response.status_code == HTTP_UNAUTHORIZED, f"Expected 401, got {response.status_code}"
     assert "WWW-Authenticate" in response.headers
     print("✅ MCP fetch correctly rejects unauthorized requests")
 
@@ -146,7 +149,7 @@ async def test_oauth_token_validation(http_client, wait_for_services):
         f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {oauth_token}"}
     )
 
-    if response.status_code == 200:
+    if response.status_code == HTTP_OK:
         print("✅ OAuth token is valid and verified by auth service")
         # The /verify endpoint returns 200 with no body when successful
         print("   Token validation successful!")

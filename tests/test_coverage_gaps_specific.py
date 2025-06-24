@@ -15,6 +15,9 @@ from .test_constants import AUTH_BASE_URL
 from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import REDIS_URL
 from .test_constants import TEST_CLIENT_NAME
 from .test_constants import TEST_REDIRECT_URI
@@ -24,7 +27,7 @@ class TestHealthCheckErrors:
     """Test health check error scenarios - Lines 131-132."""
 
     @pytest.mark.asyncio
-    async def test_oauth_discovery_health_status(self, http_client, wait_for_services):
+    async def test_oauth_discovery_health_status(self, http_client, wait_for_services):  # noqa: ARG002
         """Test OAuth discovery endpoint as health indicator."""
         # OAuth discovery endpoint now serves as health check
         response = await http_client.get(
@@ -32,7 +35,7 @@ class TestHealthCheckErrors:
         )
 
         # Should be accessible when service is healthy
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert "issuer" in data
         assert "authorization_endpoint" in data
@@ -51,7 +54,7 @@ class TestWellKnownMetadata:
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         metadata = response.json()
 
         # Verify required RFC 8414 fields
@@ -72,7 +75,7 @@ class TestClientRegistrationErrors:
     """Test client registration error scenarios - Line 327."""
 
     @pytest.mark.asyncio
-    async def test_registration_with_invalid_data(self, http_client, wait_for_services):
+    async def test_registration_with_invalid_data(self, http_client, wait_for_services):  # noqa: ARG002
         """Test various registration error conditions."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -93,7 +96,7 @@ class TestClientRegistrationErrors:
         )
 
         # Should be 400 for RFC 7591 compliance
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "invalid_client_metadata"
 
@@ -104,14 +107,14 @@ class TestClientRegistrationErrors:
             headers={"Content-Type": "application/json"},
         )
 
-        assert response.status_code == 422
+        assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
 
 class TestAuthorizationErrors:
     """Test authorization endpoint errors - Lines 342-384."""
 
     @pytest.mark.asyncio
-    async def test_authorize_with_invalid_client(self, http_client, wait_for_services):
+    async def test_authorize_with_invalid_client(self, http_client, wait_for_services):  # noqa: ARG002
         """Test authorization with non-existent client."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
@@ -125,7 +128,7 @@ class TestAuthorizationErrors:
         )
 
         # Should return 400 without redirect per RFC 6749
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         try:
             error = response.json()
             assert error["detail"]["error"] == "invalid_client"
@@ -153,7 +156,7 @@ class TestAuthorizationErrors:
         )
 
         # Should return 400 without redirect for security
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         # Check for the actual error returned
         assert error["detail"]["error"] in ["invalid_request", "invalid_redirect_uri"]
@@ -179,7 +182,7 @@ class TestTokenEndpointErrors:
             },
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
 
@@ -195,7 +198,7 @@ class TestTokenEndpointErrors:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
         assert error["detail"]["error"] == "invalid_client"
 
@@ -210,7 +213,7 @@ class TestTokenEndpointErrors:
             },
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "unsupported_grant_type"
 
@@ -219,7 +222,7 @@ class TestVerifyEndpointErrors:
     """Test verify endpoint edge cases - Lines 534-547."""
 
     @pytest.mark.asyncio
-    async def test_verify_with_malformed_tokens(self, http_client, wait_for_services):
+    async def test_verify_with_malformed_tokens(self, http_client, wait_for_services):  # noqa: ARG002
         """Test various token verification error scenarios."""
         # Test with completely invalid JWT format
         response = await http_client.get(
@@ -227,7 +230,7 @@ class TestVerifyEndpointErrors:
             headers={"Authorization": "Bearer this.is.not.jwt"},
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
         # Check for any token format error message
         assert (
@@ -247,7 +250,7 @@ class TestVerifyEndpointErrors:
             headers={"Authorization": f"Bearer {wrong_token}"},
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
         assert (
             "The access token is invalid or expired"
@@ -270,7 +273,7 @@ class TestVerifyEndpointErrors:
             headers={"Authorization": f"Bearer {expired_token}"},
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
         assert "expired" in error["detail"]["error_description"].lower()
 
@@ -293,7 +296,7 @@ class TestRevokeEndpointEdgeCases:
             },
         )
 
-        assert response.status_code == 200  # Always 200 per RFC 7009
+        assert response.status_code == HTTP_OK  # Always 200 per RFC 7009
 
         # Test with invalid client credentials - may not always return 401
         response = await http_client.post(
@@ -307,7 +310,7 @@ class TestRevokeEndpointEdgeCases:
 
         # RFC allows returning 200 even for invalid clients
         assert response.status_code in [200, 401]
-        if response.status_code == 401:
+        if response.status_code == HTTP_UNAUTHORIZED:
             error = response.json()
             assert error["detail"]["error"] == "invalid_client"
 
@@ -320,7 +323,7 @@ class TestRevokeEndpointEdgeCases:
             },
         )
 
-        assert response.status_code == 422  # Missing required field
+        assert response.status_code == HTTP_UNPROCESSABLE_ENTITY  # Missing required field
 
 
 class TestIntrospectEdgeCases:
@@ -341,7 +344,7 @@ class TestIntrospectEdgeCases:
             },
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         result = response.json()
         assert result["active"] is False
 
@@ -366,7 +369,7 @@ class TestIntrospectEdgeCases:
             },
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         result = response.json()
         assert result["active"] is False
 
@@ -382,10 +385,10 @@ class TestIntrospectEdgeCases:
 
         # Introspect may return 200 with active=false for invalid clients
         assert response.status_code in [200, 401]
-        if response.status_code == 401:
+        if response.status_code == HTTP_UNAUTHORIZED:
             error = response.json()
             assert error["detail"]["error"] == "invalid_client"
-        elif response.status_code == 200:
+        elif response.status_code == HTTP_OK:
             result = response.json()
             assert result["active"] is False
 
@@ -394,7 +397,7 @@ class TestCallbackEdgeCases:
     """Test callback endpoint edge cases - Lines 745, 760-761, 773-774."""
 
     @pytest.mark.asyncio
-    async def test_callback_error_scenarios(self, http_client, wait_for_services):
+    async def test_callback_error_scenarios(self, http_client, wait_for_services):  # noqa: ARG002
         """Test various callback error scenarios."""
         # Test callback with invalid state
         response = await http_client.get(
@@ -404,7 +407,7 @@ class TestCallbackEdgeCases:
         )
 
         # Auth service returns 400 for invalid state
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert "error" in error["detail"]
 
@@ -416,7 +419,7 @@ class TestCallbackEdgeCases:
         )
 
         # Should return 422 for missing required parameter
-        assert response.status_code == 422
+        assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
         # Test callback with missing state parameter (only code)
         response = await http_client.get(
@@ -426,7 +429,7 @@ class TestCallbackEdgeCases:
         )
 
         # Should return 422 for missing required parameter
-        assert response.status_code == 422
+        assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
         # Test callback with missing parameters
         response = await http_client.get(
@@ -434,7 +437,7 @@ class TestCallbackEdgeCases:
         )
 
         # Should return 422 for missing required parameters
-        assert response.status_code == 422
+        assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
 
 class TestComplexTokenScenarios:
@@ -460,14 +463,14 @@ class TestComplexTokenScenarios:
                 headers={"Authorization": f"Bearer {test_token}"},
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             # /verify endpoint returns empty response with headers, not JSON
             verify_username = response.headers.get("X-User-Name")
             assert verify_username is not None, (
                 "Verify endpoint should return username in headers"
             )
             assert verify_username in ALLOWED_GITHUB_USERS, (
-                f"Username '{verify_username}' not in ALLOWED_GITHUB_USERS: {ALLOWED_GITHUB_USERS}"
+                f"Username '{verify_username}' not in ALLOWED_GITHUB_USERS: {ALLOWED_GITHUB_USERS}"  # TODO: Break long line
             )
 
             # Test introspection of the real token
@@ -480,14 +483,14 @@ class TestComplexTokenScenarios:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             result = response.json()
             assert result["active"] is True
             # Verify the username is in the allowed users list from .env
             username = result["username"]
             assert username is not None, "Token should have a username"
             assert username in ALLOWED_GITHUB_USERS, (
-                f"Username '{username}' not in ALLOWED_GITHUB_USERS: {ALLOWED_GITHUB_USERS}"
+                f"Username '{username}' not in ALLOWED_GITHUB_USERS: {ALLOWED_GITHUB_USERS}"  # TODO: Break long line
             )
 
             # Skip revocation test for the real gateway token to avoid breaking other tests

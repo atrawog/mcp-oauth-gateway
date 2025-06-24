@@ -36,7 +36,7 @@ async def test_debug_mcp_fetch_with_real_oauth(
             print(f"GET {endpoint}: Status {response.status_code}")
             if response.status_code != 404:
                 print(
-                    f"GET Response: {response.text[:200] if response.text else 'No body'}"
+                    f"GET Response: {response.text[:200] if response.text else 'No body'}"  # TODO: Break long line
                 )
         except Exception as e:
             print(f"GET {endpoint} failed: {e}")
@@ -65,7 +65,7 @@ async def test_debug_mcp_fetch_with_real_oauth(
             )
             print(f"POST {endpoint} (init): Status {response.status_code}")
             print(f"Response headers: {dict(response.headers)}")
-            if response.status_code == 200:
+            if response.status_code == HTTP_OK:
                 print(f"Response body: {response.text}")
 
                 # If we got a session ID, try a fetch request

@@ -55,7 +55,7 @@ class TestMCPTimeComprehensive:
 
         if result.returncode != 0:
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"
+                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"  # TODO: Break long line
             )
 
         # Parse the output to find the actual response
@@ -115,7 +115,7 @@ class TestMCPTimeComprehensive:
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"
+                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"  # TODO: Break long line
             )
 
         # Parse the output - find the JSON response
@@ -503,7 +503,7 @@ class TestMCPTimeComprehensive:
         )
 
         print(
-            f"Invalid timezone response: {json.dumps(invalid_timezone_response, indent=2)}"
+            f"Invalid timezone response: {json.dumps(invalid_timezone_response, indent=2)}"  # TODO: Break long line
         )
 
         # Should get an error or a result with error content
@@ -537,7 +537,7 @@ class TestMCPTimeComprehensive:
         )
 
         print(
-            f"Invalid time format response: {json.dumps(invalid_time_response, indent=2)}"
+            f"Invalid time format response: {json.dumps(invalid_time_response, indent=2)}"  # TODO: Break long line
         )
 
         # Should handle invalid time format gracefully
@@ -590,7 +590,7 @@ class TestMCPTimeComprehensive:
             f"Expected at least 5 successful timezone queries, got {successful_queries}"
         )
         print(
-            f"Successfully queried {successful_queries}/{len(valid_timezones)} timezones"
+            f"Successfully queried {successful_queries}/{len(valid_timezones)} timezones"  # TODO: Break long line
         )
 
     @pytest.mark.integration
@@ -613,7 +613,7 @@ class TestMCPTimeComprehensive:
             params={"name": "get_current_time", "arguments": {"timezone": "UTC"}},
         )
         print(
-            f"Step 1 - Get UTC time: {'✅ Success' if 'result' in utc_response else '❌ Error'}"
+            f"Step 1 - Get UTC time: {'✅ Success' if 'result' in utc_response else '❌ Error'}"  # TODO: Break long line
         )
 
         # Step 2: Get current time in New York
@@ -627,7 +627,7 @@ class TestMCPTimeComprehensive:
             },
         )
         print(
-            f"Step 2 - Get New York time: {'✅ Success' if 'result' in ny_response else '❌ Error'}"
+            f"Step 2 - Get New York time: {'✅ Success' if 'result' in ny_response else '❌ Error'}"  # TODO: Break long line
         )
 
         # Step 3: Convert 3 PM New York time to Tokyo
@@ -645,7 +645,7 @@ class TestMCPTimeComprehensive:
             },
         )
         print(
-            f"Step 3 - Convert NY to Tokyo: {'✅ Success' if 'result' in conversion_response else '❌ Error'}"
+            f"Step 3 - Convert NY to Tokyo: {'✅ Success' if 'result' in conversion_response else '❌ Error'}"  # TODO: Break long line
         )
 
         # Step 4: Convert morning Tokyo time back to London
@@ -663,7 +663,7 @@ class TestMCPTimeComprehensive:
             },
         )
         print(
-            f"Step 4 - Convert Tokyo to London: {'✅ Success' if 'result' in reverse_conversion else '❌ Error'}"
+            f"Step 4 - Convert Tokyo to London: {'✅ Success' if 'result' in reverse_conversion else '❌ Error'}"  # TODO: Break long line
         )
 
         print("=== Time Workflow Complete ===\\n")

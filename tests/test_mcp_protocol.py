@@ -5,6 +5,7 @@ NO HARDCODED VERSIONS! Must use MCP_PROTOCOL_VERSION from environment!
 
 import pytest
 
+from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_PROTOCOL_VERSION
 
 
@@ -22,7 +23,7 @@ class TestMCPProtocol:
         )
 
         # Should get 401 from ForwardAuth middleware
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert response.headers.get("WWW-Authenticate") == "Bearer"
 
     @pytest.mark.asyncio
@@ -47,7 +48,7 @@ class TestMCPProtocol:
             response = await http_client.post(f"{mcp_fetch_url}", json=invalid_request)
 
             # Should get 401 from auth middleware
-            assert response.status_code == 401
+            assert response.status_code == HTTP_UNAUTHORIZED
             assert response.headers.get("WWW-Authenticate") == "Bearer"
 
     @pytest.mark.asyncio
@@ -66,7 +67,7 @@ class TestMCPProtocol:
         )
 
         # Check response (will be 401 due to auth, but headers are validated)
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert "Accept" in response.request.headers
         assert "application/json" in response.request.headers["Accept"]
         assert "text/event-stream" in response.request.headers["Accept"]
@@ -94,7 +95,7 @@ class TestMCPProtocol:
         )
 
         # Should get 401 but session header was sent
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert "Mcp-Session-Id" in response.request.headers
 
     @pytest.mark.asyncio
@@ -117,7 +118,7 @@ class TestMCPProtocol:
         )
 
         # Should get 401 but protocol version header was sent
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert (
             response.request.headers.get("MCP-Protocol-Version") == MCP_PROTOCOL_VERSION
         )
@@ -132,7 +133,7 @@ class TestMCPProtocol:
         )
 
         # Even auth errors should follow some structure
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         if response.headers.get("content-type", "").startswith("application/json"):
             error_data = response.json()
             # Should have error structure
@@ -154,7 +155,7 @@ class TestMCPProtocol:
 
         # Should get 401 from auth middleware
         # Real MCP server must support receiving batches
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
     async def test_mcp_http_methods(
@@ -165,10 +166,10 @@ class TestMCPProtocol:
         post_response = await http_client.post(
             f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}
         )
-        assert post_response.status_code == 401  # Auth required
+        assert post_response.status_code == HTTP_UNAUTHORIZED  # Auth required
 
         # Test GET method without auth
         get_response = await http_client.get(
             f"{mcp_fetch_url}", headers={"Mcp-Session-Id": "test-session"}
         )
-        assert get_response.status_code == 401  # Auth required
+        assert get_response.status_code == HTTP_UNAUTHORIZED  # Auth required

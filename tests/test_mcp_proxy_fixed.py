@@ -23,7 +23,7 @@ class TestMCPProxyWithSessionHandling:
     @pytest.mark.asyncio
     async def test_initialize_returns_session_id(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that initialize returns a session ID in headers."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -43,9 +43,9 @@ class TestMCPProxyWithSessionHandling:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         assert "Mcp-Session-Id" in response.headers
         session_id = response.headers["Mcp-Session-Id"]
         assert session_id  # Should not be empty
@@ -59,7 +59,7 @@ class TestMCPProxyWithSessionHandling:
     @pytest.mark.asyncio
     async def test_session_persists_with_header(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that session persists when using Mcp-Session-Id header."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -80,9 +80,9 @@ class TestMCPProxyWithSessionHandling:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert init_response.status_code == 200
+        assert init_response.status_code == HTTP_OK
         session_id = init_response.headers["Mcp-Session-Id"]
 
         # Send initialized notification with session ID
@@ -93,7 +93,7 @@ class TestMCPProxyWithSessionHandling:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
             },
-        )
+        , timeout=30.0)
 
         # List tools using same session ID
         tools_response = await http_client.post(
@@ -103,9 +103,9 @@ class TestMCPProxyWithSessionHandling:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
             },
-        )
+        , timeout=30.0)
 
-        assert tools_response.status_code == 200
+        assert tools_response.status_code == HTTP_OK
         data = tools_response.json()
         assert "result" in data
         assert "tools" in data["result"]
@@ -113,7 +113,7 @@ class TestMCPProxyWithSessionHandling:
     @pytest.mark.asyncio
     async def test_request_without_session_id_fails(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that non-initialize requests without session ID fail appropriately."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -125,9 +125,9 @@ class TestMCPProxyWithSessionHandling:
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200  # JSON-RPC errors return 200
+        assert response.status_code == HTTP_OK  # JSON-RPC errors return 200
         data = response.json()
         assert "error" in data
         assert "Session ID required" in data["error"]["message"]
@@ -135,7 +135,7 @@ class TestMCPProxyWithSessionHandling:
     @pytest.mark.asyncio
     async def test_invalid_session_id_rejected(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test that invalid session IDs are rejected."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -149,9 +149,9 @@ class TestMCPProxyWithSessionHandling:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": "invalid-session-id-12345",
             },
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert "error" in data
         assert "Invalid session ID" in data["error"]["message"]
@@ -163,7 +163,7 @@ class TestMCPProtocolFlowWithSessions:
     @pytest.mark.asyncio
     async def test_complete_mcp_flow(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test complete MCP flow: initialize -> initialized -> tools/list -> tool/call."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -184,9 +184,9 @@ class TestMCPProtocolFlowWithSessions:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert init_response.status_code == 200
+        assert init_response.status_code == HTTP_OK
         session_id = init_response.headers["Mcp-Session-Id"]
         init_data = init_response.json()
         # Server may negotiate a different protocol version
@@ -200,7 +200,7 @@ class TestMCPProtocolFlowWithSessions:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
             },
-        )
+        , timeout=30.0)
         assert initialized_response.status_code in [200, 202]
 
         # Step 3: List available tools
@@ -211,9 +211,9 @@ class TestMCPProtocolFlowWithSessions:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
             },
-        )
+        , timeout=30.0)
 
-        assert tools_response.status_code == 200
+        assert tools_response.status_code == HTTP_OK
         tools_data = tools_response.json()
         assert "result" in tools_data
         tools = tools_data["result"]["tools"]
@@ -239,9 +239,9 @@ class TestMCPProtocolFlowWithSessions:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
             },
-        )
+        , timeout=30.0)
 
-        assert tool_response.status_code == 200
+        assert tool_response.status_code == HTTP_OK
         tool_data = tool_response.json()
         # Should either succeed or return an error (depending on fetch permissions)
         assert "result" in tool_data or "error" in tool_data
@@ -251,7 +251,7 @@ class TestMCPSessionIsolation:
     """Test that sessions are properly isolated."""
 
     @pytest.mark.asyncio
-    async def test_sessions_are_isolated(self, wait_for_services):
+    async def test_sessions_are_isolated(self, wait_for_services):  # noqa: ARG002
         """Test that different clients get different isolated sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -278,7 +278,7 @@ class TestMCPSessionIsolation:
                 },
                 headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
             )
-            assert response1.status_code == 200
+            assert response1.status_code == HTTP_OK
             session_id1 = response1.headers["Mcp-Session-Id"]
 
             # Initialize second client
@@ -296,7 +296,7 @@ class TestMCPSessionIsolation:
                 },
                 headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
             )
-            assert response2.status_code == 200
+            assert response2.status_code == HTTP_OK
             session_id2 = response2.headers["Mcp-Session-Id"]
 
             # Session IDs should be different
@@ -314,7 +314,7 @@ class TestMCPSessionIsolation:
 
             # This should work (sessions are not tied to HTTP clients, just to session IDs)
             # But each session maintains its own state
-            assert cross_response.status_code == 200
+            assert cross_response.status_code == HTTP_OK
 
 
 class MCPClientHelper:
@@ -342,7 +342,7 @@ class MCPClientHelper:
             headers={"Authorization": f"Bearer {self.auth_token}"},
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         self.session_id = response.headers.get("Mcp-Session-Id")
         return response.json()
 
@@ -377,7 +377,7 @@ class TestMCPWithHelper:
     @pytest.mark.asyncio
     async def test_complete_flow_with_helper(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test complete MCP flow using helper class."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(

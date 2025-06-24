@@ -11,6 +11,8 @@ from .jwt_test_helper import encode as jwt_encode
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_CLIENT_ID
 from .test_constants import GATEWAY_OAUTH_CLIENT_SECRET
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_OK
 from .test_constants import JWT_SECRET
 
 
@@ -24,7 +26,7 @@ class TestHealthCheckErrors:
         response = await http_client.get(
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
         # Verify it returns proper OAuth metadata
         data = response.json()
@@ -45,7 +47,7 @@ class TestSuccessEndpoint:
             params={"code": "test_auth_code_123", "state": "test_state"},
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         assert "text/html" in response.headers.get("content-type", "")
         assert "Authorization Code" in response.text
         assert "test_auth_code_123" in response.text
@@ -63,7 +65,7 @@ class TestSuccessEndpoint:
             },
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         assert "text/html" in response.headers.get("content-type", "")
         assert "❌ OAuth Error" in response.text
         assert "access_denied" in response.text
@@ -74,7 +76,7 @@ class TestSuccessEndpoint:
         """Test success page without parameters."""
         response = await http_client.get(f"{AUTH_BASE_URL}/success")
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         assert "text/html" in response.headers.get("content-type", "")
         assert "⏳ OAuth Flow" in response.text
         assert "No authorization code received yet" in response.text
@@ -98,7 +100,7 @@ class TestClientRegistrationErrors:
             f"{AUTH_BASE_URL}/register", json=registration_data
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "invalid_client_metadata"
         assert "redirect_uris is required" in error["detail"]["error_description"]
@@ -120,7 +122,7 @@ class TestTokenEndpointEdgeCases:
             },
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "invalid_request"
         assert "Missing refresh token" in error["detail"]["error_description"]
@@ -138,7 +140,7 @@ class TestTokenEndpointEdgeCases:
             },
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
         assert (
@@ -161,7 +163,7 @@ class TestTokenEndpointEdgeCases:
             },
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
 
@@ -187,7 +189,7 @@ class TestPKCEVerification:
         )
 
         # Will fail at code validation, not PKCE check
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
 
@@ -215,7 +217,7 @@ class TestTokenRevocationEdgeCases:
         )
 
         # RFC 7009 says to return 200 even on auth failure
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
     @pytest.mark.asyncio
     async def test_revoke_refresh_token(self, http_client):
@@ -231,7 +233,7 @@ class TestTokenRevocationEdgeCases:
         )
 
         # Always returns 200
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
 
 class TestTokenIntrospectionEdgeCases:
@@ -262,7 +264,7 @@ class TestTokenIntrospectionEdgeCases:
             },
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert data["active"] is False  # Not in Redis
 
@@ -279,7 +281,7 @@ class TestTokenIntrospectionEdgeCases:
             },
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert data["active"] is False  # Not in Redis
 
@@ -300,7 +302,7 @@ class TestJWTTokenCreation:
         )
 
         # Registration should succeed without authentication
-        assert registration.status_code == 201
+        assert registration.status_code == HTTP_CREATED
         client_data = registration.json()
         assert "client_id" in client_data
         assert "client_secret" in client_data
@@ -319,7 +321,7 @@ class TestJWTTokenCreation:
         )
 
         # Should fail because the authorization code is invalid
-        assert token_response.status_code == 400
+        assert token_response.status_code == HTTP_BAD_REQUEST
         error = token_response.json()
         assert error["detail"]["error"] == "invalid_grant"
 
@@ -332,7 +334,7 @@ class TestJWTTokenCreation:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 # 204 No Content is success, 404 is okay if already deleted
@@ -359,7 +361,7 @@ class TestAuthorizationEndpointErrors:
         )
 
         # Should NOT redirect on unknown client (RFC 6749)
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         try:
             error = response.json()
             assert error["detail"]["error"] == "invalid_client"
@@ -386,7 +388,7 @@ class TestAuthorizationEndpointErrors:
         )
 
         # Should NOT redirect on invalid redirect_uri (RFC 6749)
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "invalid_redirect_uri"
 
@@ -402,7 +404,7 @@ class TestShutdownHandler:
         response = await http_client.get(
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
         # The shutdown handler is tested implicitly when services restart
         # between test runs

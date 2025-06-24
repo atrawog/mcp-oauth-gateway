@@ -230,7 +230,7 @@ class OAuthClient:
         console.print(
             Panel.fit(
                 f"[bold cyan]Please visit:[/bold cyan]\n{verification_uri}\n\n"
-                f"[bold cyan]And enter code:[/bold cyan]\n[bold yellow]{user_code}[/bold yellow]",
+                f"[bold cyan]And enter code:[/bold cyan]\n[bold yellow]{user_code}[/bold yellow]",  # TODO: Break long line
                 title="Device Authorization",
                 border_style="cyan",
             )
@@ -321,7 +321,7 @@ class OAuthClient:
         console.print("\n")
         console.print(
             Panel.fit(
-                f"[bold cyan]Please visit this URL to authorize:[/bold cyan]\n\n{auth_url}",
+                f"[bold cyan]Please visit this URL to authorize:[/bold cyan]\n\n{auth_url}",  # TODO: Break long line
                 title="Manual Authorization",
                 border_style="cyan",
             )
@@ -436,8 +436,8 @@ class OAuthClient:
                 auth_domain = f"auth.{domain_parts[1]}"
                 candidates.extend(
                     [
-                        f"{parsed.scheme}://{auth_domain}/.well-known/oauth-authorization-server",
-                        f"{parsed.scheme}://{auth_domain}/.well-known/openid-configuration",
+                        f"{parsed.scheme}://{auth_domain}/.well-known/oauth-authorization-server",  # TODO: Break long line
+                        f"{parsed.scheme}://{auth_domain}/.well-known/openid-configuration",  # TODO: Break long line
                     ]
                 )
 
@@ -544,7 +544,7 @@ class OAuthClient:
                 self.settings.registration_client_uri,
                 json=filtered_updates,
                 headers={
-                    "Authorization": f"Bearer {self.settings.registration_access_token}",
+                    "Authorization": f"Bearer {self.settings.registration_access_token}",  # TODO: Break long line
                     "Content-Type": "application/json",
                 },
             )

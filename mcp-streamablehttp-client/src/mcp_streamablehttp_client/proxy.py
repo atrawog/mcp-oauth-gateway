@@ -235,7 +235,7 @@ class StreamableHttpToStdioProxy:
                     )
                     if notif_resp.status_code not in (200, 202, 204):
                         logger.warning(
-                            f"Unexpected notification response: {notif_resp.status_code} - {notif_resp.text}"
+                            f"Unexpected notification response: {notif_resp.status_code} - {notif_resp.text}"  # TODO: Break long line
                         )
                 except Exception as e:
                     logger.warning(f"Failed to send initialized notification: {e}")

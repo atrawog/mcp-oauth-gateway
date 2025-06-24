@@ -68,7 +68,7 @@ class TestMCPSequentialThinkingIntegration:
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"
+                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"  # TODO: Break long line
             )
 
         # Parse the output - find the JSON response
@@ -171,7 +171,7 @@ class TestMCPSequentialThinkingIntegration:
         result = response["result"]
         # Sequential thinking server should use one of the officially supported protocol versions
         assert result["protocolVersion"] in MCP_PROTOCOL_VERSIONS_SUPPORTED, (
-            f"Sequential thinking server protocol version {result['protocolVersion']} not in supported versions: {MCP_PROTOCOL_VERSIONS_SUPPORTED}"
+            f"Sequential thinking server protocol version {result['protocolVersion']} not in supported versions: {MCP_PROTOCOL_VERSIONS_SUPPORTED}"  # TODO: Break long line
         )
         assert "serverInfo" in result
         # Server name should indicate sequential thinking functionality
@@ -179,7 +179,7 @@ class TestMCPSequentialThinkingIntegration:
         assert (
             "sequential" in server_name.lower() or "thinking" in server_name.lower()
         ), (
-            f"Server name '{server_name}' doesn't indicate sequential thinking functionality"
+            f"Server name '{server_name}' doesn't indicate sequential thinking functionality"  # TODO: Break long line
         )
         assert "capabilities" in result
 
@@ -249,7 +249,7 @@ class TestMCPSequentialThinkingIntegration:
         if "error" in response:
             # Sequential thinking server doesn't support resources - this is acceptable
             print(
-                f"Sequential thinking server doesn't support resources/list: {response['error']['message']}"
+                f"Sequential thinking server doesn't support resources/list: {response['error']['message']}"  # TODO: Break long line
             )
             assert response["error"]["code"] == -32601  # Method not found
         else:
@@ -332,11 +332,11 @@ class TestMCPSequentialThinkingIntegration:
             if "result" in response:
                 assert "content" in response["result"]
                 print(
-                    f"Sequential thinking tool '{first_tool['name']}' executed successfully"
+                    f"Sequential thinking tool '{first_tool['name']}' executed successfully"  # TODO: Break long line
                 )
             else:
                 print(
-                    f"Sequential thinking tool '{first_tool['name']}' returned error (may be expected): {response['error']}"
+                    f"Sequential thinking tool '{first_tool['name']}' returned error (may be expected): {response['error']}"  # TODO: Break long line
                 )
 
     @pytest.mark.integration

@@ -67,7 +67,7 @@ class TestMCPFetchsSecurity:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_token_validation(self, mcp_fetchs_url, wait_for_services):
+    async def test_fetchs_token_validation(self, mcp_fetchs_url, wait_for_services):  # noqa: ARG002
         """Test token validation with various invalid formats."""
         invalid_tokens = [
             "not-a-jwt",
@@ -87,7 +87,7 @@ class TestMCPFetchsSecurity:
                     },
                 )
 
-                assert response.status_code == 401
+                assert response.status_code == HTTP_UNAUTHORIZED
                 # WWW-Authenticate header should start with Bearer
                 www_auth = response.headers.get("WWW-Authenticate", "")
                 assert www_auth.startswith("Bearer"), (
@@ -126,7 +126,7 @@ class TestMCPFetchsSecurity:
                     assert response.status_code in [401, 404], (
                         f"{method} {path} should require auth"
                     )
-                    if response.status_code == 401:
+                    if response.status_code == HTTP_UNAUTHORIZED:
                         assert response.headers.get("WWW-Authenticate") == "Bearer"
                 else:
                     assert response.status_code != 401, (
@@ -167,7 +167,7 @@ class TestMCPFetchsSecurity:
                     },
                 )
 
-                assert response.status_code == 200
+                assert response.status_code == HTTP_OK
                 data = response.json()
                 # MCP 2025-06-18 returns tool errors with isError: true
                 assert "result" in data
@@ -210,7 +210,7 @@ class TestMCPFetchsSecurity:
             )
 
             # Should either sanitize or reject malicious headers
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             if "result" in data:
                 content = data["result"]["content"][0]["text"]
@@ -255,7 +255,7 @@ class TestMCPFetchsSecurity:
             # Discovery should be publicly accessible
             response = await client.get(oauth_discovery_url)
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
 
             # Should contain proper OAuth metadata

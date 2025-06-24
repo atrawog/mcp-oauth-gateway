@@ -12,6 +12,12 @@ import pytest
 
 from .jwt_test_helper import encode as jwt_encode
 from .test_constants import AUTH_BASE_URL
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_NO_CONTENT
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import GITHUB_PAT
 from .test_constants import TEST_REDIRECT_URI
@@ -28,7 +34,7 @@ class TestExistingOAuthCredentials:
     @pytest.mark.asyncio
     async def test_token_endpoint_with_existing_client(
         self, http_client, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test token endpoint using existing client credentials."""
         # Fail with clear error if credentials not available
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
@@ -46,20 +52,20 @@ class TestExistingOAuthCredentials:
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
             },
-        )
+        , timeout=30.0)
 
         print(f"Response status: {response.status_code}")
         print(f"Response body: {response.text}")
 
         # If client doesn't exist, fail with clear error
-        if response.status_code == 401:
+        if response.status_code == HTTP_UNAUTHORIZED:
             error = response.json()
             if error.get("detail", {}).get("error") == "invalid_client":
                 pytest.fail(
-                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials."
+                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials."  # TODO: Break long line
                 )
 
-        assert response.status_code == 400  # Should be invalid_grant
+        assert response.status_code == HTTP_BAD_REQUEST  # Should be invalid_grant
         error = response.json()
         assert error.get("detail", {}).get("error") == "invalid_grant"
 
@@ -73,15 +79,15 @@ class TestExistingOAuthCredentials:
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 # No client_secret - testing public client flow
             },
-        )
+        , timeout=30.0)
 
         # Should still fail because code is invalid
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
 
     @pytest.mark.asyncio
     async def test_introspect_with_existing_client(
         self, http_client, wait_for_services
-    ):
+    ):  # noqa: ARG002
         """Test introspection endpoint with existing client."""
         # Create a test JWT token
         now = int(time.time())
@@ -109,14 +115,14 @@ class TestExistingOAuthCredentials:
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
             },
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert data["active"] is False  # Not in Redis
 
     @pytest.mark.asyncio
-    async def test_revoke_with_existing_client(self, http_client, wait_for_services):
+    async def test_revoke_with_existing_client(self, http_client, wait_for_services):  # noqa: ARG002
         """Test revocation with existing client credentials."""
         # Create a test token
         test_token = jwt_encode(
@@ -137,13 +143,13 @@ class TestExistingOAuthCredentials:
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
             },
-        )
+        , timeout=30.0)
 
         # Always returns 200 per RFC
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
     @pytest.mark.asyncio
-    async def test_github_pat_usage(self, http_client, wait_for_services):
+    async def test_github_pat_usage(self, http_client, wait_for_services):  # noqa: ARG002
         """Test using GitHub PAT to verify user info."""
         if not GITHUB_PAT:
             pytest.fail(
@@ -151,7 +157,7 @@ class TestExistingOAuthCredentials:
             )
 
         # We can use the GitHub PAT to get user info directly
-        async with httpx.AsyncClient() as github_client:
+        async with httpx.AsyncClient(timeout=30.0) as github_client:
             user_response = await github_client.get(
                 "https://api.github.com/user",
                 headers={
@@ -160,7 +166,7 @@ class TestExistingOAuthCredentials:
                 },
             )
 
-            if user_response.status_code == 200:
+            if user_response.status_code == HTTP_OK:
                 user_info = user_response.json()
                 print(f"GitHub user: {user_info.get('login')}")
 
@@ -170,7 +176,7 @@ class TestExistingOAuthCredentials:
             else:
                 # PAT might be expired or invalid
                 pytest.fail(
-                    f"GitHub PAT is not valid (status: {user_response.status_code}). Token refresh should have handled this."
+                    f"GitHub PAT is not valid (status: {user_response.status_code}). Token refresh should have handled this."  # TODO: Break long line
                 )
 
 
@@ -178,7 +184,7 @@ class TestCompleteFlowWithExistingClient:
     """Test a more complete flow using existing credentials."""
 
     @pytest.mark.asyncio
-    async def test_authorization_to_token_flow(self, http_client, wait_for_services):
+    async def test_authorization_to_token_flow(self, http_client, wait_for_services):  # noqa: ARG002
         """Test the authorization flow with existing client."""
         # Fail with clear error if credentials not available
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
@@ -201,14 +207,14 @@ class TestCompleteFlowWithExistingClient:
 
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        )
+        , timeout=30.0)
 
         # If client doesn't exist, fail with clear error
-        if response.status_code == 400:
+        if response.status_code == HTTP_BAD_REQUEST:
             error = response.json()
             if error.get("detail", {}).get("error") == "invalid_client":
                 pytest.fail(
-                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first."
+                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first."  # TODO: Break long line
                 )
 
         # Should redirect to GitHub
@@ -232,7 +238,7 @@ class TestCompleteFlowWithExistingClient:
             f"{AUTH_BASE_URL}/callback",
             params={"code": "fake_github_code", "state": github_state},
             follow_redirects=False,
-        )
+        , timeout=30.0)
 
         # Will fail at GitHub token exchange
         assert callback_response.status_code in [307, 500]
@@ -242,15 +248,15 @@ class TestJWTOperations:
     """Test JWT-specific operations to increase coverage."""
 
     @pytest.mark.asyncio
-    async def test_verify_various_jwt_errors(self, http_client, wait_for_services):
+    async def test_verify_various_jwt_errors(self, http_client, wait_for_services):  # noqa: ARG002
         """Test different JWT error conditions."""
         # Test 1: Malformed JWT
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
             headers={"Authorization": "Bearer not.a.valid.jwt"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test 2: JWT with wrong signature
         wrong_secret_token = jwt_encode(
@@ -262,9 +268,9 @@ class TestJWTOperations:
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
             headers={"Authorization": f"Bearer {wrong_secret_token}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test 3: Valid JWT but missing jti (will pass decode but fail Redis check)
         no_jti_token = jwt_encode(
@@ -276,13 +282,13 @@ class TestJWTOperations:
         response = await http_client.get(
             f"{AUTH_BASE_URL}/verify",
             headers={"Authorization": f"Bearer {no_jti_token}"},
-        )
+        , timeout=30.0)
 
         # Should fail without jti (jti is marked as essential in auth service)
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_introspect_expired_token(self, http_client, wait_for_services):
+    async def test_introspect_expired_token(self, http_client, wait_for_services):  # noqa: ARG002
         """Test introspecting an expired token."""
         # Create an expired token
         expired_token = jwt_encode(
@@ -303,8 +309,8 @@ class TestJWTOperations:
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
             },
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert data["active"] is False  # Expired tokens are inactive

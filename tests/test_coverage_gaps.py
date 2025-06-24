@@ -15,6 +15,8 @@ from .jwt_test_helper import encode as jwt_encode
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 
 
 # JWT Algorithm is a protocol constant, not configuration
@@ -33,7 +35,7 @@ class TestCoverageGaps:
         response = await http_client.get(
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         # Verify required OAuth metadata fields are present
         assert "issuer" in data
@@ -63,7 +65,7 @@ class TestCoverageGaps:
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
-        assert response.status_code == 400  # RFC 7591 compliant error
+        assert response.status_code == HTTP_BAD_REQUEST  # RFC 7591 compliant error
         error = response.json()
         assert error["detail"]["error"] == "invalid_client_metadata"
         assert "redirect_uris is required" in error["detail"]["error_description"]
@@ -109,7 +111,7 @@ class TestCoverageGaps:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert response.headers.get("WWW-Authenticate") == "Basic"
         error = response.json()
         assert error.get("detail", {}).get("error") == "invalid_client"
@@ -133,7 +135,7 @@ class TestCoverageGaps:
             },
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error.get("detail", {}).get("error") == "invalid_request"
         assert "Missing authorization code" in error.get("detail", {}).get(
@@ -156,7 +158,7 @@ class TestCoverageGaps:
             },
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error.get("detail", {}).get("error") == "unsupported_grant_type"
         assert "Grant type 'password' is not supported" in error.get("detail", {}).get(
@@ -182,7 +184,7 @@ class TestCoverageGaps:
             },
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error.get("detail", {}).get("error") == "invalid_request"
         assert "Missing refresh token" in error.get("detail", {}).get(
@@ -200,7 +202,7 @@ class TestCoverageGaps:
             },
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error.get("detail", {}).get("error") == "invalid_grant"
         assert "Invalid or expired refresh token" in error.get("detail", {}).get(
@@ -208,7 +210,7 @@ class TestCoverageGaps:
         )
 
     @pytest.mark.asyncio
-    async def test_verify_endpoint_revoked_token(self, http_client, wait_for_services):
+    async def test_verify_endpoint_revoked_token(self, http_client, wait_for_services):  # noqa: ARG002
         """Test verify endpoint with revoked token (lines 595-606)."""
         # Create a JWT token that would be valid but has been revoked
         now = int(time.time())
@@ -233,7 +235,7 @@ class TestCoverageGaps:
             f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {token}"}
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert (
             response.headers.get("WWW-Authenticate") == 'Bearer error="invalid_token"'
         )
@@ -244,7 +246,7 @@ class TestCoverageGaps:
         )
 
     @pytest.mark.asyncio
-    async def test_revoke_endpoint_invalid_client(self, http_client, wait_for_services):
+    async def test_revoke_endpoint_invalid_client(self, http_client, wait_for_services):  # noqa: ARG002
         """Test revoke endpoint with invalid client (lines 682-686)."""
         # Test with non-existent client
         response = await http_client.post(
@@ -257,7 +259,7 @@ class TestCoverageGaps:
         )
 
         # RFC 7009 requires always returning 200
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
         # Test with wrong client secret
         response = await http_client.post(
@@ -269,7 +271,7 @@ class TestCoverageGaps:
             },
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
     @pytest.mark.asyncio
     async def test_revoke_endpoint_jwt_processing(
@@ -305,7 +307,7 @@ class TestCoverageGaps:
             },
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
         # Also test revoking an invalid JWT (triggers except block)
         response = await http_client.post(
@@ -317,7 +319,7 @@ class TestCoverageGaps:
             },
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
     @pytest.mark.asyncio
     async def test_introspect_invalid_client_secret(
@@ -333,7 +335,7 @@ class TestCoverageGaps:
             },
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert data["active"] is False
 
@@ -367,7 +369,7 @@ class TestCoverageGaps:
             },
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         assert data["active"] is False
 
@@ -389,7 +391,7 @@ class TestCoverageGaps:
             },
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         # Since this refresh token doesn't exist in Redis, it should be inactive
         assert data["active"] is False
@@ -399,14 +401,14 @@ class TestCallbackEndpoint:
     """Test the GitHub OAuth callback flow (lines 302-384)."""
 
     @pytest.mark.asyncio
-    async def test_callback_invalid_state(self, http_client, wait_for_services):
+    async def test_callback_invalid_state(self, http_client, wait_for_services):  # noqa: ARG002
         """Test callback with invalid or expired state."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/callback",
             params={"code": "github_auth_code", "state": "invalid_or_expired_state"},
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error.get("detail", {}).get("error") == "invalid_request"
         assert "Invalid or expired state" in error.get("detail", {}).get(
@@ -457,7 +459,7 @@ class TestCallbackEndpoint:
 
         # Should redirect back to client with error or return 500 if internal error
         # Since we're using an invalid GitHub code, this will fail at token exchange
-        if callback_response.status_code == 500:
+        if callback_response.status_code == HTTP_INTERNAL_SERVER_ERROR:
             # This is expected when GitHub API call fails
             assert True
         else:
@@ -523,6 +525,6 @@ class TestPKCEVerification:
         )
 
         # This will fail because the code doesn't exist
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error.get("detail", {}).get("error") == "invalid_grant"

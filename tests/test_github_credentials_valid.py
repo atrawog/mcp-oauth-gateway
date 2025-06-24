@@ -10,6 +10,8 @@ import pytest
 
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GITHUB_CLIENT_ID
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 
 
 class TestGitHubCredentialsValid:
@@ -26,7 +28,7 @@ class TestGitHubCredentialsValid:
             )
 
         # Test the PAT by making a simple API call
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
                 "https://api.github.com/user",
                 headers={
@@ -35,22 +37,22 @@ class TestGitHubCredentialsValid:
                 },
             )
 
-            if response.status_code == 401:
+            if response.status_code == HTTP_UNAUTHORIZED:
                 pytest.fail(
                     "GITHUB_PAT is invalid or expired! "
                     "Token refresh should have handled this. "
                     "Run 'just generate-github-token' manually if needed."
                 )
-            elif response.status_code == 403:
+            elif response.status_code == HTTP_FORBIDDEN:
                 # Check if it's rate limited
                 if "rate limit" in response.text.lower():
                     print("⚠️  GitHub API rate limited, but PAT is valid")
                 else:
                     pytest.fail(f"GitHub PAT access denied: {response.text}")
-            elif response.status_code == 200:
+            elif response.status_code == HTTP_OK:
                 user_data = response.json()
                 print(
-                    f"✅ GITHUB_PAT is valid for user: {user_data.get('login', 'unknown')}"
+                    f"✅ GITHUB_PAT is valid for user: {user_data.get('login', 'unknown')}"  # TODO: Break long line
                 )
             else:
                 pytest.fail(
@@ -82,20 +84,20 @@ class TestGitHubCredentialsValid:
         # Client secret should be a reasonable length
         if len(oauth_client_secret) < 20:
             pytest.fail(
-                f"GATEWAY_OAUTH_CLIENT_SECRET seems too short ({len(oauth_client_secret)} chars). "
+                f"GATEWAY_OAUTH_CLIENT_SECRET seems too short ({len(oauth_client_secret)} chars). "  # TODO: Break long line
                 "Run 'just generate-github-token' to register a new client."
             )
 
         print(f"✅ GATEWAY_OAUTH_CLIENT_ID format valid: {oauth_client_id}")
         print(
-            f"✅ GATEWAY_OAUTH_CLIENT_SECRET format valid: {len(oauth_client_secret)} chars"
+            f"✅ GATEWAY_OAUTH_CLIENT_SECRET format valid: {len(oauth_client_secret)} chars"  # TODO: Break long line
         )
 
     @pytest.mark.asyncio
-    async def test_github_oauth_app_valid(self, wait_for_services):
+    async def test_github_oauth_app_valid(self, wait_for_services):  # noqa: ARG002
         """Test if GitHub OAuth app credentials are valid."""
         # Try to reach GitHub OAuth authorize endpoint with our app
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             # Build authorize URL
             authorize_url = (
                 f"https://github.com/login/oauth/authorize"
@@ -134,7 +136,7 @@ class TestGitHubCredentialsValid:
                     # Should redirect to login or back to our callback
                     print("✅ GitHub OAuth app credentials are valid")
                     print(f"   Would redirect to: {location[:100]}...")
-            elif response.status_code == 200:
+            elif response.status_code == HTTP_OK:
                 # GitHub might show the authorize page directly
                 if "oauth/authorize" in str(response.url):
                     print(

@@ -77,7 +77,7 @@ class TestMCPMemoryComprehensive:
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"
+                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"  # TODO: Break long line
             )
 
         # Parse the output - find the JSON response
@@ -163,7 +163,7 @@ class TestMCPMemoryComprehensive:
                 return tool
 
         pytest.fail(
-            f"Tool '{tool_name}' not found in available tools: {[t['name'] for t in tools]}"
+            f"Tool '{tool_name}' not found in available tools: {[t['name'] for t in tools]}"  # TODO: Break long line
         )
 
     @pytest.mark.integration

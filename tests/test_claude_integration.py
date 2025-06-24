@@ -13,6 +13,9 @@ import pytest
 
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 
@@ -21,7 +24,7 @@ class TestClaudeIntegration:
     """Test the complete Claude.ai integration flow."""
 
     @pytest.mark.asyncio
-    async def test_claude_nine_sacred_steps(self, http_client, wait_for_services):
+    async def test_claude_nine_sacred_steps(self, http_client, wait_for_services):  # noqa: ARG002
         """Test the Nine Sacred Steps of Claude.ai Connection."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -46,7 +49,7 @@ class TestClaudeIntegration:
             )
 
             # Step 2: Divine Rejection - 401 with WWW-Authenticate
-            assert response.status_code == 401
+            assert response.status_code == HTTP_UNAUTHORIZED
             assert "WWW-Authenticate" in response.headers
             assert response.headers["WWW-Authenticate"] == "Bearer"
 
@@ -55,7 +58,7 @@ class TestClaudeIntegration:
                 f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
             )
 
-            assert metadata_response.status_code == 200
+            assert metadata_response.status_code == HTTP_OK
             metadata = metadata_response.json()
             assert metadata["registration_endpoint"] == f"{AUTH_BASE_URL}/register"
             assert metadata["authorization_endpoint"] == f"{AUTH_BASE_URL}/authorize"
@@ -79,7 +82,7 @@ class TestClaudeIntegration:
             )
 
             # Step 5: Client Blessing - Receives credentials
-            assert reg_response.status_code == 201
+            assert reg_response.status_code == HTTP_CREATED
             client_creds = reg_response.json()
             assert "client_id" in client_creds
             assert "client_secret" in client_creds
@@ -151,19 +154,19 @@ class TestClaudeIntegration:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client_creds['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client_creds['registration_access_token']}"
+                            "Authorization": f"Bearer {client_creds['registration_access_token']}"  # TODO: Break long line
                         },
                     )
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
-                            f"Warning: Failed to delete client {client_creds['client_id']}: {delete_response.status_code}"
+                            f"Warning: Failed to delete client {client_creds['client_id']}: {delete_response.status_code}"  # TODO: Break long line
                         )
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_claude_auth_discovery_flow(self, http_client, wait_for_services):
+    async def test_claude_auth_discovery_flow(self, http_client, wait_for_services):  # noqa: ARG002
         """Test Claude.ai's OAuth discovery process."""
         # Claude.ai discovers auth is required
         mcp_response = await http_client.get(
@@ -171,7 +174,7 @@ class TestClaudeIntegration:
             headers={"Accept": "application/json, text/event-stream"},
         )
 
-        assert mcp_response.status_code == 401
+        assert mcp_response.status_code == HTTP_UNAUTHORIZED
         www_auth = mcp_response.headers.get("WWW-Authenticate", "")
         assert www_auth.startswith("Bearer")
 
@@ -180,7 +183,7 @@ class TestClaudeIntegration:
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
         )
 
-        assert metadata_response.status_code == 200
+        assert metadata_response.status_code == HTTP_OK
         metadata = metadata_response.json()
 
         # Verify all required endpoints for Claude.ai
@@ -219,12 +222,12 @@ class TestClaudeIntegration:
         )
 
         # Should fail with invalid_grant (not invalid_request)
-        assert token_response.status_code == 400
+        assert token_response.status_code == HTTP_BAD_REQUEST
         error = token_response.json()
         assert error["detail"]["error"] == "invalid_grant"  # Correct error for bad code
 
     @pytest.mark.asyncio
-    async def test_claude_mcp_streaming(self, http_client, wait_for_services):
+    async def test_claude_mcp_streaming(self, http_client, wait_for_services):  # noqa: ARG002
         """Test MCP streaming capabilities for Claude.ai."""
         # Test that MCP endpoint supports streaming headers
         headers = {"Accept": "text/event-stream"}
@@ -243,7 +246,7 @@ class TestClaudeIntegration:
         )
 
         # Should fail auth but accept the streaming header
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert "text/event-stream" in headers["Accept"]
 
     @pytest.mark.asyncio
@@ -262,7 +265,7 @@ class TestClaudeIntegration:
             },
         )
 
-        assert response.status_code == 400  # Must not redirect
+        assert response.status_code == HTTP_BAD_REQUEST  # Must not redirect
         error = response.json()
         assert error["detail"]["error"] == "invalid_redirect_uri"
 
@@ -282,7 +285,7 @@ class TestClaudeIntegration:
         assert response.status_code in [302, 307]
 
     @pytest.mark.asyncio
-    async def test_claude_session_management(self, http_client, wait_for_services):
+    async def test_claude_session_management(self, http_client, wait_for_services):  # noqa: ARG002
         """Test MCP session handling for Claude.ai."""
         # Test session creation and management
         session_id = f"claude-session-{secrets.token_urlsafe(16)}"
@@ -295,6 +298,6 @@ class TestClaudeIntegration:
         )
 
         # Should get 401 but session header is accepted
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert "Mcp-Session-Id" in response.request.headers
         assert response.request.headers["Mcp-Session-Id"] == session_id

@@ -12,6 +12,10 @@ from .mcp_helpers import call_mcp_tool
 from .mcp_helpers import initialize_mcp_session
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_REDIRECT_URI
@@ -25,6 +29,7 @@ class TestMCPFetchComplete:
         self, http_client, wait_for_services, mcp_test_url
     ):
         """This test MUST:
+
         1. Complete the FULL OAuth flow (no fake tokens!)
         2. Actually fetch content from a real URL
         3. Verify the content is correct
@@ -49,7 +54,7 @@ class TestMCPFetchComplete:
         )
 
         # MUST succeed or test fails
-        assert reg_response.status_code == 201, (
+        assert reg_response.status_code == HTTP_CREATED, (
             f"Client registration FAILED: {reg_response.text}"
         )
         client = reg_response.json()
@@ -128,7 +133,7 @@ class TestMCPFetchComplete:
                 response = MockResponse(500, f"Tool call failed: {e}")
 
             # Step 5: Check response status - MUST succeed for test to pass!
-            if response.status_code == 404:
+            if response.status_code == HTTP_NOT_FOUND:
                 pytest.fail(
                     f"SACRED VIOLATION OF COMMANDMENT 1: MCP fetch returned 404!\n"
                     f"Tests MUST verify actual functionality, not just OAuth!\n"
@@ -144,7 +149,7 @@ class TestMCPFetchComplete:
                 )
 
             # If we get 200, validate the full response
-            if response.status_code == 200:
+            if response.status_code == HTTP_OK:
                 # Step 6: Parse and validate the JSON-RPC response
                 try:
                     result = response.json()
@@ -160,7 +165,7 @@ class TestMCPFetchComplete:
                 # Check for errors - ALL errors should cause test failure per CLAUDE.md Commandment 1
                 if "error" in result:
                     pytest.fail(
-                        f"MCP returned an error: {result['error']}. Tests MUST verify actual functionality!"
+                        f"MCP returned an error: {result['error']}. Tests MUST verify actual functionality!"  # TODO: Break long line
                     )
 
                 if "result" in result:
@@ -186,7 +191,7 @@ class TestMCPFetchComplete:
             else:
                 # Unexpected status
                 pytest.fail(
-                    f"MCP fetch request returned unexpected status {response.status_code}! "
+                    f"MCP fetch request returned unexpected status {response.status_code}! "  # TODO: Break long line
                     f"Response: {response.text[:500]}"
                 )
 
@@ -197,13 +202,13 @@ class TestMCPFetchComplete:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client['registration_access_token']}"
+                            "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
                         },
                     )
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
-                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"
+                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
                         )
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
@@ -326,9 +331,9 @@ class TestMCPFetchComplete:
 
                 # If no error, test MUST fail - URL validation is required!
                 pytest.fail(
-                    f"SACRED VIOLATION: MCP fetch should reject invalid URL '{invalid_url}'!\n"
+                    f"SACRED VIOLATION: MCP fetch should reject invalid URL '{invalid_url}'!\n"  # TODO: Break long line
                     f"Expected error but got: {response_data}\n"
-                    f"Tests MUST verify complete functionality including URL validation!"
+                    f"Tests MUST verify complete functionality including URL validation!"  # TODO: Break long line
                 )
 
             except RuntimeError as e:
@@ -414,7 +419,7 @@ class TestMCPFetchComplete:
         # Test 1: No auth header at all
         response = await http_client.post(f"{mcp_test_url}", json=mcp_request)
 
-        assert response.status_code == 401, (
+        assert response.status_code == HTTP_UNAUTHORIZED, (
             f"SECURITY VIOLATION! Got {response.status_code} without auth! "
             "MCP fetch MUST require authentication!"
         )
@@ -436,7 +441,7 @@ class TestMCPFetchComplete:
             headers={"Authorization": "Bearer completely-invalid-token"},
         )
 
-        assert response.status_code == 401, (
+        assert response.status_code == HTTP_UNAUTHORIZED, (
             f"SECURITY VIOLATION! Got {response.status_code} with invalid token! "
             "MCP fetch MUST validate tokens!"
         )
@@ -448,7 +453,7 @@ class TestMCPFetchComplete:
             headers={"Authorization": "Basic dXNlcjpwYXNz"},  # Basic auth
         )
 
-        assert response.status_code == 401, (
+        assert response.status_code == HTTP_UNAUTHORIZED, (
             f"SECURITY VIOLATION! Got {response.status_code} with Basic auth! "
             "MCP fetch MUST only accept Bearer tokens!"
         )
@@ -459,6 +464,7 @@ async def test_complete_oauth_flow_integration(
     http_client, wait_for_services, mcp_test_url
 ):
     """The ultimate test - complete OAuth flow with actual functionality verification.
+
     This test MUST FAIL if ANY part doesn't work 100%!
     """
     # This test demonstrates what a REAL integration test should look like
@@ -490,13 +496,13 @@ async def test_complete_oauth_flow_integration(
     auth_response = await http_client.get(
         f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
     )
-    assert auth_response.status_code == 200, "Auth service not healthy!"
+    assert auth_response.status_code == HTTP_OK, "Auth service not healthy!"
 
     # 2. Verify MCP endpoint requires auth
     mcp_response = await http_client.post(
         f"{mcp_test_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}
     )
-    assert mcp_response.status_code == 401, "MCP not enforcing auth!"
+    assert mcp_response.status_code == HTTP_UNAUTHORIZED, "MCP not enforcing auth!"
 
     # 3. Initialize MCP session properly first
     try:

@@ -10,7 +10,19 @@ import httpx
 import pytest
 
 from .test_constants import MCP_PROTOCOL_VERSION
-from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_NO_CONTENT
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
+from .test_constants import MCP_PROTOCOL_VERSION
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_NO_CONTENT
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_UNPROCESSABLE_ENTITYS_SUPPORTED
 
 
 # MCP Client tokens for external client testing
@@ -44,9 +56,9 @@ class TestMCPProtocolVersionNegotiation:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
         # Server may negotiate a different protocol version
         assert "protocolVersion" in data["result"]
@@ -75,9 +87,9 @@ class TestMCPProtocolVersionNegotiation:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
 
         # Server should either:
@@ -117,9 +129,9 @@ class TestMCPJSONRPCCompliance:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         data = response.json()
 
         # Response must have JSON-RPC fields
@@ -152,8 +164,8 @@ class TestMCPJSONRPCCompliance:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
-        assert init_response.status_code == 200
+        , timeout=30.0)
+        assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
         # Send invalid method to trigger error
@@ -169,9 +181,9 @@ class TestMCPJSONRPCCompliance:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
             },
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200  # JSON-RPC errors return 200
+        assert response.status_code == HTTP_OK  # JSON-RPC errors return 200
         data = response.json()
 
         # Check error format
@@ -207,7 +219,7 @@ class TestMCPJSONRPCCompliance:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
         # Send notification (no id)
         response = await http_client.post(
@@ -219,7 +231,7 @@ class TestMCPJSONRPCCompliance:
                 # No id field - this is a notification
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
         # Server should accept notification
         assert response.status_code in [200, 202, 204]
@@ -248,9 +260,9 @@ class TestMCPJSONRPCCompliance:
                 "id": 42,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response1.status_code == 200
+        assert response1.status_code == HTTP_OK
         assert response1.json()["id"] == 42
 
         # Test with string ID
@@ -263,9 +275,9 @@ class TestMCPJSONRPCCompliance:
                 "id": "unique-string-id",
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response2.status_code == 200
+        assert response2.status_code == HTTP_OK
         assert response2.json()["id"] == "unique-string-id"
 
 
@@ -295,9 +307,9 @@ class TestMCPLifecycleCompliance:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         result = response.json()["result"]
 
         # Required fields per spec
@@ -318,7 +330,7 @@ class TestMCPLifecycleCompliance:
             )
 
         # Fresh client with no initialization
-        async with httpx.AsyncClient() as fresh_client:
+        async with httpx.AsyncClient(timeout=30.0) as fresh_client:
             response = await fresh_client.post(
                 f"{mcp_test_url}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
@@ -327,7 +339,7 @@ class TestMCPLifecycleCompliance:
 
             # Should fail or return error
             assert response.status_code in [200, 400]
-            if response.status_code == 200:
+            if response.status_code == HTTP_OK:
                 data = response.json()
                 if "error" in data:
                     # Should indicate not initialized
@@ -358,9 +370,9 @@ class TestMCPLifecycleCompliance:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         capabilities = response.json()["result"]["capabilities"]
 
         # Server should report its actual capabilities
@@ -398,8 +410,7 @@ class TestMCPTransportCompliance:
                         "clientInfo": {"name": "content-type-test", "version": "1.0.0"},
                     },
                     "id": 1,
-                }
-            ),
+                }, timeout=30.0),
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"
                 # No Content-Type header
@@ -436,9 +447,9 @@ class TestMCPTransportCompliance:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
             },
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         # Header should be accepted
 
     @pytest.mark.asyncio
@@ -459,9 +470,9 @@ class TestMCPTransportCompliance:
                 },
                 "id": 1,
             },
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers
         assert response.headers["WWW-Authenticate"].startswith("Bearer")
 
@@ -496,7 +507,7 @@ class TestMCPSecurityCompliance:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Origin": "http://evil.com",
             },
-        )
+        , timeout=30.0)
 
         # Should either accept (if CORS configured) or reject
         assert response.status_code in [200, 403]
@@ -520,9 +531,9 @@ class TestMCPSecurityCompliance:
                 "id": 1,
             },
             headers={"Authorization": "Bearer not-a-valid-jwt-token"},
-        )
+        , timeout=30.0)
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
     async def test_secure_session_ids(
@@ -537,7 +548,7 @@ class TestMCPSecurityCompliance:
         # Initialize multiple sessions and check IDs are unique
 
         for i in range(3):
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
                     f"{mcp_test_url}",
                     json={
@@ -552,7 +563,7 @@ class TestMCPSecurityCompliance:
                     headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
                 )
 
-                assert response.status_code == 200
+                assert response.status_code == HTTP_OK
                 # Session ID might be in headers or internal
                 # Each session should be independent
 
@@ -596,7 +607,7 @@ class TestMCPErrorHandling:
                 timeout=60.0,  # Increase timeout for error handling tests
             )
 
-            if response.status_code == 200:
+            if response.status_code == HTTP_OK:
                 data = response.json()
                 if "error" in data:
                     # Allow some flexibility as servers may handle errors differently
@@ -626,8 +637,8 @@ class TestMCPErrorHandling:
                 "id": 1,
             },
             headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-        )
-        assert init_response.status_code == 200
+        , timeout=30.0)
+        assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
         # Send bad request
@@ -638,7 +649,7 @@ class TestMCPErrorHandling:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
             },
-        )
+        , timeout=30.0)
 
         # Now send good request - session should still work
         good_response = await http_client.post(
@@ -648,8 +659,8 @@ class TestMCPErrorHandling:
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
             },
-        )
+        , timeout=30.0)
 
-        assert good_response.status_code == 200
+        assert good_response.status_code == HTTP_OK
         data = good_response.json()
         assert "result" in data  # Should succeed despite previous error

@@ -21,7 +21,7 @@ async def test_client_lifetime_from_env(http_client):
         },
     )
 
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     data = response.json()
 
     # Check if client_secret_expires_at matches expected behavior
@@ -53,7 +53,7 @@ async def test_client_lifetime_from_env(http_client):
         headers={"Authorization": f"Bearer {registration_token}"},
     )
 
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     client_info = response.json()
     assert client_info["client_secret_expires_at"] == expires_at
 
@@ -63,7 +63,7 @@ async def test_client_lifetime_from_env(http_client):
         headers={"Authorization": f"Bearer {registration_token}"},
     )
 
-    assert response.status_code == 204
+    assert response.status_code == HTTP_NO_CONTENT
 
     # Verify client is deleted
     response = await http_client.get(
@@ -71,7 +71,7 @@ async def test_client_lifetime_from_env(http_client):
         headers={"Authorization": f"Bearer {registration_token}"},
     )
 
-    assert response.status_code == 404
+    assert response.status_code == HTTP_NOT_FOUND
 
 
 @pytest.mark.asyncio
@@ -87,7 +87,7 @@ async def test_rfc7592_update_client(http_client):
         },
     )
 
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     original = response.json()
 
     client_id = original["client_id"]
@@ -113,7 +113,7 @@ async def test_rfc7592_update_client(http_client):
         headers={"Authorization": f"Bearer {registration_token}"},
     )
 
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     updated = response.json()
 
     # Verify updates
@@ -130,4 +130,4 @@ async def test_rfc7592_update_client(http_client):
         f"{AUTH_BASE_URL}/register/{client_id}",
         headers={"Authorization": f"Bearer {registration_token}"},
     )
-    assert response.status_code == 204
+    assert response.status_code == HTTP_NO_CONTENT

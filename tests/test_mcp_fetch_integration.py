@@ -27,7 +27,7 @@ class TestMCPFetchIntegration:
             f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}
         )
 
-        assert response.status_code == 401, "MCP should reject unauthenticated requests"
+        assert response.status_code == HTTP_UNAUTHORIZED, "MCP should reject unauthenticated requests"
         assert "WWW-Authenticate" in response.headers
 
         # Test 2: Verify authenticated requests work
@@ -64,7 +64,7 @@ class TestMCPFetchIntegration:
         # Test 1: No authentication - should return 401
         response = await http_client.post(f"{mcp_fetch_url}", json=mcp_request)
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert response.headers.get("WWW-Authenticate") == "Bearer"
 
         # Test 2: Invalid token - should return 401
@@ -74,7 +74,7 @@ class TestMCPFetchIntegration:
             headers={"Authorization": "Bearer invalid_token_12345"},
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test 3: Malformed authorization header
         response = await http_client.post(
@@ -83,7 +83,7 @@ class TestMCPFetchIntegration:
             headers={"Authorization": "NotBearer some_token"},
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test 4: Test the MCP protocol version header
         response = await http_client.post(
@@ -95,7 +95,7 @@ class TestMCPFetchIntegration:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
     async def test_mcp_fetch_endpoint_validation(
@@ -149,7 +149,7 @@ class TestMCPFetchIntegration:
 
             # Should return 401 since we're not authenticated
             # The actual JSON-RPC validation happens after auth
-            assert response.status_code == 401
+            assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
     async def test_mcp_fetch_http_methods(
@@ -159,13 +159,13 @@ class TestMCPFetchIntegration:
         # Test GET method (required by MCP Streamable HTTP transport)
         response = await http_client.get(f"{mcp_fetch_url}")
         # Should return 401 since we're not authenticated
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test POST method
         response = await http_client.post(
             f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "test", "id": 1}
         )
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test unsupported methods
         response = await http_client.put(f"{mcp_fetch_url}", json={"test": "data"})

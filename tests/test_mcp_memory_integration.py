@@ -78,7 +78,7 @@ class TestMCPMemoryIntegration:
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"
+                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"  # TODO: Break long line
             )
 
         # Parse the output - find the JSON response
@@ -157,7 +157,7 @@ class TestMCPMemoryIntegration:
         result = response["result"]
         # Memory server should use one of the officially supported protocol versions
         assert result["protocolVersion"] in MCP_PROTOCOL_VERSIONS_SUPPORTED, (
-            f"Memory server protocol version {result['protocolVersion']} not in supported versions: {MCP_PROTOCOL_VERSIONS_SUPPORTED}"
+            f"Memory server protocol version {result['protocolVersion']} not in supported versions: {MCP_PROTOCOL_VERSIONS_SUPPORTED}"  # TODO: Break long line
         )
         assert "serverInfo" in result
         # Server name is "memory-server" from the official MCP memory server
@@ -252,7 +252,7 @@ class TestMCPMemoryIntegration:
         if "error" in response:
             # Memory server doesn't support resources - this is acceptable
             print(
-                f"Memory server doesn't support resources/list: {response['error']['message']}"
+                f"Memory server doesn't support resources/list: {response['error']['message']}"  # TODO: Break long line
             )
             assert response["error"]["code"] == -32601  # Method not found
         else:
@@ -331,7 +331,7 @@ class TestMCPMemoryIntegration:
                 print(f"Memory tool '{first_tool['name']}' executed successfully")
             else:
                 print(
-                    f"Memory tool '{first_tool['name']}' returned error (expected for some tools): {response['error']}"
+                    f"Memory tool '{first_tool['name']}' returned error (expected for some tools): {response['error']}"  # TODO: Break long line
                 )
 
     @pytest.mark.integration

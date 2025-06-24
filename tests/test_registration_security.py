@@ -34,6 +34,9 @@ import pytest
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import GITHUB_CLIENT_ID
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_FETCH_URL
 from .test_constants import TEST_CALLBACK_URL
 from .test_constants import TEST_CLIENT_SCOPE
@@ -43,7 +46,7 @@ class TestRegistrationPublicAccess:
     """Test that /register endpoint is publicly accessible per RFC 7591."""
 
     @pytest.mark.asyncio
-    async def test_register_endpoint_is_public(self, http_client, wait_for_services):
+    async def test_register_endpoint_is_public(self, http_client, wait_for_services):  # noqa: ARG002
         """Test that /register endpoint is publicly accessible without authentication."""
         # Try to access register endpoint without any authorization header
         registration_data = {
@@ -59,7 +62,7 @@ class TestRegistrationPublicAccess:
         # RFC 7591 allows implementations to choose whether registration
         # requires authentication or is publicly accessible
         # This test documents the actual behavior
-        if response.status_code == 401:
+        if response.status_code == HTTP_UNAUTHORIZED:
             # Current implementation requires auth
             assert "WWW-Authenticate" in response.headers
             error = response.json()
@@ -67,7 +70,7 @@ class TestRegistrationPublicAccess:
             print(
                 "✓ Registration endpoint requires authentication (current implementation)"
             )
-        elif response.status_code == 201:
+        elif response.status_code == HTTP_CREATED:
             # Alternative: public registration allowed
             client_data = response.json()
             assert "client_id" in client_data
@@ -79,7 +82,7 @@ class TestRegistrationPublicAccess:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client_data['registration_access_token']}"
+                            "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                         },
                     )
                     assert delete_response.status_code in (204, 404)
@@ -89,7 +92,7 @@ class TestRegistrationPublicAccess:
             pytest.fail(f"Unexpected status code: {response.status_code}")
 
     @pytest.mark.asyncio
-    async def test_anyone_can_register_with_auth(self, http_client, wait_for_services):
+    async def test_anyone_can_register_with_auth(self, http_client, wait_for_services):  # noqa: ARG002
         """Test that anyone with valid GitHub auth can register a client."""
         # Skip if no auth token available
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
@@ -110,7 +113,7 @@ class TestRegistrationPublicAccess:
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
-        assert response.status_code == 201
+        assert response.status_code == HTTP_CREATED
         client_data = response.json()
         assert "client_id" in client_data
         assert "client_secret" in client_data
@@ -126,7 +129,7 @@ class TestRegistrationPublicAccess:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -159,7 +162,7 @@ class TestTokenSecurityWithoutGitHub:
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
-        assert registration_response.status_code == 201
+        assert registration_response.status_code == HTTP_CREATED
         client_data = registration_response.json()
         client_id = client_data["client_id"]
         client_secret = client_data["client_secret"]
@@ -186,7 +189,7 @@ class TestTokenSecurityWithoutGitHub:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -214,7 +217,7 @@ class TestTokenSecurityWithoutGitHub:
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
-        assert registration_response.status_code == 201
+        assert registration_response.status_code == HTTP_CREATED
         client_data = registration_response.json()
         client_id = client_data["client_id"]
 
@@ -249,7 +252,7 @@ class TestTokenSecurityWithoutGitHub:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -286,7 +289,7 @@ class TestAllowedUsersEnforcement:
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
-        assert registration_response.status_code == 201
+        assert registration_response.status_code == HTTP_CREATED
         client_data = registration_response.json()
 
         # Verify that authorization flow is set up correctly
@@ -311,7 +314,7 @@ class TestAllowedUsersEnforcement:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -374,7 +377,7 @@ class TestUnauthorizedUserAccess:
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
-        assert registration_response.status_code == 201
+        assert registration_response.status_code == HTTP_CREATED
         client_data = registration_response.json()
 
         # Try to exchange an invalid code for token
@@ -400,7 +403,7 @@ class TestUnauthorizedUserAccess:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -412,7 +415,7 @@ class TestSecurityModelValidation:
     """Comprehensive tests validating the complete security model."""
 
     @pytest.mark.asyncio
-    async def test_complete_security_flow(self, http_client, wait_for_services):
+    async def test_complete_security_flow(self, http_client, wait_for_services):  # noqa: ARG002
         """Test the complete security model from registration to access."""
         # This test documents the expected security flow:
         # 1. Client registration (may require auth based on implementation)
@@ -437,7 +440,7 @@ class TestSecurityModelValidation:
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
 
-        assert registration_response.status_code == 201
+        assert registration_response.status_code == HTTP_CREATED
         client_data = registration_response.json()
 
         # Step 2: Verify authorization requires GitHub
@@ -463,7 +466,7 @@ class TestSecurityModelValidation:
         )
 
         # Should require authentication
-        assert mcp_response.status_code == 401
+        assert mcp_response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in mcp_response.headers
 
         print("✓ Complete security model validated:")
@@ -477,7 +480,7 @@ class TestSecurityModelValidation:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"
+                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -485,14 +488,14 @@ class TestSecurityModelValidation:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_oauth_discovery_is_public(self, http_client, wait_for_services):
+    async def test_oauth_discovery_is_public(self, http_client, wait_for_services):  # noqa: ARG002
         """Test that OAuth discovery endpoint is publicly accessible."""
         # OAuth discovery should always be public for clients to find auth endpoints
         discovery_response = await http_client.get(
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
         )
 
-        assert discovery_response.status_code == 200
+        assert discovery_response.status_code == HTTP_OK
         metadata = discovery_response.json()
 
         # Verify discovery metadata

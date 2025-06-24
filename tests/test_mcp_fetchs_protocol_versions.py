@@ -59,7 +59,7 @@ class TestMCPProtocolVersions:
                 },
             )
 
-            assert response.status_code == 200, (
+            assert response.status_code == HTTP_OK, (
                 f"Version {self.MCP_PROTOCOL_VERSION} should be supported"
             )
             data = response.json()
@@ -84,7 +84,7 @@ class TestMCPProtocolVersions:
                 },
             )
 
-            assert response.status_code == 200, (
+            assert response.status_code == HTTP_OK, (
                 f"Version {self.MCP_PROTOCOL_VERSION} should be supported in header"
             )
             data = response.json()
@@ -120,7 +120,7 @@ class TestMCPProtocolVersions:
                     },
                 )
 
-                assert response.status_code == 200, (
+                assert response.status_code == HTTP_OK, (
                     f"Version {version} should return JSON-RPC error"
                 )
                 data = response.json()
@@ -128,7 +128,7 @@ class TestMCPProtocolVersions:
                 assert data["error"]["code"] == -32602
                 # Check that error mentions the server's supported version
                 assert self.MCP_PROTOCOL_VERSION in data["error"]["data"], (
-                    f"Error should mention supported version {self.MCP_PROTOCOL_VERSION}"
+                    f"Error should mention supported version {self.MCP_PROTOCOL_VERSION}"  # TODO: Break long line
                 )
 
             # Test in header
@@ -143,13 +143,13 @@ class TestMCPProtocolVersions:
                     },
                 )
 
-                assert response.status_code == 400, (
+                assert response.status_code == HTTP_BAD_REQUEST, (
                     f"Version {version} should be rejected in header"
                 )
                 data = response.json()
                 # Check that error mentions the server's supported version
                 assert self.MCP_PROTOCOL_VERSION in data["message"], (
-                    f"Error should mention supported version {self.MCP_PROTOCOL_VERSION}"
+                    f"Error should mention supported version {self.MCP_PROTOCOL_VERSION}"  # TODO: Break long line
                 )
 
     @pytest.mark.integration
@@ -218,7 +218,7 @@ class TestMCPProtocolVersions:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             # Server should respond with its supported version
             assert data["result"]["protocolVersion"] == self.MCP_PROTOCOL_VERSION
@@ -240,7 +240,7 @@ class TestMCPProtocolVersions:
                     "MCP-Protocol-Version": "2025-06-18",  # Correct case
                 },
             )
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
 
             # Test lowercase header name (should also work per HTTP spec)
             response = await client.post(
@@ -252,7 +252,7 @@ class TestMCPProtocolVersions:
                     "mcp-protocol-version": "2025-06-18",  # Lowercase header name
                 },
             )
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
 
     @pytest.mark.integration
     @pytest.mark.asyncio

@@ -7,6 +7,12 @@ import httpx
 import pytest
 
 from .test_constants import MCP_PROTOCOL_VERSION
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_NO_CONTENT
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 
 
 MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
@@ -43,13 +49,13 @@ async def test_simple_initialize(
         f"{mcp_fetch_url}",
         json=request_data,
         headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
-    )
+    , timeout=30.0)
 
     print(f"\nResponse status: {response.status_code}")
     print(f"Response headers: {dict(response.headers)}")
     print(f"Response body: {response.text}")
 
-    if response.status_code == 200:
+    if response.status_code == HTTP_OK:
         data = response.json()
         if "error" in data:
             print(f"\nJSON-RPC Error: {data['error']}")
@@ -69,6 +75,6 @@ async def test_simple_initialize(
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                     "Mcp-Session-Id": session_id,
                 },
-            )
+            , timeout=30.0)
             print(f"\nTools response status: {tools_response.status_code}")
             print(f"Tools response: {tools_response.text}")

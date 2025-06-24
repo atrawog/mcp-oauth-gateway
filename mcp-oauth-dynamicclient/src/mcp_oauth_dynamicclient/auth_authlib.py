@@ -219,7 +219,7 @@ class AuthManager:
                 return None
 
             # Get user info using the token
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 headers = {
                     "Authorization": f"Bearer {token['access_token']}",
                     "Accept": "application/vnd.github.v3+json",

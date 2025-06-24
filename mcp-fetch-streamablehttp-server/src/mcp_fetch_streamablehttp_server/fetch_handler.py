@@ -224,7 +224,7 @@ class FetchHandler:
         if cache_key not in self._robots_cache:
             try:
                 # Fetch robots.txt
-                async with httpx.AsyncClient() as client:
+                async with httpx.AsyncClient(timeout=30.0) as client:
                     response = await client.get(robots_url, timeout=5.0)
                     if response.status_code == 200:  # noqa: PLR2004
                         self._robots_cache[cache_key] = Robots.parse(

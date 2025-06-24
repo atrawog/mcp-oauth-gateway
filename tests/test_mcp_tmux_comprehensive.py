@@ -60,7 +60,7 @@ class TestMCPTmuxComprehensive:
 
     # Session Management Tests
 
-    def test_session_lifecycle(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_session_lifecycle(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test complete session lifecycle: create, list, use, destroy."""
         session_name = f"test-session-{int(time.time())}"
 
@@ -96,7 +96,7 @@ class TestMCPTmuxComprehensive:
             )
             assert "result" in list_response
 
-    def test_session_search(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_session_search(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test finding sessions by name pattern."""
         # Try to find the default session
         response = self.run_mcp_client_raw(
@@ -111,7 +111,7 @@ class TestMCPTmuxComprehensive:
 
     # Window Management Tests
 
-    def test_window_operations(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_window_operations(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test window listing and management."""
         # List windows in default session
         response = self.run_mcp_client_raw(
@@ -124,7 +124,7 @@ class TestMCPTmuxComprehensive:
         # Should either succeed or give appropriate error
         assert "result" in response or "error" in response
 
-    def test_window_creation(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_window_creation(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test creating new windows."""
         window_name = f"test-window-{int(time.time())}"
 
@@ -143,7 +143,7 @@ class TestMCPTmuxComprehensive:
 
     # Pane Management Tests
 
-    def test_pane_operations(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_pane_operations(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test pane listing and management."""
         # List panes in default session
         response = self.run_mcp_client_raw(
@@ -187,7 +187,7 @@ class TestMCPTmuxComprehensive:
             )
             assert "result" in range_response or "error" in range_response
 
-    def test_pane_splitting(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_pane_splitting(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test splitting panes."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,
@@ -244,7 +244,7 @@ class TestMCPTmuxComprehensive:
 
         assert "result" in response or "error" in response
 
-    def test_key_sending(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_key_sending(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test sending keystrokes to panes."""
         # Send some keys
         response = self.run_mcp_client_raw(
@@ -293,7 +293,7 @@ class TestMCPTmuxComprehensive:
 
     # Resource Access Tests
 
-    def test_sessions_resource(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_sessions_resource(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test reading sessions resource."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,
@@ -317,7 +317,7 @@ class TestMCPTmuxComprehensive:
 
         assert "result" in response or "error" in response
 
-    def test_pane_resource(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_pane_resource(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
         """Test reading pane content resource."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,

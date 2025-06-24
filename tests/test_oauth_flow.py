@@ -12,6 +12,10 @@ import pytest
 
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import TEST_CALLBACK_URL
 from .test_constants import TEST_INVALID_REDIRECT_URI
 
@@ -20,13 +24,13 @@ class TestOAuthFlow:
     """Test the complete OAuth 2.1 flow."""
 
     @pytest.mark.asyncio
-    async def test_server_metadata(self, http_client, wait_for_services):
+    async def test_server_metadata(self, http_client, wait_for_services):  # noqa: ARG002
         """Test .well-known/oauth-authorization-server endpoint."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
         )
 
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         metadata = response.json()
 
         # Verify required fields
@@ -41,7 +45,7 @@ class TestOAuthFlow:
         assert "authorization_code" in metadata["grant_types_supported"]
 
     @pytest.mark.asyncio
-    async def test_client_registration_rfc7591(self, http_client, wait_for_services):
+    async def test_client_registration_rfc7591(self, http_client, wait_for_services):  # noqa: ARG002
         """Test dynamic client registration per RFC 7591."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -67,7 +71,7 @@ class TestOAuthFlow:
                 headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
             )
 
-            assert response.status_code == 201  # MUST return 201 Created
+            assert response.status_code == HTTP_CREATED  # MUST return 201 Created
             client = response.json()
             created_clients.append(client)  # Track for cleanup
 
@@ -99,7 +103,7 @@ class TestOAuthFlow:
                 headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
             )
 
-            assert response.status_code == 400  # RFC 7591 compliant error
+            assert response.status_code == HTTP_BAD_REQUEST  # RFC 7591 compliant error
             error = response.json()
             assert error["detail"]["error"] == "invalid_client_metadata"
             assert "redirect_uris is required" in error["detail"]["error_description"]
@@ -112,13 +116,13 @@ class TestOAuthFlow:
                         delete_response = await http_client.delete(
                             f"{AUTH_BASE_URL}/register/{client['client_id']}",
                             headers={
-                                "Authorization": f"Bearer {client['registration_access_token']}"
+                                "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
                             },
                         )
                         # 204 No Content is success, 404 is okay if already deleted
                         if delete_response.status_code not in (204, 404):
                             print(
-                                f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"
+                                f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
                             )
                     except Exception as e:
                         print(f"Warning: Error during client cleanup: {e}")
@@ -140,7 +144,7 @@ class TestOAuthFlow:
             follow_redirects=False,
         )
 
-        assert response.status_code == 400  # MUST return error, not redirect
+        assert response.status_code == HTTP_BAD_REQUEST  # MUST return error, not redirect
         try:
             error = response.json()
             assert error["detail"]["error"] == "invalid_client"
@@ -163,7 +167,7 @@ class TestOAuthFlow:
             follow_redirects=False,
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "invalid_redirect_uri"
 
@@ -215,7 +219,7 @@ class TestOAuthFlow:
             },
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert response.headers.get("WWW-Authenticate") == "Basic"
         error = response.json()
         assert error["detail"]["error"] == "invalid_client"
@@ -232,7 +236,7 @@ class TestOAuthFlow:
             },
         )
 
-        assert response.status_code == 400
+        assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["detail"]["error"] == "invalid_grant"
 
@@ -250,9 +254,9 @@ class TestOAuthFlow:
         )
 
         # Introspection endpoint might not be implemented yet
-        if response.status_code == 404:
+        if response.status_code == HTTP_NOT_FOUND:
             pytest.skip("Introspection endpoint not implemented")
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         result = response.json()
         assert result["active"] is False
 
@@ -270,9 +274,9 @@ class TestOAuthFlow:
         )
 
         # Revocation endpoint might not be implemented yet
-        if response.status_code == 404:
+        if response.status_code == HTTP_NOT_FOUND:
             pytest.skip("Revocation endpoint not implemented")
-        assert response.status_code == 200  # Always 200 per RFC 7009
+        assert response.status_code == HTTP_OK  # Always 200 per RFC 7009
 
     @pytest.mark.asyncio
     async def test_forwardauth_verification(self, http_client):
@@ -280,7 +284,7 @@ class TestOAuthFlow:
         # Test without token
         response = await http_client.get(f"{AUTH_BASE_URL}/verify")
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         assert response.headers.get("WWW-Authenticate") == "Bearer"
 
         # Test with invalid token
@@ -288,6 +292,6 @@ class TestOAuthFlow:
             f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer invalid_token"}
         )
 
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
         assert error["detail"]["error"] == "invalid_token"

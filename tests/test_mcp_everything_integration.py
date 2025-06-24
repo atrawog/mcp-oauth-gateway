@@ -72,7 +72,7 @@ class TestMCPEverythingIntegration:
             )
             response = await client.get(f"{base_url}/")
             # The root requires auth through Traefik
-            assert response.status_code == 401
+            assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -102,7 +102,7 @@ class TestMCPEverythingIntegration:
                     "Accept": "application/json, text/event-stream",
                 },
             )
-            assert response.status_code == 401
+            assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -133,7 +133,7 @@ class TestMCPEverythingIntegration:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = parse_sse_response(response.text)
             assert data is not None
             assert "result" in data
@@ -170,7 +170,7 @@ class TestMCPEverythingIntegration:
                     "Authorization": f"Bearer {gateway_token}",
                 },
             )
-            assert init_response.status_code == 200
+            assert init_response.status_code == HTTP_OK
 
             # Extract session ID if provided
             session_id = None
@@ -194,7 +194,7 @@ class TestMCPEverythingIntegration:
                 headers=headers,
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = parse_sse_response(response.text)
             assert data is not None
             assert "result" in data
@@ -240,7 +240,7 @@ class TestMCPEverythingIntegration:
                     "Authorization": f"Bearer {gateway_token}",
                 },
             )
-            assert init_response.status_code == 200
+            assert init_response.status_code == HTTP_OK
 
             # Try to call echo tool
             response = await client.post(
@@ -262,11 +262,11 @@ class TestMCPEverythingIntegration:
             )
 
             # The everything server might not have an echo tool, check the response
-            if response.status_code == 400:
+            if response.status_code == HTTP_BAD_REQUEST:
                 # Tool might not exist, that's OK
                 assert True
             else:
-                assert response.status_code == 200
+                assert response.status_code == HTTP_OK
                 data = parse_sse_response(response.text)
                 assert data is not None
 
@@ -300,7 +300,7 @@ class TestMCPEverythingIntegration:
             response = await client.get(
                 f"{base_url}/.well-known/oauth-authorization-server"
             )
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "issuer" in data
             assert "authorization_endpoint" in data
@@ -357,5 +357,5 @@ class TestMCPEverythingIntegration:
                 # CORS might not be configured on test environments
                 # This is acceptable for test servers
                 print(
-                    f"Note: CORS headers not present on {everything_base_url} - this is acceptable for test environments"
+                    f"Note: CORS headers not present on {everything_base_url} - this is acceptable for test environments"  # TODO: Break long line
                 )

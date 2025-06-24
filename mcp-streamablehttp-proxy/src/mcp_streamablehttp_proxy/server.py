@@ -19,6 +19,7 @@ def run_server(
 ):
     """Run the MCP stdio-to-HTTP proxy server.
 
+
     Args:
         server_command: Command to run the MCP stdio server
         host: Host to bind to (default: 0.0.0.0)

@@ -35,7 +35,7 @@ async def get_oauth_token(http_client, client_id: str, client_secret: str) -> st
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
 
-    if response.status_code == 200:
+    if response.status_code == HTTP_OK:
         return response.json().get("access_token")
 
     # If client_credentials not supported, return a dummy token for testing
@@ -53,7 +53,7 @@ async def test_rfc7592_rejects_oauth_bearer_tokens(http_client):
             "client_name": "TEST Bearer Rejection Test",
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     client = response.json()
 
     client_id = client["client_id"]
@@ -70,7 +70,7 @@ async def test_rfc7592_rejects_oauth_bearer_tokens(http_client):
         f"{AUTH_BASE_URL}/register/{client_id}",
         headers={"Authorization": f"Bearer {bearer_token}"},
     )
-    assert response.status_code == 403  # Should reject OAuth tokens
+    assert response.status_code == HTTP_FORBIDDEN  # Should reject OAuth tokens
 
     # Test PUT with OAuth Bearer token (not registration token)
     response = await http_client.put(
@@ -78,14 +78,14 @@ async def test_rfc7592_rejects_oauth_bearer_tokens(http_client):
         json={"client_name": "Should Not Work"},
         headers={"Authorization": f"Bearer {bearer_token}"},
     )
-    assert response.status_code == 403  # Should reject OAuth tokens
+    assert response.status_code == HTTP_FORBIDDEN  # Should reject OAuth tokens
 
     # Test DELETE with OAuth Bearer token (not registration token)
     response = await http_client.delete(
         f"{AUTH_BASE_URL}/register/{client_id}",
         headers={"Authorization": f"Bearer {bearer_token}"},
     )
-    assert response.status_code == 403  # Should reject OAuth tokens
+    assert response.status_code == HTTP_FORBIDDEN  # Should reject OAuth tokens
 
     # Verify registration_access_token Bearer auth works
     registration_token = client.get("registration_access_token")
@@ -95,7 +95,7 @@ async def test_rfc7592_rejects_oauth_bearer_tokens(http_client):
         f"{AUTH_BASE_URL}/register/{client_id}",
         headers={"Authorization": f"Bearer {registration_token}"},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
 
     # Clean up
     await http_client.delete(
@@ -115,7 +115,7 @@ async def test_rfc7592_authentication_edge_cases(http_client):
             "client_name": "TEST Edge Case Test",
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     client = response.json()
 
     client_id = client["client_id"]
@@ -155,7 +155,7 @@ async def test_rfc7592_authentication_edge_cases(http_client):
         # 204 No Content is success, 404 is okay if already deleted
         if delete_response.status_code not in (204, 404):
             print(
-                f"Warning: Failed to delete client {client_id}: {delete_response.status_code}"
+                f"Warning: Failed to delete client {client_id}: {delete_response.status_code}"  # TODO: Break long line
             )
     except Exception as e:
         print(f"Warning: Error during client cleanup: {e}")
@@ -175,7 +175,7 @@ async def test_rfc7592_cross_client_access_forbidden(http_client):
                 "scope": "openid",
             },
         )
-        assert response.status_code == 201
+        assert response.status_code == HTTP_CREATED
         clients.append(response.json())
 
     # Each client tries to access other clients' data
@@ -191,7 +191,7 @@ async def test_rfc7592_cross_client_access_forbidden(http_client):
                     f"{AUTH_BASE_URL}/register/{victim['client_id']}",
                     headers={"Authorization": attacker_auth},
                 )
-                assert response.status_code == 200
+                assert response.status_code == HTTP_OK
             else:
                 # Client should NOT be able to access others' data
 
@@ -200,7 +200,7 @@ async def test_rfc7592_cross_client_access_forbidden(http_client):
                     f"{AUTH_BASE_URL}/register/{victim['client_id']}",
                     headers={"Authorization": attacker_auth},
                 )
-                assert response.status_code == 403
+                assert response.status_code == HTTP_FORBIDDEN
 
                 # PUT should return 403
                 response = await http_client.put(
@@ -208,14 +208,14 @@ async def test_rfc7592_cross_client_access_forbidden(http_client):
                     json={"client_name": f"Hacked by {attacker['client_name']}"},
                     headers={"Authorization": attacker_auth},
                 )
-                assert response.status_code == 403
+                assert response.status_code == HTTP_FORBIDDEN
 
                 # DELETE should return 403
                 response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{victim['client_id']}",
                     headers={"Authorization": attacker_auth},
                 )
-                assert response.status_code == 403
+                assert response.status_code == HTTP_FORBIDDEN
 
     # Verify all clients still exist and are unmodified
     for i, client in enumerate(clients):
@@ -225,7 +225,7 @@ async def test_rfc7592_cross_client_access_forbidden(http_client):
             f"{AUTH_BASE_URL}/register/{client['client_id']}",
             headers={"Authorization": f"Bearer {token}"},
         )
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
         assert response.json()["client_name"] == f"TEST Client {i}"
 
     # Clean up all clients
@@ -251,7 +251,7 @@ async def test_rfc7592_timing_attack_resistance(http_client):
             "client_name": "TEST Timing Test",
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     client = response.json()
 
     client_id = client["client_id"]
@@ -278,7 +278,7 @@ async def test_rfc7592_timing_attack_resistance(http_client):
             headers={"Authorization": f"Bearer {registration_token}"},
         )
         timings["valid_client_valid_secret"].append(time.time() - start)
-        assert response.status_code == 200
+        assert response.status_code == HTTP_OK
 
         # Valid client, wrong token
         start = time.time()
@@ -287,7 +287,7 @@ async def test_rfc7592_timing_attack_resistance(http_client):
             headers={"Authorization": "Bearer reg-wrong-timing-token"},
         )
         timings["valid_client_wrong_secret"].append(time.time() - start)
-        assert response.status_code == 403
+        assert response.status_code == HTTP_FORBIDDEN
 
         # Wrong client
         start = time.time()
@@ -296,7 +296,7 @@ async def test_rfc7592_timing_attack_resistance(http_client):
             headers={"Authorization": "Bearer reg-nonexistent-token"},
         )
         timings["wrong_client"].append(time.time() - start)
-        assert response.status_code == 404
+        assert response.status_code == HTTP_NOT_FOUND
 
         # Malformed auth
         start = time.time()
@@ -305,7 +305,7 @@ async def test_rfc7592_timing_attack_resistance(http_client):
             headers={"Authorization": "Basic malformed"},
         )
         timings["malformed_auth"].append(time.time() - start)
-        assert response.status_code == 401
+        assert response.status_code == HTTP_UNAUTHORIZED
 
     # Calculate averages
     avg_timings = {k: sum(v) / len(v) for k, v in timings.items()}
@@ -333,7 +333,7 @@ async def test_rfc7592_rate_limiting(http_client):
             "client_name": "TEST Rate Limit Test",
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     client = response.json()
 
     client_id = client["client_id"]
@@ -387,7 +387,7 @@ async def test_rfc7592_sql_injection_attempts(http_client):
             "client_name": "TEST SQL Test Client",
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTP_CREATED
     client = response.json()
 
     client_id = client["client_id"]
@@ -429,7 +429,7 @@ async def test_rfc7592_sql_injection_attempts(http_client):
     response = await http_client.get(
         f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
     assert response.json()["client_name"] == "TEST SQL Test Client"
 
     # Clean up

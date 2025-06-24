@@ -49,7 +49,7 @@ class TestMCPFetchsCompliance:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert data["jsonrpc"] == "2.0"
             assert data["id"] == 1
@@ -92,7 +92,7 @@ class TestMCPFetchsCompliance:
                 },
             )
 
-            assert response.status_code == 200  # JSON-RPC errors return 200
+            assert response.status_code == HTTP_OK  # JSON-RPC errors return 200
             data = response.json()
             assert "error" in data
             assert data["error"]["code"] == -32602  # Invalid params
@@ -116,7 +116,7 @@ class TestMCPFetchsCompliance:
                 },
             )
 
-            assert response.status_code == 400
+            assert response.status_code == HTTP_BAD_REQUEST
             data = response.json()
             assert "2025-06-18" in data["message"]
             assert "2024-11-05" in data["message"]
@@ -138,7 +138,7 @@ class TestMCPFetchsCompliance:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "result" in data
             assert "tools" in data["result"]
@@ -159,7 +159,7 @@ class TestMCPFetchsCompliance:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -177,7 +177,7 @@ class TestMCPFetchsCompliance:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             tools = data["result"]["tools"]
 
@@ -214,7 +214,7 @@ class TestMCPFetchsCompliance:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "error" in data
             assert data["error"]["code"] == -32602  # Invalid params
@@ -234,7 +234,7 @@ class TestMCPFetchsCompliance:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "error" in data
             assert data["error"]["code"] == -32602
@@ -255,7 +255,7 @@ class TestMCPFetchsCompliance:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "error" in data
             assert data["error"]["code"] == -32602
@@ -285,7 +285,7 @@ class TestMCPFetchsCompliance:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "result" in data
             result = data["result"]
@@ -333,7 +333,7 @@ class TestMCPFetchsCompliance:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "result" in data
             result = data["result"]
@@ -370,7 +370,7 @@ class TestMCPFetchsCompliance:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             assert "Mcp-Session-Id" in response.headers
             session_id = response.headers["Mcp-Session-Id"]
 
@@ -394,7 +394,7 @@ class TestMCPFetchsCompliance:
                     "Authorization": f"Bearer {valid_token}",
                 },
             )
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
 
             # GET /mcp for SSE (may not be implemented)
             response = await client.get(

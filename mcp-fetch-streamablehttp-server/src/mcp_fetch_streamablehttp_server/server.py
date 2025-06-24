@@ -158,7 +158,7 @@ class StreamableHTTPServer:
     async def _handle_stateless_request(
         self,
         headers: dict[str, str],
-        body: bytes,  # noqa: ARG002
+        body: bytes,
     ) -> Response:
         """Handle stateless JSON-RPC request."""
         # Note: Be lenient with content type as long as body is valid JSON

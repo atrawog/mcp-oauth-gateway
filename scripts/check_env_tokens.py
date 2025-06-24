@@ -4,7 +4,7 @@
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
+
 
 # Color codes for output
 GREEN = "\033[92m"
@@ -50,11 +50,11 @@ CONFIGURATION_TOKENS = {
 }
 
 
-def load_env() -> Dict[str, str]:
+def load_env() -> dict[str, str]:
     """Load environment variables from .env file."""
     env_vars = os.environ.copy()
     env_file = Path(".env")
-    
+
     if env_file.exists():
         with open(env_file) as f:
             for line in f:
@@ -62,91 +62,90 @@ def load_env() -> Dict[str, str]:
                 if line and not line.startswith("#") and "=" in line:
                     key, value = line.split("=", 1)
                     env_vars[key.strip()] = value.strip()
-    
+
     return env_vars
 
 
-def check_token(env_vars: Dict[str, str], token: str, description: str) -> Tuple[bool, str]:
+def check_token(env_vars: dict[str, str], token: str, description: str) -> tuple[bool, str]:
     """Check if a token exists and return status."""
     value = env_vars.get(token, "")
-    
+
     if not value:
         return False, f"{RED}✗ Missing{RESET}"
-    elif value.startswith("your_") or value.startswith("xxx...") or value == "":
+    if value.startswith("your_") or value.startswith("xxx...") or value == "":
         return False, f"{YELLOW}⚠ Not configured (placeholder value){RESET}"
+    # Truncate for display
+    if len(value) > 20:
+        display_value = f"{value[:8]}...{value[-8:]}"
     else:
-        # Truncate for display
-        if len(value) > 20:
-            display_value = f"{value[:8]}...{value[-8:]}"
-        else:
-            display_value = value
-        return True, f"{GREEN}✓ Set ({display_value}){RESET}"
+        display_value = value
+    return True, f"{GREEN}✓ Set ({display_value}){RESET}"
 
 
 def main():
     """Check all environment tokens."""
     print(f"\n{BOLD}🔍 MCP OAuth Gateway - Environment Token Check{RESET}\n")
-    
+
     # Load environment
     env_vars = load_env()
-    
+
     if not Path(".env").exists():
         print(f"{RED}✗ .env file not found!{RESET}")
         print(f"  Run: {BLUE}cp .env.example .env{RESET}")
         sys.exit(1)
-    
+
     # Check required tokens
     print(f"{BOLD}🔴 REQUIRED TOKENS (Gateway won't start without these):{RESET}\n")
     required_missing = []
-    
+
     for token, description in REQUIRED_TOKENS.items():
         exists, status = check_token(env_vars, token, description)
         if not exists:
             required_missing.append(token)
         print(f"  {token:30} {status}")
         print(f"  {'':<30} {description}\n")
-    
+
     # Check configuration tokens
     print(f"\n{BOLD}🟡 CONFIGURATION TOKENS (Have defaults but should be reviewed):{RESET}\n")
-    
+
     for token, description in CONFIGURATION_TOKENS.items():
         exists, status = check_token(env_vars, token, description)
         print(f"  {token:30} {status}")
         print(f"  {'':<30} {description}\n")
-    
+
     # Check testing tokens
     print(f"\n{BOLD}🟢 TESTING TOKENS (Only needed for automated tests):{RESET}\n")
-    
+
     for token, description in TESTING_TOKENS.items():
         exists, status = check_token(env_vars, token, description)
         print(f"  {token:30} {status}")
         print(f"  {'':<30} {description}\n")
-    
+
     # Summary
     print(f"\n{BOLD}📊 SUMMARY:{RESET}\n")
-    
+
     if required_missing:
         print(f"{RED}✗ Missing {len(required_missing)} required tokens:{RESET}")
         for token in required_missing:
             print(f"  - {token}")
         print(f"\n{YELLOW}To fix:{RESET}")
-        print(f"  1. Create GitHub OAuth App at https://github.com/settings/developers")
+        print("  1. Create GitHub OAuth App at https://github.com/settings/developers")
         print(f"  2. Run: {BLUE}just generate-all-secrets{RESET}")
-        print(f"  3. Edit .env and add GitHub client ID/secret")
+        print("  3. Edit .env and add GitHub client ID/secret")
         print(f"\n{RED}The gateway will NOT start without these tokens!{RESET}")
         sys.exit(1)
     else:
         print(f"{GREEN}✓ All required tokens are configured!{RESET}")
         print(f"\n{BLUE}The gateway can start with just these required tokens.{RESET}")
         print(f"{BLUE}Testing tokens are only needed if you plan to run the test suite.{RESET}")
-        
+
         # Check if any testing tokens are configured
         test_tokens_configured = sum(1 for token in TESTING_TOKENS if check_token(env_vars, token, "")[0])
         if test_tokens_configured > 0:
             print(f"\n{GREEN}ℹ️  {test_tokens_configured} testing tokens are also configured.{RESET}")
         else:
             print(f"\n{YELLOW}ℹ️  No testing tokens configured (this is fine for production).{RESET}")
-            print(f"  To run tests, generate test tokens with:")
+            print("  To run tests, generate test tokens with:")
             print(f"  - {BLUE}just generate-github-token{RESET} (for GitHub PAT)")
             print(f"  - {BLUE}just mcp-client-token{RESET} (for MCP client testing)")
 

@@ -44,7 +44,7 @@ class TestMCPFetchsComplete:
                 json={"jsonrpc": "2.0", "method": "initialize", "id": 1},
                 headers={"Content-Type": "application/json"},
             )
-            assert response.status_code == 401
+            assert response.status_code == HTTP_UNAUTHORIZED
             assert response.headers["WWW-Authenticate"] == "Bearer"
 
         # Step 2: Initialize MCP session with authentication
@@ -64,7 +64,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert data["jsonrpc"] == "2.0"
             assert data["id"] == 1
@@ -88,7 +88,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert data["jsonrpc"] == "2.0"
             assert data["id"] == 2
@@ -120,7 +120,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert data["jsonrpc"] == "2.0"
             assert data["id"] == 3
@@ -158,7 +158,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             session_id = response.headers.get("Mcp-Session-Id")
 
             # Fetch content
@@ -183,7 +183,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert data["jsonrpc"] == "2.0"
             assert data["id"] == 2
@@ -215,7 +215,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "result" in data
             assert data["result"]["isError"] is True
@@ -242,7 +242,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "result" in data
             assert data["result"]["isError"] is True
@@ -276,7 +276,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert data["jsonrpc"] == "2.0"
             assert data["id"] == 1
@@ -316,7 +316,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert data["jsonrpc"] == "2.0"
             assert data["id"] == 1
@@ -358,7 +358,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert data["jsonrpc"] == "2.0"
             assert data["id"] == 1
@@ -398,7 +398,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "result" in data
             assert data["result"]["isError"] is True
@@ -427,7 +427,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             assert "result" in data
             assert data["result"]["isError"] is True
@@ -457,7 +457,7 @@ class TestMCPFetchsComplete:
                 },
             )
 
-            assert response.status_code == 200
+            assert response.status_code == HTTP_OK
             data = response.json()
             # Server should respond with an error for unsupported version
             assert "error" in data
@@ -496,7 +496,7 @@ class TestMCPFetchsComplete:
                     },
                 )
 
-                assert response.status_code == 200
+                assert response.status_code == HTTP_OK
                 responses.append(response)
 
             # Both should have session IDs (implementation may return same ID for stateless)
@@ -515,7 +515,7 @@ class TestMCPFetchsComplete:
                     },
                 )
 
-                assert response.status_code == 200
+                assert response.status_code == HTTP_OK
                 data = response.json()
                 assert data["id"] == idx + 10
 
@@ -556,7 +556,7 @@ class TestMCPFetchsComplete:
 
             # All should succeed
             for idx, response in enumerate(responses):
-                assert response.status_code == 200
+                assert response.status_code == HTTP_OK
                 data = response.json()
                 assert data["id"] == idx + 1
                 assert "result" in data or "error" in data

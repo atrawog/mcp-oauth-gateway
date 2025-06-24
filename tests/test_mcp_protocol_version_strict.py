@@ -13,6 +13,7 @@ from .jwt_test_helper import encode as jwt_encode
 from .test_constants import ACCESS_TOKEN_LIFETIME
 from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_JWT_SECRET
+from .test_constants import HTTP_OK
 from .test_constants import MCP_CLIENT_ACCESS_TOKEN
 from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
@@ -54,8 +55,8 @@ class TestMCPProtocolVersionStrict:
         )
 
         # Should succeed with 200
-        assert correct_response.status_code == 200, (
-            f"MCP MUST accept protocol version {MCP_PROTOCOL_VERSION} from .env! Got {correct_response.status_code}"
+        assert correct_response.status_code == HTTP_OK, (
+            f"MCP MUST accept protocol version {MCP_PROTOCOL_VERSION} from .env! Got {correct_response.status_code}"  # TODO: Break long line
         )
 
         result = correct_response.json()
@@ -67,7 +68,7 @@ class TestMCPProtocolVersionStrict:
         # Verify it's using a supported version (per MCP spec, servers can return their own version)
         returned_version = result["result"]["protocolVersion"]
         assert returned_version in MCP_PROTOCOL_VERSIONS_SUPPORTED, (
-            f"MCP returned unsupported version! Expected one of {MCP_PROTOCOL_VERSIONS_SUPPORTED}, got {returned_version}"
+            f"MCP returned unsupported version! Expected one of {MCP_PROTOCOL_VERSIONS_SUPPORTED}, got {returned_version}"  # TODO: Break long line
         )
 
     @pytest.mark.asyncio
@@ -140,14 +141,14 @@ class TestMCPProtocolVersionStrict:
                 )
 
                 # The server might accept the request but should ideally validate headers
-                if response.status_code == 200:
+                if response.status_code == HTTP_OK:
                     result = response.json()
                     print(
-                        f"⚠️  Server accepted request with wrong header version '{wrong_header}': {result}"
+                        f"⚠️  Server accepted request with wrong header version '{wrong_header}': {result}"  # TODO: Break long line
                     )
                 else:
                     print(
-                        f"✓ Server rejected wrong header version '{wrong_header}': {response.status_code}"
+                        f"✓ Server rejected wrong header version '{wrong_header}': {response.status_code}"  # TODO: Break long line
                     )
 
         finally:
@@ -160,12 +161,12 @@ class TestMCPProtocolVersionStrict:
         """Verify that .env has a supported MCP protocol version."""
         # This test ensures we're using one of the supported versions
         assert MCP_PROTOCOL_VERSION in MCP_PROTOCOL_VERSIONS_SUPPORTED, (
-            f"MCP_PROTOCOL_VERSION in .env MUST be one of {MCP_PROTOCOL_VERSIONS_SUPPORTED}! "
+            f"MCP_PROTOCOL_VERSION in .env MUST be one of {MCP_PROTOCOL_VERSIONS_SUPPORTED}! "  # TODO: Break long line
             f"Currently set to '{MCP_PROTOCOL_VERSION}'. "
             f"Update your .env file to use a supported version!"
         )
 
         print(
-            f"✓ MCP Protocol Version correctly set to {MCP_PROTOCOL_VERSION} (supported)"
+            f"✓ MCP Protocol Version correctly set to {MCP_PROTOCOL_VERSION} (supported)"  # TODO: Break long line
         )
         print(f"✓ Supported versions: {MCP_PROTOCOL_VERSIONS_SUPPORTED}")
