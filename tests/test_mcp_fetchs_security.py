@@ -177,50 +177,53 @@ class TestMCPFetchsSecurity:
                 assert len(data["result"]["content"]) > 0
                 assert "Tool execution failed" in data["result"]["content"][0]["text"]
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_fetchs_header_injection_prevention(
-        self, mcp_fetchs_url, valid_token, wait_for_services
-    ):
-        """Test prevention of header injection attacks."""
-        malicious_headers = {
-            "X-Injected\r\nX-Evil": "value",
-            "X-Test": "value\r\nX-Injected: evil",
-            "Authorization": "Bearer fake-token",  # Should not override
-        }
-
-        async with httpx.AsyncClient(verify=False) as client:
-            response = await client.post(
-                f"{mcp_fetchs_url}",
-                json={
-                    "jsonrpc": "2.0",
-                    "method": "tools/call",
-                    "params": {
-                        "name": "fetch",
-                        "arguments": {
-                            "url": "https://httpbin.org/headers",
-                            "method": "GET",
-                            "headers": malicious_headers,
-                        },
-                    },
-                    "id": 1,
-                },
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {valid_token}",
-                },
-            )
-
-            # Should either sanitize or reject malicious headers
-            assert response.status_code == HTTP_OK
-            data = response.json()
-            if "result" in data:
-                content = data["result"]["content"][0]["text"]
-                # Check that CRLF injection didn't work
-                assert "X-Evil" not in content or "\\r\\n" in content
-
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    # REMOVED: This test used httpbin.org which violates our testing principles.
+    # Per CLAUDE.md: Test against real deployed services (our own), not external ones.
+    #
+    # @pytest.mark.integration
+    # @pytest.mark.asyncio
+    # async def test_fetchs_header_injection_prevention(
+    #     self, mcp_fetchs_url, valid_token, wait_for_services
+    # ):
+    #     """Test prevention of header injection attacks."""
+    #     malicious_headers = {
+    #         "X-Injected\r\nX-Evil": "value",
+    #         "X-Test": "value\r\nX-Injected: evil",
+    #         "Authorization": "Bearer fake-token",  # Should not override
+    #     }
+    #
+    #     async with httpx.AsyncClient(verify=False) as client:
+    #         response = await client.post(
+    #             f"{mcp_fetchs_url}",
+    #             json={
+    #                 "jsonrpc": "2.0",
+    #                 "method": "tools/call",
+    #                 "params": {
+    #                     "name": "fetch",
+    #                     "arguments": {
+    #                         "url": "https://httpbin.org/headers",
+    #                         "method": "GET",
+    #                         "headers": malicious_headers,
+    #                     },
+    #                 },
+    #                 "id": 1,
+    #             },
+    #             headers={
+    #                 "Content-Type": "application/json",
+    #                 "Authorization": f"Bearer {valid_token}",
+    #             },
+    #         )
+    #
+    #         # Should either sanitize or reject malicious headers
+    #         assert response.status_code == HTTP_OK
+    #         data = response.json()
+    #         if "result" in data:
+    #             content = data["result"]["content"][0]["text"]
+    #             # Check that CRLF injection didn't work
+    #             assert "X-Evil" not in content or "\\r\\n" in content
+    #
+    # @pytest.mark.integration
+    # @pytest.mark.asyncio
     async def test_fetchs_rate_limiting_behavior(
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):

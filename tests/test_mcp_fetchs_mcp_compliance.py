@@ -277,7 +277,7 @@ class TestMCPFetchsCompliance:
                     "method": "tools/call",
                     "params": {
                         "name": "fetch",
-                        "arguments": {"url": "https://httpbin.org/json"},
+                        "arguments": {"url": "https://example.com"},
                     },
                     "id": 1,
                 },
