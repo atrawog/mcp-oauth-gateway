@@ -92,14 +92,21 @@ You can use a wildcard record if your DNS provider supports it:
 # Copy example configuration
 cp .env.example .env
 
-# Generate required secrets
-just generate-jwt-secret
+# Generate all required secrets at once
+just generate-all-secrets
+
+# Or generate individually:
+# just generate-jwt-secret      # Sets GATEWAY_JWT_SECRET
+# just generate-rsa-keys        # Sets JWT_PRIVATE_KEY_B64
+# just generate-redis-password  # Sets REDIS_PASSWORD
 
 # Edit configuration
 nano .env
 ```
 
 Update these required values in `.env`:
+
+⚠️ **IMPORTANT**: You only need 5 tokens to run the gateway!
 
 ```bash
 # Domain configuration (REQUIRED)

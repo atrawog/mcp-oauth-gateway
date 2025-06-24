@@ -211,6 +211,37 @@ generate-rsa-keys:
     echo "🔑 Generating RSA keys for RS256 JWT signing..."
     just run generate_rsa_keys_to_env
 
+# Generate secure Redis password and save to .env
+generate-redis-password:
+    #!/usr/bin/env bash
+    NEW_REDIS_PASSWORD=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
+    echo "🔐 Generated new Redis password: ${NEW_REDIS_PASSWORD}"
+    
+    # Check if .env exists
+    if [ ! -f .env ]; then
+        echo "📄 Creating .env file..."
+        cp .env.example .env
+    fi
+    
+    # Update or add REDIS_PASSWORD in .env
+    if grep -q "^REDIS_PASSWORD=" .env; then
+        echo "🔄 Updating REDIS_PASSWORD in .env..."
+        sed -i.bak "s|^REDIS_PASSWORD=.*|REDIS_PASSWORD=${NEW_REDIS_PASSWORD}|" .env
+    else
+        echo "➕ Adding REDIS_PASSWORD to .env..."
+        echo "REDIS_PASSWORD=${NEW_REDIS_PASSWORD}" >> .env
+    fi
+    
+    echo "✅ Redis password saved to .env successfully!"
+
+# Generate all required secrets (JWT, RSA keys, Redis password)
+generate-all-secrets:
+    echo "🔐 Generating all required secrets..."
+    just generate-jwt-secret
+    just generate-rsa-keys
+    just generate-redis-password
+    echo "✅ All required secrets generated successfully!"
+
 # Generate GitHub OAuth token
 generate-github-token:
     just run generate_oauth_token

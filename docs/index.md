@@ -93,6 +93,22 @@ graph TD
 4. **Request Routing**: Traefik routes authenticated requests to MCP services
 5. **Protocol Bridging**: Proxy converts HTTP to stdio for MCP servers
 
+## Quick Start
+
+Despite the comprehensive `.env.example` file, you only need **5 tokens** to run the gateway:
+
+| Token | Purpose | How to Get |
+|-------|---------|------------|
+| `GITHUB_CLIENT_ID` | GitHub OAuth App | Create at github.com/settings/developers |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth App | From the same OAuth App |
+| `GATEWAY_JWT_SECRET` | JWT signing | Run: `just generate-jwt-secret` |
+| `JWT_PRIVATE_KEY_B64` | RSA key | Run: `just generate-rsa-keys` |
+| `REDIS_PASSWORD` | Redis auth | Run: `just generate-redis-password` |
+
+All other tokens (GITHUB_PAT, GATEWAY_OAUTH_*, MCP_CLIENT_*) are **only for testing**!
+
+See the [Minimal Setup Guide](installation/minimal-setup.md) for the quickest path to a running gateway.
+
 ## Requirements
 
 - **Public Domain**: Real domains with DNS (no localhost deployments)

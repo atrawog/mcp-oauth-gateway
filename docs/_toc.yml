@@ -24,6 +24,8 @@ chapters:
         title: Requirements
       - file: installation/quick-start
         title: Quick Start Guide
+      - file: installation/minimal-setup
+        title: Minimal Setup Guide
       - file: installation/configuration
         title: Configuration Reference
       - file: installation/github-oauth

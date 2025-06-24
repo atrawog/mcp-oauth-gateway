@@ -2,6 +2,32 @@
 
 This guide covers token generation, management, and security practices for the MCP OAuth Gateway.
 
+## 🔴 Critical Distinction: Required vs Testing Tokens
+
+### Tokens REQUIRED to Run the Gateway
+
+Only **5 tokens** are required to run the gateway:
+
+1. **`GITHUB_CLIENT_ID`** - From your GitHub OAuth App
+2. **`GITHUB_CLIENT_SECRET`** - From your GitHub OAuth App  
+3. **`GATEWAY_JWT_SECRET`** - Run: `just generate-jwt-secret`
+4. **`JWT_PRIVATE_KEY_B64`** - Run: `just generate-rsa-keys`
+5. **`REDIS_PASSWORD`** - Set manually
+
+**That's it!** The gateway can run with just these 5 tokens.
+
+### Tokens ONLY for Testing
+
+All other tokens are **optional** and only used for testing:
+
+- **`GITHUB_PAT`** - GitHub Personal Access Token (for test API calls)
+- **`GATEWAY_OAUTH_*`** tokens - Generated during test OAuth flows
+- **`MCP_CLIENT_*`** tokens - For testing MCP client libraries
+
+```{important}
+The gateway itself does NOT consume OAuth tokens. It's an OAuth provider that issues tokens to clients. The only credentials it needs are for the GitHub OAuth App to authenticate users.
+```
+
 ## Token Types
 
 ### 1. JWT Secret
@@ -16,12 +42,12 @@ just generate-jwt-secret
 # Stored as GATEWAY_JWT_SECRET in .env
 ```
 
-### 2. GitHub OAuth Tokens
+### 2. GitHub OAuth Tokens (OPTIONAL - Testing Only)
 
-For the gateway's own GitHub authentication using **Device Flow**:
+These tokens are **NOT required** to run the gateway. They're only used for automated testing:
 
 ```bash
-# Generate GitHub PAT using device flow (RFC 8628)
+# Generate GitHub PAT for testing (uses device flow)
 just generate-github-token
 
 # This initiates GitHub Device Flow:
@@ -31,34 +57,37 @@ just generate-github-token
 # 4. Polls GitHub until you authorize
 # 5. Stores the resulting GitHub PAT as GITHUB_PAT
 
-# Also generates and stores:
-# - GATEWAY_OAUTH_ACCESS_TOKEN (JWT for gateway)
-# - GATEWAY_OAUTH_REFRESH_TOKEN
-# - GATEWAY_OAUTH_CLIENT_ID  
-# - GATEWAY_OAUTH_CLIENT_SECRET
+# Also generates test tokens:
+# - GATEWAY_OAUTH_ACCESS_TOKEN (for test authentication)
+# - GATEWAY_OAUTH_REFRESH_TOKEN (for test refresh)
+# - GATEWAY_OAUTH_CLIENT_ID (test client)
+# - GATEWAY_OAUTH_CLIENT_SECRET (test client)
 ```
 
-**Note**: This is different from end-user authentication, which uses standard OAuth flow with browser redirects.
+**⚠️ Important**: These tokens are only used by the test suite to verify OAuth flows work correctly. The gateway itself doesn't use them.
 
-### 3. MCP Client Tokens
+### 3. MCP Client Tokens (OPTIONAL - Testing Only)
 
-For external MCP clients (like Claude.ai) using **Device Flow**:
+For testing MCP client libraries like `mcp-streamablehttp-client`:
 
 ```bash
-# Generate client access token using device flow
+# Generate test client token (uses device flow)
 just mcp-client-token
 
-# This also uses Device Flow (if needed):
+# This uses Device Flow:
 # 1. Attempts to register/authenticate the client
 # 2. If browser unavailable, initiates device flow
 # 3. Shows verification URL and code
 # 4. You manually authorize on GitHub
 # 5. Stores as MCP_CLIENT_ACCESS_TOKEN
 
-# Used by mcp-streamablehttp-client for OAuth-protected MCP servers
+# These tokens are used for:
+# - Testing mcp-streamablehttp-client
+# - Integration testing with MCP services
+# - Development and debugging
 ```
 
-**Key Point**: Both gateway tokens and MCP client tokens use device flow for browserless authentication scenarios.
+**⚠️ Important**: These tokens are for testing MCP client libraries, not for running the gateway.
 
 ## Token Lifecycle
 
