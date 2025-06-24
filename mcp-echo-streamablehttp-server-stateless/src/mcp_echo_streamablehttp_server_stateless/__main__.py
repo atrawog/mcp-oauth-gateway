@@ -37,8 +37,15 @@ def main():
     
     args = parser.parse_args()
     
+    # Get supported protocol versions from environment
+    supported_versions_str = os.getenv("MCP_PROTOCOL_VERSIONS_SUPPORTED", "2025-06-18")
+    supported_versions = [v.strip() for v in supported_versions_str.split(",") if v.strip()]
+    
+    if args.debug:
+        print(f"Supported protocol versions: {', '.join(supported_versions)}")
+    
     # Create and run server
-    server = MCPEchoServer(debug=args.debug)
+    server = MCPEchoServer(debug=args.debug, supported_versions=supported_versions)
     
     try:
         server.run(host=args.host, port=args.port)

@@ -17,19 +17,21 @@ logger = logging.getLogger(__name__)
 
 
 class MCPEchoServer:
-    """Stateless MCP Echo Server implementation for protocol 2025-06-18."""
+    """Stateless MCP Echo Server implementation supporting multiple protocol versions."""
     
-    PROTOCOL_VERSION = "2025-06-18"
+    PROTOCOL_VERSION = "2025-06-18"  # Default/preferred version
     SERVER_NAME = "mcp-echo-streamablehttp-server-stateless"
     SERVER_VERSION = "0.1.0"
     
-    def __init__(self, debug: bool = False):
+    def __init__(self, debug: bool = False, supported_versions: Optional[List[str]] = None):
         """Initialize the echo server.
         
         Args:
             debug: Enable debug logging for message tracing
+            supported_versions: List of supported protocol versions (defaults to ["2025-06-18"])
         """
         self.debug = debug
+        self.supported_versions = supported_versions or [self.PROTOCOL_VERSION]
         if debug:
             logging.basicConfig(
                 level=logging.DEBUG,
@@ -92,9 +94,9 @@ class MCPEchoServer:
         
         # Check MCP-Protocol-Version header (required per spec)
         protocol_version = request.headers.get("mcp-protocol-version")
-        if protocol_version and protocol_version != self.PROTOCOL_VERSION:
+        if protocol_version and protocol_version not in self.supported_versions:
             return JSONResponse(
-                {"error": f"Unsupported protocol version: {protocol_version}. Expected: {self.PROTOCOL_VERSION}"},
+                {"error": f"Unsupported protocol version: {protocol_version}. Supported versions: {', '.join(self.supported_versions)}"},
                 status_code=400,
                 headers={"Access-Control-Allow-Origin": "*"}
             )
@@ -180,19 +182,20 @@ class MCPEchoServer:
         """Handle initialize request."""
         client_protocol = params.get("protocolVersion", "")
         
-        # For 2025-06-18, we strictly require the exact version
-        if client_protocol != self.PROTOCOL_VERSION:
+        # Check if the client's requested version is supported
+        if client_protocol not in self.supported_versions:
             return self._error_response(
                 request_id, 
                 -32602, 
-                f"Unsupported protocol version: {client_protocol}. Only {self.PROTOCOL_VERSION} is supported."
+                f"Unsupported protocol version: {client_protocol}. Supported versions: {', '.join(self.supported_versions)}"
             )
         
+        # Use the client's requested version if supported
         return {
             "jsonrpc": "2.0",
             "id": request_id,
             "result": {
-                "protocolVersion": self.PROTOCOL_VERSION,
+                "protocolVersion": client_protocol,  # Echo back the client's version
                 "capabilities": {
                     "tools": {}
                 },
@@ -344,7 +347,7 @@ class MCPEchoServer:
         )
 
 
-def create_app(debug: bool = False):
+def create_app(debug: bool = False, supported_versions: Optional[List[str]] = None):
     """Create the ASGI application."""
-    server = MCPEchoServer(debug=debug)
+    server = MCPEchoServer(debug=debug, supported_versions=supported_versions)
     return server.app
