@@ -124,17 +124,63 @@ class TestMCPEverythingSSE:
 
     def test_echo_tool_with_sse_response(self, base_url, auth_headers):
         """Test that echo tool returns SSE format response with echo content."""
-        # The native streamableHttp mode of everything server doesn't maintain sessions
-        # Each request is independent, so we can call tools directly after initialize
+        # Step 1: Initialize the server
+        init_response = requests.post(
+            urljoin(base_url, "mcp"),
+            headers={
+                **auth_headers,
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream"
+            },
+            json={
+                "jsonrpc": "2.0",
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {"tools": {}},
+                    "clientInfo": {
+                        "name": "sse-echo-test",
+                        "version": "1.0.0"
+                    }
+                },
+                "id": 1
+            },
+            verify=False,
+            stream=True
+        )
         
-        # Test echo tool directly (no session needed for native streamableHttp)
+        assert init_response.status_code == 200, f"Initialize failed: {init_response.text}"
+        
+        # Extract session ID from response headers
+        session_id = init_response.headers.get("Mcp-Session-Id")
+        
+        # Step 2: Send initialized notification (required!)
+        notification_response = requests.post(
+            urljoin(base_url, "mcp"),
+            headers={
+                **auth_headers,
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "Mcp-Session-Id": session_id or ""
+            },
+            json={
+                "jsonrpc": "2.0",
+                "method": "notifications/initialized",
+                "params": {}
+                # Note: No "id" field for notifications
+            },
+            verify=False
+        )
+        
+        # Now test echo tool
         echo_message = "Hello from SSE test!"
         echo_response = requests.post(
             urljoin(base_url, "mcp"),
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"
+                "Accept": "application/json, text/event-stream",
+                "Mcp-Session-Id": session_id or ""
             },
             json={
                 "jsonrpc": "2.0",
@@ -221,13 +267,62 @@ class TestMCPEverythingSSE:
 
     def test_multiple_tools_list_sse(self, base_url, auth_headers):
         """Test listing tools returns SSE format."""
-        # List tools directly (no session needed for native streamableHttp)
-        tools_response = requests.post(
+        # Step 1: Initialize the server
+        init_response = requests.post(
             urljoin(base_url, "mcp"),
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream"
+            },
+            json={
+                "jsonrpc": "2.0",
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {"tools": {}},
+                    "clientInfo": {
+                        "name": "sse-tools-test",
+                        "version": "1.0.0"
+                    }
+                },
+                "id": 1
+            },
+            verify=False,
+            stream=True
+        )
+        
+        assert init_response.status_code == 200, f"Initialize failed: {init_response.text}"
+        
+        # Extract session ID from response headers
+        session_id = init_response.headers.get("Mcp-Session-Id")
+        
+        # Step 2: Send initialized notification (required!)
+        notification_response = requests.post(
+            urljoin(base_url, "mcp"),
+            headers={
+                **auth_headers,
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "Mcp-Session-Id": session_id or ""
+            },
+            json={
+                "jsonrpc": "2.0",
+                "method": "notifications/initialized",
+                "params": {}
+                # Note: No "id" field for notifications
+            },
+            verify=False
+        )
+        
+        # Now list tools
+        tools_response = requests.post(
+            urljoin(base_url, "mcp"),
+            headers={
+                **auth_headers,
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "Mcp-Session-Id": session_id or ""
             },
             json={
                 "jsonrpc": "2.0",
@@ -252,13 +347,62 @@ class TestMCPEverythingSSE:
 
     def test_error_response_in_sse_format(self, base_url, auth_headers):
         """Test that error responses also come in SSE format."""
-        # Try to call a non-existent tool (should error)
-        response = requests.post(
+        # Step 1: Initialize the server
+        init_response = requests.post(
             urljoin(base_url, "mcp"),
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream"
+            },
+            json={
+                "jsonrpc": "2.0",
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {"tools": {}},
+                    "clientInfo": {
+                        "name": "sse-error-test",
+                        "version": "1.0.0"
+                    }
+                },
+                "id": 1
+            },
+            verify=False,
+            stream=True
+        )
+        
+        assert init_response.status_code == 200, f"Initialize failed: {init_response.text}"
+        
+        # Extract session ID from response headers
+        session_id = init_response.headers.get("Mcp-Session-Id")
+        
+        # Step 2: Send initialized notification (required!)
+        notification_response = requests.post(
+            urljoin(base_url, "mcp"),
+            headers={
+                **auth_headers,
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "Mcp-Session-Id": session_id or ""
+            },
+            json={
+                "jsonrpc": "2.0",
+                "method": "notifications/initialized",
+                "params": {}
+                # Note: No "id" field for notifications
+            },
+            verify=False
+        )
+        
+        # Now try to call a non-existent tool (should error)
+        response = requests.post(
+            urljoin(base_url, "mcp"),
+            headers={
+                **auth_headers,
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "Mcp-Session-Id": session_id or ""
             },
             json={
                 "jsonrpc": "2.0",
