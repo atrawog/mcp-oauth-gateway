@@ -6,13 +6,8 @@ import os
 import httpx
 import pytest
 
-from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
-from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITY
+from .test_constants import MCP_PROTOCOL_VERSION
 
 
 MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")

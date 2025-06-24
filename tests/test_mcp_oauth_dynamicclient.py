@@ -15,19 +15,16 @@ import pytest
 import redis.asyncio as redis
 
 from .test_constants import AUTH_BASE_URL
-from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
-from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_BAD_REQUEST
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import REDIS_PASSWORD
 from .test_constants import REDIS_URL
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_REDIRECT_URI
-from .test_constants import HTTP_BAD_REQUEST
 
 
 # MCP Client tokens from environment
@@ -40,7 +37,7 @@ class TestMCPOAuthDynamicClientPackage:
     @pytest.mark.asyncio
     async def test_auth_service_is_running(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Verify the auth service (using mcp-oauth-dynamicclient) is deployed and healthy."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
@@ -58,7 +55,7 @@ class TestMCPOAuthDynamicClientPackage:
     @pytest.mark.asyncio
     async def test_oauth_metadata_endpoint(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test the OAuth 2.0 authorization server metadata endpoint (RFC 8414)."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
@@ -86,7 +83,7 @@ class TestMCPOAuthDynamicClientPackage:
     @pytest.mark.asyncio
     async def test_dynamic_client_registration_rfc7591(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test RFC 7591 dynamic client registration functionality."""
         # MUST have OAuth access token for registration
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -169,7 +166,7 @@ class TestMCPOAuthDynamicClientPackage:
     @pytest.mark.asyncio
     async def test_client_registration_validation(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test client registration validation rules."""
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available"
 
@@ -217,7 +214,7 @@ class TestMCPOAuthDynamicClientPackage:
     @pytest.mark.asyncio
     async def test_authorization_endpoint_with_registered_client(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test authorization endpoint with a dynamically registered client."""
         # First register a client
         client_name = "TEST test_authorization_endpoint_with_registered_client"
@@ -268,7 +265,7 @@ class TestMCPOAuthDynamicClientPackage:
     @pytest.mark.asyncio
     async def test_token_endpoint_error_handling(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test token endpoint error handling per OAuth 2.0 spec."""
         # Test with invalid client credentials
         response = await http_client.post(
@@ -294,7 +291,7 @@ class TestMCPOAuthDynamicClientPackage:
     @pytest.mark.asyncio
     async def test_redis_integration(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that mcp-oauth-dynamicclient correctly integrates with Redis."""
         # Register a client
         client_name = "TEST test_redis_integration"
@@ -353,7 +350,7 @@ class TestMCPOAuthDynamicClientPackage:
     @pytest.mark.asyncio
     async def test_pkce_support(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test PKCE (RFC 7636) support in the auth service."""
         # Register a client
         registration_response = await http_client.post(
@@ -421,7 +418,7 @@ class TestMCPOAuthDynamicClientPackage:
     @pytest.mark.asyncio
     async def test_concurrent_client_registrations(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that multiple clients can register concurrently."""
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available"
 
@@ -480,7 +477,7 @@ class TestMCPOAuthDynamicClientPackage:
     @pytest.mark.asyncio
     async def test_invalid_grant_types(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test handling of unsupported grant types."""
         # First register a client
         registration_response = await http_client.post(
@@ -531,7 +528,7 @@ class TestMCPOAuthDynamicClientIntegration:
     @pytest.mark.asyncio
     async def test_full_oauth_flow_with_mcp_client(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test complete OAuth flow using MCP client tokens."""
         # Use MCP_CLIENT_ACCESS_TOKEN for registration
         assert MCP_CLIENT_ACCESS_TOKEN, "MCP_CLIENT_ACCESS_TOKEN not available"
@@ -569,7 +566,7 @@ class TestMCPOAuthDynamicClientIntegration:
     @pytest.mark.asyncio
     async def test_auth_service_handles_invalid_tokens(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test auth service properly rejects invalid tokens."""
         # The /register endpoint may be public (no auth required) per RFC 7591
         # Try registration with invalid token

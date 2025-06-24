@@ -13,19 +13,19 @@ import pytest
 
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
-from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestClaudeIntegration:
     """Test the complete Claude.ai integration flow."""
 
     @pytest.mark.asyncio
-    async def test_claude_nine_sacred_steps(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_claude_nine_sacred_steps(self, http_client, wait_for_services):
         """Test the Nine Sacred Steps of Claude.ai Connection."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -167,7 +167,7 @@ class TestClaudeIntegration:
                     print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_claude_auth_discovery_flow(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_claude_auth_discovery_flow(self, http_client, wait_for_services):
         """Test Claude.ai's OAuth discovery process."""
         # Claude.ai discovers auth is required
         mcp_response = await http_client.get(
@@ -228,7 +228,7 @@ class TestClaudeIntegration:
         assert error["detail"]["error"] == "invalid_grant"  # Correct error for bad code
 
     @pytest.mark.asyncio
-    async def test_claude_mcp_streaming(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_claude_mcp_streaming(self, http_client, wait_for_services):
         """Test MCP streaming capabilities for Claude.ai."""
         # Test that MCP endpoint supports streaming headers
         headers = {"Accept": "text/event-stream"}
@@ -286,7 +286,7 @@ class TestClaudeIntegration:
         assert response.status_code in [302, 307]
 
     @pytest.mark.asyncio
-    async def test_claude_session_management(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_claude_session_management(self, http_client, wait_for_services):
         """Test MCP session handling for Claude.ai."""
         # Test session creation and management
         session_id = f"claude-session-{secrets.token_urlsafe(16)}"

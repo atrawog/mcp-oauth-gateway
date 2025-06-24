@@ -1,6 +1,8 @@
 from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
+
+
 """Integration tests for native MCP fetch streamablehttp server."""
 
 import httpx

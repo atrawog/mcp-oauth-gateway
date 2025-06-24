@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import secrets
+from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
 from typing import Any
@@ -72,10 +73,10 @@ class OAuthClient:
         # Calculate expiration time
         if "expires_at" in token:
             self.settings.oauth_token_expires_at = datetime.fromtimestamp(
-                token["expires_at"]
+                token["expires_at"], tz=UTC
             )
         elif "expires_in" in token:
-            self.settings.oauth_token_expires_at = datetime.utcnow() + timedelta(
+            self.settings.oauth_token_expires_at = datetime.now(UTC) + timedelta(
                 seconds=token["expires_in"]
             )
 

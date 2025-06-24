@@ -100,10 +100,7 @@ class StreamableHTTPTransport:
 
             # Convert to JSONRPCMessage
             if "method" in data:
-                if "id" in data:
-                    message = JSONRPCRequest(**data)
-                else:
-                    message = JSONRPCNotification(**data)
+                message = JSONRPCRequest(**data) if "id" in data else JSONRPCNotification(**data)
             else:
                 return (
                     400,
@@ -178,7 +175,7 @@ class StreamableHTTPTransport:
     async def _handle_get_request(
         self,
         headers: dict[str, str],
-        session_id: str | None,  # noqa: ARG002
+        session_id: str | None,
     ) -> tuple[int, dict[str, str], bytes]:
         """Handle GET /mcp request for SSE."""
         # For now, return 501 Not Implemented

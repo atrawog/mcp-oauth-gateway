@@ -20,7 +20,7 @@ class TestTraefikRouting:
     """Test Traefik routing configuration for all services."""
 
     @pytest.mark.asyncio
-    async def test_auth_service_routing(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_auth_service_routing(self, http_client, wait_for_services):
         """Test that auth service routes are accessible."""
         # Test well-known endpoint
         response = await http_client.get(
@@ -35,7 +35,7 @@ class TestTraefikRouting:
         # Already tested above
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_root_requires_auth(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_mcp_fetch_root_requires_auth(self, http_client, wait_for_services):
         """Test that MCP service root requires authentication."""
         response = await http_client.get(MCP_FETCH_URL, follow_redirects=False)
         # With catch-all route, should get 401 from auth middleware
@@ -89,7 +89,7 @@ class TestTraefikRouting:
     # per CLAUDE.md - use MCP protocol health checks instead
 
     @pytest.mark.asyncio
-    async def test_all_mcp_paths_require_auth(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_all_mcp_paths_require_auth(self, http_client, wait_for_services):
         """Test that all MCP paths require authentication."""
         paths_to_test = [
             "/mcp",
@@ -112,7 +112,7 @@ class TestTraefikRouting:
             )
 
     @pytest.mark.asyncio
-    async def test_routing_priority_order(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_routing_priority_order(self, http_client, wait_for_services):
         """Test that routing priorities work correctly."""
         # Auth routes should have highest priority
         response = await http_client.get(f"{AUTH_BASE_URL}/authorize")
@@ -126,7 +126,7 @@ class TestTraefikRouting:
         assert response.status_code == HTTP_OK
 
     @pytest.mark.asyncio
-    async def test_cross_domain_routing(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_cross_domain_routing(self, http_client, wait_for_services):
         """Test that each subdomain routes to correct service."""
         # Auth subdomain
         response = await http_client.get(

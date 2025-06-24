@@ -9,14 +9,10 @@ import os
 import httpx
 import pytest
 
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
-from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
-from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 
 
 # MCP Client tokens for external client testing
@@ -347,9 +343,8 @@ class TestMCPLifecycleCompliance:
                 "method": "initialize",
                 "params": {
                     "protocolVersion": MCP_PROTOCOL_VERSION,
-                    "capabilities": {},
-                    "clientInfo": {"name": "capability-test", "version": "1.0.0"},
                     "capabilities": {"tools": True, "prompts": True, "resources": True},
+                    "clientInfo": {"name": "capability-test", "version": "1.0.0"},
                 },
                 "id": 1,
             },

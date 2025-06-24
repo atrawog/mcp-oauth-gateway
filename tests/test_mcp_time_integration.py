@@ -139,7 +139,7 @@ class TestMCPTimeIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_initialize(self, mcp_time_url, client_token, wait_for_services):  # noqa: ARG002
+    async def test_time_initialize(self, mcp_time_url, client_token, wait_for_services):
         time_url = f"{mcp_time_url}"
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
@@ -175,7 +175,7 @@ class TestMCPTimeIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_list_tools(self, mcp_time_url, client_token, wait_for_services):  # noqa: ARG002
+    async def test_time_list_tools(self, mcp_time_url, client_token, wait_for_services):
         time_url = f"{mcp_time_url}"
         """Test listing available tools."""
         # First initialize

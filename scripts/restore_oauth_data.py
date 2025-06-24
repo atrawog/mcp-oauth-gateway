@@ -263,16 +263,15 @@ class OAuthRestore:
                             await self.redis_client.expire(full_key, ttl)
 
                     # Show progress for important items
-                    if category in ["registrations", "tokens"]:
-                        if "parsed" in data:
-                            parsed = data["parsed"]
-                            if category == "registrations":
-                                client_name = parsed.get("client_name", "Unknown")
-                                print(f"  ✅ {full_key} → {client_name}")
-                            elif category == "tokens":
-                                username = parsed.get("username", "Unknown")
-                                client_id = parsed.get("client_id", "Unknown")
-                                print(f"  ✅ {full_key} → {username} ({client_id})")
+                    if category in ["registrations", "tokens"] and "parsed" in data:
+                        parsed = data["parsed"]
+                        if category == "registrations":
+                            client_name = parsed.get("client_name", "Unknown")
+                            print(f"  ✅ {full_key} → {client_name}")
+                        elif category == "tokens":
+                            username = parsed.get("username", "Unknown")
+                            client_id = parsed.get("client_id", "Unknown")
+                            print(f"  ✅ {full_key} → {username} ({client_id})")
 
                     restored_counts[category] += 1
 

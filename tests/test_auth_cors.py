@@ -44,10 +44,7 @@ class TestAuthCORS:
         ]
 
         # If CORS is set to wildcard, test with a sample origin
-        if self.cors_origins == ["*"]:
-            test_origins = ["https://example.com"]
-        else:
-            test_origins = self.cors_origins
+        test_origins = ["https://example.com"] if self.cors_origins == ["*"] else self.cors_origins
 
         # Test OPTIONS request (CORS preflight) for each endpoint and origin
         with httpx.Client(verify=False, timeout=10.0) as client:
@@ -113,10 +110,7 @@ class TestAuthCORS:
         )
 
         # If CORS is set to wildcard, use a test origin
-        if self.cors_origins == ["*"]:
-            test_origin = "https://example.com"
-        else:
-            test_origin = self.cors_origins[0]
+        test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
 
         with httpx.Client(verify=False, timeout=10.0) as client:
             response = client.get(metadata_url, headers={"Origin": test_origin})
@@ -159,10 +153,7 @@ class TestAuthCORS:
         )
 
         # If CORS is set to wildcard, use a test origin
-        if self.cors_origins == ["*"]:
-            test_origin = "https://example.com"
-        else:
-            test_origin = self.cors_origins[0]
+        test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
 
         with httpx.Client(verify=False, timeout=10.0) as client:
             response = client.get(health_url, headers={"Origin": test_origin})

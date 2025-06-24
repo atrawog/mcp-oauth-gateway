@@ -10,11 +10,7 @@ import pytest
 
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 
@@ -30,7 +26,7 @@ class TestMCPProxyBasicFunctionality:
     @pytest.mark.asyncio
     async def test_health_endpoint_accessible(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that the MCP service is accessible (health is checked via MCP protocol)."""
         # According to CLAUDE.md, health checks use MCP protocol, not /health endpoint
         # We test accessibility by checking if auth is required
@@ -41,7 +37,7 @@ class TestMCPProxyBasicFunctionality:
     @pytest.mark.asyncio
     async def test_mcp_endpoint_requires_auth(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that the MCP endpoint requires authentication."""
         response = await http_client.post(
             f"{MCP_FETCH_URL}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}, timeout=30.0)
@@ -52,7 +48,7 @@ class TestMCPProxyBasicFunctionality:
     @pytest.mark.asyncio
     async def test_invalid_json_rpc_request(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that invalid JSON-RPC requests are properly rejected."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -78,7 +74,7 @@ class TestMCPProxyAuthentication:
     @pytest.mark.asyncio
     async def test_gateway_token_authentication(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test authentication using gateway OAuth token."""
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
             pytest.fail(
@@ -108,7 +104,7 @@ class TestMCPProxyAuthentication:
     @pytest.mark.asyncio
     async def test_mcp_client_token_authentication(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test authentication using MCP client token."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -141,7 +137,7 @@ class TestMCPProxyAuthentication:
     @pytest.mark.asyncio
     async def test_invalid_token_rejected(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that invalid tokens are rejected."""
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
@@ -156,7 +152,7 @@ class TestMCPProtocolInitialization:
     @pytest.mark.asyncio
     async def test_initialize_request(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test the initialize request following MCP 2025-06-18 spec."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -200,7 +196,7 @@ class TestMCPProtocolInitialization:
     @pytest.mark.asyncio
     async def test_initialized_notification(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test sending initialized notification after initialize."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -238,7 +234,7 @@ class TestMCPFetchCapabilities:
     @pytest.mark.asyncio
     async def test_fetch_capability_available(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that mcp-server-fetch reports fetch capability."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -268,7 +264,7 @@ class TestMCPFetchCapabilities:
         assert "tools" in capabilities
 
     @pytest.mark.asyncio
-    async def test_list_tools(self, http_client: httpx.AsyncClient, wait_for_services):  # noqa: ARG002
+    async def test_list_tools(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test listing available tools from mcp-server-fetch."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -331,7 +327,7 @@ class TestMCPProxyErrorHandling:
     @pytest.mark.asyncio
     async def test_method_not_found(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that unknown methods return proper JSON-RPC error."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -381,7 +377,7 @@ class TestMCPProxyErrorHandling:
     @pytest.mark.asyncio
     async def test_invalid_params(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that invalid parameters return proper error."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -413,7 +409,7 @@ class TestMCPProxyHeaders:
     @pytest.mark.asyncio
     async def test_mcp_protocol_version_header(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that MCP-Protocol-Version header is handled."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -433,7 +429,7 @@ class TestMCPProxyHeaders:
     @pytest.mark.asyncio
     async def test_cors_headers_on_options(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test CORS headers on OPTIONS request."""
         response = await http_client.options(
             f"{MCP_FETCH_URL}", headers={"Origin": "https://claude.ai"}

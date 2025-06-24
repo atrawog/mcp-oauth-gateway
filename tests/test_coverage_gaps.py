@@ -15,10 +15,10 @@ from .jwt_test_helper import encode as jwt_encode
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
-from .test_constants import HTTP_OK
-from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_INTERNAL_SERVER_ERROR
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
 
 
 # JWT Algorithm is a protocol constant, not configuration
@@ -212,7 +212,7 @@ class TestCoverageGaps:
         )
 
     @pytest.mark.asyncio
-    async def test_verify_endpoint_revoked_token(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_verify_endpoint_revoked_token(self, http_client, wait_for_services):
         """Test verify endpoint with revoked token (lines 595-606)."""
         # Create a JWT token that would be valid but has been revoked
         now = int(time.time())
@@ -248,7 +248,7 @@ class TestCoverageGaps:
         )
 
     @pytest.mark.asyncio
-    async def test_revoke_endpoint_invalid_client(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_revoke_endpoint_invalid_client(self, http_client, wait_for_services):
         """Test revoke endpoint with invalid client (lines 682-686)."""
         # Test with non-existent client
         response = await http_client.post(
@@ -403,7 +403,7 @@ class TestCallbackEndpoint:
     """Test the GitHub OAuth callback flow (lines 302-384)."""
 
     @pytest.mark.asyncio
-    async def test_callback_invalid_state(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_callback_invalid_state(self, http_client, wait_for_services):
         """Test callback with invalid or expired state."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/callback",

@@ -19,7 +19,7 @@ class TestSacredSealsCompliance:
     """Test all 25 Sacred Seals for 100% divine compliance."""
 
     @pytest.mark.asyncio
-    async def test_redis_key_patterns_and_ttls(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_redis_key_patterns_and_ttls(self, http_client, wait_for_services):
         """Test SEAL OF REDIS PATTERNS - Sacred key hierarchies preserve all state."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -152,7 +152,7 @@ class TestSacredSealsCompliance:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_dual_realms_architecture(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_dual_realms_architecture(self, http_client, wait_for_services):
         """Test SEAL OF DUAL REALMS - Client auth and user auth never intermingle."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (

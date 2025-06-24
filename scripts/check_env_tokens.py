@@ -72,13 +72,10 @@ def check_token(env_vars: dict[str, str], token: str, description: str) -> tuple
 
     if not value:
         return False, f"{RED}✗ Missing{RESET}"
-    if value.startswith("your_") or value.startswith("xxx...") or value == "":
+    if value.startswith(("your_", "xxx...")) or value == "":
         return False, f"{YELLOW}⚠ Not configured (placeholder value){RESET}"
     # Truncate for display
-    if len(value) > 20:
-        display_value = f"{value[:8]}...{value[-8:]}"
-    else:
-        display_value = value
+    display_value = f"{value[:8]}...{value[-8:]}" if len(value) > 20 else value
     return True, f"{GREEN}✓ Set ({display_value}){RESET}"
 
 

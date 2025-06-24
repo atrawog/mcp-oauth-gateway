@@ -1,8 +1,9 @@
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
+
+
 """Comprehensive integration tests for mcp-fetchs native implementation."""
 
-import json
 
 import httpx
 import pytest

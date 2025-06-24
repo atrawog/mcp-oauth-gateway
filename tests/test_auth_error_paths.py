@@ -11,10 +11,10 @@ from .jwt_test_helper import encode as jwt_encode
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_CLIENT_ID
 from .test_constants import GATEWAY_OAUTH_CLIENT_SECRET
+from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_OK
 from .test_constants import JWT_SECRET
-from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestHealthCheckErrors:

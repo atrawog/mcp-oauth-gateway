@@ -8,10 +8,10 @@ import os
 import httpx
 import pytest
 
+from .test_constants import HTTP_OK
 from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import TEST_HTTP_TIMEOUT
-from .test_constants import HTTP_OK
 
 
 # MCP Client tokens for external client testing
@@ -24,7 +24,7 @@ class TestMCPProxyWithSessionHandling:
     @pytest.mark.asyncio
     async def test_initialize_returns_session_id(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that initialize returns a session ID in headers."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -59,7 +59,7 @@ class TestMCPProxyWithSessionHandling:
     @pytest.mark.asyncio
     async def test_session_persists_with_header(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that session persists when using Mcp-Session-Id header."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -110,7 +110,7 @@ class TestMCPProxyWithSessionHandling:
     @pytest.mark.asyncio
     async def test_request_without_session_id_fails(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that non-initialize requests without session ID fail appropriately."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -131,7 +131,7 @@ class TestMCPProxyWithSessionHandling:
     @pytest.mark.asyncio
     async def test_invalid_session_id_rejected(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that invalid session IDs are rejected."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -158,7 +158,7 @@ class TestMCPProtocolFlowWithSessions:
     @pytest.mark.asyncio
     async def test_complete_mcp_flow(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test complete MCP flow: initialize -> initialized -> tools/list -> tool/call."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -242,7 +242,7 @@ class TestMCPSessionIsolation:
     """Test that sessions are properly isolated."""
 
     @pytest.mark.asyncio
-    async def test_sessions_are_isolated(self, wait_for_services):  # noqa: ARG002
+    async def test_sessions_are_isolated(self, wait_for_services):
         """Test that different clients get different isolated sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -368,7 +368,7 @@ class TestMCPWithHelper:
     @pytest.mark.asyncio
     async def test_complete_flow_with_helper(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test complete MCP flow using helper class."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(

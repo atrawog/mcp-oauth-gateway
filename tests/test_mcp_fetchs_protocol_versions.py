@@ -1,5 +1,7 @@
 from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_OK
+
+
 """Tests for MCP protocol version support validation."""
 
 import os

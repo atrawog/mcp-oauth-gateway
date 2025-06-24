@@ -1,5 +1,7 @@
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
+
+
 """Security-focused tests for mcp-fetchs native implementation."""
 
 import httpx
@@ -69,7 +71,7 @@ class TestMCPFetchsSecurity:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_token_validation(self, mcp_fetchs_url, wait_for_services):  # noqa: ARG002
+    async def test_fetchs_token_validation(self, mcp_fetchs_url, wait_for_services):
         """Test token validation with various invalid formats."""
         invalid_tokens = [
             "not-a-jwt",

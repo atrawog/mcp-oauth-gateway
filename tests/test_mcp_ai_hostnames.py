@@ -9,11 +9,7 @@ import pytest
 
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import MCP_PROTOCOL_VERSION
 
 

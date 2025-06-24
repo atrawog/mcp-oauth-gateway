@@ -1,4 +1,6 @@
 from .test_constants import HTTP_UNAUTHORIZED
+
+
 """Sacred MCP Fetch Integration Tests - Testing real MCP fetch with OAuth
 Following CLAUDE.md - NO MOCKING, real services only!
 """

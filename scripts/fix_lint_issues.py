@@ -7,7 +7,7 @@ from pathlib import Path
 
 def fix_arg002_in_tests(content: str) -> str:
     """Fix ARG002 errors for pytest fixtures in test files.
-    
+
     Root cause: Pytest fixtures like wait_for_services are dependency injection
     that ensure preconditions but don't need explicit usage in test body.
     """
@@ -29,7 +29,7 @@ def fix_arg002_in_tests(content: str) -> str:
 
 def fix_http_status_codes(content: str) -> str:
     """Replace magic numbers with HTTP status constants.
-    
+
     Root cause: Hardcoded HTTP status codes reduce maintainability.
     """
     # Add import if not present
@@ -69,7 +69,7 @@ def fix_http_status_codes(content: str) -> str:
 
 def fix_docstring_formatting(content: str) -> str:
     """Fix D205 errors - add blank line after docstring summary.
-    
+
     Root cause: PEP 257 requires blank line after summary in multi-line docstrings.
     """
     # Pattern: """Summary line\nMore text without blank line
@@ -81,7 +81,7 @@ def fix_docstring_formatting(content: str) -> str:
 
 def fix_line_length(content: str) -> str:
     """Fix E501 errors - break long lines.
-    
+
     Root cause: Lines exceed 88 character limit.
     """
     lines = content.split('\n')
@@ -113,7 +113,7 @@ def fix_line_length(content: str) -> str:
 
 def fix_timeout_issues(content: str) -> str:
     """Add timeout to HTTP requests to fix S501.
-    
+
     Root cause: HTTP requests without timeout can hang indefinitely.
     """
     # Pattern for httpx calls without timeout

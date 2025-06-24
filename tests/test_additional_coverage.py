@@ -10,18 +10,16 @@ import pytest
 
 from .jwt_test_helper import encode as jwt_encode
 from .test_constants import ACCESS_TOKEN_LIFETIME
-from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
-from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_BAD_REQUEST
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import TEST_CLIENT_NAME
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_REDIRECT_URI
-from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestAdditionalCoverage:
@@ -32,7 +30,7 @@ class TestAdditionalCoverage:
         self,
         http_client,
         wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test various missing/malformed authorization headers."""
         # Test with no Authorization header at all (already covered)
         response = await http_client.get(f"{AUTH_BASE_URL}/verify", timeout=30.0)
@@ -63,7 +61,7 @@ class TestAdditionalCoverage:
         self,
         http_client,
         wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test token endpoint with missing client credentials."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -140,7 +138,7 @@ class TestAdditionalCoverage:
     async def test_introspect_with_malformed_token(
         self,
         http_client,
-        wait_for_services,  # noqa: ARG002
+        wait_for_services,
         registered_client,
     ):
         """Test introspect endpoint with various malformed tokens."""
@@ -171,7 +169,7 @@ class TestAdditionalCoverage:
         assert result["active"] is False
 
     @pytest.mark.asyncio
-    async def test_registration_with_minimal_data(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_registration_with_minimal_data(self, http_client, wait_for_services):
         """Test client registration with only required fields."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -232,7 +230,7 @@ class TestAdditionalCoverage:
     async def test_jwt_with_invalid_signature(
         self,
         http_client,
-        wait_for_services,  # noqa: ARG002
+        wait_for_services,
         registered_client,
     ):
         """Test JWT verification with invalid signature."""
@@ -267,7 +265,7 @@ class TestAdditionalCoverage:
     async def test_authorize_endpoint_missing_parameters(
         self,
         http_client,
-        wait_for_services,  # noqa: ARG002
+        wait_for_services,
         registered_client,
     ):
         """Test authorize endpoint with missing required parameters."""

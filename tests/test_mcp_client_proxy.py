@@ -13,11 +13,7 @@ import pytest
 
 from .test_constants import BASE_DOMAIN
 from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 
@@ -32,7 +28,7 @@ class TestMCPClientProxyBasics:
     @pytest.mark.asyncio
     async def test_proxy_health_check(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that the MCP proxy service is healthy using MCP protocol per divine CLAUDE.md."""
         # Health checks should use MCP protocol initialization
         request_data = {
@@ -78,7 +74,7 @@ class TestMCPClientProxyBasics:
     @pytest.mark.asyncio
     async def test_proxy_requires_authentication(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that proxy endpoints require authentication."""
         # Try to access MCP endpoint without auth
         response = await http_client.post(
@@ -110,7 +106,7 @@ class TestMCPProtocolHandling:
     @pytest.mark.asyncio
     async def test_initialize_request(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test MCP initialize request through proxy."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -159,7 +155,7 @@ class TestMCPProtocolHandling:
     @pytest.mark.asyncio
     async def test_session_management(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test session management through proxy."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -205,7 +201,7 @@ class TestMCPProtocolHandling:
     @pytest.mark.asyncio
     async def test_protocol_version_negotiation(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test protocol version negotiation."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -246,7 +242,7 @@ class TestProxyErrorHandling:
     @pytest.mark.asyncio
     async def test_invalid_json_rpc_request(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test handling of invalid JSON-RPC requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -278,7 +274,7 @@ class TestProxyErrorHandling:
     @pytest.mark.asyncio
     async def test_method_not_found(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test handling of unknown methods."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -306,7 +302,7 @@ class TestProxyErrorHandling:
     @pytest.mark.asyncio
     async def test_expired_token_handling(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test proxy behavior with expired tokens."""
         # Use an obviously expired token
         response = await http_client.post(
@@ -326,7 +322,7 @@ class TestProxyRealWorldScenarios:
     @pytest.mark.asyncio
     async def test_tools_listing(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test listing available tools through proxy."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -362,7 +358,7 @@ class TestProxyRealWorldScenarios:
     @pytest.mark.asyncio
     async def test_concurrent_sessions(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test handling multiple concurrent sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -408,7 +404,7 @@ class TestProxyRealWorldScenarios:
     @pytest.mark.asyncio
     async def test_large_request_handling(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test handling of large requests through proxy."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -468,7 +464,7 @@ class TestProxyAuthenticationFlows:
     @pytest.mark.asyncio
     async def test_bearer_token_authentication(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test Bearer token authentication."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -499,7 +495,7 @@ class TestProxyAuthenticationFlows:
     @pytest.mark.asyncio
     async def test_oauth_discovery_through_proxy(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test OAuth discovery endpoint through proxy domain."""
         # This should be publicly accessible
         # Remove /mcp suffix from URL to get base domain
@@ -522,7 +518,7 @@ class TestProxyAuthenticationFlows:
     @pytest.mark.asyncio
     async def test_auth_error_details(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test auth error response details."""
         # Test various invalid auth scenarios
         test_cases = [
@@ -554,7 +550,7 @@ class TestProxyPerformance:
     @pytest.mark.asyncio
     async def test_response_times(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test typical response times through proxy."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -598,7 +594,7 @@ class TestProxyPerformance:
     @pytest.mark.asyncio
     async def test_connection_reuse(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that connections are reused efficiently."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(

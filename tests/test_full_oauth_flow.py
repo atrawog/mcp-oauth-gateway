@@ -13,12 +13,12 @@ from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import GATEWAY_OAUTH_CLIENT_ID
 from .test_constants import GATEWAY_OAUTH_CLIENT_SECRET
+from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import TEST_REDIRECT_URI
-from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestFullOAuthFlow:

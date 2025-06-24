@@ -1,5 +1,6 @@
 """Configuration management for MCP HTTP-to-stdio proxy."""
 
+from datetime import UTC
 from datetime import datetime
 
 from pydantic import Field
@@ -119,7 +120,7 @@ class Settings(BaseSettings):
 
         if self.oauth_token_expires_at:
             # Check if token is expired
-            return datetime.utcnow() < self.oauth_token_expires_at
+            return datetime.now(UTC) < self.oauth_token_expires_at
 
         # If no expiration, assume token is valid
         return True

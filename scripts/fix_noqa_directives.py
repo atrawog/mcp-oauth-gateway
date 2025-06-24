@@ -14,7 +14,7 @@ def fix_invalid_noqa_directives(content: str) -> str:
     content = re.sub(pattern, replacement, content)
 
     # Also fix lines where noqa was added at the wrong place
-    # Pattern: parameter, # noqa: ARG002):
+    # Pattern: parameter, noqa ARG002 at wrong position
     pattern2 = r'(wait_for_services|capsys|caplog|tmp_path|monkeypatch),\s*#\s*noqa:\s*ARG002(\s*\):)'
     replacement2 = r'\1\2  # noqa: ARG002'
 

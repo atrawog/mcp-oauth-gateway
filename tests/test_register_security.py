@@ -16,7 +16,7 @@ class TestRegisterEndpointSecurity:
     """Test OAuth client registration endpoint security."""
 
     @pytest.mark.asyncio
-    async def test_register_is_public_endpoint(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_register_is_public_endpoint(self, http_client, wait_for_services):
         """Test that /register endpoint is public per RFC 7591."""
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],

@@ -1,5 +1,7 @@
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
+
+
 """Comprehensive integration tests for MCP Tmux service.
 Tests all tmux functionality including session management, pane operations, and command execution.
 """
@@ -178,7 +180,7 @@ class TestMCPTmuxIntegration:
         assert "capabilities" in result
         assert "serverInfo" in result
 
-    def test_tmux_list_tools(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
+    def test_tmux_list_tools(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test listing available tmux tools."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url, token=mcp_client_token, method="tools/list"
@@ -222,7 +224,7 @@ class TestMCPTmuxIntegration:
                     "default" in session_info["text"] or len(session_info["text"]) > 0
                 )
 
-    def test_tmux_capture_pane(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
+    def test_tmux_capture_pane(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test capturing pane content."""
         # First list sessions to get a valid session
         sessions_response = self.run_mcp_client_raw(
@@ -276,7 +278,7 @@ class TestMCPTmuxIntegration:
             result = response["result"]
             assert "content" in result
 
-    def test_tmux_new_session(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
+    def test_tmux_new_session(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test creating a new tmux session."""
         session_name = "test-session-123"
 
@@ -333,7 +335,7 @@ class TestMCPTmuxIntegration:
             result = response["result"]
             assert "contents" in result
 
-    def test_tmux_send_keys(self, mcp_tmux_url, mcp_client_token, wait_for_services):  # noqa: ARG002
+    def test_tmux_send_keys(self, mcp_tmux_url, mcp_client_token, wait_for_services):
         """Test sending keys to a tmux pane."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,

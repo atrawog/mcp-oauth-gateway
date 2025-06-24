@@ -49,13 +49,12 @@ class TestCompletenessChecker(ast.NodeVisitor):
         """Check for status code comparisons."""
         if self.current_function:
             # Check if comparing status_code
-            if isinstance(node.left, ast.Attribute):
-                if (
-                    hasattr(node.left.value, "attr")
-                    and node.left.value.attr == "response"
-                    and node.left.attr == "status_code"
-                ):
-                    self.has_status_check = True
+            if isinstance(node.left, ast.Attribute) and (
+                hasattr(node.left.value, "attr")
+                and node.left.value.attr == "response"
+                and node.left.attr == "status_code"
+            ):
+                self.has_status_check = True
 
         self.generic_visit(node)
 

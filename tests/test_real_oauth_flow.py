@@ -19,12 +19,6 @@ import pytest
 # Import all configuration from test_constants - NO HARDCODED VALUES!
 from .jwt_test_helper import encode as jwt_encode
 from .test_constants import AUTH_BASE_URL
-from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
-from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
@@ -32,15 +26,17 @@ from .test_constants import GATEWAY_OAUTH_CLIENT_ID
 from .test_constants import GATEWAY_OAUTH_CLIENT_SECRET
 from .test_constants import GATEWAY_OAUTH_REFRESH_TOKEN
 from .test_constants import GITHUB_PAT
-from .test_constants import TEST_CALLBACK_URL
 from .test_constants import HTTP_BAD_REQUEST
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import TEST_CALLBACK_URL
 
 
 class TestRealOAuthFlow:
     """Test REAL OAuth flow with REAL GitHub authentication - NO SIMULATION!"""
 
     @pytest.mark.asyncio
-    async def test_complete_github_oauth_flow(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_complete_github_oauth_flow(self, http_client, wait_for_services):
         """Test complete OAuth flow using REAL stored tokens from successful auth."""
         # REQUIRE real OAuth tokens - fail if not available
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
@@ -187,7 +183,7 @@ class TestRealPKCEFlow:
     """Test REAL PKCE flow with REAL OAuth client."""
 
     @pytest.mark.asyncio
-    async def test_pkce_with_real_client(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_pkce_with_real_client(self, http_client, wait_for_services):
         """Test PKCE verification with REAL OAuth client."""
         # REQUIRE real OAuth client credentials
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
@@ -248,7 +244,7 @@ class TestRealJWTTokens:
     """Test REAL JWT token operations with REAL credentials."""
 
     @pytest.mark.asyncio
-    async def test_real_jwt_token_operations(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_real_jwt_token_operations(self, http_client, wait_for_services):
         """Test JWT operations using REAL tokens and REAL Redis storage."""
         # REQUIRE real OAuth client for token operations
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:

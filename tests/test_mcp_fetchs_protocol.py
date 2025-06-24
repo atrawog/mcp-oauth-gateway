@@ -1,4 +1,6 @@
 from .test_constants import HTTP_OK
+
+
 """MCP protocol compliance tests for mcp-fetchs native implementation."""
 
 import json

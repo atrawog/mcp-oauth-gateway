@@ -9,12 +9,7 @@ import httpx
 import pytest
 
 from .test_constants import BASE_DOMAIN
-from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import MCP_FETCH_URL
 
 
@@ -26,7 +21,7 @@ class TestClaudeAIRoutingScenario:
         self,
         http_client,
         wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test the exact flow Claude.ai uses:
 
         1. Try to access /mcp endpoint
@@ -72,7 +67,7 @@ class TestClaudeAIRoutingScenario:
         self,
         http_client,
         wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that /mcp works with and without trailing slash."""
         paths = ["/mcp", "/mcp/"]
 
@@ -92,7 +87,7 @@ class TestClaudeAIRoutingScenario:
             )
 
     @pytest.mark.asyncio
-    async def test_traefik_path_routing_exists(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_traefik_path_routing_exists(self, http_client, wait_for_services):
         """Test that Traefik routing includes PathPrefix rule.
 
         This is the test that would have caught our bug!
@@ -148,7 +143,7 @@ class TestClaudeAIRoutingScenario:
         self,
         http_client,
         wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that accessing base domain without path requires auth."""
         # Just accessing the base domain should trigger auth
         response = await http_client.get(MCP_FETCH_URL, timeout=30.0)
@@ -162,7 +157,7 @@ class TestClaudeAIRoutingScenario:
         assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_exact_claude_ai_error_scenario(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_exact_claude_ai_error_scenario(self, http_client, wait_for_services):
         """Reproduce the EXACT error Claude.ai encountered.
 
         This test would FAIL with the old configuration!

@@ -10,9 +10,9 @@ import pytest
 
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GITHUB_CLIENT_ID
+from .test_constants import HTTP_FORBIDDEN
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_FORBIDDEN
 
 
 class TestGitHubCredentialsValid:
@@ -95,7 +95,7 @@ class TestGitHubCredentialsValid:
         )
 
     @pytest.mark.asyncio
-    async def test_github_oauth_app_valid(self, wait_for_services):  # noqa: ARG002
+    async def test_github_oauth_app_valid(self, wait_for_services):
         """Test if GitHub OAuth app credentials are valid."""
         # Try to reach GitHub OAuth authorize endpoint with our app
         async with httpx.AsyncClient(timeout=30.0) as client:

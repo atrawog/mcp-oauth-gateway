@@ -8,17 +8,17 @@ import pytest
 
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_OK
 from .test_constants import TEST_CALLBACK_URL
-from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestPKCES256Enforcement:
     """Test PKCE S256 enforcement per CLAUDE.md sacred commandments."""
 
     @pytest.mark.asyncio
-    async def test_pkce_plain_method_rejected(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_pkce_plain_method_rejected(self, http_client, wait_for_services):
         """Verify that plain PKCE method is rejected per CLAUDE.md commandments."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -82,7 +82,7 @@ class TestPKCES256Enforcement:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_pkce_s256_proper_validation(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_pkce_s256_proper_validation(self, http_client, wait_for_services):
         """Verify S256 PKCE validation actually works correctly."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (

@@ -27,6 +27,8 @@ from .test_constants import AUTH_BASE_URL
 from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_OAUTH_CLIENT_ID
 from .test_constants import GATEWAY_OAUTH_CLIENT_SECRET
+from .test_constants import HTTP_BAD_REQUEST
+from .test_constants import HTTP_FORBIDDEN
 from .test_constants import HTTP_NOT_FOUND
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
@@ -35,8 +37,6 @@ from .test_constants import JWT_PRIVATE_KEY_B64
 from .test_constants import REDIS_URL
 from .test_constants import TEST_CLIENT_NAME
 from .test_constants import TEST_REDIRECT_URI
-from .test_constants import HTTP_BAD_REQUEST
-from .test_constants import HTTP_FORBIDDEN
 
 
 class TestAuthAuthlibErrorHandling:
@@ -89,7 +89,7 @@ class TestAuthAuthlibErrorHandling:
         assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_create_refresh_token(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_create_refresh_token(self, http_client, wait_for_services):
         """Test refresh token creation via OAuth flow."""
         # This test requires full OAuth flow with GitHub which is complex
         # The refresh token functionality is already tested in other integration tests
@@ -232,7 +232,7 @@ class TestRoutesErrorHandling:
         )
 
     @pytest.mark.asyncio
-    async def test_callback_missing_state(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_callback_missing_state(self, http_client, wait_for_services):
         """Test callback endpoint with missing state."""
         response = await http_client.get(f"{AUTH_BASE_URL}/callback?code=test_code")
         # FastAPI returns 422 for missing required query parameters
@@ -244,7 +244,7 @@ class TestRoutesErrorHandling:
         )
 
     @pytest.mark.asyncio
-    async def test_callback_invalid_state(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_callback_invalid_state(self, http_client, wait_for_services):
         """Test callback endpoint with invalid state."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/callback?code=test_code&state=invalid_state"
@@ -258,7 +258,7 @@ class TestRoutesErrorHandling:
         )
 
     @pytest.mark.asyncio
-    async def test_callback_github_error(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_callback_github_error(self, http_client, wait_for_services):
         """Test callback endpoint with GitHub error."""
         # First create a valid state by registering a client and starting auth flow
         client_response = await http_client.post(
@@ -290,7 +290,7 @@ class TestRoutesErrorHandling:
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
     @pytest.mark.asyncio
-    async def test_introspect_malformed_token(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_introspect_malformed_token(self, http_client, wait_for_services):
         """Test introspect endpoint with malformed token."""
         response = await http_client.post(
             f"{AUTH_BASE_URL}/introspect",
@@ -305,7 +305,7 @@ class TestRoutesErrorHandling:
         assert data["active"] is False
 
     @pytest.mark.asyncio
-    async def test_introspect_token_not_in_redis(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_introspect_token_not_in_redis(self, http_client, wait_for_services):
         """Test introspect endpoint with token not in Redis."""
         # Create a valid JWT that's not in Redis
         private_key = self.get_rsa_private_key()
@@ -476,7 +476,7 @@ class TestRFC7592ErrorHandling:
     """Test RFC 7592 error handling."""
 
     @pytest.mark.asyncio
-    async def test_update_client_not_found(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_update_client_not_found(self, http_client, wait_for_services):
         """Test updating non-existent client."""
         response = await http_client.put(
             f"{AUTH_BASE_URL}/register/non_existent_client",
@@ -488,7 +488,7 @@ class TestRFC7592ErrorHandling:
         assert "Client not found" in response.text
 
     @pytest.mark.asyncio
-    async def test_update_client_invalid_token(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_update_client_invalid_token(self, http_client, wait_for_services):
         """Test updating client with invalid registration token."""
         # First register a client
         client_response = await http_client.post(
@@ -511,7 +511,7 @@ class TestRFC7592ErrorHandling:
         assert "Invalid or expired registration access token" in response.text
 
     @pytest.mark.asyncio
-    async def test_delete_client_not_found(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_delete_client_not_found(self, http_client, wait_for_services):
         """Test deleting non-existent client."""
         response = await http_client.delete(
             f"{AUTH_BASE_URL}/register/non_existent_client",
@@ -522,7 +522,7 @@ class TestRFC7592ErrorHandling:
         assert "Client not found" in response.text
 
     @pytest.mark.asyncio
-    async def test_get_client_with_expired_secret(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_get_client_with_expired_secret(self, http_client, wait_for_services):
         """Test getting client with expired secret check."""
         # Register a client
         client_response = await http_client.post(
@@ -630,7 +630,7 @@ class TestEdgeCasesAndBranches:
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
     @pytest.mark.asyncio
-    async def test_concurrent_token_operations(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_concurrent_token_operations(self, http_client, wait_for_services):
         """Test concurrent token operations don't cause race conditions."""
         # Register a client
         client_response = await http_client.post(
@@ -688,7 +688,7 @@ class TestEdgeCasesAndBranches:
         assert len(set(states)) == 3  # All states should be unique
 
     @pytest.mark.asyncio
-    async def test_error_response_formats(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_error_response_formats(self, http_client, wait_for_services):
         """Test various error response formats."""
         # Test invalid client credentials format
         response = await http_client.post(

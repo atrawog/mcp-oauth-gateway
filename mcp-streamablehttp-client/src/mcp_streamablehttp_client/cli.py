@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import sys
+from datetime import UTC
 from pathlib import Path
 from uuid import uuid4
 
@@ -360,7 +361,7 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
 
         # Check expiration
         if settings.oauth_token_expires_at:
-            now = datetime.utcnow()
+            now = datetime.now(UTC)
             expires_at = settings.oauth_token_expires_at
             time_left = expires_at - now
 
@@ -409,7 +410,7 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
     if not settings.oauth_access_token:
         needs_auth = True
     elif settings.oauth_token_expires_at:
-        time_until_expiry = settings.oauth_token_expires_at - datetime.utcnow()
+        time_until_expiry = settings.oauth_token_expires_at - datetime.now(UTC)
         if time_until_expiry.total_seconds() <= 0:
             if settings.oauth_refresh_token:
                 needs_refresh = True
@@ -887,7 +888,7 @@ async def handle_client_management(
                     issued_at = config["client_id_issued_at"]
                     from datetime import datetime
 
-                    dt = datetime.fromtimestamp(issued_at)
+                    dt = datetime.fromtimestamp(issued_at, tz=UTC)
                     console.print(f"  Issued At: {dt.isoformat()}Z")
 
                 if "client_secret_expires_at" in config:
@@ -895,7 +896,7 @@ async def handle_client_management(
                     if expires_at == 0:
                         console.print("  Expires: Never (eternal client)")
                     else:
-                        dt = datetime.fromtimestamp(expires_at)
+                        dt = datetime.fromtimestamp(expires_at, tz=UTC)
                         console.print(f"  Expires: {dt.isoformat()}Z")
 
                 # Show raw JSON for debugging

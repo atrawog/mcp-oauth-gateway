@@ -15,20 +15,20 @@ from .test_constants import AUTH_BASE_URL
 from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import REDIS_URL
 from .test_constants import TEST_CLIENT_NAME
 from .test_constants import TEST_REDIRECT_URI
-from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestHealthCheckErrors:
     """Test health check error scenarios - Lines 131-132."""
 
     @pytest.mark.asyncio
-    async def test_oauth_discovery_health_status(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_oauth_discovery_health_status(self, http_client, wait_for_services):
         """Test OAuth discovery endpoint as health indicator."""
         # OAuth discovery endpoint now serves as health check
         response = await http_client.get(
@@ -76,7 +76,7 @@ class TestClientRegistrationErrors:
     """Test client registration error scenarios - Line 327."""
 
     @pytest.mark.asyncio
-    async def test_registration_with_invalid_data(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_registration_with_invalid_data(self, http_client, wait_for_services):
         """Test various registration error conditions."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
@@ -115,7 +115,7 @@ class TestAuthorizationErrors:
     """Test authorization endpoint errors - Lines 342-384."""
 
     @pytest.mark.asyncio
-    async def test_authorize_with_invalid_client(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_authorize_with_invalid_client(self, http_client, wait_for_services):
         """Test authorization with non-existent client."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
@@ -223,7 +223,7 @@ class TestVerifyEndpointErrors:
     """Test verify endpoint edge cases - Lines 534-547."""
 
     @pytest.mark.asyncio
-    async def test_verify_with_malformed_tokens(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_verify_with_malformed_tokens(self, http_client, wait_for_services):
         """Test various token verification error scenarios."""
         # Test with completely invalid JWT format
         response = await http_client.get(
@@ -398,7 +398,7 @@ class TestCallbackEdgeCases:
     """Test callback endpoint edge cases - Lines 745, 760-761, 773-774."""
 
     @pytest.mark.asyncio
-    async def test_callback_error_scenarios(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_callback_error_scenarios(self, http_client, wait_for_services):
         """Test various callback error scenarios."""
         # Test callback with invalid state
         response = await http_client.get(

@@ -12,20 +12,20 @@ import pytest
 
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
+from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_NOT_FOUND
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import TEST_CALLBACK_URL
 from .test_constants import TEST_INVALID_REDIRECT_URI
-from .test_constants import HTTP_BAD_REQUEST
 
 
 class TestOAuthFlow:
     """Test the complete OAuth 2.1 flow."""
 
     @pytest.mark.asyncio
-    async def test_server_metadata(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_server_metadata(self, http_client, wait_for_services):
         """Test .well-known/oauth-authorization-server endpoint."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
@@ -46,7 +46,7 @@ class TestOAuthFlow:
         assert "authorization_code" in metadata["grant_types_supported"]
 
     @pytest.mark.asyncio
-    async def test_client_registration_rfc7591(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_client_registration_rfc7591(self, http_client, wait_for_services):
         """Test dynamic client registration per RFC 7591."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (

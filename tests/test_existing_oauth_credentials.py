@@ -12,16 +12,12 @@ import pytest
 
 from .jwt_test_helper import encode as jwt_encode
 from .test_constants import AUTH_BASE_URL
-from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
-from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import GITHUB_PAT
-from .test_constants import TEST_REDIRECT_URI
 from .test_constants import HTTP_BAD_REQUEST
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import TEST_REDIRECT_URI
 
 
 # Use the existing OAuth credentials from .env - these are optional
@@ -35,7 +31,7 @@ class TestExistingOAuthCredentials:
     @pytest.mark.asyncio
     async def test_token_endpoint_with_existing_client(
         self, http_client, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test token endpoint using existing client credentials."""
         # Fail with clear error if credentials not available
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
@@ -86,7 +82,7 @@ class TestExistingOAuthCredentials:
     @pytest.mark.asyncio
     async def test_introspect_with_existing_client(
         self, http_client, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test introspection endpoint with existing client."""
         # Create a test JWT token
         now = int(time.time())
@@ -120,7 +116,7 @@ class TestExistingOAuthCredentials:
         assert data["active"] is False  # Not in Redis
 
     @pytest.mark.asyncio
-    async def test_revoke_with_existing_client(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_revoke_with_existing_client(self, http_client, wait_for_services):
         """Test revocation with existing client credentials."""
         # Create a test token
         test_token = jwt_encode(
@@ -146,7 +142,7 @@ class TestExistingOAuthCredentials:
         assert response.status_code == HTTP_OK
 
     @pytest.mark.asyncio
-    async def test_github_pat_usage(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_github_pat_usage(self, http_client, wait_for_services):
         """Test using GitHub PAT to verify user info."""
         if not GITHUB_PAT:
             pytest.fail(
@@ -181,7 +177,7 @@ class TestCompleteFlowWithExistingClient:
     """Test a more complete flow using existing credentials."""
 
     @pytest.mark.asyncio
-    async def test_authorization_to_token_flow(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_authorization_to_token_flow(self, http_client, wait_for_services):
         """Test the authorization flow with existing client."""
         # Fail with clear error if credentials not available
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
@@ -243,7 +239,7 @@ class TestJWTOperations:
     """Test JWT-specific operations to increase coverage."""
 
     @pytest.mark.asyncio
-    async def test_verify_various_jwt_errors(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_verify_various_jwt_errors(self, http_client, wait_for_services):
         """Test different JWT error conditions."""
         # Test 1: Malformed JWT
         response = await http_client.get(
@@ -280,7 +276,7 @@ class TestJWTOperations:
         assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_introspect_expired_token(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_introspect_expired_token(self, http_client, wait_for_services):
         """Test introspecting an expired token."""
         # Create an expired token
         expired_token = jwt_encode(

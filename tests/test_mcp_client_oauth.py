@@ -14,15 +14,12 @@ import httpx
 import pytest
 
 from .test_constants import AUTH_BASE_URL
-from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
-from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
-from .test_constants import MCP_FETCH_URL
 from .test_constants import HTTP_BAD_REQUEST
+from .test_constants import HTTP_CREATED
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import MCP_FETCH_URL
 
 
 # MCP Client tokens from environment
@@ -37,7 +34,7 @@ class TestMCPClientOAuthRegistration:
     @pytest.mark.asyncio
     async def test_dynamic_client_registration(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that MCP clients can register dynamically per RFC 7591."""
         # Create unique client for this test
         client_name = "TEST test_dynamic_client_registration"
@@ -97,7 +94,7 @@ class TestMCPClientOAuthRegistration:
     @pytest.mark.asyncio
     async def test_client_registration_with_auth_token(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test client registration with bearer token (authenticated registration)."""
         assert GATEWAY_OAUTH_ACCESS_TOKEN, (
             "Need OAuth token for authenticated registration"
@@ -148,7 +145,7 @@ class TestMCPClientOAuthFlows:
     @pytest.mark.asyncio
     async def test_authorization_code_flow_initiation(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test starting the authorization code flow."""
         # First register a client
         client_name = "TEST test_authorization_code_flow_initiation"
@@ -202,7 +199,7 @@ class TestMCPClientOAuthFlows:
     @pytest.mark.asyncio
     async def test_pkce_flow_for_cli_clients(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test PKCE flow commonly used by CLI MCP clients."""
         # Register a public client (no secret needed for PKCE)
         registration_response = await http_client.post(
@@ -265,7 +262,7 @@ class TestMCPClientOAuthFlows:
     @pytest.mark.asyncio
     async def test_token_refresh_flow(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test token refresh flow used by long-running MCP clients."""
         # This test would need a valid refresh token from a completed OAuth flow
         # For now, test the endpoint exists and returns proper errors
@@ -320,7 +317,7 @@ class TestMCPClientTokenValidation:
     @pytest.mark.asyncio
     async def test_access_token_validation(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test validating access tokens before making MCP requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -348,7 +345,7 @@ class TestMCPClientTokenValidation:
     @pytest.mark.asyncio
     async def test_expired_token_handling(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test handling of expired tokens."""
         # Use an obviously invalid token
         response = await http_client.post(
@@ -363,7 +360,7 @@ class TestMCPClientTokenValidation:
     @pytest.mark.asyncio
     async def test_token_introspection(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test token introspection for validity checking."""
         # First register a client
         registration_response = await http_client.post(
@@ -419,7 +416,7 @@ class TestMCPClientCredentialStorage:
     @pytest.mark.asyncio
     async def test_credential_format(
         self, http_client: httpx.AsyncClient, wait_for_services, tmp_path
-    ):  # noqa: ARG002
+    ):
         """Test the credential storage format expected by MCP clients."""
         # Register a client
         registration_response = await http_client.post(
@@ -481,7 +478,7 @@ class TestMCPClientErrorScenarios:
     """Test error handling scenarios for MCP clients."""
 
     @pytest.mark.asyncio
-    async def test_network_error_handling(self, wait_for_services):  # noqa: ARG002
+    async def test_network_error_handling(self, wait_for_services):
         """Test handling of network errors."""
         # Try to connect to non-existent service
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -493,7 +490,7 @@ class TestMCPClientErrorScenarios:
     @pytest.mark.asyncio
     async def test_oauth_discovery_endpoint(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test OAuth discovery endpoint that clients use to find auth URLs."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
@@ -518,7 +515,7 @@ class TestMCPClientRealWorldScenarios:
     @pytest.mark.asyncio
     async def test_multiple_concurrent_requests(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test handling multiple concurrent MCP requests with same token."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -559,7 +556,7 @@ class TestMCPClientRealWorldScenarios:
     @pytest.mark.asyncio
     async def test_client_reregistration(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test re-registering a client (common when credentials are lost)."""
         client_name = "TEST test_client_reregistration"
 

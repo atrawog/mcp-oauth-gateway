@@ -46,7 +46,7 @@ class TestRoutingBugRegression:
         assert "Authorization header" in str(error["detail"])
 
     @pytest.mark.asyncio
-    async def test_traefik_labels_include_path_routing(self, wait_for_services):  # noqa: ARG002
+    async def test_traefik_labels_include_path_routing(self, wait_for_services):
         """Verify the docker-compose.yml includes PathPrefix in routing rules.
 
         This test would fail with the old configuration.
@@ -74,7 +74,7 @@ class TestRoutingBugRegression:
         )
 
     @pytest.mark.asyncio
-    async def test_all_required_routes_configured(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_all_required_routes_configured(self, http_client, wait_for_services):
         """Test that all required routes are properly configured with correct priorities."""
         routes_to_test = [
             # (path, expected_status, description)
@@ -93,7 +93,7 @@ class TestRoutingBugRegression:
             )
 
     @pytest.mark.asyncio
-    async def test_routing_priorities_correct(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_routing_priorities_correct(self, http_client, wait_for_services):
         """Verify routing priorities are set correctly:
 
         - OAuth discovery: Priority 10 (highest)

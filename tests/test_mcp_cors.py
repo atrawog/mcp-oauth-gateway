@@ -42,10 +42,7 @@ class TestMCPCORS:
         mcp_url = f"{MCP_FETCH_URL}"
 
         # If CORS is set to wildcard, test with a sample origin
-        if self.cors_origins == ["*"]:
-            test_origins = ["https://example.com"]
-        else:
-            test_origins = self.cors_origins
+        test_origins = ["https://example.com"] if self.cors_origins == ["*"] else self.cors_origins
 
         # Test OPTIONS request (CORS preflight) for each configured origin
         with httpx.Client(verify=False, timeout=10.0) as client:
@@ -110,10 +107,7 @@ class TestMCPCORS:
             pytest.skip("No CORS origins configured")
 
         # If CORS is set to wildcard, use a test origin
-        if self.cors_origins == ["*"]:
-            test_origin = "https://example.com"
-        else:
-            test_origin = self.cors_origins[0]
+        test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
 
         # Get OAuth token from environment
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
@@ -197,10 +191,7 @@ class TestMCPCORS:
             pytest.skip("No CORS origins configured")
 
         # If CORS is set to wildcard, use a test origin
-        if self.cors_origins == ["*"]:
-            test_origin = "https://example.com"
-        else:
-            test_origin = self.cors_origins[0]
+        test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
 
         with httpx.Client(verify=False, timeout=10.0) as client:
             response = client.get(health_url, headers={"Origin": test_origin})
@@ -323,10 +314,7 @@ class TestMCPCORS:
             pytest.skip("No CORS origins configured")
 
         # If CORS is set to wildcard, use a test origin
-        if self.cors_origins == ["*"]:
-            test_origin = "https://example.com"
-        else:
-            test_origin = self.cors_origins[0]
+        test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
 
         with httpx.Client(verify=False, timeout=10.0) as client:
             for service in mcp_services:

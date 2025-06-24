@@ -11,13 +11,8 @@ import os
 import httpx
 import pytest
 
-from .test_constants import MCP_FETCH_URL
 from .test_constants import HTTP_OK
-from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NO_CONTENT
-from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import HTTP_NOT_FOUND
-from .test_constants import HTTP_UNPROCESSABLE_ENTITY
+from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 
 
@@ -31,9 +26,8 @@ class TestMCPProxySessionIssues:
     @pytest.mark.asyncio
     async def test_session_not_maintained_across_requests(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """ISSUE: The proxy creates a new session for each request.
-
 
         Expected behavior: After initializing, subsequent requests should use the same session.
         Actual behavior: Each request creates a new session, causing "not initialized" errors.
@@ -77,9 +71,8 @@ class TestMCPProxySessionIssues:
     @pytest.mark.asyncio
     async def test_session_id_header_missing(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """ISSUE: The proxy doesn't return Mcp-Session-Id header as expected by MCP spec.
-
 
         Per MCP 2025-06-18 spec, servers MAY assign session IDs during initialization
         and clients MUST include them in subsequent requests.
@@ -115,9 +108,8 @@ class TestMCPProxyWorkarounds:
     """Test workarounds for current proxy limitations."""
 
     @pytest.mark.asyncio
-    async def test_initialize_before_each_operation(self, wait_for_services):  # noqa: ARG002
+    async def test_initialize_before_each_operation(self, wait_for_services):
         """WORKAROUND: Initialize before each operation since sessions aren't maintained.
-
 
         This is not ideal but works with current proxy implementation.
         """

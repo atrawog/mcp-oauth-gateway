@@ -1,7 +1,9 @@
 from .test_constants import HTTP_CREATED
-from .test_constants import HTTP_NOT_FOUND
 from .test_constants import HTTP_NO_CONTENT
+from .test_constants import HTTP_NOT_FOUND
 from .test_constants import HTTP_OK
+
+
 """Test eternal client registration with CLIENT_LIFETIME=0."""
 
 import os

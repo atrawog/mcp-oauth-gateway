@@ -46,7 +46,7 @@ class TestRegistrationPublicAccess:
     """Test that /register endpoint is publicly accessible per RFC 7591."""
 
     @pytest.mark.asyncio
-    async def test_register_endpoint_is_public(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_register_endpoint_is_public(self, http_client, wait_for_services):
         """Test that /register endpoint is publicly accessible without authentication."""
         # Try to access register endpoint without any authorization header
         registration_data = {
@@ -92,7 +92,7 @@ class TestRegistrationPublicAccess:
             pytest.fail(f"Unexpected status code: {response.status_code}")
 
     @pytest.mark.asyncio
-    async def test_anyone_can_register_with_auth(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_anyone_can_register_with_auth(self, http_client, wait_for_services):
         """Test that anyone with valid GitHub auth can register a client."""
         # Skip if no auth token available
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
@@ -415,7 +415,7 @@ class TestSecurityModelValidation:
     """Comprehensive tests validating the complete security model."""
 
     @pytest.mark.asyncio
-    async def test_complete_security_flow(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_complete_security_flow(self, http_client, wait_for_services):
         """Test the complete security model from registration to access."""
         # This test documents the expected security flow:
         # 1. Client registration (may require auth based on implementation)
@@ -488,7 +488,7 @@ class TestSecurityModelValidation:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_oauth_discovery_is_public(self, http_client, wait_for_services):  # noqa: ARG002
+    async def test_oauth_discovery_is_public(self, http_client, wait_for_services):
         """Test that OAuth discovery endpoint is publicly accessible."""
         # OAuth discovery should always be public for clients to find auth endpoints
         discovery_response = await http_client.get(

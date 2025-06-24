@@ -24,9 +24,8 @@ async def create_client_alias():
     redis_password = os.getenv("REDIS_PASSWORD")
 
     # Handle localhost for host execution
-    if "redis://" in redis_url and "redis:" in redis_url:
-        if not os.path.exists("/.dockerenv"):
-            redis_url = redis_url.replace("redis:", "localhost:")
+    if "redis://" in redis_url and "redis:" in redis_url and not os.path.exists("/.dockerenv"):
+        redis_url = redis_url.replace("redis:", "localhost:")
 
     # Parse Redis URL
     redis_host = "localhost"

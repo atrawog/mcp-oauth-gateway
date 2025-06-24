@@ -9,10 +9,10 @@ import os
 import httpx
 import pytest
 
+from .test_constants import HTTP_OK
 from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import TEST_HTTP_TIMEOUT
-from .test_constants import HTTP_OK
 
 
 # MCP Client tokens for external client testing
@@ -25,7 +25,7 @@ class TestMCPSessionCreation:
     @pytest.mark.asyncio
     async def test_session_created_on_initialize(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that a session is created when client initializes."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -56,7 +56,7 @@ class TestMCPSessionCreation:
     @pytest.mark.asyncio
     async def test_multiple_sessions_isolated(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that multiple clients get isolated sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -119,7 +119,7 @@ class TestMCPSessionPersistence:
     @pytest.mark.asyncio
     async def test_session_persists_between_requests(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that session state persists between requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -160,7 +160,7 @@ class TestMCPSessionPersistence:
     @pytest.mark.asyncio
     async def test_session_requires_initialization(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that operations fail without initialization."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -191,7 +191,7 @@ class TestMCPSessionTimeout:
     @pytest.mark.slow
     async def test_session_timeout_configuration(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that sessions respect timeout configuration."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -235,7 +235,7 @@ class TestMCPSessionTimeout:
     @pytest.mark.asyncio
     async def test_session_activity_updates(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that session activity is updated on each request."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -280,7 +280,7 @@ class TestMCPSessionConcurrency:
     @pytest.mark.asyncio
     async def test_concurrent_requests_same_session(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that concurrent requests to same session are handled properly."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -341,7 +341,7 @@ class TestMCPSessionConcurrency:
     @pytest.mark.asyncio
     async def test_request_id_uniqueness(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that request IDs are properly tracked per session."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -393,7 +393,7 @@ class TestMCPSessionCleanup:
     @pytest.mark.asyncio
     async def test_session_cleanup_on_client_disconnect(
         self, http_client: httpx.AsyncClient, wait_for_services
-    ):  # noqa: ARG002
+    ):
         """Test that sessions are cleaned up when client disconnects."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
