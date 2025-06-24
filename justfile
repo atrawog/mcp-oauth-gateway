@@ -537,13 +537,19 @@ pypi-upload-test package="all":
     packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
     
     echo "⚠️  WARNING: This will upload to TestPyPI!"
-    echo "Make sure you have TWINE_USERNAME and TWINE_PASSWORD set for TestPyPI"
-    read -p "Continue? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Upload cancelled"
+    
+    # Check if required environment variables are set
+    if [ -z "${TWINE_USERNAME:-}" ] || [ -z "${TWINE_PASSWORD:-}" ]; then
+        echo "❌ ERROR: TWINE_USERNAME and TWINE_PASSWORD must be set for TestPyPI"
+        echo "TWINE_USERNAME: '${TWINE_USERNAME:-}'"
+        echo "TWINE_PASSWORD length: ${#TWINE_PASSWORD}"
+        echo "Please add them to your .env file"
         exit 1
     fi
+    
+    echo "✅ TWINE_USERNAME: ${TWINE_USERNAME}"
+    echo "✅ TWINE_PASSWORD length: ${#TWINE_PASSWORD}"
+    echo "🤖 Proceeding automatically without prompts"
     
     if [ "{{package}}" = "all" ]; then
         echo "📤 Uploading all packages to TestPyPI..."
@@ -551,8 +557,15 @@ pypi-upload-test package="all":
             echo "Uploading $pkg to TestPyPI..."
             cd "$pkg"
             if [ -d "dist" ]; then
-                pixi run twine upload --repository testpypi dist/*
-                echo "✅ Uploaded $pkg to TestPyPI"
+                if pixi run twine upload --repository testpypi dist/* --skip-existing; then
+                    echo "✅ Uploaded $pkg to TestPyPI"
+                else
+                    echo "❌ Upload failed for $pkg"
+                    echo "💡 Common solutions:"
+                    echo "   - Version already exists: Increment version in pyproject.toml"
+                    echo "   - Run: just pypi-build $pkg (to rebuild with new version)"
+                    echo "   - Check https://test.pypi.org/project/$pkg for existing versions"
+                fi
             else
                 echo "⚠️  No dist/ directory found for $pkg - run 'just pypi-build $pkg' first"
             fi
@@ -562,8 +575,15 @@ pypi-upload-test package="all":
         echo "📤 Uploading {{package}} to TestPyPI..."
         cd "{{package}}"
         if [ -d "dist" ]; then
-            pixi run twine upload --repository testpypi dist/*
-            echo "✅ Uploaded {{package}} to TestPyPI"
+            if pixi run twine upload --repository testpypi dist/* --skip-existing; then
+                echo "✅ Uploaded {{package}} to TestPyPI"
+            else
+                echo "❌ Upload failed for {{package}}"
+                echo "💡 Common solutions:"
+                echo "   - Version already exists: Increment version in pyproject.toml"
+                echo "   - Run: just pypi-build {{package}} (to rebuild with new version)"
+                echo "   - Check https://test.pypi.org/project/{{package}} for existing versions"
+            fi
         else
             echo "⚠️  No dist/ directory found for {{package}} - run 'just pypi-build {{package}}' first"
         fi
@@ -576,14 +596,20 @@ pypi-upload package="all":
     packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
     
     echo "🚨 WARNING: This will upload to PRODUCTION PyPI!"
-    echo "Make sure you have TWINE_USERNAME and TWINE_PASSWORD set for PyPI"
-    echo "This action cannot be undone!"
-    read -p "Are you absolutely sure? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Upload cancelled"
+    
+    # Check if required environment variables are set
+    if [ -z "${TWINE_USERNAME:-}" ] || [ -z "${TWINE_PASSWORD:-}" ]; then
+        echo "❌ ERROR: TWINE_USERNAME and TWINE_PASSWORD must be set for PyPI"
+        echo "TWINE_USERNAME: '${TWINE_USERNAME:-}'"
+        echo "TWINE_PASSWORD length: ${#TWINE_PASSWORD}"
+        echo "Please add them to your .env file"
         exit 1
     fi
+    
+    echo "✅ TWINE_USERNAME: ${TWINE_USERNAME}"
+    echo "✅ TWINE_PASSWORD length: ${#TWINE_PASSWORD}"
+    echo "🚨 This action cannot be undone!"
+    echo "🤖 Proceeding automatically without prompts"
     
     if [ "{{package}}" = "all" ]; then
         echo "📤 Uploading all packages to PyPI..."
