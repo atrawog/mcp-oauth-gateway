@@ -22,17 +22,20 @@ lint-all = { cmd = "ruff check . && python scripts/lint_pydantic_compliance.py",
 lint-comprehensive = { cmd = "ruff check . --fix && ruff format . && python scripts/lint_pydantic_compliance.py", description = "Fix, format, and hunt deprecations" }
 
 # Documentation tasks
-docs-build = "jupyter-book build docs/"
 docs-clean = "jupyter-book clean docs/"
+docs-build = { cmd = "jupyter-book build docs/", depends-on = ["docs-clean"] }
 
 # Development server (for testing auth service locally)
 dev-auth = "cd auth && uvicorn main:app --reload --host 0.0.0.0 --port 8000"
 
-# MCP client installation
-install-mcp-client = "pip install -e ./mcp-streamablehttp-client"
-install-mcp-fetch-native = "pip install -e ./mcp-fetch-streamablehttp-server"
+# MCP client installation - using proper pixi commands
+install-mcp-client = "pixi add --editable ./mcp-streamablehttp-client"
+install-mcp-fetch-native = "pixi add --editable ./mcp-fetch-streamablehttp-server"
 
 [dependencies]
+# Python runtime from conda-forge
+python = ">=3.11,<3.13"
+
 # Testing framework - pytest is blessed!
 pytest = ">=7.4.0,<8"
 pytest-asyncio = ">=0.21.0,<1"
@@ -68,9 +71,7 @@ aiohttp = ">=3.12.13,<4"
 beautifulsoup4 = ">=4.12.3,<5"
 aiofiles = ">=24.0.0"
 
-# MCP packages
-mcp = ">=1.0.0"
-pip = "*"
+# CLI and utility packages
 click = ">=8.0.0"
 anyio = ">=3.0.0"
 rich = ">=13.0.0"
@@ -78,6 +79,10 @@ requests = ">=2.32.4,<3"
 
 [pypi-dependencies]
 # PyPI-only dependencies (not available in conda-forge)
+# MCP packages - PyPI only
+mcp = ">=1.0.0"
+
+# Build and publishing tools
 robotspy = ">=0.8.0"
 sphinxcontrib-mermaid = ">=0.9.0"
 twine = ">=6.1.0, <7"
@@ -105,3 +110,6 @@ default = { solve-group = "default" }
 
 # Documentation environment
 docs = { features = ["docs"], solve-group = "default" }
+
+# Development environment with docs features
+dev = { features = ["docs"], solve-group = "default" }
