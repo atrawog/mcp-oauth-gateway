@@ -17,6 +17,8 @@ chapters:
         title: MCP Integration
       - file: architecture/security
         title: Security Architecture
+      - file: architecture/rfc7592-implementation
+        title: RFC 7592 Implementation
   - file: installation
     title: Installation & Setup
     sections:

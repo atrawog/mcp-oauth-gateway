@@ -26,6 +26,19 @@ The MCP OAuth Gateway implements multiple layers of security to protect both the
 - **Redis Storage** - Tokens stored with TTL matching expiration
 - **JTI Tracking** - Unique token identifiers prevent replay
 
+#### Registration Access Token Security (RFC 7592)
+
+**CRITICAL**: Registration access tokens are completely separate from OAuth access tokens.
+
+- **Token Generation**: `reg-{secrets.token_urlsafe(32)}` - 32 bytes of cryptographic randomness
+- **Storage**: Part of client data in Redis at `oauth:client:{client_id}`
+- **Authentication**: Direct Bearer token comparison using `secrets.compare_digest`
+- **Lifetime**: Matches client lifetime (90 days default, eternal if CLIENT_LIFETIME=0)
+- **Scope**: ONLY valid for RFC 7592 management endpoints (`/register/{client_id}`)
+- **Security Enforcement**: OAuth JWT tokens explicitly rejected with 403 Forbidden
+- **Lost Token Impact**: Client becomes permanently unmanageable - no recovery mechanism
+- **Implementation**: `DynamicClientConfigurationEndpoint` class handles authentication
+
 ### 3. Authorization Security
 
 #### Dual Realm Architecture

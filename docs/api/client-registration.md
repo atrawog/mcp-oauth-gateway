@@ -150,10 +150,15 @@ CLIENT_LIFETIME=0  # Clients never expire
 
 ### Registration Access Token
 
-- **Purpose**: Manages specific client registration
-- **Scope**: Limited to single client
+- **Purpose**: Manages specific client registration ONLY
+- **Format**: `reg-{32-byte-random}` generated via `secrets.token_urlsafe(32)`
+- **Scope**: Limited to single client's management endpoints
 - **Storage**: Keep secure, not recoverable if lost
-- **Usage**: Required for all management operations
+- **Usage**: Required for all RFC 7592 management operations
+- **Lifetime**: Matches client lifetime (90 days default, eternal if CLIENT_LIFETIME=0)
+- **Authentication**: Direct Bearer token comparison, NOT JWT
+- **CRITICAL**: This is NOT an OAuth access token - it cannot access resources
+- **SECURITY**: OAuth JWT tokens are explicitly rejected on management endpoints
 
 ### Client Authentication
 

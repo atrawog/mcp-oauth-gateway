@@ -144,6 +144,15 @@ auth.domain.com/verify → Auth Service
 
 *Note: Requires Bearer registration_access_token*
 
+**CRITICAL RFC 7592 Implementation Details:**
+- Uses completely separate authentication from regular OAuth tokens
+- Registration access tokens format: `reg-{32-byte-random}` via `secrets.token_urlsafe(32)`
+- OAuth JWT access tokens are explicitly rejected with 403 Forbidden
+- Each client receives a unique registration token at creation
+- Token stored in Redis with client data at `oauth:client:{client_id}`
+- Token lifetime matches client lifetime (90 days default, eternal if CLIENT_LIFETIME=0)
+- Lost tokens cannot be recovered - client becomes permanently unmanageable
+
 #### Internal Endpoints
 - `GET/POST /verify` - ForwardAuth token validation
 
@@ -344,9 +353,31 @@ graph TB
 | **Client-Authenticated** | `/token` | client_id + client_secret |
 | **User-Authenticated** | `/authorize` | GitHub login |
 | **Bearer-Authenticated** | All `/mcp` endpoints | Valid JWT |
-| **Registration-Authenticated** | `/register/{client_id}` | registration_access_token |
+| **Registration-Authenticated** | `/register/{client_id}` | registration_access_token (NOT OAuth token) |
 
 ### Token Types and Security
+
+#### Critical Token Separation
+
+The gateway implements **complete separation** between token types:
+
+1. **Registration Access Tokens** (RFC 7592)
+   - Format: `reg-{32-byte-random}` 
+   - Generated: Only during client registration
+   - Purpose: ONLY for client management endpoints
+   - Storage: Part of client data in Redis
+   - Authentication: Direct string comparison via `secrets.compare_digest`
+   - **CANNOT** be used for resource access
+
+2. **OAuth Access Tokens** (RFC 6749)
+   - Format: JWT with user claims
+   - Generated: After user authorization
+   - Purpose: ONLY for accessing protected resources
+   - Storage: Tracked by JTI in Redis
+   - Authentication: JWT signature validation
+   - **CANNOT** be used for client management
+
+**Security Enforcement**: The `DynamicClientConfigurationEndpoint` class explicitly validates registration tokens only. OAuth JWT tokens are rejected with 403 Forbidden.
 
 ```{mermaid}
 graph LR

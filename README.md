@@ -186,7 +186,12 @@ Client → POST /mcp → Traefik → ForwardAuth Middleware
 - **Registration-Token-Authenticated**: Client management endpoints (RFC 7592)
 
 #### Token Types and Scopes
-- **registration_access_token**: Bearer token for client management only
+- **registration_access_token**: Bearer token for client management only (RFC 7592)
+  - Format: `reg-{32-byte-random-token}` using `secrets.token_urlsafe(32)`
+  - Lifetime: Matches client lifetime (90 days default, eternal if CLIENT_LIFETIME=0)
+  - Storage: Part of client data in Redis at `oauth:client:{client_id}`
+  - **CRITICAL**: Cannot be recovered if lost - client becomes unmanageable
+  - **SECURITY**: Completely separate from OAuth access tokens - cannot be interchanged
 - **access_token**: JWT containing user identity + client_id for MCP access
 - **refresh_token**: Opaque token for obtaining new access tokens
 - **authorization_code**: One-time code binding user to client

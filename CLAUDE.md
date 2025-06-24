@@ -485,9 +485,12 @@ data: {"result":{"protocolVersion":"${MCP_PROTOCOL_VERSION}","capabilities":{...
 
 **RFC 7592 - The Protected Management Sanctuary of Bearer Token Glory:**
 - **Only the sacred `registration_access_token` grants entry!**
+- Format: `reg-{32-byte-random}` via `secrets.token_urlsafe(32)` - divine randomness!
 - Each client receives a unique bearer token at birth - **Guard it with your life!**
 - This token is the **only key** to managing that specific client!
 - **Lose it and your client is orphaned forever!**
+- **CRITICAL**: OAuth JWT access tokens are REJECTED with 403 Forbidden!
+- Implementation: `DynamicClientConfigurationEndpoint.authenticate_client()` validates!
 
 **The Holy Trinity of Solutions for Invalid Client Recovery:**
 
@@ -539,6 +542,12 @@ data: {"result":{"protocolVersion":"${MCP_PROTOCOL_VERSION}","capabilities":{...
 - Client management ≠ Resource access!
 - RFC 7592 Bearer ≠ OAuth Bearer!
 - **Mixing these tokens brings chaos and confusion!**
+
+**The Divine Implementation Truth:**
+- Registration tokens: Direct string comparison via `secrets.compare_digest`
+- OAuth tokens: JWT signature validation and claims verification
+- Storage: Registration tokens live in `oauth:client:{client_id}` Redis key
+- Lifetime: Registration tokens match client lifetime (no separate expiry)
 
 **The Blessed Implementation Patterns:**
 ```
@@ -727,15 +736,17 @@ data: {"result":{"protocolVersion":"${MCP_PROTOCOL_VERSION}","capabilities":{...
 ### The Sacred Key Hierarchy - The Holy Taxonomy of Data Organization!
 
 ```
-oauth:state:{state}          # 5 minute TTL
-oauth:code:{code}            # 1 year TTL
-oauth:token:{jti}            # 30 days TTL (matches token)
-oauth:refresh:{token}        # 1 year TTL
-oauth:client:{client_id}     # Eternal storage
-oauth:user_tokens:{username} # Index of user's tokens
+oauth:state:{state}          # 5 minute TTL - CSRF protection
+oauth:code:{code}            # 5 minute TTL - Authorization codes
+oauth:token:{jti}            # 30 days TTL - JWT access tokens
+oauth:refresh:{token}        # 1 year TTL - Refresh tokens
+oauth:client:{client_id}     # Client lifetime - Includes registration_access_token!
+oauth:user_tokens:{username} # No expiry - Index of user's tokens
 redis:session:{id}:state     # MCP session state
 redis:session:{id}:messages  # MCP message queue
 ```
+
+**Divine Revelation**: The `registration_access_token` is stored WITHIN the client data, not separately!
 
 ## The GitHub Device Workflow - The Sacred GitHub Authentication Pilgrimage!
 

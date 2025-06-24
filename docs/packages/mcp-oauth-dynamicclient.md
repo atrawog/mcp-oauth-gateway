@@ -260,6 +260,8 @@ curl -X POST https://auth.example.com/token \
 
 ### Client Management (RFC 7592)
 
+**CRITICAL**: These endpoints use registration access tokens ONLY. OAuth JWT access tokens are explicitly rejected with 403 Forbidden. The implementation in `DynamicClientConfigurationEndpoint` performs direct token comparison using `secrets.compare_digest`.
+
 #### GET /register/{client_id}
 
 View client registration:
@@ -342,8 +344,7 @@ The package uses Redis with the following key patterns:
 | `oauth:code:{code}` | Authorization codes | 5 minutes |
 | `oauth:token:{jti}` | Access tokens | 30 days |
 | `oauth:refresh:{token}` | Refresh tokens | 1 year |
-| `oauth:client:{client_id}` | Client registrations | No expiry |
-| `oauth:registration_token:{token}` | RFC 7592 tokens | No expiry |
+| `oauth:client:{client_id}` | Client registrations (includes registration_access_token) | Client lifetime |
 | `oauth:user_tokens:{username}` | User token index | No expiry |
 
 ## Security Features

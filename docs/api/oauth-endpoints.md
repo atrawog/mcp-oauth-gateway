@@ -144,7 +144,7 @@ Content-Type: application/json
   "token_endpoint_auth_method": "client_secret_basic",
   "client_id_issued_at": 1704067200,
   "client_secret_expires_at": 1711929600,
-  "registration_access_token": "rat_token123",
+  "registration_access_token": "reg_AbCdEfGhIjKlMnOpQrStUvWxYz0123456789abcdef",
   "registration_client_uri": "https://auth.example.com/register/client_abc123"
 }
 ```
