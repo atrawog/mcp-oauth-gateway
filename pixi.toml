@@ -80,6 +80,8 @@ requests = ">=2.32.4,<3"
 # PyPI-only dependencies (not available in conda-forge)
 robotspy = ">=0.8.0"
 sphinxcontrib-mermaid = ">=0.9.0"
+twine = ">=6.1.0, <7"
+build = ">=1.0.0, <2"
 
 [feature.docs.dependencies]
 # Additional dependencies for documentation

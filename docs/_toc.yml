@@ -37,6 +37,8 @@ chapters:
         title: Streamable HTTP Client
       - file: packages/mcp-fetch-streamablehttp-server
         title: Fetch Server (Native)
+      - file: packages/pypi-publishing
+        title: PyPI Publishing Guide
   - file: services
     title: MCP Services
     sections:

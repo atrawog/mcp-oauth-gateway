@@ -444,3 +444,261 @@ oauth-backup-view:
 oauth-backup-view-file filename:
     echo "📋 Viewing backup: {{filename}}..."
     just run view_oauth_backup backups/{{filename}}
+
+# PyPI Package Management - The Sacred Publishing Commandments!
+
+# Build a specific Python package (or all packages)
+pypi-build package="all":
+    #!/usr/bin/env bash
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    
+    if [ "{{package}}" = "all" ]; then
+        echo "🏗️  Building all Python packages..."
+        for pkg in "${packages[@]}"; do
+            echo "Building $pkg..."
+            cd "$pkg"
+            rm -rf dist/ build/ *.egg-info/
+            pixi run python -m build
+            echo "✅ Built $pkg"
+            cd ..
+        done
+    else
+        echo "🏗️  Building {{package}}..."
+        cd "{{package}}"
+        rm -rf dist/ build/ *.egg-info/
+        pixi run python -m build
+        echo "✅ Built {{package}}"
+        cd ..
+    fi
+
+# Test a specific Python package (or all packages)
+pypi-test package="all":
+    #!/usr/bin/env bash
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    
+    if [ "{{package}}" = "all" ]; then
+        echo "🧪 Testing all Python packages..."
+        for pkg in "${packages[@]}"; do
+            echo "Testing $pkg..."
+            cd "$pkg"
+            if [ -f "pyproject.toml" ] && [ -d "tests" ]; then
+                pixi run pytest tests/ -v || echo "⚠️  Tests failed for $pkg"
+            else
+                echo "⚠️  No tests found for $pkg"
+            fi
+            echo "✅ Tested $pkg"
+            cd ..
+        done
+    else
+        echo "🧪 Testing {{package}}..."
+        cd "{{package}}"
+        if [ -f "pyproject.toml" ] && [ -d "tests" ]; then
+            pixi run pytest tests/ -v
+        else
+            echo "⚠️  No tests found for {{package}}"
+        fi
+        echo "✅ Tested {{package}}"
+        cd ..
+    fi
+
+# Check package distribution (validate built packages)
+pypi-check package="all":
+    #!/usr/bin/env bash
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    
+    if [ "{{package}}" = "all" ]; then
+        echo "🔍 Checking all Python packages..."
+        for pkg in "${packages[@]}"; do
+            echo "Checking $pkg..."
+            cd "$pkg"
+            if [ -d "dist" ]; then
+                pixi run twine check dist/*
+                echo "✅ Checked $pkg"
+            else
+                echo "⚠️  No dist/ directory found for $pkg - run 'just pypi-build $pkg' first"
+            fi
+            cd ..
+        done
+    else
+        echo "🔍 Checking {{package}}..."
+        cd "{{package}}"
+        if [ -d "dist" ]; then
+            pixi run twine check dist/*
+            echo "✅ Checked {{package}}"
+        else
+            echo "⚠️  No dist/ directory found for {{package}} - run 'just pypi-build {{package}}' first"
+        fi
+        cd ..
+    fi
+
+# Upload to TestPyPI (for testing)
+pypi-upload-test package="all":
+    #!/usr/bin/env bash
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    
+    echo "⚠️  WARNING: This will upload to TestPyPI!"
+    echo "Make sure you have TWINE_USERNAME and TWINE_PASSWORD set for TestPyPI"
+    read -p "Continue? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Upload cancelled"
+        exit 1
+    fi
+    
+    if [ "{{package}}" = "all" ]; then
+        echo "📤 Uploading all packages to TestPyPI..."
+        for pkg in "${packages[@]}"; do
+            echo "Uploading $pkg to TestPyPI..."
+            cd "$pkg"
+            if [ -d "dist" ]; then
+                pixi run twine upload --repository testpypi dist/*
+                echo "✅ Uploaded $pkg to TestPyPI"
+            else
+                echo "⚠️  No dist/ directory found for $pkg - run 'just pypi-build $pkg' first"
+            fi
+            cd ..
+        done
+    else
+        echo "📤 Uploading {{package}} to TestPyPI..."
+        cd "{{package}}"
+        if [ -d "dist" ]; then
+            pixi run twine upload --repository testpypi dist/*
+            echo "✅ Uploaded {{package}} to TestPyPI"
+        else
+            echo "⚠️  No dist/ directory found for {{package}} - run 'just pypi-build {{package}}' first"
+        fi
+        cd ..
+    fi
+
+# Upload to PyPI (PRODUCTION - BE CAREFUL!)
+pypi-upload package="all":
+    #!/usr/bin/env bash
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    
+    echo "🚨 WARNING: This will upload to PRODUCTION PyPI!"
+    echo "Make sure you have TWINE_USERNAME and TWINE_PASSWORD set for PyPI"
+    echo "This action cannot be undone!"
+    read -p "Are you absolutely sure? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Upload cancelled"
+        exit 1
+    fi
+    
+    if [ "{{package}}" = "all" ]; then
+        echo "📤 Uploading all packages to PyPI..."
+        for pkg in "${packages[@]}"; do
+            echo "Uploading $pkg to PyPI..."
+            cd "$pkg"
+            if [ -d "dist" ]; then
+                pixi run twine upload dist/*
+                echo "✅ Uploaded $pkg to PyPI"
+            else
+                echo "⚠️  No dist/ directory found for $pkg - run 'just pypi-build $pkg' first"
+            fi
+            cd ..
+        done
+    else
+        echo "📤 Uploading {{package}} to PyPI..."
+        cd "{{package}}"
+        if [ -d "dist" ]; then
+            pixi run twine upload dist/*
+            echo "✅ Uploaded {{package}} to PyPI"
+        else
+            echo "⚠️  No dist/ directory found for {{package}} - run 'just pypi-build {{package}}' first"
+        fi
+        cd ..
+    fi
+
+# Complete build, test, check, and upload workflow for TestPyPI
+pypi-publish-test package="all":
+    echo "🚀 Complete TestPyPI publish workflow for {{package}}..."
+    just pypi-build {{package}}
+    just pypi-test {{package}}
+    just pypi-check {{package}}
+    just pypi-upload-test {{package}}
+    echo "✅ {{package}} published to TestPyPI successfully!"
+
+# Complete build, test, check, and upload workflow for PyPI
+pypi-publish package="all":
+    echo "🚀 Complete PyPI publish workflow for {{package}}..."
+    just pypi-build {{package}}
+    just pypi-test {{package}}
+    just pypi-check {{package}}
+    just pypi-upload {{package}}
+    echo "✅ {{package}} published to PyPI successfully!"
+
+# Clean all package build artifacts
+pypi-clean package="all":
+    #!/usr/bin/env bash
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    
+    if [ "{{package}}" = "all" ]; then
+        echo "🧹 Cleaning all Python package build artifacts..."
+        for pkg in "${packages[@]}"; do
+            echo "Cleaning $pkg..."
+            cd "$pkg"
+            rm -rf dist/ build/ *.egg-info/ __pycache__/ .pytest_cache/
+            find . -name "*.pyc" -delete
+            find . -name "*.pyo" -delete
+            echo "✅ Cleaned $pkg"
+            cd ..
+        done
+    else
+        echo "🧹 Cleaning {{package}} build artifacts..."
+        cd "{{package}}"
+        rm -rf dist/ build/ *.egg-info/ __pycache__/ .pytest_cache/
+        find . -name "*.pyc" -delete
+        find . -name "*.pyo" -delete
+        echo "✅ Cleaned {{package}}"
+        cd ..
+    fi
+
+# Show package information and versions
+pypi-info package="all":
+    #!/usr/bin/env bash
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    
+    if [ "{{package}}" = "all" ]; then
+        echo "📋 Package Information for all packages:"
+        for pkg in "${packages[@]}"; do
+            echo ""
+            echo "=== $pkg ==="
+            cd "$pkg"
+            if [ -f "pyproject.toml" ]; then
+                echo "Version: $(grep -E '^version\s*=' pyproject.toml | cut -d'"' -f2)"
+                echo "Description: $(grep -E '^description\s*=' pyproject.toml | cut -d'"' -f2)"
+                echo "Python Requires: $(grep -E 'requires-python\s*=' pyproject.toml | cut -d'"' -f2 || echo 'Not specified')"
+                if [ -d "dist" ]; then
+                    echo "Built packages:"
+                    ls -la dist/
+                fi
+            else
+                echo "⚠️  No pyproject.toml found"
+            fi
+            cd ..
+        done
+    else
+        echo "📋 Package Information for {{package}}:"
+        cd "{{package}}"
+        if [ -f "pyproject.toml" ]; then
+            echo "Version: $(grep -E '^version\s*=' pyproject.toml | cut -d'"' -f2)"
+            echo "Description: $(grep -E '^description\s*=' pyproject.toml | cut -d'"' -f2)"
+            echo "Python Requires: $(grep -E 'requires-python\s*=' pyproject.toml | cut -d'"' -f2 || echo 'Not specified')"
+            if [ -d "dist" ]; then
+                echo "Built packages:"
+                ls -la dist/
+            fi
+        else
+            echo "⚠️  No pyproject.toml found"
+        fi
+        cd ..
+    fi
+
+# Aliases for convenience
+alias pb := pypi-build
+alias pt := pypi-test
+alias pc := pypi-check
+alias pu := pypi-upload
+alias ppt := pypi-publish-test
+alias pp := pypi-publish

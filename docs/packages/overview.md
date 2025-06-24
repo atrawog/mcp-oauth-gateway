@@ -129,9 +129,31 @@ Packages use semantic versioning:
 - Minor: New features, backward compatible
 - Patch: Bug fixes and minor improvements
 
+## Package Publishing
+
+All packages in the MCP OAuth Gateway are designed for publication to PyPI. The repository includes comprehensive tooling and documentation for building, testing, and publishing packages.
+
+### Quick Publishing Commands
+
+```bash
+# Test workflow (recommended first)
+just pypi-publish-test [package]
+
+# Production publishing
+just pypi-publish [package]
+
+# Individual operations
+just pypi-build [package]      # Build distributions
+just pypi-test [package]       # Run tests
+just pypi-check [package]      # Validate with twine
+```
+
+For complete publishing documentation, see the [PyPI Publishing Guide](./pypi-publishing.md).
+
 ## Next Steps
 
 - Explore individual package documentation for detailed API references
-- Review the [Architecture](../architecture.md) guide for system design
-- Check [Development Guidelines](../development/guidelines.md) for contribution standards
-- See [Installation Guide](../installation.md) for deployment instructions
+- Review the [PyPI Publishing Guide](./pypi-publishing.md) for package distribution
+- Check [Architecture](../architecture.md) guide for system design
+- See [Development Guidelines](../development/guidelines.md) for contribution standards
+- Review [Installation Guide](../installation.md) for deployment instructions
