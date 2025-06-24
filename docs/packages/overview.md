@@ -45,7 +45,7 @@ The foundational OAuth implementation that powers authentication across the gate
 - RFC 7591/7592 compliant dynamic client registration
 - GitHub OAuth integration for user authentication
 - JWT token generation and validation
-- Redis-backed storage for scalability
+- Redis-backed storage for persistence
 - FastAPI-based with async support
 
 ### [mcp-streamablehttp-proxy](./mcp-streamablehttp-proxy.md)
@@ -73,7 +73,7 @@ Connects stdio MCP clients to HTTP MCP servers:
 
 Demonstrates native streamable HTTP implementation:
 - Direct FastAPI implementation without proxy
-- Superior performance (10x faster startup)
+- No subprocess overhead
 - Built-in fetch tool with robots.txt compliance
 - Native async/await throughout
 - Reference implementation for new servers
@@ -111,7 +111,7 @@ All packages follow consistent patterns:
 - Built with `pixi` for dependency management
 - Comprehensive test suites with `pytest`
 - Type hints throughout for better IDE support
-- Async-first design for scalability
+- Async support where applicable
 - Minimal external dependencies
 
 ### Integration Testing

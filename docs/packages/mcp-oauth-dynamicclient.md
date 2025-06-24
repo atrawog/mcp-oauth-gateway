@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `mcp-oauth-dynamicclient` package is a production-ready OAuth 2.1 authorization server library that provides the core authentication infrastructure for the MCP OAuth Gateway. It implements modern OAuth standards with a focus on security, scalability, and ease of integration.
+The `mcp-oauth-dynamicclient` package is an OAuth 2.1 authorization server library that provides the core authentication infrastructure for the MCP OAuth Gateway. It implements OAuth standards with support for dynamic client registration.
 
 ```{admonition} Key Features
 :class: info
@@ -11,8 +11,8 @@ The `mcp-oauth-dynamicclient` package is a production-ready OAuth 2.1 authorizat
 - 📝 **Dynamic Client Registration**: RFC 7591/7592 implementation
 - 🌐 **GitHub Integration**: Built-in GitHub OAuth provider
 - 🎫 **JWT Tokens**: Secure token generation and validation
-- 📦 **Redis Storage**: Scalable backend for production use
-- 🚀 **FastAPI Based**: Modern async Python framework
+- 📦 **Redis Storage**: Persistent storage backend
+- 🚀 **FastAPI Based**: Async Python framework
 ```
 
 ## Architecture

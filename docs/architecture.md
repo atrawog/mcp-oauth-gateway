@@ -7,7 +7,7 @@ The MCP OAuth Gateway is a **zero-modification authentication layer** for MCP se
 - **Complete Separation of Concerns**: Authentication, routing, and MCP protocol handling are strictly isolated
 - **No MCP Server Modifications**: Official MCP servers run unmodified, wrapped only for HTTP transport
 - **Standards Compliance**: Full OAuth 2.1, RFC 7591/7592, and MCP protocol compliance
-- **Production-Ready Security**: HTTPS everywhere, PKCE mandatory, JWT tokens, secure session management
+- **Security Implementation**: HTTPS everywhere, PKCE mandatory, JWT tokens, secure session management
 - **Dynamic Service Discovery**: Services can be enabled/disabled via configuration
 
 ## System Components

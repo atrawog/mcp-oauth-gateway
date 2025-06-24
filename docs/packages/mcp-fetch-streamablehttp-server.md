@@ -2,17 +2,16 @@
 
 ## Overview
 
-The `mcp-fetch-streamablehttp-server` package is a native Python implementation of an MCP server with Streamable HTTP transport. It demonstrates the next generation of MCP server architecture, implementing the protocol directly without subprocess overhead, resulting in superior performance and integration capabilities.
+The `mcp-fetch-streamablehttp-server` package is a native Python implementation of an MCP server with Streamable HTTP transport. It implements the protocol directly without subprocess overhead.
 
 ```{admonition} Key Features
 :class: info
 
 - 🚀 **Native Implementation**: Direct protocol support without proxies
-- ⚡ **High Performance**: 10x faster startup, 5x lower latency
 - 🌐 **Fetch Tool**: HTTP operations with robots.txt compliance
 - 🔐 **OAuth Ready**: Seamless authentication integration
-- 📊 **True Async**: Native async/await throughout
-- 🧪 **Production Ready**: Comprehensive error handling
+- 📊 **Async Support**: Native async/await implementation
+- 🧪 **Error Handling**: Comprehensive error handling
 ```
 
 ## Architecture
@@ -50,15 +49,15 @@ graph TB
     class C2,F,H native
 ```
 
-### Performance Benefits
+### Architecture Differences
 
-| Metric | Proxy Approach | Native Implementation | Improvement |
-|--------|----------------|----------------------|-------------|
-| Startup Time | ~500ms | ~50ms | **10x faster** |
-| Request Latency | ~25ms | ~5ms | **5x lower** |
-| Memory Usage | ~150MB | ~50MB | **3x lower** |
-| Concurrent Requests | Process-limited | Fully async | **Unlimited** |
-| Error Handling | stdio parsing | Native exceptions | **Instant** |
+| Aspect | Proxy Approach | Native Implementation |
+|--------|----------------|----------------------|
+| Architecture | HTTP → Proxy → Subprocess → stdio | HTTP → FastAPI → Handler |
+| Process Model | One subprocess per session | Single process, async |
+| Error Handling | Parse stdio output | Direct exception handling |
+| Session Management | Process-based | In-memory |
+| Protocol Support | Any stdio MCP server | Streamable HTTP only |
 
 ### Package Structure
 

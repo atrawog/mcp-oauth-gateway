@@ -275,7 +275,7 @@ In addition to MCP services, the gateway includes critical infrastructure:
 - State persistence
 - Token storage
 - Session management
-- High-performance cache
+- Key-value storage
 
 ### [Traefik Service](traefik.md)
 - Reverse proxy

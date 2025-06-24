@@ -16,7 +16,7 @@ Traefik serves as the intelligent edge router, providing:
 - **Priority-based routing** with specific rule precedence
 - **ForwardAuth middleware** for authentication enforcement
 - **Docker service discovery** via container labels
-- **Health monitoring** and automatic failover
+- **Health monitoring** for service status
 
 ### Routing Configuration
 

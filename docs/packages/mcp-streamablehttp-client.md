@@ -361,12 +361,12 @@ sequenceDiagram
 
 ### Token Management
 
-The client automatically handles token lifecycle:
+The client supports OAuth token authentication:
 
-1. **Expiration Check**: Before each request
-2. **Automatic Refresh**: When token expires
-3. **Credential Update**: Saves new tokens to .env
-4. **Fallback**: Re-authentication if refresh fails
+1. **Token Storage**: Saves tokens to .env file
+2. **Bearer Authentication**: Includes token in requests
+3. **Manual Refresh**: Use `--token` flag to get new tokens
+4. **Re-authentication**: Required when tokens expire
 
 ## Usage Patterns
 

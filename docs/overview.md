@@ -71,7 +71,7 @@ The gateway currently supports these MCP services:
 - OAuth layer added transparently
 - Protocol compliance maintained
 
-### 3. **Production Ready**
+### 3. **Complete Implementation**
 - Health checks for all services
 - Comprehensive error handling
 - Structured logging
@@ -85,17 +85,17 @@ The gateway currently supports these MCP services:
 
 ## Use Cases
 
-### 1. **Secure MCP Deployment**
-Deploy MCP services securely on the internet with proper authentication and authorization.
-
-### 2. **Multi-tenant MCP Platform**
-Provide MCP services to multiple clients/applications with isolated access control.
-
-### 3. **Enterprise Integration**
-Integrate MCP services into enterprise environments with OAuth-based SSO.
-
-### 4. **Development Platform**
+### 1. **Development and Testing**
 Test and develop MCP clients with a fully-featured OAuth flow.
+
+### 2. **Reference Implementation**
+Learn OAuth 2.1 and MCP integration patterns for your own implementations.
+
+### 3. **Proof of Concept**
+Demonstrate OAuth-protected MCP services for evaluation purposes.
+
+### 4. **Educational Platform**
+Understand how to add authentication to MCP servers without modification.
 
 ## Limitations and Considerations
 
