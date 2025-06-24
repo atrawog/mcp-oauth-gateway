@@ -26,6 +26,17 @@ chapters:
         title: Configuration Reference
       - file: installation/github-oauth
         title: GitHub OAuth Setup
+  - file: packages/overview
+    title: Python Packages
+    sections:
+      - file: packages/mcp-oauth-dynamicclient
+        title: OAuth Dynamic Client
+      - file: packages/mcp-streamablehttp-proxy
+        title: Streamable HTTP Proxy
+      - file: packages/mcp-streamablehttp-client
+        title: Streamable HTTP Client
+      - file: packages/mcp-fetch-streamablehttp-server
+        title: Fetch Server (Native)
   - file: services
     title: MCP Services
     sections:
