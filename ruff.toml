@@ -79,6 +79,8 @@ exclude = [
 ]
 
 [lint.per-file-ignores]
+# Context-aware configuration for different script types
+# More specific patterns take precedence over general ones
 # Test files can have additional freedoms
 "tests/**/*.py" = [
     "S101",    # Allow assert in tests
@@ -99,7 +101,56 @@ exclude = [
     "N818",    # Exception names don't need Error suffix in tests
 ]
 
-# Config files and scripts can be more relaxed
+# Debug scripts have special requirements for debugging and exploration
+"scripts/debug_*.py" = [
+    "T201",    # Allow print in scripts
+    "PLR0912", # Allow complex logic in scripts
+    "PLR0915", # Allow many statements in scripts
+    "D100",    # Allow missing module docstring in scripts
+    "PLC0415", # Allow imports inside functions in scripts
+    "S105",    # Allow hardcoded passwords/tokens
+    "S108",    # Allow temporary file usage - needed for debugging
+    "S110",    # Allow try-except-pass for exploration
+    "N806",    # Allow uppercase variables - they represent configuration constants
+    "PLW2901", # Allow overwriting loop variables
+    "ARG001",  # Allow unused arguments
+    "RUF001",  # Allow Unicode information symbols
+    "B007",    # Allow unused loop variables
+]
+
+# Fix/migration scripts often have meta-programming patterns
+"scripts/fix_*.py" = [
+    "T201",    # Allow print in scripts
+    "PLR0912", # Allow complex logic in scripts
+    "PLR0915", # Allow many statements in scripts
+    "D100",    # Allow missing module docstring in scripts
+    "PLC0415", # Allow imports inside functions in scripts
+    "PLR1730", # Allow if not x == y in scripts
+    "S110",    # Allow try-except-pass
+    "B023",    # Allow function definitions with loop variables - meta-programming pattern
+    "F821",    # Allow "undefined" names - often shell variable references in strings
+    "PLW2901", # Allow overwriting loop variables
+    "ARG001",  # Allow unused arguments
+    "RUF001",  # Allow Unicode information symbols
+    "B007",    # Allow unused loop variables
+]
+
+# Run/service scripts need Docker-specific patterns
+"scripts/run_*.py" = [
+    "T201",    # Allow print in scripts
+    "PLR0912", # Allow complex logic in scripts
+    "PLR0915", # Allow many statements in scripts
+    "D100",    # Allow missing module docstring in scripts
+    "PLC0415", # Allow imports inside functions in scripts
+    "S104",    # Allow binding to 0.0.0.0 - required for Docker containers
+    "S603",    # Allow subprocess usage
+    "S607",    # Allow subprocess with partial paths
+    "RUF005",  # Allow list concatenation style preference
+    "PLW2901", # Allow overwriting loop variables
+    "ARG001",  # Allow unused arguments
+]
+
+# Other utility scripts get the baseline rules
 "scripts/**/*.py" = [
     "T201",    # Allow print in scripts
     "PLR0912", # Allow complex logic in scripts
