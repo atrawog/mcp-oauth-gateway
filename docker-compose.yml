@@ -4,6 +4,7 @@
 include:
   - traefik/docker-compose.yml
   - auth/docker-compose.yml
+  - mcp-echo/docker-compose.yml
   - mcp-fetch/docker-compose.yml
   - mcp-filesystem/docker-compose.yml
   - mcp-fetchs/docker-compose.yml
