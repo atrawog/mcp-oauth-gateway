@@ -232,8 +232,23 @@ just test-cleanup
 ### Code Quality
 
 ```bash
-# Run linting and formatting
+# Run linting
 just lint
+
+# Fix linting issues automatically
+just lint-fix
+
+# Format code
+just format
+
+# Hunt for Pydantic deprecations
+just lint-pydantic
+
+# Complete linting with deprecation hunting
+just lint-all
+
+# Comprehensive linting: fix, format, and hunt deprecations
+just lint-comprehensive
 ```
 
 ### Documentation

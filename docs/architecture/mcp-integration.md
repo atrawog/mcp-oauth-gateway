@@ -372,4 +372,4 @@ Key metrics to track:
 
 - [Security Architecture](security.md) - Security implementation details
 - [Services Overview](../services/overview.md) - Available MCP services
-- [Adding New Services](../development/adding-services.md) - How to add MCP services
+- [Development Guidelines](../development/guidelines.md) - Development best practices

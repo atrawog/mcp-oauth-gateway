@@ -1,6 +1,6 @@
 # Production Deployment
 
-This guide covers deploying the MCP OAuth Gateway in a production environment with high availability, security, and monitoring.
+This guide covers deploying the MCP OAuth Gateway in a production environment with security best practices and monitoring.
 
 ## Pre-Deployment Checklist
 
@@ -120,54 +120,6 @@ just logs traefik | grep -i "certificate"
 
 # Check certificate status
 just check-ssl
-```
-
-## High Availability Setup
-
-### Load Balancing
-
-For multi-server deployment:
-
-```yaml
-# haproxy.cfg
-global
-    maxconn 4096
-    
-defaults
-    mode http
-    timeout connect 5000ms
-    timeout client 50000ms
-    timeout server 50000ms
-    
-frontend https_front
-    bind *:443 ssl crt /etc/ssl/certs/gateway.pem
-    default_backend servers
-    
-backend servers
-    balance roundrobin
-    option httpchk GET /health
-    server gateway1 10.0.1.10:443 check ssl verify none
-    server gateway2 10.0.1.11:443 check ssl verify none
-```
-
-### Redis Clustering
-
-For Redis HA:
-
-```yaml
-# redis-cluster.yml
-services:
-  redis-master:
-    image: redis:7-alpine
-    command: redis-server --appendonly yes
-    
-  redis-replica:
-    image: redis:7-alpine
-    command: redis-server --replicaof redis-master 6379
-    
-  sentinel:
-    image: redis:7-alpine
-    command: redis-sentinel /etc/redis-sentinel.conf
 ```
 
 ## Monitoring Setup
@@ -331,23 +283,9 @@ just analyze-oauth-logs
 just logs | grep "duration"
 ```
 
-## Disaster Recovery
-
-### Backup Strategy
-
-- **Daily**: Full Redis backup
-- **Hourly**: Configuration backup
-- **Real-time**: Log shipping to S3
-
-### Recovery Time Objectives
-
-- **RTO**: 15 minutes
-- **RPO**: 1 hour
-- **Testing**: Monthly DR drills
-
 ## Next Steps
 
-1. Set up [SSL Certificates](ssl-certificates.md)
+1. Review [Security Best Practices](../architecture/security.md)
 2. Configure [Monitoring](../usage/monitoring.md)
-3. Plan [Scaling Strategy](scaling.md)
-4. Implement [Backup & Restore](backup-restore.md)
+3. Set up regular backups using the provided backup script
+4. Test disaster recovery procedures
