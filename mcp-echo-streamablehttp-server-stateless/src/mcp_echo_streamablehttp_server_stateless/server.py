@@ -1,27 +1,27 @@
-"""Stateless MCP Echo Server with StreamableHTTP transport."""
+"""Stateless MCP Echo Server implementing MCP 2025-06-18 StreamableHTTP transport specification."""
 
 import os
-import logging
-from typing import Any, Dict, Optional, Sequence
-import uvicorn
-from mcp.server import Server, StreamableHTTPServer
-from mcp.types import (
-    CallToolRequest,
-    CallToolResult,
-    ErrorData,
-    ListToolsRequest,
-    ListToolsResult,
-    Tool,
-    TextContent,
-)
 import json
+import logging
+from typing import Any, Dict, Optional, List
+import uvicorn
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import StreamingResponse, JSONResponse, Response
+from starlette.routing import Route
+import asyncio
+from contextlib import asynccontextmanager
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 
-class EchoServer:
-    """Stateless MCP Echo Server implementation."""
+class MCPEchoServer:
+    """Stateless MCP Echo Server implementation for protocol 2025-06-18."""
+    
+    PROTOCOL_VERSION = "2025-06-18"
+    SERVER_NAME = "mcp-echo-streamablehttp-server-stateless"
+    SERVER_VERSION = "0.1.0"
     
     def __init__(self, debug: bool = False):
         """Initialize the echo server.
@@ -36,110 +36,277 @@ class EchoServer:
                 format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
             )
         
-        # Create MCP server
-        self.mcp_server = Server("mcp-echo-streamablehttp-server-stateless")
+        # Store request context per async task for stateless operation
+        self._request_context = {}
         
-        # Set up tools
-        self._setup_tools()
-        
-        # Create HTTP transport
-        self.http_server = StreamableHTTPServer(self.mcp_server)
+        # Create the Starlette app
+        self.app = self._create_app()
     
-    def _setup_tools(self):
-        """Set up the echo and printEnv tools."""
+    def _create_app(self):
+        """Create the Starlette application."""
+        routes = [
+            Route("/mcp", self.handle_mcp_request, methods=["POST", "GET", "OPTIONS"]),
+        ]
         
-        @self.mcp_server.list_tools()
-        async def list_tools(request: ListToolsRequest) -> ListToolsResult:
-            """List available tools."""
-            if self.debug:
-                logger.debug(f"list_tools request: {request}")
-            
-            tools = [
-                Tool(
-                    name="echo",
-                    description="Echo back the provided message",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "message": {
-                                "type": "string",
-                                "description": "The message to echo back"
-                            }
-                        },
-                        "required": ["message"],
-                        "additionalProperties": False
-                    }
-                ),
-                Tool(
-                    name="printEnv",
-                    description="Print the value of an environment variable",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string",
-                                "description": "The name of the environment variable"
-                            }
-                        },
-                        "required": ["name"],
-                        "additionalProperties": False
-                    }
-                )
-            ]
-            
-            result = ListToolsResult(tools=tools)
-            if self.debug:
-                logger.debug(f"list_tools response: {result}")
-            return result
+        return Starlette(debug=self.debug, routes=routes)
+    
+    async def handle_mcp_request(self, request: Request):
+        """Handle MCP requests according to 2025-06-18 specification."""
+        # Handle CORS preflight
+        if request.method == "OPTIONS":
+            return Response(
+                content="",
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, MCP-Protocol-Version, Mcp-Session-Id",
+                }
+            )
         
-        @self.mcp_server.call_tool()
-        async def call_tool(request: CallToolRequest) -> CallToolResult:
-            """Handle tool calls."""
-            if self.debug:
-                logger.debug(f"call_tool request: {request}")
-            
-            tool_name = request.params.name
-            arguments = request.params.arguments
-            
+        # Handle GET requests (for opening SSE streams)
+        if request.method == "GET":
+            # For stateless operation, we don't support GET
+            return Response(
+                content="GET not supported in stateless mode",
+                status_code=405,
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        # Validate Accept header according to spec
+        accept = request.headers.get("accept", "")
+        if "application/json" not in accept or "text/event-stream" not in accept:
+            return JSONResponse(
+                {"error": "Client must accept both application/json and text/event-stream"},
+                status_code=400,
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        # Check MCP-Protocol-Version header (optional but recommended)
+        protocol_version = request.headers.get("mcp-protocol-version")
+        if protocol_version and protocol_version != self.PROTOCOL_VERSION:
+            return JSONResponse(
+                {"error": f"Unsupported protocol version: {protocol_version}"},
+                status_code=400,
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        # Store headers in context for this request
+        task_id = id(asyncio.current_task())
+        self._request_context[task_id] = dict(request.headers)
+        
+        try:
+            # Parse JSON-RPC request
             try:
-                if tool_name == "echo":
-                    # Echo tool implementation
-                    message = arguments.get("message")
-                    if not isinstance(message, str):
-                        raise ValueError("message must be a string")
-                    
-                    result = CallToolResult(
-                        content=[TextContent(type="text", text=message)]
-                    )
-                    
-                elif tool_name == "printEnv":
-                    # PrintEnv tool implementation
-                    env_name = arguments.get("name")
-                    if not isinstance(env_name, str):
-                        raise ValueError("name must be a string")
-                    
-                    env_value = os.environ.get(env_name)
-                    if env_value is None:
-                        text = f"Environment variable '{env_name}' not found"
-                    else:
-                        text = f"{env_name}={env_value}"
-                    
-                    result = CallToolResult(
-                        content=[TextContent(type="text", text=text)]
-                    )
-                    
-                else:
-                    raise ValueError(f"Unknown tool: {tool_name}")
-                
-                if self.debug:
-                    logger.debug(f"call_tool response: {result}")
-                return result
-                
+                body = await request.json()
             except Exception as e:
-                error_msg = f"Tool execution error: {str(e)}"
-                if self.debug:
-                    logger.error(error_msg, exc_info=True)
-                raise
+                return StreamingResponse(
+                    self._sse_error_stream(-32700, "Parse error"),
+                    media_type="text/event-stream",
+                    headers={"Access-Control-Allow-Origin": "*"}
+                )
+            
+            if self.debug:
+                logger.debug(f"Request: {body}")
+            
+            # Handle the JSON-RPC request
+            response = await self._handle_jsonrpc_request(body)
+            
+            if self.debug:
+                logger.debug(f"Response: {response}")
+            
+            # Check if this is a notification (no id field)
+            if "id" not in body:
+                # Notifications get 202 Accepted per spec
+                return Response(
+                    content="",
+                    status_code=202,
+                    headers={"Access-Control-Allow-Origin": "*"}
+                )
+            
+            # Return SSE response for requests with id
+            return StreamingResponse(
+                self._sse_response_stream(response),
+                media_type="text/event-stream",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+            
+        finally:
+            # Clean up request context
+            self._request_context.pop(task_id, None)
+    
+    async def _handle_jsonrpc_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle a JSON-RPC 2.0 request according to MCP 2025-06-18."""
+        # Validate JSON-RPC structure
+        if not isinstance(request, dict):
+            return self._error_response(None, -32600, "Invalid Request")
+        
+        jsonrpc = request.get("jsonrpc")
+        if jsonrpc != "2.0":
+            return self._error_response(request.get("id"), -32600, "Invalid Request")
+        
+        method = request.get("method")
+        params = request.get("params", {})
+        request_id = request.get("id")
+        
+        # Route to appropriate handler
+        if method == "initialize":
+            return await self._handle_initialize(params, request_id)
+        elif method == "tools/list":
+            return await self._handle_tools_list(params, request_id)
+        elif method == "tools/call":
+            return await self._handle_tools_call(params, request_id)
+        else:
+            return self._error_response(request_id, -32601, f"Method not found: {method}")
+    
+    async def _handle_initialize(self, params: Dict[str, Any], request_id: Any) -> Dict[str, Any]:
+        """Handle initialize request."""
+        client_protocol = params.get("protocolVersion", "")
+        
+        # For 2025-06-18, we strictly require the exact version
+        if client_protocol != self.PROTOCOL_VERSION:
+            return self._error_response(
+                request_id, 
+                -32602, 
+                f"Unsupported protocol version: {client_protocol}. Only {self.PROTOCOL_VERSION} is supported."
+            )
+        
+        return {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "protocolVersion": self.PROTOCOL_VERSION,
+                "capabilities": {
+                    "tools": {}
+                },
+                "serverInfo": {
+                    "name": self.SERVER_NAME,
+                    "version": self.SERVER_VERSION
+                }
+            }
+        }
+    
+    async def _handle_tools_list(self, params: Dict[str, Any], request_id: Any) -> Dict[str, Any]:
+        """Handle tools/list request."""
+        # MCP 2025-06-18: tools/list can have optional parameters but we don't use them
+        tools = [
+            {
+                "name": "echo",
+                "description": "Echo back the provided message",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "message": {
+                            "type": "string",
+                            "description": "The message to echo back"
+                        }
+                    },
+                    "required": ["message"],
+                    "additionalProperties": False
+                }
+            },
+            {
+                "name": "printHeader",
+                "description": "Print all HTTP headers from the current request",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": False
+                }
+            }
+        ]
+        
+        return {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "tools": tools
+            }
+        }
+    
+    async def _handle_tools_call(self, params: Dict[str, Any], request_id: Any) -> Dict[str, Any]:
+        """Handle tools/call request."""
+        tool_name = params.get("name")
+        arguments = params.get("arguments", {})
+        
+        if not tool_name:
+            return self._error_response(request_id, -32602, "Missing tool name")
+        
+        if tool_name == "echo":
+            # Echo tool implementation
+            message = arguments.get("message")
+            if not isinstance(message, str):
+                return self._error_response(request_id, -32602, "message must be a string")
+            
+            return {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "result": {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": message
+                        }
+                    ]
+                }
+            }
+            
+        elif tool_name == "printHeader":
+            # PrintHeader tool implementation
+            headers_text = "HTTP Headers:\n"
+            headers_text += "-" * 40 + "\n"
+            
+            # Get headers from the current task's context
+            task_id = id(asyncio.current_task())
+            headers = self._request_context.get(task_id, {})
+            
+            if headers:
+                for key, value in sorted(headers.items()):
+                    headers_text += f"{key}: {value}\n"
+            else:
+                headers_text += "No headers available (headers are captured per request)\n"
+            
+            return {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "result": {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": headers_text
+                        }
+                    ]
+                }
+            }
+            
+        else:
+            return self._error_response(request_id, -32602, f"Unknown tool: {tool_name}")
+    
+    def _error_response(self, request_id: Any, code: int, message: str, data: Any = None) -> Dict[str, Any]:
+        """Create a JSON-RPC error response."""
+        error = {
+            "code": code,
+            "message": message
+        }
+        if data is not None:
+            error["data"] = data
+        
+        return {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "error": error
+        }
+    
+    async def _sse_response_stream(self, response: Dict[str, Any]):
+        """Generate SSE stream for a response."""
+        # Format as SSE according to spec
+        yield f"event: message\n"
+        yield f"data: {json.dumps(response)}\n\n"
+    
+    async def _sse_error_stream(self, code: int, message: str):
+        """Generate SSE stream for an error."""
+        response = self._error_response("server-error", code, message)
+        async for chunk in self._sse_response_stream(response):
+            yield chunk
     
     def run(self, host: str = "0.0.0.0", port: int = 3000):
         """Run the HTTP server.
@@ -149,11 +316,17 @@ class EchoServer:
             port: Port to bind to
         """
         if self.debug:
-            logger.info(f"Starting MCP Echo Server on {host}:{port}")
+            logger.info(f"Starting MCP Echo Server (protocol {self.PROTOCOL_VERSION}) on {host}:{port}")
         
         uvicorn.run(
-            self.http_server.app,
+            self.app,
             host=host,
             port=port,
             log_level="debug" if self.debug else "info"
         )
+
+
+def create_app(debug: bool = False):
+    """Create the ASGI application."""
+    server = MCPEchoServer(debug=debug)
+    return server.app

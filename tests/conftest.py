@@ -697,6 +697,34 @@ async def mcp_authenticated_client(
 
 
 @pytest.fixture
+def gateway_auth_headers():
+    """Provides standard auth headers for gateway requests."""
+    token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
+    if not token:
+        pytest.fail("No GATEWAY_OAUTH_ACCESS_TOKEN available for authentication")
+    return {
+        "Authorization": f"Bearer {token}"
+    }
+
+
+@pytest.fixture
+def mcp_echo_url():
+    """Base URL for mcp-echo service, with test skip logic."""
+    from .test_constants import MCP_ECHO_TESTS_ENABLED
+    from .test_constants import MCP_ECHO_URLS
+
+    if not MCP_ECHO_TESTS_ENABLED:
+        pytest.skip(
+            "MCP Echo tests are disabled. Set MCP_ECHO_TESTS_ENABLED=true to enable."
+        )
+    if not MCP_ECHO_URLS:
+        pytest.skip("MCP_ECHO_URLS environment variable not set")
+
+    # Return first URL from the list (including /mcp path)
+    return MCP_ECHO_URLS[0]
+
+
+@pytest.fixture
 def mcp_fetch_url():
     """Base URL for mcp-fetch service, with test skip logic."""
     from .test_constants import MCP_FETCH_TESTS_ENABLED

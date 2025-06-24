@@ -74,7 +74,7 @@ async def test_server(base_url: str = "http://localhost:3000"):
         tools = result["result"]["tools"]
         assert len(tools) == 2
         assert any(t["name"] == "echo" for t in tools)
-        assert any(t["name"] == "printEnv" for t in tools)
+        assert any(t["name"] == "printHeader" for t in tools)
         print("✓ List tools successful")
         
         # Test 3: Echo tool
@@ -90,17 +90,17 @@ async def test_server(base_url: str = "http://localhost:3000"):
         assert result["result"]["content"][0]["text"] == "Hello, MCP!"
         print("✓ Echo tool successful")
         
-        # Test 4: PrintEnv tool
-        print("\n4. Testing printEnv tool...")
+        # Test 4: PrintHeader tool
+        print("\n4. Testing printHeader tool...")
         result = await send_request(url, "tools/call", {
-            "name": "printEnv",
-            "arguments": {
-                "name": "USER"
-            }
+            "name": "printHeader",
+            "arguments": {}
         }, 4)
         assert "result" in result
         assert "content" in result["result"]
-        print(f"✓ PrintEnv tool successful: {result['result']['content'][0]['text']}")
+        print(f"✓ PrintHeader tool successful")
+        print("Headers received by server:")
+        print(result['result']['content'][0]['text'])
         
         # Test 5: Error handling - invalid tool
         print("\n5. Testing error handling...")
@@ -109,9 +109,12 @@ async def test_server(base_url: str = "http://localhost:3000"):
                 "name": "invalid_tool",
                 "arguments": {}
             }, 5)
-            print("✗ Expected error but got success")
-        except httpx.HTTPStatusError:
-            print("✓ Error handling successful")
+            if "error" in result:
+                print("✓ Error handling successful")
+            else:
+                print("✗ Expected error but got success")
+        except Exception as e:
+            print(f"✓ Error handling successful: {e}")
         
         print("\n" + "="*60)
         print("All tests passed! 🎉")

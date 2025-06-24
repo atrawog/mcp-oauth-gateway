@@ -4,7 +4,7 @@ import argparse
 import os
 import sys
 from dotenv import load_dotenv
-from .server import EchoServer
+from .server import MCPEchoServer
 
 
 def main():
@@ -38,7 +38,7 @@ def main():
     args = parser.parse_args()
     
     # Create and run server
-    server = EchoServer(debug=args.debug)
+    server = MCPEchoServer(debug=args.debug)
     
     try:
         server.run(host=args.host, port=args.port)

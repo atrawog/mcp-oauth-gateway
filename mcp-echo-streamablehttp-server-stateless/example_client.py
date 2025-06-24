@@ -28,14 +28,10 @@ async def main():
         result = await client.call_tool("echo", arguments={"message": "Hello from MCP client!"})
         print(f"Echo response: {result.content[0].text}")
         
-        # Test printEnv tool
-        print("\n--- Testing printEnv tool ---")
-        result = await client.call_tool("printEnv", arguments={"name": "USER"})
-        print(f"PrintEnv response: {result.content[0].text}")
-        
-        # Test with non-existent env var
-        result = await client.call_tool("printEnv", arguments={"name": "NONEXISTENT_VAR_12345"})
-        print(f"PrintEnv (non-existent): {result.content[0].text}")
+        # Test printHeader tool
+        print("\n--- Testing printHeader tool ---")
+        result = await client.call_tool("printHeader", arguments={})
+        print(f"PrintHeader response:\n{result.content[0].text}")
 
 
 if __name__ == "__main__":

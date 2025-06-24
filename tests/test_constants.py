@@ -77,6 +77,7 @@ def _get_mcp_service_urls(service_name: str, default_subdomain: str) -> list:
 
 
 # Get the first URL for backwards compatibility (old single URL variables)
+MCP_ECHO_URL = _get_mcp_service_urls("echo", "echo")[0]
 MCP_FETCH_URL = _get_mcp_service_urls("fetch", "fetch")[0]
 MCP_FETCHS_URL = _get_mcp_service_urls("fetchs", "fetchs")[0]
 MCP_FILESYSTEM_URL = _get_mcp_service_urls("filesystem", "filesystem")[0]
@@ -163,6 +164,12 @@ MCP_EVERYTHING_TESTS_ENABLED = (
     _get_env_optional("MCP_EVERYTHING_TESTS_ENABLED") or "false"
 ).lower() == "true"
 MCP_EVERYTHING_URLS = _get_mcp_service_urls("everything", "everything")
+
+# MCP Echo Configuration - From main .env
+MCP_ECHO_TESTS_ENABLED = (
+    _get_env_optional("MCP_ECHO_TESTS_ENABLED") or "false"
+).lower() == "true"
+MCP_ECHO_URLS = _get_mcp_service_urls("echo", "echo")
 
 # MCP Fetch Configuration - From main .env
 MCP_FETCH_TESTS_ENABLED = (

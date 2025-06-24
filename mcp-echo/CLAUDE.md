@@ -10,7 +10,7 @@
 
 This sacred service manifests these divine powers:
 - **Echo Tool** - Returns thy message with perfect fidelity!
-- **PrintEnv Tool** - Reveals environment variable secrets!
+- **PrintHeader Tool** - Reveals all HTTP headers from the divine request!
 - **Stateless Operation** - Pure functional echo with no memory!
 - **Debug Mode** - Divine message tracing for enlightenment!
 - **Production Ready** - Battle-tested with health monitoring!
@@ -27,7 +27,7 @@ MCP-Echo Service (Port 3000)
 │   └── Stateless request handling
 ├── Tool Implementations (Blessed Functions!)
 │   ├── echo - Mirror thy words
-│   └── printEnv - Reveal thy environment
+│   └── printHeader - Reveal thy HTTP headers
 └── Debug Logging (Optional Enlightenment!)
     └── Full request/response tracing
 ```
@@ -58,7 +58,7 @@ CMD ["mcp-echo-streamablehttp-server-stateless"]
 ## 🔧 The Sacred Configuration - Environment Variables of Echo!
 
 **MCP Protocol Settings:**
-- `MCP_PROTOCOL_VERSION=2025-03-26` - Divine protocol covenant!
+- `MCP_PROTOCOL_VERSION=2025-06-18` - Divine protocol covenant!
 - `MCP_ECHO_DEBUG=true` - Enable divine message tracing!
 
 **Server Configuration:**
@@ -82,7 +82,7 @@ CMD ["mcp-echo-streamablehttp-server-stateless"]
   "jsonrpc": "2.0",
   "method": "initialize",
   "params": {
-    "protocolVersion": "2025-03-26",
+    "protocolVersion": "2025-06-18",
     "capabilities": {},
     "clientInfo": {
       "name": "test-client",
@@ -108,19 +108,29 @@ CMD ["mcp-echo-streamablehttp-server-stateless"]
 }
 ```
 
-**PrintEnv Tool Call:**
+**PrintHeader Tool Call:**
 ```json
 {
   "jsonrpc": "2.0",
   "method": "tools/call",
   "params": {
-    "name": "printEnv",
-    "arguments": {
-      "name": "USER"
-    }
+    "name": "printHeader",
+    "arguments": {}
   },
   "id": 3
 }
+```
+
+**Example Response:**
+```
+HTTP Headers:
+----------------------------------------
+accept: text/event-stream
+authorization: Bearer eyJ...
+content-type: application/json
+host: echo.domain.com
+user-agent: MCP-Client/1.0
+x-user-id: 12345
 ```
 
 ### Health Verification - Divine Liveness Through Protocol!
@@ -142,19 +152,20 @@ Security is enforced by the sacred trinity:
 
 **⚡ This is the way of the trinity - separation brings security! ⚡**
 
-## 📡 The MCP Protocol Implementation - 2025-03-26 Compliance!
+## 📡 The MCP Protocol Implementation - 2025-06-18 Compliance!
 
 ### Supported MCP Methods (Blessed Testing Capabilities!)
 
 **tools/list - Divine Tool Discovery!**
-- Returns available echo and printEnv tools!
+- Returns available echo and printHeader tools!
 - Includes proper JSON schema definitions!
 - Stateless operation guaranteed!
 
 **tools/call - Sacred Tool Execution!**
-- Executes echo or printEnv based on name!
+- Executes echo or printHeader based on name!
 - Validates arguments against schema!
 - Returns proper TextContent responses!
+- printHeader reveals divine HTTP headers!
 
 ### The Stateless Operation Pattern
 
@@ -218,9 +229,10 @@ just test-integration
 - Ensure ForwardAuth middleware active!
 
 ### "Tool Not Found" - Invalid Tool Name!
-- Only "echo" and "printEnv" exist!
+- Only "echo" and "printHeader" exist!
 - Check exact spelling and case!
 - Verify arguments match schema!
+- printHeader takes no arguments!
 
 ### "Debug Output Missing" - Logging Not Enabled!
 - Ensure MCP_ECHO_DEBUG=true!
@@ -242,11 +254,12 @@ just test-integration
 ## 🎯 The Divine Mission - MCP-Echo Responsibilities!
 
 **What MCP-Echo MUST Do:**
-- Implement echo and printEnv tools perfectly!
+- Implement echo and printHeader tools perfectly!
 - Provide stateless MCP protocol compliance!
 - Support debug logging when enabled!
 - Handle errors gracefully!
 - Serve as testing ground for clients!
+- Reveal HTTP headers for debugging OAuth flows!
 
 **What MCP-Echo MUST NOT Do:**
 - Implement authentication logic!
