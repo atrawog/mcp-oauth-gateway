@@ -41,22 +41,22 @@ The MCP OAuth Gateway is a **zero-modification authentication layer** for MCP se
 │                          (Layer 1: Routing & TLS Termination)                       │
 ├─────────────────────────────────────────────────────────────────────────────────────┤
 │ • Let's Encrypt automatic HTTPS certificates for all subdomains                     │
-│ • Priority-based routing rules (OAuth > Verify > MCP > Catch-all)                  │
-│ • ForwardAuth middleware for MCP endpoints → Auth Service /verify                  │
+│ • Priority-based routing rules (OAuth > Verify > MCP > Catch-all)                   │
+│ • ForwardAuth middleware for MCP endpoints → Auth Service /verify                   │
 │ • Request routing based on subdomain and path:                                      │
-│   - auth.domain.com/* → Auth Service (no auth required)                            │
-│   - *.domain.com/.well-known/* → Auth Service (OAuth discovery)                    │
-│   - *.domain.com/mcp → MCP Services (auth required via ForwardAuth)                │
+│   - auth.domain.com/* → Auth Service (no auth required)                             │
+│   - *.domain.com/.well-known/* → Auth Service (OAuth discovery)                     │
+│   - *.domain.com/mcp → MCP Services (auth required via ForwardAuth)                 │
 │ • Docker service discovery via labels                                               │
 └─────────────────────────────────────────────────────────────────────────────────────┘
                     │                                              │
                     │ OAuth/Auth Requests                          │ MCP Requests
-                    │ (unauthenticated)                           │ (authenticated)
+                    │ (unauthenticated)                            │ (authenticated)
                     ↓                                              ↓
-┌───────────────────────────────────────────┐    ┌───────────────────────────────────┐
+┌───────────────────────────────────────────┐    ┌─────────────────────────────────────┐
 │           AUTH SERVICE                    │    │         MCP SERVICES                │
 │   (Layer 2: OAuth Authorization Server)   │    │    (Layer 3: Protocol Handlers)     │
-├───────────────────────────────────────────┤    ├───────────────────────────────────┤
+├───────────────────────────────────────────┤    ├─────────────────────────────────────┤
 │ Container: auth:8000                      │    │ Containers:                         │
 │ Package: mcp-oauth-dynamicclient          │    │ • mcp-fetch:3000                    │
 │                                           │    │ • mcp-filesystem:3000               │
@@ -64,18 +64,18 @@ The MCP OAuth Gateway is a **zero-modification authentication layer** for MCP se
 │ • POST /register (RFC 7591)               │    │ • mcp-time:3000                     │
 │ • GET /authorize + /callback              │    │ • ... (dynamically enabled)         │
 │ • POST /token                             │    │                                     │
-│ • GET /.well-known/* (RFC 8414)          │    │ Architecture:                       │
-│ • POST /revoke, /introspect              │    │ • mcp-streamablehttp-proxy wrapper  │
+│ • GET /.well-known/* (RFC 8414)           │    │ Architecture:                       │
+│ • POST /revoke, /introspect               │    │ • mcp-streamablehttp-proxy wrapper  │
 │                                           │    │ • Spawns official MCP stdio servers │
 │ Management Endpoints (RFC 7592):          │    │ • Bridges stdio ↔ HTTP/SSE          │
 │ • GET/PUT/DELETE /register/{client_id}    │    │ • No OAuth knowledge                │
 │                                           │    │ • Receives user identity in headers │
 │ Internal Endpoints:                       │    │                                     │
-│ • GET/POST /verify (ForwardAuth)         │    │ Protocol Endpoints:                 │
+│ • GET/POST /verify (ForwardAuth)          │    │ Protocol Endpoints:                 │
 │                                           │    │ • POST /mcp (JSON-RPC over HTTP)    │
 │ External Integration:                     │←---│ • GET /mcp (SSE for async messages) │
 │ • GitHub OAuth (user authentication)      │    │ • Health checks on /health          │
-└───────────────────────────────────────────┘    └───────────────────────────────────┘
+└───────────────────────────────────────────┘    └─────────────────────────────────────┘
                     │                                              ↑
                     │                                              │
                     └──────────────┬───────────────────────────────┘
@@ -89,14 +89,14 @@ The MCP OAuth Gateway is a **zero-modification authentication layer** for MCP se
 │ Persistence: AOF + RDB snapshots                                                    │
 │                                                                                     │
 │ Data Structures:                                                                    │
-│ • oauth:client:{client_id} → OAuth client registrations (90 days / eternal)        │
-│ • oauth:state:{state} → Authorization flow state (5 minutes)                       │
-│ • oauth:code:{code} → Authorization codes + user info (1 year)                     │
-│ • oauth:token:{jti} → JWT token tracking for revocation (30 days)                  │
-│ • oauth:refresh:{token} → Refresh token data (1 year)                              │
-│ • oauth:user_tokens:{username} → User's active tokens index                        │
-│ • redis:session:{id}:state → MCP session state (managed by proxy)                  │
-│ • redis:session:{id}:messages → MCP message queues                                 │
+│ • oauth:client:{client_id} → OAuth client registrations (90 days / eternal)         │
+│ • oauth:state:{state} → Authorization flow state (5 minutes)                        │
+│ • oauth:code:{code} → Authorization codes + user info (1 year)                      │
+│ • oauth:token:{jti} → JWT token tracking for revocation (30 days)                   │
+│ • oauth:refresh:{token} → Refresh token data (1 year)                               │
+│ • oauth:user_tokens:{username} → User's active tokens index                         │
+│ • redis:session:{id}:state → MCP session state (managed by proxy)                   │
+│ • redis:session:{id}:messages → MCP message queues                                  │
 └─────────────────────────────────────────────────────────────────────────────────────┘
 
 NETWORK TOPOLOGY:
@@ -104,70 +104,6 @@ NETWORK TOPOLOGY:
 • Internal service communication only (except Traefik ingress)
 • Redis exposed on localhost:6379 for debugging only
 • Each MCP service runs in isolated container with no shared state
-```
-
-### Request Flow Scenarios
-
-#### 1. Client Registration Flow (RFC 7591)
-```
-Client → POST /register → Traefik → Auth Service
-                                    ↓
-                                    Creates client_id + client_secret
-                                    Stores in Redis
-                                    ↓
-                                    ← Returns credentials + registration_access_token
-```
-
-#### 2. User Authentication Flow (OAuth 2.1 + GitHub)
-```
-Client → GET /authorize → Traefik → Auth Service
-                                    ↓
-                                    Validates client_id
-                                    Stores PKCE challenge in Redis
-                                    ↓
-                                    → Redirect to GitHub OAuth
-                                    ↓
-User authenticates with GitHub ← ← ← ┘
-         ↓
-GitHub → GET /callback → Traefik → Auth Service
-                                    ↓
-                                    Validates GitHub user
-                                    Creates authorization code
-                                    Stores in Redis with user info
-                                    ↓
-                                    → Redirect to client with code
-```
-
-#### 3. Token Exchange Flow
-```
-Client → POST /token → Traefik → Auth Service
-        (client_id +              ↓
-         client_secret +          Validates client credentials
-         auth code +              Validates PKCE verifier
-         PKCE verifier)           Retrieves user info from Redis
-                                  Creates JWT with user + client claims
-                                  ↓
-                                  ← Returns access_token + refresh_token
-```
-
-#### 4. MCP Request Flow (Authenticated)
-```
-Client → POST /mcp → Traefik → ForwardAuth Middleware
-        (Bearer token)          ↓
-                               GET /verify → Auth Service
-                                            ↓
-                                            Validates JWT
-                                            Extracts user info
-                                            ↓
-                               ← Returns user headers ←
-                               ↓
-                               Routes to MCP Service
-                               (with X-User-Id, X-User-Name headers)
-                               ↓
-                               MCP Service processes request
-                               ↓
-                               ← Returns MCP protocol response
-```
 
 ### Security Architecture
 
@@ -267,15 +203,15 @@ The gateway implements this sophisticated system that combines client credential
 ║  │                                                                             │  ║
 ║  │ Request Body:                                                               │  ║
 ║  │ {                                                                           │  ║
-║  │   "redirect_uris": ["https://example.com/callback"],                       │  ║
+║  │   "redirect_uris": ["https://example.com/callback"],                        │  ║
 ║  │   "client_name": "My MCP Client"                                            │  ║
 ║  │ }                                                                           │  ║
 ║  │                                                                             │  ║
 ║  │ Response:                                                                   │  ║
-║  │ • client_id: "client_abc123..."          ← OAuth client credentials        │  ║
-║  │ • client_secret: "secret_xyz789..."      ← Used at /token endpoint         │  ║
-║  │ • registration_access_token: "reg_tok..."← ONLY for client management      │  ║
-║  │ • registration_client_uri: "https://auth.../register/client_abc123"        │  ║
+║  │ • client_id: "client_abc123..."          ← OAuth client credentials         │  ║
+║  │ • client_secret: "secret_xyz789..."      ← Used at /token endpoint          │  ║
+║  │ • registration_access_token: "reg_tok..."← ONLY for client management       │  ║
+║  │ • registration_client_uri: "https://auth.../register/client_abc123"         │  ║
 ║  └─────────────────────────────────────────────────────────────────────────────┘  ║
 ║                                                                                   ║
 ║  🔧 OPTIONAL: CLIENT MANAGEMENT (Requires registration_access_token)              ║
@@ -286,7 +222,7 @@ The gateway implements this sophisticated system that combines client credential
 ║  │ • PUT /register/{client_id}    - Update redirect URIs, etc.                 │  ║
 ║  │ • DELETE /register/{client_id} - Delete client registration                 │  ║
 ║  │                                                                             │  ║
-║  │ Note: This token is ONLY for managing the client registration,             │  ║
+║  │ Note: This token is ONLY for managing the client registration,              │  ║
 ║  │       NOT for accessing MCP resources!                                      │  ║
 ║  └─────────────────────────────────────────────────────────────────────────────┘  ║
 ║                                                                                   ║
@@ -302,7 +238,7 @@ The gateway implements this sophisticated system that combines client credential
 ║                                                                                   ║
 ║  👤 STEP 2: USER AUTHORIZATION (Human authenticates via GitHub)                   ║
 ║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
-║  │ GET /authorize?client_id=client_abc123&redirect_uri=...&code_challenge=... │  ║
+║  │ GET /authorize?client_id=client_abc123&redirect_uri=...&code_challenge=...  │  ║
 ║  │                                                                             │  ║
 ║  │ 1. Gateway validates client_id exists                                       │  ║
 ║  │ 2. Redirects user to GitHub OAuth:                                          │  ║
@@ -322,10 +258,10 @@ The gateway implements this sophisticated system that combines client credential
 ║  │ Content-Type: application/x-www-form-urlencoded                             │  ║
 ║  │                                                                             │  ║
 ║  │ Request:                                                                    │  ║
-║  │ • client_id=client_abc123          ← Authenticates the OAuth client        │  ║
-║  │ • client_secret=secret_xyz789      ← Proves client identity                │  ║
-║  │ • code=auth_code_from_step_2       ← Contains GitHub user info             │  ║
-║  │ • code_verifier=pkce_verifier      ← PKCE verification                     │  ║
+║  │ • client_id=client_abc123          ← Authenticates the OAuth client         │  ║
+║  │ • client_secret=secret_xyz789      ← Proves client identity                 │  ║
+║  │ • code=auth_code_from_step_2       ← Contains GitHub user info              │  ║
+║  │ • code_verifier=pkce_verifier      ← PKCE verification                      │  ║
 ║  │                                                                             │  ║
 ║  │ Response:                                                                   │  ║
 ║  │ • access_token: JWT containing:                                             │  ║
@@ -336,7 +272,7 @@ The gateway implements this sophisticated system that combines client credential
 ║  │ • refresh_token: For renewing access                                        │  ║
 ║  └─────────────────────────────────────────────────────────────────────────────┘  ║
 ║                                                                                   ║
-║  🛡️ STEP 4: RESOURCE ACCESS (Using the access token)                             ║
+║  🛡️ STEP 4: RESOURCE ACCESS (Using the access token)                              ║
 ║  ┌─────────────────────────────────────────────────────────────────────────────┐  ║
 ║  │ Authorization: Bearer <access_token>                                        │  ║
 ║  │                                                                             │  ║
