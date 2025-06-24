@@ -26,6 +26,16 @@ def run_command(cmd: list[str]) -> tuple[int, str, str]:
 
 def check_docker_service(service_name: str) -> bool:
     """Check if a Docker service is running."""
+    # Skip mcp-fetch if it's disabled
+    if (
+        service_name == "mcp-fetch"
+        and os.getenv("MCP_FETCH_ENABLED", "true").lower() != "true"
+    ):
+        print(
+            f"{YELLOW}⊝ Service {service_name} is disabled via MCP_FETCH_ENABLED{RESET}"
+        )
+        return True  # Consider it "passing" since it's intentionally disabled
+
     # Skip mcp-echo if it's disabled
     if (
         service_name == "mcp-echo"
@@ -45,6 +55,25 @@ def check_docker_service(service_name: str) -> bool:
             f"{YELLOW}⊝ Service {service_name} is disabled via MCP_EVERYTHING_ENABLED{RESET}"
         )
         return True  # Consider it "passing" since it's intentionally disabled
+
+    # Skip other MCP services if they're disabled
+    service_env_map = {
+        "mcp-fetchs": "MCP_FETCHS_ENABLED",
+        "mcp-filesystem": "MCP_FILESYSTEM_ENABLED", 
+        "mcp-memory": "MCP_MEMORY_ENABLED",
+        "mcp-playwright": "MCP_PLAYWRIGHT_ENABLED",
+        "mcp-sequentialthinking": "MCP_SEQUENTIALTHINKING_ENABLED",
+        "mcp-time": "MCP_TIME_ENABLED",
+        "mcp-tmux": "MCP_TMUX_ENABLED",
+    }
+    
+    if service_name in service_env_map:
+        env_var = service_env_map[service_name]
+        if os.getenv(env_var, "true").lower() != "true":
+            print(
+                f"{YELLOW}⊝ Service {service_name} is disabled via {env_var}{RESET}"
+            )
+            return True  # Consider it "passing" since it's intentionally disabled
 
     cmd = [
         "docker",
@@ -153,7 +182,11 @@ async def wait_for_services(max_wait: int = 60) -> bool:
     """Wait for all services to be healthy using Docker health checks."""
     print(f"\n{YELLOW}Waiting for Docker health checks (max {max_wait}s)...{RESET}")
 
-    services_to_check = ["traefik", "auth", "redis", "mcp-fetch"]
+    services_to_check = ["traefik", "auth", "redis"]
+
+    # Add mcp-fetch if enabled
+    if os.getenv("MCP_FETCH_ENABLED", "true").lower() == "true":
+        services_to_check.append("mcp-fetch")
 
     # Add mcp-echo if enabled
     if os.getenv("MCP_ECHO_ENABLED", "true").lower() == "true":
@@ -162,6 +195,21 @@ async def wait_for_services(max_wait: int = 60) -> bool:
     # Add mcp-everything if enabled
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
         services_to_check.append("mcp-everything")
+
+    # Add other MCP services if enabled
+    optional_services = [
+        ("mcp-fetchs", "MCP_FETCHS_ENABLED"),
+        ("mcp-filesystem", "MCP_FILESYSTEM_ENABLED"),
+        ("mcp-memory", "MCP_MEMORY_ENABLED"),
+        ("mcp-playwright", "MCP_PLAYWRIGHT_ENABLED"),
+        ("mcp-sequentialthinking", "MCP_SEQUENTIALTHINKING_ENABLED"),
+        ("mcp-time", "MCP_TIME_ENABLED"),
+        ("mcp-tmux", "MCP_TMUX_ENABLED"),
+    ]
+    
+    for service_name, env_var in optional_services:
+        if os.getenv(env_var, "true").lower() == "true":
+            services_to_check.append(service_name)
 
     start_time = time.time()
 
@@ -256,11 +304,28 @@ async def main():
     checks.append(("Volumes", check_volumes_exist()))
 
     # Build services if needed
-    base_services = ["traefik", "auth", "redis", "mcp-fetch"]
+    base_services = ["traefik", "auth", "redis"]
+    if os.getenv("MCP_FETCH_ENABLED", "true").lower() == "true":
+        base_services.append("mcp-fetch")
     if os.getenv("MCP_ECHO_ENABLED", "true").lower() == "true":
         base_services.append("mcp-echo")
     if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
         base_services.append("mcp-everything")
+    
+    # Add other MCP services if enabled
+    optional_services = [
+        ("mcp-fetchs", "MCP_FETCHS_ENABLED"),
+        ("mcp-filesystem", "MCP_FILESYSTEM_ENABLED"),
+        ("mcp-memory", "MCP_MEMORY_ENABLED"),
+        ("mcp-playwright", "MCP_PLAYWRIGHT_ENABLED"),
+        ("mcp-sequentialthinking", "MCP_SEQUENTIALTHINKING_ENABLED"),
+        ("mcp-time", "MCP_TIME_ENABLED"),
+        ("mcp-tmux", "MCP_TMUX_ENABLED"),
+    ]
+    
+    for service_name, env_var in optional_services:
+        if os.getenv(env_var, "true").lower() == "true":
+            base_services.append(service_name)
 
     if not all(check_docker_service(s) for s in base_services):
         checks.append(("Build", build_services()))
