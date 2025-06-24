@@ -205,7 +205,7 @@ class TestMCPEchoClientFull:
         assert "result" in response
         tools = response["result"]["tools"]
         assert isinstance(tools, list)
-        assert len(tools) == 2
+        assert len(tools) == 10  # Now we have 10 tools including diagnostic tools
 
         # Check tool structure
         tool_names = []
@@ -215,10 +215,20 @@ class TestMCPEchoClientFull:
             assert "inputSchema" in tool
             tool_names.append(tool["name"])
 
-        # Verify both expected tools exist
+        # Verify both original tools exist
         assert "echo" in tool_names
         assert "printHeader" in tool_names
-        print(f"✅ Found expected tools: {tool_names}")
+        
+        # Verify diagnostic tools exist
+        diagnostic_tools = [
+            "bearerDecode", "authContext", "oauthFlowTrace", 
+            "requestTiming", "protocolNegotiation", "corsAnalysis",
+            "environmentDump", "healthProbe"
+        ]
+        for tool in diagnostic_tools:
+            assert tool in tool_names
+        
+        print(f"✅ Found all {len(tools)} expected tools: {tool_names}")
 
         # Verify echo tool schema
         echo_tool = next(t for t in tools if t["name"] == "echo")

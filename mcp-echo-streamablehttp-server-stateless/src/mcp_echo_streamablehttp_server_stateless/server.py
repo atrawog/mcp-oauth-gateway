@@ -542,7 +542,6 @@ class MCPEchoServer:
                     
                     # Signature info
                     result_text += f"\nSignature: {'Present' if parts[2] else 'Missing'}\n"
-                    result_text += "⚠️  Note: Signature NOT verified (decode only)\n"
                     
                     if include_raw:
                         result_text += "\nRaw Parts:\n"
@@ -863,10 +862,27 @@ class MCPEchoServer:
         
         # Current request info
         result_text += "Current Request:\n"
-        client_version = headers.get('mcp-protocol-version', 'not specified')
-        result_text += f"  Client Protocol Version: {client_version}\n"
+        mcp_header = headers.get('mcp-protocol-version', None)
+        client_version = mcp_header if mcp_header is not None else 'not specified'
+        result_text += f"  MCP-Protocol-Version Header: {client_version}\n"
+        if mcp_header:
+            result_text += f"  Header Present: ✅ Yes\n"
+        else:
+            result_text += f"  Header Present: ❌ No\n"
         result_text += f"  Server Supported Versions: {', '.join(self.supported_versions)}\n"
         result_text += f"  Server Default Version: {self.PROTOCOL_VERSION}\n"
+        
+        result_text += "\n"
+        
+        # All MCP-related headers
+        result_text += "MCP-Related Headers in Request:\n"
+        mcp_headers_found = False
+        for header_name, header_value in headers.items():
+            if 'mcp' in header_name.lower():
+                result_text += f"  {header_name}: {header_value}\n"
+                mcp_headers_found = True
+        if not mcp_headers_found:
+            result_text += "  No MCP-related headers found\n"
         
         result_text += "\n"
         
@@ -875,10 +891,13 @@ class MCPEchoServer:
         if client_version == 'not specified':
             result_text += "  ⚠️  No protocol version specified by client\n"
             result_text += f"  Server would use default: {self.PROTOCOL_VERSION}\n"
+            result_text += "  Note: Actual negotiation happens during 'initialize' request\n"
         elif client_version in self.supported_versions:
-            result_text += f"  ✅ Compatible - Using version: {client_version}\n"
+            result_text += f"  ✅ Compatible - Client requesting version: {client_version}\n"
+            result_text += f"  This version would be used if negotiated during 'initialize'\n"
         else:
-            result_text += f"  ❌ Incompatible - Client version not supported\n"
+            result_text += f"  ❌ Incompatible - Client version not supported: {client_version}\n"
+            result_text += "  Server would reject this during 'initialize' request\n"
         
         result_text += "\n"
         
@@ -907,6 +926,12 @@ class MCPEchoServer:
         result_text += "  2024-11-05: Original MCP specification\n"
         result_text += "  2025-03-26: Enhanced transport options\n"
         result_text += "  2025-06-18: StreamableHTTP transport, SSE support\n"
+        
+        result_text += "\n"
+        
+        # How negotiation works
+        result_text += "  Note: This is a stateless server, so each request is independent.\n"
+        result_text += "  The MCP-Protocol-Version header should match what was negotiated.\n"
         
         return {
             "jsonrpc": "2.0",
@@ -1017,42 +1042,8 @@ class MCPEchoServer:
             result_text += f"  {var}: {value}\n"
         
         result_text += "\n"
-        
-        # OAuth Configuration
-        result_text += "OAuth Configuration:\n"
-        oauth_vars = {
-            'BASE_DOMAIN': os.getenv('BASE_DOMAIN', 'not set'),
-            'ALLOWED_GITHUB_USERS': os.getenv('ALLOWED_GITHUB_USERS', 'not set'),
-            'CLIENT_LIFETIME': os.getenv('CLIENT_LIFETIME', 'not set'),
-            'ACCESS_TOKEN_LIFETIME': os.getenv('ACCESS_TOKEN_LIFETIME', 'not set'),
-            'REFRESH_TOKEN_LIFETIME': os.getenv('REFRESH_TOKEN_LIFETIME', 'not set'),
-        }
-        
-        for var, value in oauth_vars.items():
-            result_text += f"  {var}: {value}\n"
-        
-        # Sensitive vars
-        sensitive_vars = {
-            'GITHUB_CLIENT_ID': os.getenv('GITHUB_CLIENT_ID', ''),
-            'GITHUB_CLIENT_SECRET': os.getenv('GITHUB_CLIENT_SECRET', ''),
-            'GATEWAY_JWT_SECRET': os.getenv('GATEWAY_JWT_SECRET', ''),
-            'REDIS_PASSWORD': os.getenv('REDIS_PASSWORD', ''),
-        }
-        
-        for var, value in sensitive_vars.items():
-            if value and show_secrets:
-                if len(value) > 8:
-                    sanitized = f"{value[:4]}...{value[-4:]}"
-                else:
-                    sanitized = f"{value[0]}...{value[-1]}" if len(value) > 1 else "*"
-                result_text += f"  {var}: {sanitized}\n"
-            elif value:
-                result_text += f"  {var}: [SET]\n"
-            else:
-                result_text += f"  {var}: [NOT SET]\n"
-        
-        result_text += "\n"
-        
+      
+              
         # System info
         result_text += "System Information:\n"
         result_text += f"  Platform: {platform.platform()}\n"

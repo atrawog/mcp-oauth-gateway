@@ -104,7 +104,7 @@ class TestMCPEchoIntegration:
         assert "result" in data
         
         tools = data["result"]["tools"]
-        assert len(tools) == 2
+        assert len(tools) == 10  # Now we have 10 tools including diagnostic tools
         
         # Check echo tool
         echo_tool = next(t for t in tools if t["name"] == "echo")
@@ -115,6 +115,16 @@ class TestMCPEchoIntegration:
         header_tool = next(t for t in tools if t["name"] == "printHeader")
         assert header_tool["description"] == "Print all HTTP headers from the current request"
         assert header_tool["inputSchema"]["properties"] == {}
+        
+        # Verify diagnostic tools exist
+        tool_names = [t["name"] for t in tools]
+        diagnostic_tools = [
+            "bearerDecode", "authContext", "oauthFlowTrace", 
+            "requestTiming", "protocolNegotiation", "corsAnalysis",
+            "environmentDump", "healthProbe"
+        ]
+        for tool in diagnostic_tools:
+            assert tool in tool_names
 
     @pytest.mark.asyncio
     async def test_echo_tool_functionality(
