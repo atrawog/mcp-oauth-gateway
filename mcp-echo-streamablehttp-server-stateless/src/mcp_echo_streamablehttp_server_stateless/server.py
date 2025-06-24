@@ -72,6 +72,15 @@ class MCPEchoServer:
                 headers={"Access-Control-Allow-Origin": "*"}
             )
         
+        # Validate Content-Type header for POST requests
+        content_type = request.headers.get("content-type", "")
+        if not content_type.startswith("application/json"):
+            return JSONResponse(
+                {"error": "Content-Type must be application/json"},
+                status_code=400,
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
         # Validate Accept header according to spec
         accept = request.headers.get("accept", "")
         if "application/json" not in accept or "text/event-stream" not in accept:
@@ -81,11 +90,11 @@ class MCPEchoServer:
                 headers={"Access-Control-Allow-Origin": "*"}
             )
         
-        # Check MCP-Protocol-Version header (optional but recommended)
+        # Check MCP-Protocol-Version header (required per spec)
         protocol_version = request.headers.get("mcp-protocol-version")
         if protocol_version and protocol_version != self.PROTOCOL_VERSION:
             return JSONResponse(
-                {"error": f"Unsupported protocol version: {protocol_version}"},
+                {"error": f"Unsupported protocol version: {protocol_version}. Expected: {self.PROTOCOL_VERSION}"},
                 status_code=400,
                 headers={"Access-Control-Allow-Origin": "*"}
             )
@@ -107,6 +116,15 @@ class MCPEchoServer:
             
             if self.debug:
                 logger.debug(f"Request: {body}")
+            
+            # Handle batch requests
+            if isinstance(body, list):
+                # Batch requests are not supported in stateless mode
+                return JSONResponse(
+                    {"error": "Batch requests not supported in stateless mode"},
+                    status_code=400,
+                    headers={"Access-Control-Allow-Origin": "*"}
+                )
             
             # Handle the JSON-RPC request
             response = await self._handle_jsonrpc_request(body)

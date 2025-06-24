@@ -1,5 +1,5 @@
 """Sacred MCP Echo Protocol Compliance Tests - Following the divine MCP specification!
-Tests that Echo service strictly follows MCP protocol version 2025-03-26.
+Tests that Echo service strictly follows MCP protocol version 2025-06-18.
 NO MOCKING - testing against real deployed service!
 """
 
@@ -19,12 +19,12 @@ class TestMCPEchoProtocolCompliance:
         """Test that Echo service follows JSON-RPC 2.0 specification exactly."""
         # Test 1: Valid JSON-RPC request
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
                 "params": {
-                    "protocolVersion": "2025-03-26",
+                    "protocolVersion": "2025-06-18",
                     "capabilities": {},
                     "clientInfo": {"name": "compliance-test", "version": "1.0.0"}
                 },
@@ -33,7 +33,8 @@ class TestMCPEchoProtocolCompliance:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -52,7 +53,7 @@ class TestMCPEchoProtocolCompliance:
     ):
         """Test that Echo service rejects invalid JSON-RPC version."""
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "1.0",  # Invalid version
                 "method": "initialize",
@@ -62,7 +63,8 @@ class TestMCPEchoProtocolCompliance:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -75,7 +77,7 @@ class TestMCPEchoProtocolCompliance:
     ):
         """Test that Echo service handles missing jsonrpc field."""
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 # Missing "jsonrpc" field
                 "method": "initialize",
@@ -85,7 +87,8 @@ class TestMCPEchoProtocolCompliance:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -99,7 +102,7 @@ class TestMCPEchoProtocolCompliance:
         """Test that Echo service handles batch requests appropriately."""
         # Send batch request (array of requests)
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json=[
                 {
                     "jsonrpc": "2.0",
@@ -115,7 +118,8 @@ class TestMCPEchoProtocolCompliance:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -129,12 +133,12 @@ class TestMCPEchoProtocolCompliance:
         """Test protocol version negotiation during initialization."""
         # Test with exact version
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
                 "params": {
-                    "protocolVersion": "2025-03-26",
+                    "protocolVersion": "2025-06-18",
                     "capabilities": {},
                     "clientInfo": {"name": "version-test", "version": "1.0.0"}
                 },
@@ -143,13 +147,14 @@ class TestMCPEchoProtocolCompliance:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
         assert response.status_code == 200
         data = self._parse_sse_response(response.text)
-        assert data["result"]["protocolVersion"] == "2025-03-26"
+        assert data["result"]["protocolVersion"] == "2025-06-18"
 
     @pytest.mark.asyncio
     async def test_echo_unknown_protocol_version(
@@ -157,7 +162,7 @@ class TestMCPEchoProtocolCompliance:
     ):
         """Test initialization with unknown protocol version."""
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -171,7 +176,8 @@ class TestMCPEchoProtocolCompliance:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -189,12 +195,12 @@ class TestMCPEchoProtocolCompliance:
     ):
         """Test that Echo service accepts required MCP headers."""
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
                 "params": {
-                    "protocolVersion": "2025-03-26",
+                    "protocolVersion": "2025-06-18",
                     "capabilities": {},
                     "clientInfo": {"name": "header-test", "version": "1.0.0"}
                 },
@@ -204,7 +210,7 @@ class TestMCPEchoProtocolCompliance:
                 **gateway_auth_headers,
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
-                "MCP-Protocol-Version": "2025-03-26"  # Optional but recommended
+                "MCP-Protocol-Version": "2025-06-18"  # Required per spec
             }
         )
         
@@ -217,7 +223,7 @@ class TestMCPEchoProtocolCompliance:
         """Test that Echo service validates Content-Type header."""
         # Test with wrong content type
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             data="not json",  # Send as text
             headers={
                 **gateway_auth_headers,
@@ -235,7 +241,7 @@ class TestMCPEchoProtocolCompliance:
     ):
         """Test that Echo service returns proper SSE format."""
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/list",
@@ -245,7 +251,8 @@ class TestMCPEchoProtocolCompliance:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -262,7 +269,7 @@ class TestMCPEchoProtocolCompliance:
     ):
         """Test that Echo service returns properly formatted error responses."""
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -275,7 +282,8 @@ class TestMCPEchoProtocolCompliance:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -300,7 +308,7 @@ class TestMCPEchoProtocolCompliance:
         """Test notification support (requests without id)."""
         # Notifications don't have an id field
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/list",
@@ -310,12 +318,13 @@ class TestMCPEchoProtocolCompliance:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
-        # Server should accept but may not respond to notifications
-        assert response.status_code == 200
+        # Server should accept notifications with 202 Accepted per MCP 2025-06-18 spec
+        assert response.status_code == 202
 
     @pytest.mark.asyncio
     async def test_echo_method_namespace_compliance(
@@ -333,7 +342,7 @@ class TestMCPEchoProtocolCompliance:
         
         for method in valid_methods[:3]:  # Test first 3 that echo supports
             response = await http_client.post(
-                f"{mcp_echo_url}/mcp",
+                mcp_echo_url,
                 json={
                     "jsonrpc": "2.0",
                     "method": method,

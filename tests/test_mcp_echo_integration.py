@@ -19,12 +19,12 @@ class TestMCPEchoIntegration:
         """Test that Echo service REQUIRES OAuth authentication - no unauthorized access!"""
         # Test with no authentication
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
                 "params": {
-                    "protocolVersion": "2025-03-26",
+                    "protocolVersion": "2025-06-18",
                     "capabilities": {},
                     "clientInfo": {"name": "test-client", "version": "1.0.0"}
                 },
@@ -42,12 +42,12 @@ class TestMCPEchoIntegration:
     ):
         """Test MCP protocol initialization with Echo service."""
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
                 "params": {
-                    "protocolVersion": "2025-03-26",
+                    "protocolVersion": "2025-06-18",
                     "capabilities": {},
                     "clientInfo": {"name": "test-client", "version": "1.0.0"}
                 },
@@ -56,7 +56,8 @@ class TestMCPEchoIntegration:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -67,7 +68,7 @@ class TestMCPEchoIntegration:
         assert data["jsonrpc"] == "2.0"
         assert data["id"] == 1
         assert "result" in data
-        assert data["result"]["protocolVersion"] == "2025-03-26"
+        assert data["result"]["protocolVersion"] == "2025-06-18"
         assert data["result"]["serverInfo"]["name"] == "mcp-echo-streamablehttp-server-stateless"
 
     @pytest.mark.asyncio
@@ -80,7 +81,7 @@ class TestMCPEchoIntegration:
         
         # List tools
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/list",
@@ -90,7 +91,8 @@ class TestMCPEchoIntegration:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -125,7 +127,7 @@ class TestMCPEchoIntegration:
         test_message = "Hello from MCP Echo Test! 🚀"
         
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -140,7 +142,8 @@ class TestMCPEchoIntegration:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -172,7 +175,7 @@ class TestMCPEchoIntegration:
         }
         
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -208,7 +211,7 @@ class TestMCPEchoIntegration:
         await self._initialize_session(http_client, mcp_echo_url, gateway_auth_headers)
         
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -221,7 +224,8 @@ class TestMCPEchoIntegration:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -243,7 +247,7 @@ class TestMCPEchoIntegration:
         
         # Call echo without required message argument
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -256,7 +260,8 @@ class TestMCPEchoIntegration:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -274,7 +279,7 @@ class TestMCPEchoIntegration:
     ):
         """Test CORS preflight handling for Echo service."""
         response = await http_client.options(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             headers={
                 "Origin": "https://claude.ai",
                 "Access-Control-Request-Method": "POST",
@@ -297,7 +302,7 @@ class TestMCPEchoIntegration:
         await self._initialize_session(http_client, mcp_echo_url, gateway_auth_headers)
         
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -310,7 +315,8 @@ class TestMCPEchoIntegration:
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         
@@ -332,7 +338,7 @@ class TestMCPEchoIntegration:
         for i in range(3):
             # Each request should work independently without maintaining state
             response = await http_client.post(
-                f"{mcp_echo_url}/mcp",
+                mcp_echo_url,
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -368,12 +374,12 @@ class TestMCPEchoIntegration:
     ):
         """Initialize MCP session with Echo service."""
         response = await http_client.post(
-            f"{mcp_echo_url}/mcp",
+            mcp_echo_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
                 "params": {
-                    "protocolVersion": "2025-03-26",
+                    "protocolVersion": "2025-06-18",
                     "capabilities": {},
                     "clientInfo": {"name": "test-client", "version": "1.0.0"}
                 },
@@ -382,7 +388,8 @@ class TestMCPEchoIntegration:
             headers={
                 **auth_headers,
                 "Accept": "application/json, text/event-stream",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": "2025-06-18"
             }
         )
         assert response.status_code == 200
