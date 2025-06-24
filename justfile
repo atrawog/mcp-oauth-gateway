@@ -324,8 +324,34 @@ analyze-oauth-logs:
     mkdir -p reports
     pixi run python scripts/analyze_oauth_logs.py > reports/oauth-analysis-$(date +%Y%m%d-%H%M%S).md
 
-# Health check commands
+# Health check commands - checks both environment tokens and services
 check-health:
+    @echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    @echo "🏥 MCP OAuth Gateway Health Check"
+    @echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    @echo ""
+    @echo "Step 1/3: Checking environment tokens..."
+    @echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    pixi run python scripts/check_env_tokens.py
+    @echo ""
+    @echo "Step 2/3: Checking Docker services..."
+    @echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    pixi run python scripts/check_services_ready.py
+    @echo ""
+    @echo "Step 3/3: Checking service endpoints..."
+    @echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    @just health-quick
+    @echo ""
+    @echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    @echo "✅ Health check complete!"
+    @echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Check only environment tokens
+check-tokens:
+    pixi run python scripts/check_env_tokens.py
+
+# Check only services
+check-services:
     pixi run python scripts/check_services_ready.py
 
 # Quick health check (simple version)

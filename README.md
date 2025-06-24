@@ -826,15 +826,26 @@ just test-claude-integration
 ### Health Monitoring
 
 ```bash
-# Check all services health
+# Comprehensive health check (tokens + services + endpoints)
 just check-health
 
-# Quick health check
+# Check only environment tokens
+just check-tokens       # Shows which tokens are required vs testing
+
+# Check only Docker services
+just check-services
+
+# Quick endpoint health check
 just health-quick
 
 # Check SSL certificates
 just check-ssl
 ```
+
+The `just check-health` command now provides a comprehensive health check that:
+1. ✅ Checks all environment tokens (clearly showing required vs testing)
+2. ✅ Verifies Docker services are running
+3. ✅ Tests service endpoints are accessible
 
 ### OAuth Data Management
 
