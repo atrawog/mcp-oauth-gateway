@@ -14,6 +14,7 @@ graph TB
         O[mcp-oauth-dynamicclient]
         P[mcp-streamablehttp-proxy]
         F[mcp-fetch-streamablehttp-server]
+        E[mcp-echo-streamablehttp-server-stateless]
     end
     
     subgraph "External Dependencies"
@@ -25,14 +26,17 @@ graph TB
     C -->|HTTP + OAuth| O
     O -->|Authentication| P
     O -->|Authentication| F
+    O -->|Authentication| E
     P -->|stdio| MS
     
     classDef client fill:#9cf,stroke:#333,stroke-width:2px
     classDef infra fill:#fc9,stroke:#333,stroke-width:2px
     classDef external fill:#ccc,stroke:#333,stroke-width:2px
+    classDef diagnostic fill:#f9f,stroke:#333,stroke-width:2px
     
     class C client
     class O,P,F infra
+    class E diagnostic
     class MC,MS external
 ```
 
@@ -78,6 +82,16 @@ Demonstrates native streamable HTTP implementation:
 - Native async/await throughout
 - Reference implementation for new servers
 
+### [mcp-echo-streamablehttp-server-stateless](./mcp-echo-streamablehttp-server-stateless.md)
+**Advanced Diagnostic and AI-Powered MCP Server**
+
+Comprehensive diagnostic toolkit with AI analysis:
+- 10 powerful diagnostic tools for debugging
+- Integrated G.O.A.T. Recognition AI v3.14159
+- Stateless operation for scalability
+- OAuth flow analysis and JWT decoding
+- System health and performance monitoring
+
 ## Package Relationships
 
 ### Installation Dependencies
@@ -88,6 +102,7 @@ graph LR
         A[auth service] -->|uses| O[mcp-oauth-dynamicclient]
         F1[mcp-fetch] -->|uses| P[mcp-streamablehttp-proxy]
         F2[mcp-fetchs] -->|uses| FS[mcp-fetch-streamablehttp-server]
+        E1[mcp-echo] -->|uses| ES[mcp-echo-streamablehttp-server-stateless]
     end
     
     subgraph "Client Dependencies"

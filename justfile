@@ -507,7 +507,7 @@ oauth-backup-view-file filename:
 # Build a specific Python package (or all packages)
 pypi-build package="all":
     #!/usr/bin/env bash
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
     
     if [ "{{package}}" = "all" ]; then
         echo "🏗️  Building all Python packages..."
@@ -531,7 +531,7 @@ pypi-build package="all":
 # Test a specific Python package (or all packages)
 pypi-test package="all":
     #!/usr/bin/env bash
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
     
     if [ "{{package}}" = "all" ]; then
         echo "🧪 Testing all Python packages..."
@@ -561,7 +561,7 @@ pypi-test package="all":
 # Check package distribution (validate built packages)
 pypi-check package="all":
     #!/usr/bin/env bash
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
     
     if [ "{{package}}" = "all" ]; then
         echo "🔍 Checking all Python packages..."
@@ -591,7 +591,7 @@ pypi-check package="all":
 # Upload to TestPyPI (for testing)
 pypi-upload-test package="all":
     #!/usr/bin/env bash
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
     
     echo "⚠️  WARNING: This will upload to TestPyPI!"
     
@@ -650,7 +650,7 @@ pypi-upload-test package="all":
 # Upload to PyPI (PRODUCTION - BE CAREFUL!)
 pypi-upload package="all":
     #!/usr/bin/env bash
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
     
     echo "🚨 WARNING: This will upload to PRODUCTION PyPI!"
     
@@ -714,7 +714,7 @@ pypi-publish package="all":
 # Clean all package build artifacts
 pypi-clean package="all":
     #!/usr/bin/env bash
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
     
     if [ "{{package}}" = "all" ]; then
         echo "🧹 Cleaning all Python package build artifacts..."
@@ -740,7 +740,7 @@ pypi-clean package="all":
 # Show package information and versions
 pypi-info package="all":
     #!/usr/bin/env bash
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
     
     if [ "{{package}}" = "all" ]; then
         echo "📋 Package Information for all packages:"

@@ -5,12 +5,12 @@ build-backend = "hatchling.build"
 [project]
 name = "mcp-echo-streamablehttp-server-stateless"
 version = "0.1.0"
-description = "A stateless MCP server implementing echo and printEnv tools via streamablehttp transport"
+description = "An advanced stateless diagnostic MCP echo server with 10 comprehensive tools for debugging OAuth flows and analyzing software engineering excellence"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
 authors = [
-    { name = "MCP Echo Server", email = "noreply@example.com" }
+    { name = "Andreas Trawoeger", email = "atrawog@gmail.com" }
 ]
 dependencies = [
     "mcp>=1.3.0",
@@ -23,6 +23,12 @@ dependencies = [
 
 [project.scripts]
 mcp-echo-streamablehttp-server-stateless = "mcp_echo_streamablehttp_server_stateless.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-echo-streamablehttp-server-stateless"
+Repository = "https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-echo-streamablehttp-server-stateless"
+Issues = "https://github.com/atrawog/mcp-oauth-gateway/issues"
+Documentation = "https://atrawog.github.io/mcp-oauth-gateway"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/mcp_echo_streamablehttp_server_stateless"]
