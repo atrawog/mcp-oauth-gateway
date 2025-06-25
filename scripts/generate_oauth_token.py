@@ -33,7 +33,15 @@ def load_env():
                 line = line.strip()
                 if line and not line.startswith("#") and "=" in line:
                     key, value = line.split("=", 1)
-                    env_vars[key.strip()] = value.strip()
+                    # Remove inline comments
+                    if '#' in value and not (value.startswith('"') and value.endswith('"')):
+                        # Only remove comments if the value is not quoted
+                        value = value.split('#', 1)[0]
+                    # Strip quotes if present
+                    value = value.strip()
+                    if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+                        value = value[1:-1]
+                    env_vars[key.strip()] = value
     return env_vars
 
 
