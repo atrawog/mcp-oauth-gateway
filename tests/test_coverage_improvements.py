@@ -252,9 +252,9 @@ class TestRoutesErrorHandling:
         # Should return 400 for invalid state
         assert response.status_code == HTTP_BAD_REQUEST
         json_response = response.json()
-        assert json_response["detail"]["error"] == "invalid_request"
+        assert json_response["error"] == "invalid_request"
         assert (
-            "Invalid or expired state" in json_response["detail"]["error_description"]
+            "Invalid or expired state" in json_response["error_description"]
         )
 
     @pytest.mark.asyncio
@@ -594,10 +594,7 @@ class TestEdgeCasesAndBranches:
         assert response.status_code == HTTP_BAD_REQUEST
         json_response = response.json()
         # Handle both direct error and detail.error formats
-        if "detail" in json_response:
-            assert json_response["detail"]["error"] == "invalid_grant"
-        else:
-            assert json_response["error"] == "invalid_grant"
+        assert json_response["error"] == "invalid_grant"
 
     @pytest.mark.asyncio
     async def test_authorize_with_unsupported_response_type(

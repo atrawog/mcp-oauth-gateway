@@ -107,7 +107,7 @@ class TestFullOAuthFlow:
             # If client doesn't exist, fail with clear error
             if response.status_code == HTTP_BAD_REQUEST:
                 error = response.json()
-                if error.get("detail", {}).get("error") == "invalid_client":
+                if error.get("error") == "invalid_client":
                     pytest.fail(
                         f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials."  # TODO: Break long line
                     )
@@ -142,7 +142,7 @@ class TestFullOAuthFlow:
             # If client doesn't exist, fail with clear error
             if response.status_code == HTTP_UNAUTHORIZED:
                 error = response.json()
-                if error.get("detail", {}).get("error") == "invalid_client":
+                if error.get("error") == "invalid_client":
                     pytest.fail(
                         f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials."  # TODO: Break long line
                     )
@@ -151,7 +151,7 @@ class TestFullOAuthFlow:
             # This proves our client credentials are valid
             assert response.status_code == HTTP_BAD_REQUEST
             error = response.json()
-            assert error["detail"]["error"] == "invalid_grant"  # Not invalid_client!
+            assert error["error"] == "invalid_grant"  # Not invalid_client!
 
     @pytest.mark.asyncio
     async def test_forwardauth_with_bearer_token(self):
@@ -172,4 +172,4 @@ class TestFullOAuthFlow:
 
             assert response.status_code == HTTP_UNAUTHORIZED
             error = response.json()
-            assert error["detail"]["error"] == "invalid_token"
+            assert error["error"] == "invalid_token"

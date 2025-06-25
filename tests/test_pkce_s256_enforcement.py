@@ -57,11 +57,11 @@ class TestPKCES256Enforcement:
         # Should reject plain method
         assert auth_response.status_code == HTTP_BAD_REQUEST
         error_data = auth_response.json()
-        assert "detail" in error_data
-        assert "error" in error_data["detail"]
+        # Auth service returns OAuth 2.0 compliant errors
+        assert "error" in error_data
         assert (
-            "plain" in error_data["detail"].get("error_description", "").lower()
-            or "s256" in error_data["detail"].get("error_description", "").lower()
+            "plain" in error_data.get("error_description", "").lower()
+            or "s256" in error_data.get("error_description", "").lower()
         )
 
         # Cleanup: Delete the client registration using RFC 7592

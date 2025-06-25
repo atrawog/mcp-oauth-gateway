@@ -103,8 +103,8 @@ class TestClientRegistrationErrors:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_client_metadata"
-        assert "redirect_uris is required" in error["detail"]["error_description"]
+        assert error["error"] == "invalid_client_metadata"
+        assert "redirect_uris is required" in error["error_description"]
 
 
 class TestTokenEndpointEdgeCases:
@@ -125,8 +125,8 @@ class TestTokenEndpointEdgeCases:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_request"
-        assert "Missing refresh token" in error["detail"]["error_description"]
+        assert error["error"] == "invalid_request"
+        assert "Missing refresh token" in error["error_description"]
 
     @pytest.mark.asyncio
     async def test_token_refresh_grant_invalid_token(self, http_client):
@@ -143,9 +143,9 @@ class TestTokenEndpointEdgeCases:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_grant"
+        assert error["error"] == "invalid_grant"
         assert (
-            "Invalid or expired refresh token" in error["detail"]["error_description"]
+            "Invalid or expired refresh token" in error["error_description"]
         )
 
     @pytest.mark.asyncio
@@ -166,7 +166,7 @@ class TestTokenEndpointEdgeCases:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_grant"
+        assert error["error"] == "invalid_grant"
 
 
 class TestPKCEVerification:
@@ -192,7 +192,7 @@ class TestPKCEVerification:
         # Will fail at code validation, not PKCE check
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_grant"
+        assert error["error"] == "invalid_grant"
 
 
 class TestTokenRevocationEdgeCases:
@@ -324,7 +324,7 @@ class TestJWTTokenCreation:
         # Should fail because the authorization code is invalid
         assert token_response.status_code == HTTP_BAD_REQUEST
         error = token_response.json()
-        assert error["detail"]["error"] == "invalid_grant"
+        assert error["error"] == "invalid_grant"
 
         # This demonstrates that while registration is public,
         # the security is enforced at token issuance stage
@@ -365,7 +365,7 @@ class TestAuthorizationEndpointErrors:
         assert response.status_code == HTTP_BAD_REQUEST
         try:
             error = response.json()
-            assert error["detail"]["error"] == "invalid_client"
+            assert error["error"] == "invalid_client"
         except json.JSONDecodeError:
             # If response is not JSON, check if it's an HTML error page
             content = response.text
@@ -391,7 +391,7 @@ class TestAuthorizationEndpointErrors:
         # Should NOT redirect on invalid redirect_uri (RFC 6749)
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_redirect_uri"
+        assert error["error"] == "invalid_redirect_uri"
 
 
 class TestShutdownHandler:

@@ -91,4 +91,4 @@ class TestMCPFetchRealContent:
         assert "detail" in error_data
         assert "error" in error_data["detail"]
         # Auth service returns invalid_request for missing auth header
-        assert error_data["detail"]["error"] in ["invalid_token", "invalid_request"]
+        assert error_data["error"] in ["invalid_token", "invalid_request"]

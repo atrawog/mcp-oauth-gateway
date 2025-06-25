@@ -881,3 +881,32 @@ def mcp_tmux_url():
 
     # Return first URL from the list (including /mcp path)
     return MCP_TMUX_URLS[0]
+
+
+def parse_error_response(response_json):
+    """Parse error response from auth service, handling both OAuth 2.0 format and custom format.
+    
+    The auth service returns OAuth 2.0 compliant errors with 'error' and 'error_description'
+    at the top level, but some tests expect a different format with 'detail'.
+    
+    Returns: (error_code, error_description)
+    """
+    if isinstance(response_json, dict):
+        # OAuth 2.0 format: {"error": "...", "error_description": "..."}
+        if "error" in response_json and "error_description" in response_json:
+            return response_json["error"], response_json["error_description"]
+        
+        # Custom format: {"detail": {"error": "...", "error_description": "..."}}
+        if "detail" in response_json and isinstance(response_json["detail"], dict):
+            detail = response_json["detail"]
+            if "error" in detail and "error_description" in detail:
+                return detail["error"], detail["error_description"]
+            elif "error_description" in detail:
+                return detail.get("error", "unknown_error"), detail["error_description"]
+        
+        # Legacy format: {"detail": "..."}
+        if "detail" in response_json and isinstance(response_json["detail"], str):
+            return "unknown_error", response_json["detail"]
+    
+    # Fallback
+    return "unknown_error", str(response_json)

@@ -29,8 +29,8 @@ class TestGitHubCallbackErrors:
         # Should return error
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_request"
-        assert "Invalid or expired state" in error["detail"]["error_description"]
+        assert error["error"] == "invalid_request"
+        assert "Invalid or expired state" in error["error_description"]
 
 
 class TestRealOAuthFlowErrors:
@@ -82,10 +82,10 @@ class TestRealOAuthFlowErrors:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_grant"
+        assert error["error"] == "invalid_grant"
         assert (
             "Invalid or expired authorization code"
-            in error["detail"]["error_description"]
+            in error["error_description"]
         )
 
 
@@ -110,7 +110,7 @@ class TestPKCEWithRealFlow:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_grant"
+        assert error["error"] == "invalid_grant"
 
 
 class TestRefreshTokenErrors:
@@ -131,7 +131,7 @@ class TestRefreshTokenErrors:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_grant"
+        assert error["error"] == "invalid_grant"
         assert (
-            "Invalid or expired refresh token" in error["detail"]["error_description"]
+            "Invalid or expired refresh token" in error["error_description"]
         )

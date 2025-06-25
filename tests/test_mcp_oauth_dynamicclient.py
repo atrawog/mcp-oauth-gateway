@@ -178,7 +178,7 @@ class TestMCPOAuthDynamicClientPackage:
 
         assert response.status_code == HTTP_BAD_REQUEST  # RFC 7591 compliant
         error = response.json()
-        assert error["detail"]["error"] == "invalid_client_metadata"
+        assert error["error"] == "invalid_client_metadata"
 
         # Test 2: Invalid redirect URI - service may accept non-URL strings
         response = await http_client.post(
@@ -195,7 +195,7 @@ class TestMCPOAuthDynamicClientPackage:
         else:
             assert response.status_code == HTTP_BAD_REQUEST  # Bad Request
             error = response.json()
-            assert error["detail"]["error"] == "invalid_redirect_uri"
+            assert error["error"] == "invalid_redirect_uri"
 
         # Test 3: Empty redirect_uris array
         response = await http_client.post(
@@ -280,7 +280,7 @@ class TestMCPOAuthDynamicClientPackage:
 
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
-        assert error["detail"]["error"] == "invalid_client"
+        assert error["error"] == "invalid_client"
 
         # Should include WWW-Authenticate header
         assert "WWW-Authenticate" in response.headers
@@ -505,7 +505,7 @@ class TestMCPOAuthDynamicClientPackage:
 
             assert response.status_code == HTTP_BAD_REQUEST
             error = response.json()
-            assert error["detail"]["error"] == "unsupported_grant_type"
+            assert error["error"] == "unsupported_grant_type"
 
         print("✅ Unsupported grant type handling working correctly")
 

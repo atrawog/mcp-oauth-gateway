@@ -290,7 +290,7 @@ class TestMCPClientOAuthFlows:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_grant"
+        assert error["error"] == "invalid_grant"
 
         print("✅ Token refresh endpoint working correctly")
 

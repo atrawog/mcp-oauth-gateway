@@ -56,14 +56,14 @@ class TestExistingOAuthCredentials:
         # If client doesn't exist, fail with clear error
         if response.status_code == HTTP_UNAUTHORIZED:
             error = response.json()
-            if error.get("detail", {}).get("error") == "invalid_client":
+            if error.get("error") == "invalid_client":
                 pytest.fail(
                     f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials."  # TODO: Break long line
                 )
 
         assert response.status_code == HTTP_BAD_REQUEST  # Should be invalid_grant
         error = response.json()
-        assert error.get("detail", {}).get("error") == "invalid_grant"
+        assert error.get("error") == "invalid_grant"
 
         # Test 2: Test client credentials without secret (public client)
         response = await http_client.post(
@@ -204,7 +204,7 @@ class TestCompleteFlowWithExistingClient:
         # If client doesn't exist, fail with clear error
         if response.status_code == HTTP_BAD_REQUEST:
             error = response.json()
-            if error.get("detail", {}).get("error") == "invalid_client":
+            if error.get("error") == "invalid_client":
                 pytest.fail(
                     f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first."  # TODO: Break long line
                 )

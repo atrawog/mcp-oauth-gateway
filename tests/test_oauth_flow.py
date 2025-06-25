@@ -106,8 +106,8 @@ class TestOAuthFlow:
 
             assert response.status_code == HTTP_BAD_REQUEST  # RFC 7591 compliant error
             error = response.json()
-            assert error["detail"]["error"] == "invalid_client_metadata"
-            assert "redirect_uris is required" in error["detail"]["error_description"]
+            assert error["error"] == "invalid_client_metadata"
+            assert "redirect_uris is required" in error["error_description"]
 
         finally:
             # Clean up all created clients using RFC 7592 DELETE
@@ -148,7 +148,7 @@ class TestOAuthFlow:
         assert response.status_code == HTTP_BAD_REQUEST  # MUST return error, not redirect
         try:
             error = response.json()
-            assert error["detail"]["error"] == "invalid_client"
+            assert error["error"] == "invalid_client"
         except json.JSONDecodeError:
             # If response is not JSON, check if it's an HTML error page
             content = response.text
@@ -170,7 +170,7 @@ class TestOAuthFlow:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_redirect_uri"
+        assert error["error"] == "invalid_redirect_uri"
 
     @pytest.mark.asyncio
     async def test_pkce_flow(self, http_client, registered_client):
@@ -223,7 +223,7 @@ class TestOAuthFlow:
         assert response.status_code == HTTP_UNAUTHORIZED
         assert response.headers.get("WWW-Authenticate") == "Basic"
         error = response.json()
-        assert error["detail"]["error"] == "invalid_client"
+        assert error["error"] == "invalid_client"
 
         # Test invalid grant
         response = await http_client.post(
@@ -239,7 +239,7 @@ class TestOAuthFlow:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_grant"
+        assert error["error"] == "invalid_grant"
 
     @pytest.mark.asyncio
     async def test_token_introspection(self, http_client, registered_client):
@@ -295,4 +295,4 @@ class TestOAuthFlow:
 
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
-        assert error["detail"]["error"] == "invalid_token"
+        assert error["error"] == "invalid_token"

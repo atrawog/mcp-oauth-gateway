@@ -66,7 +66,7 @@ class TestRegistrationPublicAccess:
             # Current implementation requires auth
             assert "WWW-Authenticate" in response.headers
             error = response.json()
-            assert error["detail"]["error"] == "authorization_required"
+            assert error["error"] == "authorization_required"
             print(
                 "✓ Registration endpoint requires authentication (current implementation)"
             )

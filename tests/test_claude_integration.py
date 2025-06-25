@@ -225,7 +225,7 @@ class TestClaudeIntegration:
         # Should fail with invalid_grant (not invalid_request)
         assert token_response.status_code == HTTP_BAD_REQUEST
         error = token_response.json()
-        assert error["detail"]["error"] == "invalid_grant"  # Correct error for bad code
+        assert error["error"] == "invalid_grant"  # Correct error for bad code
 
     @pytest.mark.asyncio
     async def test_claude_mcp_streaming(self, http_client, wait_for_services):
@@ -268,7 +268,7 @@ class TestClaudeIntegration:
 
         assert response.status_code == HTTP_BAD_REQUEST  # Must not redirect
         error = response.json()
-        assert error["detail"]["error"] == "invalid_redirect_uri"
+        assert error["error"] == "invalid_redirect_uri"
 
         # 2. Missing PKCE when required
         response = await http_client.get(

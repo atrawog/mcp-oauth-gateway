@@ -99,7 +99,7 @@ class TestClientRegistrationErrors:
         # Should be 400 for RFC 7591 compliance
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_client_metadata"
+        assert error["error"] == "invalid_client_metadata"
 
         # Test with malformed JSON (no auth header needed for malformed requests)
         response = await http_client.post(
@@ -132,7 +132,7 @@ class TestAuthorizationErrors:
         assert response.status_code == HTTP_BAD_REQUEST
         try:
             error = response.json()
-            assert error["detail"]["error"] == "invalid_client"
+            assert error["error"] == "invalid_client"
         except json.JSONDecodeError:
             # If response is not JSON, check if it's an HTML error page
             content = response.text
@@ -160,7 +160,7 @@ class TestAuthorizationErrors:
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         # Check for the actual error returned
-        assert error["detail"]["error"] in ["invalid_request", "invalid_redirect_uri"]
+        assert error["error"] in ["invalid_request", "invalid_redirect_uri"]
 
 
 class TestTokenEndpointErrors:
@@ -185,7 +185,7 @@ class TestTokenEndpointErrors:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_grant"
+        assert error["error"] == "invalid_grant"
 
         # Test with wrong client credentials
         response = await http_client.post(
@@ -201,7 +201,7 @@ class TestTokenEndpointErrors:
 
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
-        assert error["detail"]["error"] == "invalid_client"
+        assert error["error"] == "invalid_client"
 
         # Test unsupported grant type
         response = await http_client.post(
@@ -216,7 +216,7 @@ class TestTokenEndpointErrors:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "unsupported_grant_type"
+        assert error["error"] == "unsupported_grant_type"
 
 
 class TestVerifyEndpointErrors:
@@ -235,8 +235,8 @@ class TestVerifyEndpointErrors:
         error = response.json()
         # Check for any token format error message
         assert (
-            "token" in error["detail"]["error_description"].lower()
-            or "invalid" in error["detail"]["error_description"].lower()
+            "token" in error["error_description"].lower()
+            or "invalid" in error["error_description"].lower()
         )
 
         # Test with JWT signed with wrong key
@@ -255,7 +255,7 @@ class TestVerifyEndpointErrors:
         error = response.json()
         assert (
             "The access token is invalid or expired"
-            in error["detail"]["error_description"]
+            in error["error_description"]
         )
 
         # Test with expired token
@@ -276,7 +276,7 @@ class TestVerifyEndpointErrors:
 
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
-        assert "expired" in error["detail"]["error_description"].lower()
+        assert "expired" in error["error_description"].lower()
 
 
 class TestRevokeEndpointEdgeCases:
@@ -313,7 +313,7 @@ class TestRevokeEndpointEdgeCases:
         assert response.status_code in [200, 401]
         if response.status_code == HTTP_UNAUTHORIZED:
             error = response.json()
-            assert error["detail"]["error"] == "invalid_client"
+            assert error["error"] == "invalid_client"
 
         # Test with missing token
         response = await http_client.post(
@@ -388,7 +388,7 @@ class TestIntrospectEdgeCases:
         assert response.status_code in [200, 401]
         if response.status_code == HTTP_UNAUTHORIZED:
             error = response.json()
-            assert error["detail"]["error"] == "invalid_client"
+            assert error["error"] == "invalid_client"
         elif response.status_code == HTTP_OK:
             result = response.json()
             assert result["active"] is False

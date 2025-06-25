@@ -68,7 +68,7 @@ class TestRealOAuthFlow:
 
         if auth_response.status_code == HTTP_BAD_REQUEST:
             error = auth_response.json()
-            if error.get("detail", {}).get("error") == "invalid_client":
+            if error.get("error") == "invalid_client":
                 pytest.fail(
                     f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. "  # TODO: Break long line
                     f"Run: just generate-github-token to register a new client."
@@ -120,7 +120,7 @@ class TestRealOAuthFlow:
         # Should get invalid_grant (not invalid_client) proving client is valid
         assert token_response.status_code == HTTP_BAD_REQUEST
         error = token_response.json()
-        assert error["detail"]["error"] == "invalid_grant"  # Not invalid_client!
+        assert error["error"] == "invalid_grant"  # Not invalid_client!
 
         # Step 4: If we have a refresh token, test refresh flow
         if GATEWAY_OAUTH_REFRESH_TOKEN:
@@ -218,7 +218,7 @@ class TestRealPKCEFlow:
 
         if auth_response.status_code == HTTP_BAD_REQUEST:
             error = auth_response.json()
-            if error.get("detail", {}).get("error") == "invalid_client":
+            if error.get("error") == "invalid_client":
                 pytest.fail(
                     f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered. "
                     f"Run: just generate-github-token"
@@ -303,7 +303,7 @@ class TestRealJWTTokens:
 
         assert verify_response.status_code == HTTP_UNAUTHORIZED
         error = verify_response.json()
-        assert "expired" in error["detail"]["error_description"].lower()
+        assert "expired" in error["error_description"].lower()
 
         # Test 3: Test revocation with REAL client credentials
         revoke_response = await http_client.post(

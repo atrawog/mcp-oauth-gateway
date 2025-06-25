@@ -62,9 +62,8 @@ class TestTraefikRouting:
 
         # Response should be from auth service, not MCP service
         error = response.json()
-        assert "detail" in error
-        assert "error" in error["detail"]
-        assert error["detail"]["error"] == "invalid_request"
+        # Auth service returns OAuth 2.0 compliant errors
+        assert error["error"] == "invalid_request"
 
     @pytest.mark.asyncio
     async def test_mcp_fetch_trailing_slash_redirect(

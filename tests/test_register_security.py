@@ -219,7 +219,7 @@ class TestRegisterEndpointSecurity:
         # Should fail due to invalid client authentication
         assert token_response.status_code == HTTP_UNAUTHORIZED
         error = token_response.json()
-        assert error["detail"]["error"] == "invalid_client"
+        assert error["error"] == "invalid_client"
 
         # Cleanup: Delete the client registration using RFC 7592
         if "registration_access_token" in client:

@@ -57,10 +57,9 @@ class TestClaudeAIRoutingScenario:
 
         # Should get proper error response
         error = response.json()
-        assert "detail" in error
-        assert "error" in error["detail"]
-        assert error["detail"]["error"] == "invalid_request"
-        assert "Authorization header" in error["detail"]["error_description"]
+        # Auth service returns OAuth 2.0 compliant errors
+        assert error["error"] == "invalid_request"
+        assert "Authorization header" in error["error_description"]
 
     @pytest.mark.asyncio
     async def test_mcp_path_accessible_with_and_without_trailing_slash(

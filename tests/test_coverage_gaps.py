@@ -69,8 +69,8 @@ class TestCoverageGaps:
 
         assert response.status_code == HTTP_BAD_REQUEST  # RFC 7591 compliant error
         error = response.json()
-        assert error["detail"]["error"] == "invalid_client_metadata"
-        assert "redirect_uris is required" in error["detail"]["error_description"]
+        assert error["error"] == "invalid_client_metadata"
+        assert "redirect_uris is required" in error["error_description"]
 
     @pytest.mark.asyncio
     async def test_authorize_unsupported_response_type(
@@ -116,10 +116,8 @@ class TestCoverageGaps:
         assert response.status_code == HTTP_UNAUTHORIZED
         assert response.headers.get("WWW-Authenticate") == "Basic"
         error = response.json()
-        assert error.get("detail", {}).get("error") == "invalid_client"
-        assert "Invalid client credentials" in error.get("detail", {}).get(
-            "error_description", ""
-        )
+        assert error.get("error") == "invalid_client"
+        assert "Invalid client credentials" in error.get("error_description", "")
 
     @pytest.mark.asyncio
     async def test_token_endpoint_missing_code(
@@ -139,10 +137,8 @@ class TestCoverageGaps:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error.get("detail", {}).get("error") == "invalid_request"
-        assert "Missing authorization code" in error.get("detail", {}).get(
-            "error_description", ""
-        )
+        assert error.get("error") == "invalid_request"
+        assert "Missing authorization code" in error.get("error_description", "")
 
     @pytest.mark.asyncio
     async def test_token_endpoint_unsupported_grant_type(
@@ -162,10 +158,8 @@ class TestCoverageGaps:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error.get("detail", {}).get("error") == "unsupported_grant_type"
-        assert "Grant type 'password' is not supported" in error.get("detail", {}).get(
-            "error_description", ""
-        )
+        assert error.get("error") == "unsupported_grant_type"
+        assert "Grant type 'password' is not supported" in error.get("error_description", "")
 
     @pytest.mark.asyncio
     async def test_refresh_token_grant_type(
@@ -188,10 +182,8 @@ class TestCoverageGaps:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error.get("detail", {}).get("error") == "invalid_request"
-        assert "Missing refresh token" in error.get("detail", {}).get(
-            "error_description", ""
-        )
+        assert error.get("error") == "invalid_request"
+        assert "Missing refresh token" in error.get("error_description", "")
 
         # Test invalid refresh token
         response = await http_client.post(
@@ -206,10 +198,8 @@ class TestCoverageGaps:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error.get("detail", {}).get("error") == "invalid_grant"
-        assert "Invalid or expired refresh token" in error.get("detail", {}).get(
-            "error_description", ""
-        )
+        assert error.get("error") == "invalid_grant"
+        assert "Invalid or expired refresh token" in error.get("error_description", "")
 
     @pytest.mark.asyncio
     async def test_verify_endpoint_revoked_token(self, http_client, wait_for_services):
@@ -242,10 +232,8 @@ class TestCoverageGaps:
             response.headers.get("WWW-Authenticate") == 'Bearer error="invalid_token"'
         )
         error = response.json()
-        assert error.get("detail", {}).get("error") == "invalid_token"
-        assert "The access token is invalid or expired" in error.get("detail", {}).get(
-            "error_description", ""
-        )
+        assert error.get("error") == "invalid_token"
+        assert "The access token is invalid or expired" in error.get("error_description", "")
 
     @pytest.mark.asyncio
     async def test_revoke_endpoint_invalid_client(self, http_client, wait_for_services):
@@ -412,10 +400,8 @@ class TestCallbackEndpoint:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error.get("detail", {}).get("error") == "invalid_request"
-        assert "Invalid or expired state" in error.get("detail", {}).get(
-            "error_description", ""
-        )
+        assert error.get("error") == "invalid_request"
+        assert "Invalid or expired state" in error.get("error_description", "")
 
     @pytest.mark.asyncio
     async def test_callback_github_exchange_simulation(
@@ -529,4 +515,4 @@ class TestPKCEVerification:
         # This will fail because the code doesn't exist
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error.get("detail", {}).get("error") == "invalid_grant"
+        assert error.get("error") == "invalid_grant"

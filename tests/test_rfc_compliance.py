@@ -33,9 +33,9 @@ class TestRFCCompliance:
         assert response.status_code == HTTP_BAD_REQUEST
         try:
             error = response.json()
-            assert error["detail"]["error"] == "invalid_client"
+            assert error["error"] == "invalid_client"
             assert (
-                error["detail"]["error_description"] == "Client authentication failed"
+                error["error_description"] == "Client authentication failed"
             )
         except json.JSONDecodeError:
             # If response is not JSON, check if it's an HTML error page
@@ -62,8 +62,8 @@ class TestRFCCompliance:
         assert response.status_code == HTTP_UNAUTHORIZED
         assert response.headers.get("WWW-Authenticate") == "Basic"
         error = response.json()
-        assert error["detail"]["error"] == "invalid_client"
-        assert error["detail"]["error_description"] == "Client authentication failed"
+        assert error["error"] == "invalid_client"
+        assert error["error_description"] == "Client authentication failed"
         # RFC 6749 Section 5.2 compliant - only error and error_description fields
 
     @pytest.mark.asyncio
@@ -97,8 +97,8 @@ class TestRFCCompliance:
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_redirect_uri"
-        assert "localhost" in error["detail"]["error_description"]
+        assert error["error"] == "invalid_redirect_uri"
+        assert "localhost" in error["error_description"]
 
     @pytest.mark.asyncio
     async def test_registration_valid_redirect_uris_rfc7591(self, http_client):
@@ -150,5 +150,5 @@ class TestRFCCompliance:
         # RFC 7591 - Returns 400 with proper error format
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
-        assert error["detail"]["error"] == "invalid_client_metadata"
-        assert "redirect_uris is required" in error["detail"]["error_description"]
+        assert error["error"] == "invalid_client_metadata"
+        assert "redirect_uris is required" in error["error_description"]
