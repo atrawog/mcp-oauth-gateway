@@ -44,7 +44,7 @@ class TestMCPProtocolVersions:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test server's protocol version works in initialize params."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Test the server's protocol version
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -76,7 +76,7 @@ class TestMCPProtocolVersions:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test server's protocol version works in MCP-Protocol-Version header."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Test the server's protocol version
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -107,7 +107,7 @@ class TestMCPProtocolVersions:
             "latest",  # Invalid format
         ]
 
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Test in params
             for version in unsupported_versions:
                 response = await client.post(
@@ -162,7 +162,7 @@ class TestMCPProtocolVersions:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test that responses include MCP-Protocol-Version header."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Test various methods
             methods = ["initialize", "tools/list", "tools/call"]
 
@@ -203,7 +203,7 @@ class TestMCPProtocolVersions:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test protocol version negotiation behavior."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # When client doesn't specify version, server should use default
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -233,7 +233,7 @@ class TestMCPProtocolVersions:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test that version checking is case-sensitive."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Test uppercase header name (should work)
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -264,7 +264,7 @@ class TestMCPProtocolVersions:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test that error responses still include protocol version header."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Trigger various errors
             error_requests = [
                 {"jsonrpc": "2.0", "method": "unknown/method", "id": 1},

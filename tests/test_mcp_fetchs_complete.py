@@ -41,7 +41,7 @@ class TestMCPFetchsComplete:
     ):
         """Test complete OAuth flow from authentication to content fetching."""
         # Step 1: Verify authentication is required
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
                 f"{mcp_fetchs_url}",
                 json={"jsonrpc": "2.0", "method": "initialize", "id": 1},
@@ -51,7 +51,7 @@ class TestMCPFetchsComplete:
             assert response.headers["WWW-Authenticate"] == "Bearer"
 
         # Step 2: Initialize MCP session with authentication
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
                 f"{mcp_fetchs_url}",
                 json={
@@ -80,7 +80,7 @@ class TestMCPFetchsComplete:
             session_id = response.headers["Mcp-Session-Id"]
 
         # Step 3: List available tools
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
                 f"{mcp_fetchs_url}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "id": 2},
@@ -104,7 +104,7 @@ class TestMCPFetchsComplete:
             assert fetch_tool["description"] == "Fetch a URL and return its contents"
 
         # Step 4: Fetch actual content
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
                 f"{mcp_fetchs_url}",
                 json={
@@ -147,7 +147,7 @@ class TestMCPFetchsComplete:
     #     self, mcp_fetchs_url, client_token, wait_for_services
     # ):
     #     """Test fetchs using MCP client access token."""
-    #     async with httpx.AsyncClient(verify=False) as client:
+    #     async with httpx.AsyncClient(verify=True) as client:
     #         # Initialize session
     #         response = await client.post(
     #             f"{mcp_fetchs_url}",
@@ -205,7 +205,7 @@ class TestMCPFetchsComplete:
         self, mcp_fetchs_url, gateway_token, wait_for_services
     ):
         """Test URL parameter validation in fetchs."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Test missing URL
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -263,7 +263,7 @@ class TestMCPFetchsComplete:
     #     self, mcp_fetchs_url, gateway_token, wait_for_services
     # ):
     #     """Test max_length parameter handling."""
-    #     async with httpx.AsyncClient(verify=False) as client:
+    #     async with httpx.AsyncClient(verify=True) as client:
     #         response = await client.post(
     #             f"{mcp_fetchs_url}",
     #             json={
@@ -304,7 +304,7 @@ class TestMCPFetchsComplete:
     #     self, mcp_fetchs_url, gateway_token, wait_for_services
     # ):
     #     """Test custom headers and user agent support."""
-    #     async with httpx.AsyncClient(verify=False) as client:
+    #     async with httpx.AsyncClient(verify=True) as client:
     #         response = await client.post(
     #             f"{mcp_fetchs_url}",
     #             json={
@@ -348,7 +348,7 @@ class TestMCPFetchsComplete:
     #     self, mcp_fetchs_url, gateway_token, wait_for_services
     # ):
     #     """Test POST method with request body."""
-    #     async with httpx.AsyncClient(verify=False) as client:
+    #     async with httpx.AsyncClient(verify=True) as client:
     #         response = await client.post(
     #             f"{mcp_fetchs_url}",
     #             json={
@@ -391,7 +391,7 @@ class TestMCPFetchsComplete:
     #     self, mcp_fetchs_url, gateway_token, wait_for_services
     # ):
     #     """Test error handling for various failure scenarios."""
-    #     async with httpx.AsyncClient(verify=False) as client:
+    #     async with httpx.AsyncClient(verify=True) as client:
     #         # Test 404 response
     #         response = await client.post(
     #             f"{mcp_fetchs_url}",
@@ -455,7 +455,7 @@ class TestMCPFetchsComplete:
         self, mcp_fetchs_url, gateway_token, wait_for_services
     ):
         """Test protocol version negotiation."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Try with older protocol version
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -492,7 +492,7 @@ class TestMCPFetchsComplete:
         self, mcp_fetchs_url, gateway_token, wait_for_services
     ):
         """Test session management behavior."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Create two separate initialization requests
             responses = []
             for i in range(2):
@@ -567,7 +567,7 @@ class TestMCPFetchsComplete:
     #         )
     #         return response
     #
-    #     async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
+    #     async with httpx.AsyncClient(verify=True, timeout=30.0) as client:
     #         # Make 5 concurrent requests
     #         tasks = [make_fetch_request(client, i) for i in range(1, 6)]
     #         responses = await asyncio.gather(*tasks)

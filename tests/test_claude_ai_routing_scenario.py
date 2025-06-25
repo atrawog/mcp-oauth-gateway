@@ -165,7 +165,7 @@ class TestClaudeAIRoutingScenario:
         # Simulate Claude.ai's exact request
         url = f"https://fetch.{BASE_DOMAIN}/mcp"
 
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
                 url,
                 json={

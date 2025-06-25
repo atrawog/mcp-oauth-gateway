@@ -44,7 +44,7 @@ class TestMCPFetchsSecurity:
             (f"bearer {valid_token}", 401, "Lowercase bearer rejected"),
         ]
 
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             for auth_header, expected_status, description in test_cases:
                 headers = {"Content-Type": "application/json"}
                 if auth_header is not None:
@@ -80,7 +80,7 @@ class TestMCPFetchsSecurity:
             "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJzdWIiOiJ0ZXN0In0.",  # alg: none
         ]
 
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             for token in invalid_tokens:
                 response = await client.post(
                     f"{mcp_fetchs_url}",
@@ -112,7 +112,7 @@ class TestMCPFetchsSecurity:
             ("/unknown", "GET", True),
         ]
 
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             for path, method, auth_required in endpoints_auth_required:
                 # Test without auth
                 response = await client.request(
@@ -152,7 +152,7 @@ class TestMCPFetchsSecurity:
             "gopher://example.com",
         ]
 
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             for url in dangerous_urls:
                 response = await client.post(
                     f"{mcp_fetchs_url}",
@@ -194,7 +194,7 @@ class TestMCPFetchsSecurity:
     #         "Authorization": "Bearer fake-token",  # Should not override
     #     }
     #
-    #     async with httpx.AsyncClient(verify=False) as client:
+    #     async with httpx.AsyncClient(verify=True) as client:
     #         response = await client.post(
     #             f"{mcp_fetchs_url}",
     #             json={
@@ -230,7 +230,7 @@ class TestMCPFetchsSecurity:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test service behavior under rapid requests."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Make 10 rapid requests
             responses = []
             for i in range(10):
@@ -258,7 +258,7 @@ class TestMCPFetchsSecurity:
             f"https://fetchs.{base_domain}/.well-known/oauth-authorization-server"
         )
 
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Discovery should be publicly accessible
             response = await client.get(oauth_discovery_url)
 

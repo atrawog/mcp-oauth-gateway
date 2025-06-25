@@ -59,7 +59,7 @@ class TestMCPEverythingSSE:
                 },
                 "id": 1
             },
-            verify=False
+            verify=True
         )
         
         # Check SSE headers are present
@@ -92,7 +92,7 @@ class TestMCPEverythingSSE:
                 },
                 "id": 1
             },
-            verify=False,
+            verify=True,
             stream=True  # Important for SSE
         )
         
@@ -145,7 +145,7 @@ class TestMCPEverythingSSE:
                 },
                 "id": 1
             },
-            verify=False,
+            verify=True,
             stream=True
         )
         
@@ -169,7 +169,7 @@ class TestMCPEverythingSSE:
                 "params": {}
                 # Note: No "id" field for notifications
             },
-            verify=False
+            verify=True
         )
         
         # Now test echo tool
@@ -193,7 +193,7 @@ class TestMCPEverythingSSE:
                 },
                 "id": 1
             },
-            verify=False,
+            verify=True,
             stream=True
         )
         
@@ -248,7 +248,7 @@ class TestMCPEverythingSSE:
                 },
                 "id": 1
             },
-            verify=False,
+            verify=True,
             stream=True
         )
         
@@ -288,7 +288,7 @@ class TestMCPEverythingSSE:
                 },
                 "id": 1
             },
-            verify=False,
+            verify=True,
             stream=True
         )
         
@@ -312,7 +312,7 @@ class TestMCPEverythingSSE:
                 "params": {}
                 # Note: No "id" field for notifications
             },
-            verify=False
+            verify=True
         )
         
         # Now list tools
@@ -330,7 +330,7 @@ class TestMCPEverythingSSE:
                 "params": {},
                 "id": 1
             },
-            verify=False
+            verify=True
         )
         
         assert tools_response.status_code == 200
@@ -368,7 +368,7 @@ class TestMCPEverythingSSE:
                 },
                 "id": 1
             },
-            verify=False,
+            verify=True,
             stream=True
         )
         
@@ -392,7 +392,7 @@ class TestMCPEverythingSSE:
                 "params": {}
                 # Note: No "id" field for notifications
             },
-            verify=False
+            verify=True
         )
         
         # Now try to call a non-existent tool (should error)
@@ -413,7 +413,7 @@ class TestMCPEverythingSSE:
                 },
                 "id": 1
             },
-            verify=False
+            verify=True
         )
         
         # Should return 200 with SSE-formatted error

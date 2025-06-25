@@ -15,6 +15,14 @@ from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 
 
+def parse_sse_response(response_text: str) -> dict:
+    """Parse SSE response format to extract JSON data."""
+    for line in response_text.strip().split('\n'):
+        if line.startswith('data: '):
+            return json.loads(line[6:])
+    raise ValueError("No data found in SSE response")
+
+
 # MCP Client tokens for external client testing
 MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
 
@@ -33,6 +41,7 @@ class TestMCPProtocolVersionNegotiation:
             )
 
         # Request current protocol version
+        print(f"\nTesting URL: {mcp_test_url}")
         response = await http_client.post(
             f"{mcp_test_url}",
             json={
@@ -45,10 +54,18 @@ class TestMCPProtocolVersionNegotiation:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+            }, timeout=30.0)
 
+        if response.status_code != HTTP_OK:
+            print(f"\nResponse status: {response.status_code}")
+            print(f"Response headers: {dict(response.headers)}")
+            print(f"Response text: {response.text}")
         assert response.status_code == HTTP_OK
-        data = response.json()
+        data = parse_sse_response(response.text)
         # Server may negotiate a different protocol version
         assert "protocolVersion" in data["result"]
 
@@ -75,10 +92,17 @@ class TestMCPProtocolVersionNegotiation:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+            }, timeout=30.0)
 
+        if response.status_code != HTTP_OK:
+            print(f"\nResponse status: {response.status_code}")
+            print(f"Response text: {response.text}")
         assert response.status_code == HTTP_OK
-        data = response.json()
+        data = parse_sse_response(response.text)
 
         # Server should either:
         # 1. Return an error
@@ -116,10 +140,14 @@ class TestMCPJSONRPCCompliance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
-        data = response.json()
+        data = parse_sse_response(response.text)
 
         # Response must have JSON-RPC fields
         assert data["jsonrpc"] == "2.0"
@@ -150,11 +178,23 @@ class TestMCPJSONRPCCompliance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+            }, timeout=30.0)
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
         # Send invalid method to trigger error
+        error_headers = {
+            "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+            "Accept": "application/json, text/event-stream",
+            "Content-Type": "application/json",
+        }
+        if session_id:
+            error_headers["Mcp-Session-Id"] = session_id
+        
         response = await http_client.post(
             f"{mcp_test_url}",
             json={
@@ -163,13 +203,10 @@ class TestMCPJSONRPCCompliance:
                 "params": {},
                 "id": 2,
             },
-            headers={
-                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                "Mcp-Session-Id": session_id,
-            }, timeout=30.0)
+            headers=error_headers, timeout=30.0)
 
         assert response.status_code == HTTP_OK  # JSON-RPC errors return 200
-        data = response.json()
+        data = parse_sse_response(response.text)
 
         # Check error format
         assert "error" in data
@@ -203,7 +240,11 @@ class TestMCPJSONRPCCompliance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+            }, timeout=30.0)
 
         # Send notification (no id)
         response = await http_client.post(
@@ -214,7 +255,11 @@ class TestMCPJSONRPCCompliance:
                 "params": {},
                 # No id field - this is a notification
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+            }, timeout=30.0)
 
         # Server should accept notification
         assert response.status_code in [200, 202, 204]
@@ -242,10 +287,15 @@ class TestMCPJSONRPCCompliance:
                 },
                 "id": 42,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+            }, timeout=30.0)
 
         assert response1.status_code == HTTP_OK
-        assert response1.json()["id"] == 42
+        data1 = parse_sse_response(response1.text)
+        assert data1["id"] == 42
 
         # Test with string ID
         response2 = await http_client.post(
@@ -256,10 +306,15 @@ class TestMCPJSONRPCCompliance:
                 "params": {},
                 "id": "unique-string-id",
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+            }, timeout=30.0)
 
         assert response2.status_code == HTTP_OK
-        assert response2.json()["id"] == "unique-string-id"
+        data2 = parse_sse_response(response2.text)
+        assert data2["id"] == "unique-string-id"
 
 
 class TestMCPLifecycleCompliance:
@@ -287,10 +342,14 @@ class TestMCPLifecycleCompliance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
-        result = response.json()["result"]
+        result = parse_sse_response(response.text)["result"]
 
         # Required fields per spec
         assert "protocolVersion" in result
@@ -320,7 +379,7 @@ class TestMCPLifecycleCompliance:
             # Should fail or return error
             assert response.status_code in [200, 400]
             if response.status_code == HTTP_OK:
-                data = response.json()
+                data = parse_sse_response(response.text)
                 if "error" in data:
                     # Should indicate not initialized
                     assert "initializ" in data["error"]["message"].lower()
@@ -348,10 +407,14 @@ class TestMCPLifecycleCompliance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
-        capabilities = response.json()["result"]["capabilities"]
+        capabilities = parse_sse_response(response.text)["result"]["capabilities"]
 
         # Server should report its actual capabilities
         # mcp-server-fetch should at least have tools
@@ -425,6 +488,8 @@ class TestMCPTransportCompliance:
             },
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
                 "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
             }, timeout=30.0)
 
@@ -483,6 +548,8 @@ class TestMCPSecurityCompliance:
             },
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
                 "Origin": "http://evil.com",
             }, timeout=30.0)
 
@@ -536,7 +603,11 @@ class TestMCPSecurityCompliance:
                         },
                         "id": 1,
                     },
-                    headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                    headers={
+                        "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                        "Accept": "application/json, text/event-stream",
+                        "Content-Type": "application/json",
+                    },
                 )
 
                 assert response.status_code == HTTP_OK
@@ -584,7 +655,7 @@ class TestMCPErrorHandling:
             )
 
             if response.status_code == HTTP_OK:
-                data = response.json()
+                data = parse_sse_response(response.text)
                 if "error" in data:
                     # Allow some flexibility as servers may handle errors differently
                     assert isinstance(data["error"]["code"], int)
@@ -612,28 +683,42 @@ class TestMCPErrorHandling:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+                "Content-Type": "application/json",
+            }, timeout=30.0)
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
         # Send bad request
+        bad_headers = {
+            "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+            "Accept": "application/json, text/event-stream",
+            "Content-Type": "application/json",
+        }
+        if session_id:
+            bad_headers["Mcp-Session-Id"] = session_id
+        
         await http_client.post(
             f"{mcp_test_url}",
             json={"jsonrpc": "2.0", "method": "bad_method", "params": {}, "id": 2},
-            headers={
-                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                "Mcp-Session-Id": session_id,
-            }, timeout=30.0)
+            headers=bad_headers, timeout=30.0)
 
         # Now send good request - session should still work
+        good_headers = {
+            "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+            "Accept": "application/json, text/event-stream",
+            "Content-Type": "application/json",
+        }
+        if session_id:
+            good_headers["Mcp-Session-Id"] = session_id
+        
         good_response = await http_client.post(
             f"{mcp_test_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 3},
-            headers={
-                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                "Mcp-Session-Id": session_id,
-            }, timeout=30.0)
+            headers=good_headers, timeout=30.0)
 
         assert good_response.status_code == HTTP_OK
-        data = good_response.json()
+        data = parse_sse_response(good_response.text)
         assert "result" in data  # Should succeed despite previous error

@@ -30,7 +30,7 @@ async def test_fetch_native_health_check(
     mcp_fetchs_url, wait_for_services, valid_oauth_token
 ):
     """Test health check via MCP protocol initialization."""
-    async with httpx.AsyncClient(verify=False) as client:
+    async with httpx.AsyncClient(verify=True) as client:
         response = await client.post(
             f"{mcp_fetchs_url}",
             json={
@@ -61,7 +61,7 @@ async def test_fetch_native_health_check(
 @pytest.mark.asyncio
 async def test_fetch_native_requires_auth(mcp_fetchs_url, wait_for_services):
     """Test that MCP endpoint requires authentication."""
-    async with httpx.AsyncClient(verify=False) as client:
+    async with httpx.AsyncClient(verify=True) as client:
         response = await client.post(
             f"{mcp_fetchs_url}",
             json={"jsonrpc": "2.0", "method": "initialize", "id": 1},
@@ -76,7 +76,7 @@ async def test_fetch_native_requires_auth(mcp_fetchs_url, wait_for_services):
 @pytest.mark.asyncio
 async def test_fetch_native_cors_preflight(mcp_fetchs_url, wait_for_services):
     """Test CORS preflight handling."""
-    async with httpx.AsyncClient(verify=False) as client:
+    async with httpx.AsyncClient(verify=True) as client:
         response = await client.options(
             f"{mcp_fetchs_url}",
             headers={
@@ -100,7 +100,7 @@ async def test_fetch_native_initialize(
     mcp_fetchs_url, valid_oauth_token, wait_for_services
 ):
     """Test MCP initialization."""
-    async with httpx.AsyncClient(verify=False) as client:
+    async with httpx.AsyncClient(verify=True) as client:
         response = await client.post(
             f"{mcp_fetchs_url}",
             json={
@@ -139,7 +139,7 @@ async def test_fetch_native_list_tools(
     mcp_fetchs_url, valid_oauth_token, wait_for_services
 ):
     """Test listing available tools."""
-    async with httpx.AsyncClient(verify=False) as client:
+    async with httpx.AsyncClient(verify=True) as client:
         response = await client.post(
             f"{mcp_fetchs_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "id": 2},
@@ -173,7 +173,7 @@ async def test_fetch_native_call_tool_fetch(
 ):
     """Test calling the fetch tool."""
     # Fetch from our own auth service's health endpoint
-    async with httpx.AsyncClient(verify=False) as client:
+    async with httpx.AsyncClient(verify=True) as client:
         response = await client.post(
             f"{mcp_fetchs_url}",
             json={
@@ -215,7 +215,7 @@ async def test_fetch_native_invalid_json_rpc(
     mcp_fetchs_url, valid_oauth_token, wait_for_services
 ):
     """Test handling of invalid JSON-RPC requests."""
-    async with httpx.AsyncClient(verify=False) as client:
+    async with httpx.AsyncClient(verify=True) as client:
         # Missing jsonrpc version
         response = await client.post(
             f"{mcp_fetchs_url}",
@@ -240,7 +240,7 @@ async def test_fetch_native_unknown_method(
     mcp_fetchs_url, valid_oauth_token, wait_for_services
 ):
     """Test handling of unknown methods."""
-    async with httpx.AsyncClient(verify=False) as client:
+    async with httpx.AsyncClient(verify=True) as client:
         response = await client.post(
             f"{mcp_fetchs_url}",
             json={"jsonrpc": "2.0", "method": "unknown/method", "id": 1},
@@ -267,7 +267,7 @@ async def test_fetch_native_oauth_discovery(wait_for_services):
         f"https://fetch.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
     )
 
-    async with httpx.AsyncClient(verify=False) as client:
+    async with httpx.AsyncClient(verify=True) as client:
         response = await client.get(oauth_discovery_url)
 
     assert response.status_code == HTTP_OK

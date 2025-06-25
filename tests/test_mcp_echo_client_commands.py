@@ -411,3 +411,81 @@ class TestMCPEchoClientCommands:
             print(f"✅ Stress test {i+1}/5 completed")
 
         print("✅ mcp-echo service handles rapid command requests properly")
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(
+        not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled"
+    )
+    async def test_echo_multiple_urls(
+        self, mcp_client_env, wait_for_services
+    ):
+        """Test echo command on multiple configured URLs."""
+        if not MCP_ECHO_URLS:
+            pytest.skip("MCP_ECHO_URLS environment variable not set")
+        
+        # Test up to 5 URLs to avoid excessive testing time
+        urls_to_test = MCP_ECHO_URLS[:5]
+        
+        env = os.environ.copy()
+        env.update(mcp_client_env)
+        
+        results = []
+        for url in urls_to_test:
+            # Create temp env file for this URL
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+                f.write(f"""
+# MCP Server Configuration
+MCP_SERVER_URL={url}
+
+# OAuth Configuration
+OAUTH_AUTHORIZATION_URL={AUTH_BASE_URL}/authorize
+OAUTH_TOKEN_URL={AUTH_BASE_URL}/token
+OAUTH_DEVICE_AUTH_URL={AUTH_BASE_URL}/device/code
+OAUTH_REGISTRATION_URL={AUTH_BASE_URL}/register
+
+# Discovery URL
+OAUTH_DISCOVERY_URL={url.replace("/mcp", "")}/.well-known/oauth-authorization-server
+
+# Logging
+LOG_LEVEL=INFO
+""")
+                temp_env_path = f.name
+            
+            try:
+                # Test echo command on this URL
+                test_message = f"Testing {url.split('//')[1].split('/')[0]}"
+                cmd = [
+                    "pixi",
+                    "run",
+                    "mcp-streamablehttp-client",
+                    "--env-file",
+                    temp_env_path,
+                    "--command",
+                    f'echo {{"message": "{test_message}"}}',
+                ]
+                
+                result = subprocess.run(
+                    cmd, check=False, capture_output=True, text=True, env=env, timeout=30
+                )
+                
+                if result.returncode == 0 and test_message in result.stdout:
+                    results.append((url, "✅ Success"))
+                else:
+                    results.append((url, f"❌ Failed: {result.stderr[:100]}"))
+            finally:
+                # Clean up temp file
+                Path(temp_env_path).unlink(missing_ok=True)
+        
+        # Print results
+        print(f"\n{'='*60}")
+        print("Multiple URL Test Results:")
+        print(f"{'='*60}")
+        for url, status in results:
+            hostname = url.split("//")[1].split("/")[0]
+            print(f"{hostname}: {status}")
+        print(f"{'='*60}")
+        
+        # All tested URLs should succeed
+        failed = [url for url, status in results if "❌" in status]
+        assert not failed, f"Failed URLs: {failed}"

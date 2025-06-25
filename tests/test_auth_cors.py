@@ -47,7 +47,7 @@ class TestAuthCORS:
         test_origins = ["https://example.com"] if self.cors_origins == ["*"] else self.cors_origins
 
         # Test OPTIONS request (CORS preflight) for each endpoint and origin
-        with httpx.Client(verify=False, timeout=10.0) as client:
+        with httpx.Client(verify=True, timeout=10.0) as client:
             for endpoint in endpoints:
                 for test_origin in test_origins:
                     response = client.options(
@@ -112,7 +112,7 @@ class TestAuthCORS:
         # If CORS is set to wildcard, use a test origin
         test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
 
-        with httpx.Client(verify=False, timeout=10.0) as client:
+        with httpx.Client(verify=True, timeout=10.0) as client:
             response = client.get(metadata_url, headers={"Origin": test_origin})
 
             assert response.status_code == HTTP_OK, (
@@ -155,7 +155,7 @@ class TestAuthCORS:
         # If CORS is set to wildcard, use a test origin
         test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
 
-        with httpx.Client(verify=False, timeout=10.0) as client:
+        with httpx.Client(verify=True, timeout=10.0) as client:
             response = client.get(health_url, headers={"Origin": test_origin})
 
             assert response.status_code == HTTP_OK, "OAuth discovery check failed"
@@ -178,7 +178,7 @@ class TestAuthCORS:
             f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
         )
 
-        with httpx.Client(verify=False, timeout=10.0) as client:
+        with httpx.Client(verify=True, timeout=10.0) as client:
             response = client.get(metadata_url)
 
             # Should still work without Origin header
@@ -203,7 +203,7 @@ class TestAuthCORS:
         if test_unauthorized_origin in self.cors_origins:
             pytest.skip("Test origin is actually authorized")
 
-        with httpx.Client(verify=False, timeout=10.0) as client:
+        with httpx.Client(verify=True, timeout=10.0) as client:
             # Preflight should not include this origin in the response
             response = client.options(
                 metadata_url,

@@ -18,7 +18,7 @@ services:
       - "traefik.http.services.mcp-echo.loadbalancer.server.port=3000"
       
       # OAuth discovery route - Priority 10 (ABSOLUTE HIGHEST - must work without auth!)
-      - "traefik.http.routers.mcp-echo-oauth-discovery.rule=Host(`echo.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-echo-oauth-discovery.rule=(Host(`echo.${BASE_DOMAIN}`) || Host(`echo-a.${BASE_DOMAIN}`) || Host(`echo-b.${BASE_DOMAIN}`) || Host(`echo-c.${BASE_DOMAIN}`) || Host(`echo-d.${BASE_DOMAIN}`) || Host(`echo-e.${BASE_DOMAIN}`) || Host(`echo-f.${BASE_DOMAIN}`) || Host(`echo-g.${BASE_DOMAIN}`) || Host(`echo-h.${BASE_DOMAIN}`) || Host(`echo-i.${BASE_DOMAIN}`) || Host(`echo-j.${BASE_DOMAIN}`) || Host(`echo-k.${BASE_DOMAIN}`) || Host(`echo-l.${BASE_DOMAIN}`) || Host(`echo-m.${BASE_DOMAIN}`) || Host(`echo-n.${BASE_DOMAIN}`) || Host(`echo-o.${BASE_DOMAIN}`) || Host(`echo-p.${BASE_DOMAIN}`) || Host(`echo-q.${BASE_DOMAIN}`) || Host(`echo-r.${BASE_DOMAIN}`) || Host(`echo-s.${BASE_DOMAIN}`) || Host(`echo-t.${BASE_DOMAIN}`) || Host(`echo-u.${BASE_DOMAIN}`) || Host(`echo-v.${BASE_DOMAIN}`) || Host(`echo-w.${BASE_DOMAIN}`) || Host(`echo-x.${BASE_DOMAIN}`) || Host(`echo-y.${BASE_DOMAIN}`) || Host(`echo-z.${BASE_DOMAIN}`)) && PathPrefix(`/.well-known/oauth-authorization-server`)"
       - "traefik.http.routers.mcp-echo-oauth-discovery.priority=10"
       - "traefik.http.routers.mcp-echo-oauth-discovery.entrypoints=websecure"
       - "traefik.http.routers.mcp-echo-oauth-discovery.tls.certresolver=letsencrypt"
@@ -30,7 +30,7 @@ services:
       - "traefik.http.middlewares.oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
       
       # CORS preflight route (OPTIONS) - Priority 4 (HIGHEST for OPTIONS)
-      - "traefik.http.routers.mcp-echo-cors.rule=Host(`echo.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.mcp-echo-cors.rule=(Host(`echo.${BASE_DOMAIN}`) || Host(`echo-a.${BASE_DOMAIN}`) || Host(`echo-b.${BASE_DOMAIN}`) || Host(`echo-c.${BASE_DOMAIN}`) || Host(`echo-d.${BASE_DOMAIN}`) || Host(`echo-e.${BASE_DOMAIN}`) || Host(`echo-f.${BASE_DOMAIN}`) || Host(`echo-g.${BASE_DOMAIN}`) || Host(`echo-h.${BASE_DOMAIN}`) || Host(`echo-i.${BASE_DOMAIN}`) || Host(`echo-j.${BASE_DOMAIN}`) || Host(`echo-k.${BASE_DOMAIN}`) || Host(`echo-l.${BASE_DOMAIN}`) || Host(`echo-m.${BASE_DOMAIN}`) || Host(`echo-n.${BASE_DOMAIN}`) || Host(`echo-o.${BASE_DOMAIN}`) || Host(`echo-p.${BASE_DOMAIN}`) || Host(`echo-q.${BASE_DOMAIN}`) || Host(`echo-r.${BASE_DOMAIN}`) || Host(`echo-s.${BASE_DOMAIN}`) || Host(`echo-t.${BASE_DOMAIN}`) || Host(`echo-u.${BASE_DOMAIN}`) || Host(`echo-v.${BASE_DOMAIN}`) || Host(`echo-w.${BASE_DOMAIN}`) || Host(`echo-x.${BASE_DOMAIN}`) || Host(`echo-y.${BASE_DOMAIN}`) || Host(`echo-z.${BASE_DOMAIN}`)) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-echo-cors.priority=4"
       - "traefik.http.routers.mcp-echo-cors.entrypoints=websecure"
       - "traefik.http.routers.mcp-echo-cors.tls.certresolver=letsencrypt"
@@ -39,7 +39,7 @@ services:
       
       # MCP route with auth - Priority 2
       # Use PathPrefix to handle both /mcp and /mcp/
-      - "traefik.http.routers.mcp-echo.rule=Host(`echo.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-echo.rule=(Host(`echo.${BASE_DOMAIN}`) || Host(`echo-a.${BASE_DOMAIN}`) || Host(`echo-b.${BASE_DOMAIN}`) || Host(`echo-c.${BASE_DOMAIN}`) || Host(`echo-d.${BASE_DOMAIN}`) || Host(`echo-e.${BASE_DOMAIN}`) || Host(`echo-f.${BASE_DOMAIN}`) || Host(`echo-g.${BASE_DOMAIN}`) || Host(`echo-h.${BASE_DOMAIN}`) || Host(`echo-i.${BASE_DOMAIN}`) || Host(`echo-j.${BASE_DOMAIN}`) || Host(`echo-k.${BASE_DOMAIN}`) || Host(`echo-l.${BASE_DOMAIN}`) || Host(`echo-m.${BASE_DOMAIN}`) || Host(`echo-n.${BASE_DOMAIN}`) || Host(`echo-o.${BASE_DOMAIN}`) || Host(`echo-p.${BASE_DOMAIN}`) || Host(`echo-q.${BASE_DOMAIN}`) || Host(`echo-r.${BASE_DOMAIN}`) || Host(`echo-s.${BASE_DOMAIN}`) || Host(`echo-t.${BASE_DOMAIN}`) || Host(`echo-u.${BASE_DOMAIN}`) || Host(`echo-v.${BASE_DOMAIN}`) || Host(`echo-w.${BASE_DOMAIN}`) || Host(`echo-x.${BASE_DOMAIN}`) || Host(`echo-y.${BASE_DOMAIN}`) || Host(`echo-z.${BASE_DOMAIN}`)) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.mcp-echo.priority=2"
       - "traefik.http.routers.mcp-echo.entrypoints=websecure"
       - "traefik.http.routers.mcp-echo.tls.certresolver=letsencrypt"
@@ -47,7 +47,7 @@ services:
       - "traefik.http.routers.mcp-echo.service=mcp-echo"
       
       # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
-      - "traefik.http.routers.mcp-echo-catchall.rule=Host(`echo.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-echo-catchall.rule=Host(`echo.${BASE_DOMAIN}`) || Host(`echo-a.${BASE_DOMAIN}`) || Host(`echo-b.${BASE_DOMAIN}`) || Host(`echo-c.${BASE_DOMAIN}`) || Host(`echo-d.${BASE_DOMAIN}`) || Host(`echo-e.${BASE_DOMAIN}`) || Host(`echo-f.${BASE_DOMAIN}`) || Host(`echo-g.${BASE_DOMAIN}`) || Host(`echo-h.${BASE_DOMAIN}`) || Host(`echo-i.${BASE_DOMAIN}`) || Host(`echo-j.${BASE_DOMAIN}`) || Host(`echo-k.${BASE_DOMAIN}`) || Host(`echo-l.${BASE_DOMAIN}`) || Host(`echo-m.${BASE_DOMAIN}`) || Host(`echo-n.${BASE_DOMAIN}`) || Host(`echo-o.${BASE_DOMAIN}`) || Host(`echo-p.${BASE_DOMAIN}`) || Host(`echo-q.${BASE_DOMAIN}`) || Host(`echo-r.${BASE_DOMAIN}`) || Host(`echo-s.${BASE_DOMAIN}`) || Host(`echo-t.${BASE_DOMAIN}`) || Host(`echo-u.${BASE_DOMAIN}`) || Host(`echo-v.${BASE_DOMAIN}`) || Host(`echo-w.${BASE_DOMAIN}`) || Host(`echo-x.${BASE_DOMAIN}`) || Host(`echo-y.${BASE_DOMAIN}`) || Host(`echo-z.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-echo-catchall.priority=1"
       - "traefik.http.routers.mcp-echo-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-echo-catchall.tls.certresolver=letsencrypt"
@@ -55,7 +55,7 @@ services:
       - "traefik.http.routers.mcp-echo-catchall.service=mcp-echo"
       
       # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)
-      - "traefik.http.routers.mcp-echo-redirect.rule=Host(`echo.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-echo-redirect.rule=Host(`echo.${BASE_DOMAIN}`) || Host(`echo-a.${BASE_DOMAIN}`) || Host(`echo-b.${BASE_DOMAIN}`) || Host(`echo-c.${BASE_DOMAIN}`) || Host(`echo-d.${BASE_DOMAIN}`) || Host(`echo-e.${BASE_DOMAIN}`) || Host(`echo-f.${BASE_DOMAIN}`) || Host(`echo-g.${BASE_DOMAIN}`) || Host(`echo-h.${BASE_DOMAIN}`) || Host(`echo-i.${BASE_DOMAIN}`) || Host(`echo-j.${BASE_DOMAIN}`) || Host(`echo-k.${BASE_DOMAIN}`) || Host(`echo-l.${BASE_DOMAIN}`) || Host(`echo-m.${BASE_DOMAIN}`) || Host(`echo-n.${BASE_DOMAIN}`) || Host(`echo-o.${BASE_DOMAIN}`) || Host(`echo-p.${BASE_DOMAIN}`) || Host(`echo-q.${BASE_DOMAIN}`) || Host(`echo-r.${BASE_DOMAIN}`) || Host(`echo-s.${BASE_DOMAIN}`) || Host(`echo-t.${BASE_DOMAIN}`) || Host(`echo-u.${BASE_DOMAIN}`) || Host(`echo-v.${BASE_DOMAIN}`) || Host(`echo-w.${BASE_DOMAIN}`) || Host(`echo-x.${BASE_DOMAIN}`) || Host(`echo-y.${BASE_DOMAIN}`) || Host(`echo-z.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-echo-redirect.entrypoints=web"
       - "traefik.http.routers.mcp-echo-redirect.middlewares=redirect-to-https"
       - "traefik.http.routers.mcp-echo-redirect.priority=1"

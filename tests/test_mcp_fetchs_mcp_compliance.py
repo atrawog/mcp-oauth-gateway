@@ -33,7 +33,7 @@ class TestMCPFetchsCompliance:
     ):
         """Test protocol version negotiation per MCP 2025-06-18."""
         # Test supported version
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
                 f"{mcp_fetchs_url}",
                 json={
@@ -77,7 +77,7 @@ class TestMCPFetchsCompliance:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test rejection of unsupported protocol versions."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Test unsupported version in params
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -108,7 +108,7 @@ class TestMCPFetchsCompliance:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test MCP-Protocol-Version header handling."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Test mismatched header version
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -131,7 +131,7 @@ class TestMCPFetchsCompliance:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test tools/list pagination support per MCP 2025-06-18."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Test without cursor
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -171,7 +171,7 @@ class TestMCPFetchsCompliance:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test tool definitions match MCP 2025-06-18 schema."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
                 f"{mcp_fetchs_url}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "id": 1},
@@ -207,7 +207,7 @@ class TestMCPFetchsCompliance:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test tools/call parameter validation per MCP 2025-06-18."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Test missing params
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -270,7 +270,7 @@ class TestMCPFetchsCompliance:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test tool execution response format per MCP 2025-06-18."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Successful tool call
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -316,7 +316,7 @@ class TestMCPFetchsCompliance:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test tool execution error format per MCP 2025-06-18."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Tool execution error (invalid URL)
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -358,7 +358,7 @@ class TestMCPFetchsCompliance:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test Mcp-Session-Id header handling per MCP 2025-06-18."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # First request should return session ID
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -388,7 +388,7 @@ class TestMCPFetchsCompliance:
         self, mcp_fetchs_url, valid_token, wait_for_services
     ):
         """Test Streamable HTTP transport endpoints per MCP 2025-06-18."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # POST /mcp should work
             response = await client.post(
                 f"{mcp_fetchs_url}",

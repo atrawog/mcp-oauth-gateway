@@ -68,7 +68,7 @@ class TestMCPEverythingIntegration:
         self, everything_base_url, wait_for_services
     ):
         """Test that service is reachable (root requires auth)."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Get base URL without /mcp for root test
             base_url = (
                 everything_base_url[:-4]
@@ -88,7 +88,7 @@ class TestMCPEverythingIntegration:
         self, everything_base_url, wait_for_services
     ):
         """Test that MCP endpoint requires authentication."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Try without auth
             response = await client.post(
                 f"{everything_base_url}",
@@ -118,7 +118,7 @@ class TestMCPEverythingIntegration:
         self, everything_base_url, gateway_token, wait_for_services
     ):
         """Test MCP initialize method."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
                 f"{everything_base_url}",
                 json={
@@ -155,7 +155,7 @@ class TestMCPEverythingIntegration:
         self, everything_base_url, gateway_token, wait_for_services
     ):
         """Test listing available tools in the everything server."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # First initialize
             init_response = await client.post(
                 f"{everything_base_url}",
@@ -225,7 +225,7 @@ class TestMCPEverythingIntegration:
         self, everything_base_url, gateway_token, wait_for_services
     ):
         """Test calling the echo tool if available."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Initialize first
             init_response = await client.post(
                 f"{everything_base_url}",
@@ -295,7 +295,7 @@ class TestMCPEverythingIntegration:
         self, everything_base_url, wait_for_services
     ):
         """Test OAuth discovery endpoint is accessible."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Get base URL without /mcp for OAuth discovery
             base_url = (
                 everything_base_url[:-4]
@@ -326,7 +326,7 @@ class TestMCPEverythingIntegration:
 
         MCP_TESTING_URL and everything_base_url.startswith(MCP_TESTING_URL.rstrip("/"))
 
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             response = await client.options(
                 f"{everything_base_url}",
                 headers={

@@ -19,8 +19,13 @@ from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_REDIRECT_URI
+from .test_constants import MCP_FETCH_TESTS_ENABLED
 
 
+@pytest.mark.skipif(
+    not MCP_FETCH_TESTS_ENABLED,
+    reason="MCP Fetch tests are disabled. Set MCP_FETCH_TESTS_ENABLED=true to enable."
+)
 class TestMCPFetchComplete:
     """Test actual MCP fetch functionality - no shortcuts allowed!"""
 
@@ -459,6 +464,10 @@ class TestMCPFetchComplete:
         )
 
 
+@pytest.mark.skipif(
+    not MCP_FETCH_TESTS_ENABLED,
+    reason="MCP Fetch tests are disabled. Set MCP_FETCH_TESTS_ENABLED=true to enable."
+)
 @pytest.mark.asyncio
 async def test_complete_oauth_flow_integration(
     http_client, wait_for_services, mcp_test_url

@@ -150,7 +150,7 @@ class TestMCPTmuxIntegration:
         oauth_discovery_url = (
             f"https://tmux.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
         )
-        response = requests.get(oauth_discovery_url, timeout=10, verify=False)
+        response = requests.get(oauth_discovery_url, timeout=10, verify=True)
         assert response.status_code == HTTP_OK
 
         oauth_config = response.json()

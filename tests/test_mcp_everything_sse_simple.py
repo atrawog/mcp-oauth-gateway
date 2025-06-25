@@ -56,7 +56,7 @@ class TestMCPEverythingSSESimple:
                 },
                 "id": 1
             },
-            verify=False
+            verify=True
         )
         
         # These headers should be added by our middleware
@@ -94,7 +94,7 @@ class TestMCPEverythingSSESimple:
                 },
                 "id": 1
             },
-            verify=False
+            verify=True
         )
         
         # Verify SSE format
@@ -138,7 +138,7 @@ class TestMCPEverythingSSESimple:
                 },
                 "id": 1
             },
-            verify=False,
+            verify=True,
             stream=True  # Stream the response
         )
         
@@ -171,7 +171,7 @@ class TestMCPEverythingSSESimple:
                 "params": {},
                 "id": 1
             },
-            verify=False
+            verify=True
         )
         
         # Native streamableHttp might return JSON errors
@@ -211,7 +211,7 @@ class TestMCPEverythingSSESimple:
                 },
                 "id": 1
             },
-            verify=False
+            verify=True
         )
         
         # Check CORS headers

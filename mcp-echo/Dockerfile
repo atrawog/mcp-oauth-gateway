@@ -16,11 +16,11 @@ COPY mcp-echo-streamablehttp-server-stateless/README.md ./
 RUN pip install --no-cache-dir -e .
 
 # Expose the default port
-EXPOSE 8000
+EXPOSE 3000
 
 # Set default environment variables with debug enabled
 ENV MCP_ECHO_HOST=0.0.0.0
-ENV MCP_ECHO_PORT=8000
+ENV MCP_ECHO_PORT=3000
 ENV MCP_ECHO_DEBUG=true
 
 # Run the server

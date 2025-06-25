@@ -45,7 +45,7 @@ class TestMCPCORS:
         test_origins = ["https://example.com"] if self.cors_origins == ["*"] else self.cors_origins
 
         # Test OPTIONS request (CORS preflight) for each configured origin
-        with httpx.Client(verify=False, timeout=10.0) as client:
+        with httpx.Client(verify=True, timeout=10.0) as client:
             for test_origin in test_origins:
                 response = client.options(
                     mcp_url,
@@ -118,7 +118,7 @@ class TestMCPCORS:
                 "No OAuth token available for CORS testing - TESTS MUST NOT BE SKIPPED!"
             )
 
-        async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
+        async with httpx.AsyncClient(verify=True, timeout=30.0) as client:
             # Properly initialize MCP session first
             try:
                 session_id, init_result = await initialize_mcp_session(
@@ -193,7 +193,7 @@ class TestMCPCORS:
         # If CORS is set to wildcard, use a test origin
         test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
 
-        with httpx.Client(verify=False, timeout=10.0) as client:
+        with httpx.Client(verify=True, timeout=10.0) as client:
             response = client.get(health_url, headers={"Origin": test_origin})
 
             # Per divine CLAUDE.md, health checks use /mcp and require auth
@@ -226,7 +226,7 @@ class TestMCPCORS:
                 "No OAuth token available for testing - TESTS MUST NOT BE SKIPPED!"
             )
 
-        async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
+        async with httpx.AsyncClient(verify=True, timeout=30.0) as client:
             # Properly initialize MCP session first (without Origin header)
             try:
                 session_id, init_result = await initialize_mcp_session(
@@ -281,7 +281,7 @@ class TestMCPCORS:
         if test_unauthorized_origin in self.cors_origins:
             pytest.skip("Test origin is actually authorized")
 
-        with httpx.Client(verify=False, timeout=10.0) as client:
+        with httpx.Client(verify=True, timeout=10.0) as client:
             # Preflight should not include this origin in the response
             response = client.options(
                 mcp_url,
@@ -316,7 +316,7 @@ class TestMCPCORS:
         # If CORS is set to wildcard, use a test origin
         test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
 
-        with httpx.Client(verify=False, timeout=10.0) as client:
+        with httpx.Client(verify=True, timeout=10.0) as client:
             for service in mcp_services:
                 health_url = f"https://{service}/health"
                 response = client.get(health_url, headers={"Origin": test_origin})

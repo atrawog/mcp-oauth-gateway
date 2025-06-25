@@ -1,7 +1,7 @@
 """Helper functions for MCP testing."""
 
 import json
-from typing import Any
+from typing import Any, Optional
 
 import httpx
 
@@ -44,10 +44,8 @@ async def initialize_mcp_session(
             f"Failed to initialize MCP session: {init_response.status_code} - {init_response.text}"
         )
 
-    # Get session ID from response headers
+    # Get session ID from response headers (optional for stateless servers)
     session_id = init_response.headers.get("Mcp-Session-Id")
-    if not session_id:
-        raise RuntimeError("No session ID returned from MCP initialization")
 
     # Parse response based on content type
     content_type = init_response.headers.get("content-type", "")
@@ -66,23 +64,24 @@ async def initialize_mcp_session(
     if "error" in init_result:
         raise RuntimeError(f"MCP initialization error: {init_result['error']}")
 
-    # Step 2: Send initialized notification
-    initialized_notification = {
-        "jsonrpc": "2.0",
-        "method": "notifications/initialized",
-        "params": {},
-    }
+    # Step 2: Send initialized notification (if server supports sessions)
+    if session_id:
+        initialized_notification = {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized",
+            "params": {},
+        }
 
-    await http_client.post(
-        mcp_url,
-        json=initialized_notification,
-        headers={
-            "Authorization": f"Bearer {auth_token}",
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/event-stream",
-            "Mcp-Session-Id": session_id,
-        },
-    )
+        await http_client.post(
+            mcp_url,
+            json=initialized_notification,
+            headers={
+                "Authorization": f"Bearer {auth_token}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "Mcp-Session-Id": session_id,
+            },
+        )
 
     # Notification may not return 200, that's okay
 
@@ -93,7 +92,7 @@ async def call_mcp_tool(
     http_client: httpx.AsyncClient,
     mcp_url: str,
     auth_token: str,
-    session_id: str,
+    session_id: Optional[str],
     tool_name: str,
     arguments: dict[str, Any],
     request_id: str = "tool-call-1",
@@ -106,15 +105,18 @@ async def call_mcp_tool(
         "id": request_id,
     }
 
+    headers = {
+        "Authorization": f"Bearer {auth_token}",
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream",
+    }
+    if session_id:
+        headers["Mcp-Session-Id"] = session_id
+
     response = await http_client.post(
         mcp_url,
         json=request,
-        headers={
-            "Authorization": f"Bearer {auth_token}",
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/event-stream",
-            "Mcp-Session-Id": session_id,
-        },
+        headers=headers,
     )
 
     if response.status_code != 200:
@@ -138,20 +140,23 @@ async def call_mcp_tool(
 
 
 async def list_mcp_tools(
-    http_client: httpx.AsyncClient, mcp_url: str, auth_token: str, session_id: str
+    http_client: httpx.AsyncClient, mcp_url: str, auth_token: str, session_id: Optional[str]
 ) -> dict[str, Any]:
     """List available MCP tools."""
     request = {"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "list-1"}
 
+    headers = {
+        "Authorization": f"Bearer {auth_token}",
+        "Content-Type": "application/json",
+        "Accept": "application/json, text/event-stream",
+    }
+    if session_id:
+        headers["Mcp-Session-Id"] = session_id
+
     response = await http_client.post(
         mcp_url,
         json=request,
-        headers={
-            "Authorization": f"Bearer {auth_token}",
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/event-stream",
-            "Mcp-Session-Id": session_id,
-        },
+        headers=headers,
     )
 
     if response.status_code != 200:

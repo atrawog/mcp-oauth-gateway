@@ -273,9 +273,13 @@ def update_env_file(key: str, value: str):
 
 @pytest.fixture
 async def http_client() -> AsyncGenerator[httpx.AsyncClient, None]:
-    """Provides an async HTTP client for tests."""
+    """Provides an async HTTP client for tests with proper SSL verification."""
     # Use timeout from test_constants - already validated!
-    async with httpx.AsyncClient(timeout=TEST_HTTP_TIMEOUT) as client:
+    # ALWAYS verify SSL certificates - security is paramount!
+    async with httpx.AsyncClient(
+        timeout=TEST_HTTP_TIMEOUT,
+        verify=True  # Explicitly enable SSL verification
+    ) as client:
         yield client
 
 
@@ -724,6 +728,23 @@ def mcp_echo_url():
 
     # Return first URL from the list (including /mcp path)
     return MCP_ECHO_URLS[0]
+
+
+@pytest.fixture
+def mcp_echo_urls():
+    """All URLs for mcp-echo service, with test skip logic."""
+    from .test_constants import MCP_ECHO_TESTS_ENABLED
+    from .test_constants import MCP_ECHO_URLS
+
+    if not MCP_ECHO_TESTS_ENABLED:
+        pytest.skip(
+            "MCP Echo tests are disabled. Set MCP_ECHO_TESTS_ENABLED=true to enable."
+        )
+    if not MCP_ECHO_URLS:
+        pytest.skip("MCP_ECHO_URLS environment variable not set")
+
+    # Return all URLs from the list
+    return MCP_ECHO_URLS
 
 
 @pytest.fixture

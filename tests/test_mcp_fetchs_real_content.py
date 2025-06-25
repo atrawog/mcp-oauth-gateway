@@ -38,7 +38,7 @@ class TestMCPFetchsRealContent:
         self, mcp_fetchs_url, gateway_token, wait_for_services
     ):
         """Test fetching example.com and verifying content."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             # Initialize session
             response = await client.post(
                 f"{mcp_fetchs_url}",
@@ -106,7 +106,7 @@ class TestMCPFetchsRealContent:
  #    #     self, mcp_fetchs_url, client_token, wait_for_services
  #    # ):
  #    #     """Test various httpbin.org endpoints for different scenarios."""
- #    #     async with httpx.AsyncClient(verify=False) as client:
+ #    #     async with httpx.AsyncClient(verify=True) as client:
  #    #         # Test JSON response
  #    #         response = await client.post(
  #    #             f"{mcp_fetchs_url}",
@@ -167,7 +167,7 @@ class TestMCPFetchsRealContent:
         self, mcp_fetchs_url, base_domain, gateway_token, wait_for_services
     ):
         """Test fetching from our own auth service."""
-        async with httpx.AsyncClient(verify=False) as client:
+        async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
                 f"{mcp_fetchs_url}",
                 json={
@@ -208,7 +208,7 @@ class TestMCPFetchsRealContent:
  # #    #     self, mcp_fetchs_url, gateway_token, wait_for_services
  # #    # ):
  # #    #     """Test automatic redirect following."""
- # #    #     async with httpx.AsyncClient(verify=False) as client:
+ # #    #     async with httpx.AsyncClient(verify=True) as client:
  # #    #         # httpbin.org/redirect/2 redirects twice
  # #    #         response = await client.post(
  # #    #             f"{mcp_fetchs_url}",
@@ -253,7 +253,7 @@ class TestMCPFetchsRealContent:
  # # #    #         ("https://httpbin.org/xml", "application/xml", "<?xml"),
  # # #    #     ]
  # # #    #
- # # #    #     async with httpx.AsyncClient(verify=False) as client:
+ # # #    #     async with httpx.AsyncClient(verify=True) as client:
  # # #    #         for url, _expected_type, expected_content in content_type_tests:
  # # #    #             response = await client.post(
  # # #    #                 f"{mcp_fetchs_url}",
@@ -288,7 +288,7 @@ class TestMCPFetchsRealContent:
  # # # #    #     self, mcp_fetchs_url, gateway_token, wait_for_services
  # # # #    # ):
  # # # #    #     """Test handling of large responses."""
- # # # #    #     async with httpx.AsyncClient(verify=False) as client:
+ # # # #    #     async with httpx.AsyncClient(verify=True) as client:
  # # # #    #         # Request 1KB of data
  # # # #    #         response = await client.post(
  # # # #    #             f"{mcp_fetchs_url}",
@@ -332,7 +332,7 @@ class TestMCPFetchsRealContent:
  # # # # #    #     """Test handling of various HTTP status codes."""
  # # # # #    #     status_codes = [200, 201, 301, 400, 401, 403, 404, 500, 502]
  # # # # #    #
- # # # # #    #     async with httpx.AsyncClient(verify=False) as client:
+ # # # # #    #     async with httpx.AsyncClient(verify=True) as client:
  # # # # #    #         for status in status_codes:
  # # # # #    #             response = await client.post(
  # # # # #    #                 f"{mcp_fetchs_url}",
