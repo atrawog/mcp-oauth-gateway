@@ -334,7 +334,14 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         }
 
         github_url = f"https://github.com/login/oauth/authorize?{urlencode(github_params)}"  # TODO: Break long line
-        return RedirectResponse(url=github_url)
+        return RedirectResponse(
+            url=github_url,
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
 
     # Callback endpoint
     @router.get("/callback")
@@ -396,13 +403,25 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # Handle out-of-band redirect URI
         if auth_data["redirect_uri"] == "urn:ietf:wg:oauth:2.0:oob":
             return RedirectResponse(
-                url=f"https://auth.{settings.base_domain}/success?code={auth_code}&state={auth_data['state']}"  # TODO: Break long line
+                url=f"https://auth.{settings.base_domain}/success?code={auth_code}&state={auth_data['state']}",  # TODO: Break long line
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0"
+                }
             )
 
         # Normal redirect
         redirect_params = {"code": auth_code, "state": auth_data["state"]}
 
-        return RedirectResponse(url=f"{auth_data['redirect_uri']}?{urlencode(redirect_params)}")  # TODO: Break long line
+        return RedirectResponse(
+            url=f"{auth_data['redirect_uri']}?{urlencode(redirect_params)}",  # TODO: Break long line
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache", 
+                "Expires": "0"
+            }
+        )
 
     # Token endpoint
     @router.post("/token")

@@ -737,7 +737,7 @@ data: {"result":{"protocolVersion":"${MCP_PROTOCOL_VERSION}","capabilities":{...
 
 ```
 oauth:state:{state}          # 5 minute TTL - CSRF protection
-oauth:code:{code}            # 5 minute TTL - Authorization codes
+oauth:code:{code}            # 1 year TTL - Authorization codes (for long-lived tokens)
 oauth:token:{jti}            # 30 days TTL - JWT access tokens
 oauth:refresh:{token}        # 1 year TTL - Refresh tokens
 oauth:client:{client_id}     # Client lifetime - Includes registration_access_token!

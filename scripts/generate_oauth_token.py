@@ -217,23 +217,30 @@ async def complete_real_oauth_flow(
 
     auth_url = f"{auth_base_url}/authorize?{urlencode(auth_params)}"
 
+    # Generate a unique session identifier for this OAuth flow
+    session_id = secrets.token_urlsafe(8)[:8]
+    
     print("\n🌐 Please complete REAL OAuth flow:")
+    print(f"📌 Session ID: {session_id} (use this to identify the correct browser tab)")
     print(f"1. Visit: {auth_url}")
     print("2. Complete GitHub authentication")
     print(f"3. You'll be redirected to {callback_url}")
     print("4. Copy the 'code' parameter from the redirect URL")
+    print("\n⚠️  IMPORTANT: Close any old browser tabs from previous attempts!")
+    print("⚠️  Only use the NEW tab that opens now!")
 
     # Automatically open browser
     try:
         webbrowser.open(auth_url)
-        print("🌐 Opened browser automatically")
+        print(f"🌐 Opened browser automatically (Session: {session_id})")
     except:
         print("⚠️  Could not open browser automatically")
 
     # Wait for user to complete OAuth flow and provide authorization code
     print(
-        "\n📝 After completing OAuth, copy the authorization code from the success page:"
+        f"\n📝 After completing OAuth in the tab for Session {session_id}, copy the authorization code from the success page:"
     )
+    print("   (If you see an 'expired state' error, close that tab and run this command again)")
     auth_code = input("Authorization code: ").strip()
 
     if not auth_code:
