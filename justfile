@@ -132,27 +132,27 @@ up *args: network-create volumes-create generate-includes
     pixi run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
 
 # Start all services with fresh build
-up-fresh: network-create volumes-create
+up-fresh: network-create volumes-create generate-includes
     just build
-    docker compose up -d --force-recreate
+    docker compose -f docker-compose.includes.yml up -d --force-recreate
     echo "Waiting for services to be healthy..."
     pixi run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
 
 # Stop all services (with optional remove volumes/orphans)
 down *args:
-    docker compose down {{args}}
+    docker compose -f docker-compose.includes.yml down {{args}}
 
 # Flexible rebuild command with optional services and no-cache by default
-rebuild *services:
+rebuild *services: network-create volumes-create generate-includes
     #!/usr/bin/env bash
     if [ -z "{{services}}" ]; then
         echo "Rebuilding all services from scratch..."
-        docker compose build --no-cache
-        docker compose up -d
+        docker compose -f docker-compose.includes.yml build --no-cache
+        docker compose -f docker-compose.includes.yml up -d
     else
         echo "Rebuilding: {{services}}"
-        docker compose build --no-cache {{services}}
-        docker compose up -d {{services}}
+        docker compose -f docker-compose.includes.yml build --no-cache {{services}}
+        docker compose -f docker-compose.includes.yml up -d {{services}}
     fi
     echo "✅ Rebuild completed"
     pixi run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
@@ -165,17 +165,17 @@ alias r := rebuild
 
 # Flexible logs command - can specify service and options
 logs *args:
-    docker compose logs {{args}}
+    docker compose -f docker-compose.includes.yml logs {{args}}
 
 # Follow logs (alias for convenience)
 logs-follow *args:
-    docker compose logs -f {{args}}
+    docker compose -f docker-compose.includes.yml logs -f {{args}}
 
 # Purge all container logs
 logs-purge:
     echo "🧹 Purging all container logs..."
-    docker compose down
-    docker compose up -d
+    docker compose -f docker-compose.includes.yml down
+    docker compose -f docker-compose.includes.yml up -d
     echo "✅ All container logs purged (services restarted)"
 
 # Project-specific commands
@@ -291,7 +291,7 @@ setup-claude-code: generate-github-token create-mcp-config
 
 # Flexible exec command for any service
 exec service *args:
-    docker compose exec -T {{service}} {{args}}
+    docker compose -f docker-compose.includes.yml exec -T {{service}} {{args}}
 
 # Universal script runner
 run script *args:
