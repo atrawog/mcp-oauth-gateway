@@ -56,7 +56,7 @@ def run_oauth_flow():
     # Set up environment
     env = os.environ.copy()
     env["MCP_SERVER_URL"] = (
-        f"https://mcp-fetch.{env.get('BASE_DOMAIN', 'atradev.org')}/mcp"
+        f"https://mcp-fetch.{env.get('BASE_DOMAIN')}/mcp"
     )
 
     if auth_code:

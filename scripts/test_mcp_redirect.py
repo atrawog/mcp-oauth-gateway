@@ -13,7 +13,10 @@ if not oauth_token:
     print("ERROR: No GATEWAY_OAUTH_ACCESS_TOKEN found in environment")
     sys.exit(1)
 
-base_url = "https://mcp-fetch.atradev.org"
+base_domain = os.getenv("BASE_DOMAIN")
+if not base_domain:
+    raise Exception("BASE_DOMAIN must be set in .env")
+base_url = f"https://mcp-fetch.{base_domain}"
 
 # Test 1: Direct request to /mcp (no trailing slash)
 print("Test 1: Request to /mcp (no trailing slash)")

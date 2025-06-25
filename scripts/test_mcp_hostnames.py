@@ -22,7 +22,7 @@ urls = [url.strip() for url in MCP_FETCH_AI_URLS.split(",") if url.strip()]
 # Extract hostname names from URLs
 MCP_HOSTNAMES = {}
 for url in urls:
-    # Extract the model name from URL like https://mcp-fetch-aria.atradev.org/mcp
+    # Extract the model name from URL like https://mcp-fetch-aria.yourdomain.org/mcp
     if "mcp-fetch-" in url:
         parts = url.split("mcp-fetch-")[1].split(".")[0]
         name = parts.capitalize()

@@ -7,7 +7,7 @@ import httpx
 # Test direct request
 print("Test 1: Direct request to /mcp (no redirect follow)")
 r = httpx.post(
-    "https://mcp-fetch.atradev.org/mcp",
+    f"https://mcp-fetch.{os.getenv('BASE_DOMAIN')}/mcp",
     headers={"Authorization": "Bearer test"},
     json={"jsonrpc": "2.0", "method": "ping", "id": 1},
     follow_redirects=False,
@@ -22,7 +22,7 @@ print()
 print("Test 2: Request to /mcp with redirect follow")
 try:
     r = httpx.post(
-        "https://mcp-fetch.atradev.org/mcp",
+        f"https://mcp-fetch.{os.getenv('BASE_DOMAIN')}/mcp",
         headers={"Authorization": "Bearer test"},
         json={"jsonrpc": "2.0", "method": "ping", "id": 1},
         follow_redirects=True,
@@ -37,7 +37,7 @@ print()
 # Test direct to /mcp/
 print("Test 3: Direct request to /mcp/ (with trailing slash)")
 r = httpx.post(
-    "https://mcp-fetch.atradev.org/mcp/",
+    f"https://mcp-fetch.{os.getenv('BASE_DOMAIN')}/mcp/",
     headers={"Authorization": "Bearer test"},
     json={"jsonrpc": "2.0", "method": "ping", "id": 1},
     follow_redirects=False,

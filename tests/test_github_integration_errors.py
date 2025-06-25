@@ -44,7 +44,7 @@ class TestRealOAuthFlowErrors:
             f"{AUTH_BASE_URL}/authorize",
             params={
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "redirect_uri": "https://auth.atradev.org/success",  # Use registered redirect URI
+                "redirect_uri": f"https://auth.{test_context.base_domain}/success",  # Use registered redirect URI
                 "response_type": "code",
                 "scope": "openid profile email",
                 "state": "test_state",
@@ -74,7 +74,7 @@ class TestRealOAuthFlowErrors:
             data={
                 "grant_type": "authorization_code",
                 "code": "expired_or_invalid_code_xxx",
-                "redirect_uri": "https://auth.atradev.org/success",
+                "redirect_uri": f"https://auth.{test_context.base_domain}/success",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
             },
@@ -101,7 +101,7 @@ class TestPKCEWithRealFlow:
             data={
                 "grant_type": "authorization_code",
                 "code": "code_that_requires_pkce",
-                "redirect_uri": "https://auth.atradev.org/success",
+                "redirect_uri": f"https://auth.{test_context.base_domain}/success",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
                 # Missing code_verifier

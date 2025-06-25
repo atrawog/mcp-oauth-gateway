@@ -11,7 +11,10 @@ import os
 import pytest
 
 
-AUTH_BASE_URL = f"https://auth.{os.environ.get('BASE_DOMAIN', 'atradev.org')}"
+base_domain = os.environ.get('BASE_DOMAIN')
+if not base_domain:
+    raise Exception("BASE_DOMAIN must be set in environment")
+AUTH_BASE_URL = f"https://auth.{base_domain}"
 CLIENT_LIFETIME = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
 
 

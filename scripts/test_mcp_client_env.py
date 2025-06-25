@@ -35,7 +35,10 @@ async def test_env_vars():
 
     # Create settings - this should automatically load MCP_CLIENT_* vars
     print("\nCreating Settings object...")
-    settings = Settings(mcp_server_url="https://mcp-fetch.atradev.org/mcp")
+    base_domain = os.getenv("BASE_DOMAIN")
+    if not base_domain:
+        raise Exception("BASE_DOMAIN must be set in .env")
+    settings = Settings(mcp_server_url=f"https://mcp-fetch.{base_domain}/mcp")
 
     # Check what was loaded
     print("\nSettings loaded from environment:")

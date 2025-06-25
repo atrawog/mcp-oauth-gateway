@@ -19,7 +19,9 @@ async def check_service_health():
     print("🏥 CHECKING SERVICE HEALTH")
     print("-" * 40)
 
-    base_domain = os.getenv("BASE_DOMAIN", "atradev.org")
+    base_domain = os.getenv("BASE_DOMAIN")
+    if not base_domain:
+        raise Exception("BASE_DOMAIN must be set in .env")
     services = {
         "Auth Service": f"https://auth.{base_domain}/health",
         "MCP Fetch": f"https://mcp-fetch.{base_domain}/health",
@@ -62,7 +64,9 @@ async def test_authentication_flow():
         print("❌ No GATEWAY_OAUTH_ACCESS_TOKEN found")
         return False
 
-    base_domain = os.getenv("BASE_DOMAIN", "atradev.org")
+    base_domain = os.getenv("BASE_DOMAIN")
+    if not base_domain:
+        raise Exception("BASE_DOMAIN must be set in .env")
 
     # Test auth service verification
     try:
@@ -129,7 +133,9 @@ async def test_mcp_protocol():
     print("-" * 40)
 
     oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
-    base_domain = os.getenv("BASE_DOMAIN", "atradev.org")
+    base_domain = os.getenv("BASE_DOMAIN")
+    if not base_domain:
+        raise Exception("BASE_DOMAIN must be set in .env")
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
