@@ -185,16 +185,6 @@ def _generate_gateway_error_html(error_description: str) -> str:
                 </ul>
             </div>
 
-            <h2>Getting Started</h2>
-            <p>
-                To access MCP services through this gateway:
-            </p>
-            <ol>
-                <li>Register your client application using the dynamic registration endpoint</li>
-                <li>Complete the OAuth flow to obtain an access token</li>
-                <li>Include the token in your requests: <code>Authorization: Bearer YOUR_TOKEN</code></li>
-            </ol>
-
             <div style="margin-top: 30px;">
                 <a href="https://atrawog.github.io/mcp-oauth-gateway/" class="docs-link">
                     📚 Gateway Documentation
