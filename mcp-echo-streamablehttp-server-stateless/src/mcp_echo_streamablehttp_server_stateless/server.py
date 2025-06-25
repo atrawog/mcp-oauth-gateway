@@ -1090,15 +1090,6 @@ class MCPEchoServer:
                 if name or username or email or sub:
                     found_user_info = True
                     
-                    if self.debug or not (name or username):
-                        # Show available claims for debugging
-                        result_text += "🔍 DEBUG: JWT Claims Found:\n"
-                        if sub:
-                            result_text += f"  - sub: {sub}\n"
-                        for key, value in custom_claims.items():
-                            result_text += f"  - {key}: {json.dumps(value)}\n"
-                        result_text += "\n"
-                
             except Exception as e:
                 if self.debug:
                     result_text += f"⚠️  JWT decode warning: {str(e)}\n\n"
@@ -1112,14 +1103,6 @@ class MCPEchoServer:
                 name = name or oauth_name
                 username = username or oauth_id
                 found_user_info = True
-                
-                if self.debug:
-                    result_text += "🔍 DEBUG: OAuth Headers Found:\n"
-                    if oauth_name:
-                        result_text += f"  - X-User-Name: {oauth_name}\n"
-                    if oauth_id:
-                        result_text += f"  - X-User-ID: {oauth_id}\n"
-                    result_text += "\n"
         
         # Generate the message based on what we found
         if not found_user_info:
@@ -1142,13 +1125,7 @@ class MCPEchoServer:
             result_text += f"═" * 40 + "\n\n"
             result_text += f"Our state-of-the-art artificial intelligence system has completed\n"
             result_text += f"its comprehensive analysis of global software development metrics.\n\n"
-            
-            result_text += f"EXECUTIVE SUMMARY:\n"
-            result_text += f"After processing 2.3 billion commits, 847 million code reviews,\n"
-            result_text += f"and applying proprietary neural network algorithms trained on\n"
-            result_text += f"decades of software engineering excellence, our AI has reached\n"
-            result_text += f"an unprecedented conclusion with 99.97% confidence.\n\n"
-            
+
             result_text += f"OFFICIAL DETERMINATION:\n"
             result_text += f"Greatest Of All Time (G.O.A.T.) Programmer Status\n"
             result_text += f"─" * 40 + "\n"
