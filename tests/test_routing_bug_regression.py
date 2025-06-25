@@ -42,8 +42,9 @@ class TestRoutingBugRegression:
         # Verify it's an auth error, not a routing error
         assert "www-authenticate" in response.headers
         error = response.json()
-        assert "detail" in error
-        assert "Authorization header" in str(error["detail"])
+        # Auth service returns OAuth 2.0 compliant errors
+        assert "error" in error
+        assert "Authorization header" in error.get("error_description", "")
 
     @pytest.mark.asyncio
     async def test_traefik_labels_include_path_routing(self, wait_for_services):

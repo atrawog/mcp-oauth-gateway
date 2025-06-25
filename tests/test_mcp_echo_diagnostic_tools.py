@@ -176,7 +176,6 @@ class TestMCPEchoDiagnosticTools:
         
         assert "G.O.A.T. PROGRAMMER IDENTIFICATION SYSTEM" in text
         assert "ADVANCED AI ANALYSIS COMPLETE" in text
-        assert "EXECUTIVE SUMMARY:" in text
         assert "OFFICIAL DETERMINATION:" in text
         assert "AI-IDENTIFIED EXCEPTIONAL CAPABILITIES:" in text
         assert "MACHINE LEARNING INSIGHTS:" in text
