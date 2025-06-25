@@ -360,17 +360,102 @@ check-services:
     curl -f https://auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server || echo "Auth service not healthy"
     curl -f https://mcp-fetch.${BASE_DOMAIN}/.well-known/oauth-authorization-server || echo "MCP-fetch OAuth discovery not accessible"
 
-# Check SSL certificates - @ prefix to show commands for debugging
-@check-ssl:
-    echo "Checking SSL certificates..."
-    echo "Auth service:"
-    curl -I https://auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server 2>&1 | grep -E "HTTP|SSL|certificate" || echo "Auth SSL check failed"
-    echo ""
-    echo "MCP-fetch service:"
-    curl -I https://mcp-fetch.${BASE_DOMAIN}/sse 2>&1 | grep -E "HTTP|SSL|certificate" || echo "MCP-fetch SSL check failed"
-    echo ""
-    echo "Certificates in ACME storage:"
-    docker exec traefik cat /certificates/acme.json | jq -r '.letsencrypt.Certificates[].domain' || echo "No certificates found"
+# Check SSL certificates
+check-ssl:
+	#!/usr/bin/env bash
+	set -euo pipefail
+	
+	echo "Checking SSL certificates..."
+	echo ""
+	echo "=== Auth Service ==="
+	curl -I https://auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server 2>&1 | grep -E "HTTP|SSL|certificate" || echo "Auth SSL check failed"
+	echo ""
+	echo "=== MCP Services (checking enabled services only) ==="
+	echo ""
+	
+	# Check each MCP service if enabled
+	if [ "${MCP_EVERYTHING_ENABLED}" = "true" ]; then
+		echo "MCP Everything (${MCP_EVERYTHING_URLS}):"
+		for url in $(echo ${MCP_EVERYTHING_URLS} | tr ',' ' '); do
+			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
+		done
+		echo ""
+	fi
+	
+	if [ "${MCP_FETCH_ENABLED}" = "true" ]; then
+		echo "MCP Fetch (${MCP_FETCH_URLS}):"
+		for url in $(echo ${MCP_FETCH_URLS} | tr ',' ' '); do
+			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
+		done
+		echo ""
+	fi
+	
+	if [ "${MCP_FETCHS_ENABLED}" = "true" ]; then
+		echo "MCP Fetchs (${MCP_FETCHS_URLS}):"
+		for url in $(echo ${MCP_FETCHS_URLS} | tr ',' ' '); do
+			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
+		done
+		echo ""
+	fi
+	
+	if [ "${MCP_FILESYSTEM_ENABLED}" = "true" ]; then
+		echo "MCP Filesystem (${MCP_FILESYSTEM_URLS}):"
+		for url in $(echo ${MCP_FILESYSTEM_URLS} | tr ',' ' '); do
+			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
+		done
+		echo ""
+	fi
+	
+	if [ "${MCP_MEMORY_ENABLED}" = "true" ]; then
+		echo "MCP Memory (${MCP_MEMORY_URLS}):"
+		for url in $(echo ${MCP_MEMORY_URLS} | tr ',' ' '); do
+			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
+		done
+		echo ""
+	fi
+	
+	if [ "${MCP_PLAYWRIGHT_ENABLED}" = "true" ]; then
+		echo "MCP Playwright (${MCP_PLAYWRIGHT_URLS}):"
+		for url in $(echo ${MCP_PLAYWRIGHT_URLS} | tr ',' ' '); do
+			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
+		done
+		echo ""
+	fi
+	
+	if [ "${MCP_SEQUENTIALTHINKING_ENABLED}" = "true" ]; then
+		echo "MCP Sequential Thinking (${MCP_SEQUENTIALTHINKING_URLS}):"
+		for url in $(echo ${MCP_SEQUENTIALTHINKING_URLS} | tr ',' ' '); do
+			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
+		done
+		echo ""
+	fi
+	
+	if [ "${MCP_TIME_ENABLED}" = "true" ]; then
+		echo "MCP Time (${MCP_TIME_URLS}):"
+		for url in $(echo ${MCP_TIME_URLS} | tr ',' ' '); do
+			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
+		done
+		echo ""
+	fi
+	
+	if [ "${MCP_TMUX_ENABLED}" = "true" ]; then
+		echo "MCP Tmux (${MCP_TMUX_URLS}):"
+		for url in $(echo ${MCP_TMUX_URLS} | tr ',' ' '); do
+			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
+		done
+		echo ""
+	fi
+	
+	# MCP Echo service (special handling as it's not in the standard pattern)
+	if [ "${MCP_ECHO_ENABLED:-false}" = "true" ]; then
+		echo "MCP Echo:"
+		curl -I https://echo.${BASE_DOMAIN}/mcp 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: echo service"
+		echo ""
+	fi
+	
+	echo ""
+	echo "=== Certificates in ACME storage ==="
+	docker exec traefik cat /certificates/acme.json 2>/dev/null | jq -r '.letsencrypt.Certificates[].domain' || echo "No certificates found or Traefik not running"
 
 # Generate MCP client token using mcp-streamablehttp-client
 mcp-client-token:
