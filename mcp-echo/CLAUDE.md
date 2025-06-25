@@ -1,38 +1,23 @@
 # 🔥 CLAUDE.md - The MCP-Echo Service Divine Scripture! ⚡
 
-**🗣️ Behold! The Sacred MCP Echo Server - The Divine Echo Chamber of Testing! 🗣️**
+**🗣️ Behold! The Sacred MCP Echo Service Docker Container! 🗣️**
 
-**⚡ This is MCP-Echo - The Holy Testing Ground for MCP Protocol Compliance! ⚡**
+**⚡ This is the Docker service wrapping mcp-echo-streamablehttp-server-stateless! ⚡**
 
-## 🔱 The Sacred Purpose of MCP-Echo - Divine Testing Power!
+## 🔱 The Sacred Purpose - Docker Service Wrapper!
 
-**The MCP-Echo Service channels the blessed testing capabilities through MCP protocol!**
+**This directory contains the Docker service configuration for mcp-echo-streamablehttp-server-stateless!**
 
-This sacred service manifests these divine powers:
-- **Echo Tool** - Returns thy message with perfect fidelity!
-- **PrintHeader Tool** - Reveals all HTTP headers from the divine request!
-- **Stateless Operation** - Pure functional echo with no memory!
-- **Debug Mode** - Divine message tracing for enlightenment!
-- **Production Ready** - Battle-tested with health monitoring!
+The actual server implementation lives in `../mcp-echo-streamablehttp-server-stateless/` - see its CLAUDE.md for implementation details.
+
+This directory provides:
+- **Docker container** wrapping the Python server
+- **Service configuration** for docker-compose integration
+- **Traefik labels** for routing and authentication
+- **Health checks** using MCP protocol
+- **Test scripts** for service validation
 
 **⚡ MCP-Echo knows nothing of OAuth - pure protocol innocence maintained! ⚡**
-
-## 🏗️ The Sacred Architecture - Native StreamableHTTP Implementation!
-
-```
-MCP-Echo Service (Port 3000)
-├── StreamableHTTP Server (The Divine Implementation!)
-│   ├── Native Python MCP SDK usage
-│   ├── Direct HTTP endpoint at /mcp
-│   └── Stateless request handling
-├── Tool Implementations (Blessed Functions!)
-│   ├── echo - Mirror thy words
-│   └── printHeader - Reveal thy HTTP headers
-└── Debug Logging (Optional Enlightenment!)
-    └── Full request/response tracing
-```
-
-**⚡ Pure Python implementation - no subprocess complexity! ⚡**
 
 ## 🐳 The Docker Manifestation - Container of Testing Purity!
 
@@ -47,7 +32,7 @@ COPY mcp-echo-streamablehttp-server-stateless/ ./
 ENV MCP_ECHO_DEBUG=true
 
 EXPOSE 3000  # The blessed MCP port!
-HEALTHCHECK  # Prove thy readiness to echo!
+HEALTHCHECK  # Prove thy readiness via MCP protocol!
 
 # Launch the server directly
 CMD ["mcp-echo-streamablehttp-server-stateless"]
@@ -55,7 +40,7 @@ CMD ["mcp-echo-streamablehttp-server-stateless"]
 
 **⚡ Simple server + debug logging = Testing enlightenment! ⚡**
 
-## 🔧 The Sacred Configuration - Environment Variables of Echo!
+## 🔧 The Sacred Configuration - Docker Environment Variables!
 
 **MCP Protocol Settings:**
 - `MCP_PROTOCOL_VERSION=2025-06-18` - Divine protocol covenant!
@@ -64,115 +49,12 @@ CMD ["mcp-echo-streamablehttp-server-stateless"]
 **Server Configuration:**
 - `MCP_ECHO_HOST=0.0.0.0` - Listen on all interfaces!
 - `MCP_ECHO_PORT=3000` - The blessed MCP port!
-- Health checks use MCP protocol initialization!
 
 **Service Discovery:**
 - `BASE_DOMAIN` - For Traefik routing labels!
 - `SERVICE_NAME=mcp-echo` - Divine service identifier!
 
 **⚡ Configuration flows through docker-compose environment! ⚡**
-
-## 🚀 The Sacred Endpoints - MCP Protocol Testing Altars!
-
-### /mcp - The Primary Protocol Gateway!
-
-**Initialize Request:**
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "initialize",
-  "params": {
-    "protocolVersion": "2025-06-18",
-    "capabilities": {},
-    "clientInfo": {
-      "name": "test-client",
-      "version": "1.0.0"
-    }
-  },
-  "id": 1
-}
-```
-
-**Echo Tool Call:**
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "echo",
-    "arguments": {
-      "message": "Hello, MCP!"
-    }
-  },
-  "id": 2
-}
-```
-
-**PrintHeader Tool Call:**
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "printHeader",
-    "arguments": {}
-  },
-  "id": 3
-}
-```
-
-**Example Response:**
-```
-HTTP Headers:
-----------------------------------------
-accept: text/event-stream
-authorization: Bearer eyJ...
-content-type: application/json
-host: echo.domain.com
-user-agent: MCP-Client/1.0
-x-user-id: 12345
-```
-
-### Health Verification - Divine Liveness Through Protocol!
-
-**MCP Protocol Health Check**
-- Uses `initialize` method for health verification!
-- Validates protocol version compliance!
-- Ensures server responds correctly!
-- Docker healthcheck via MCP protocol!
-
-## 🔐 The Security Architecture - Divine Protection Through Layers!
-
-**The MCP-Echo service itself knows NO authentication!**
-
-Security is enforced by the sacred trinity:
-1. **Traefik** - Enforces Bearer token authentication!
-2. **Auth Service** - Validates tokens via ForwardAuth!
-3. **MCP-Echo** - Receives only pre-authenticated requests!
-
-**⚡ This is the way of the trinity - separation brings security! ⚡**
-
-## 📡 The MCP Protocol Implementation - 2025-06-18 Compliance!
-
-### Supported MCP Methods (Blessed Testing Capabilities!)
-
-**tools/list - Divine Tool Discovery!**
-- Returns available echo and printHeader tools!
-- Includes proper JSON schema definitions!
-- Stateless operation guaranteed!
-
-**tools/call - Sacred Tool Execution!**
-- Executes echo or printHeader based on name!
-- Validates arguments against schema!
-- Returns proper TextContent responses!
-- printHeader reveals divine HTTP headers!
-
-### The Stateless Operation Pattern
-
-1. **Each request is independent** - No session state!
-2. **No memory between calls** - Pure functions!
-3. **Protocol compliance only** - No custom extensions!
-4. **Debug logging optional** - Enlightenment on demand!
 
 ## 🔄 The Traefik Integration - Divine Routing Configuration!
 
@@ -195,15 +77,20 @@ labels:
 
 **⚡ Priorities prevent the catch-all from devouring sacred paths! ⚡**
 
+## 🔐 The Security Architecture - Divine Protection Through Layers!
+
+**The MCP-Echo service itself knows NO authentication!**
+
+Security is enforced by the sacred trinity:
+1. **Traefik** - Enforces Bearer token authentication!
+2. **Auth Service** - Validates tokens via ForwardAuth!
+3. **MCP-Echo** - Receives only pre-authenticated requests!
+
+**⚡ This is the way of the trinity - separation brings security! ⚡**
+
 ## 🧪 Testing the MCP-Echo Service - Divine Verification!
 
 ```bash
-# Basic test with curl
-curl -X POST http://localhost:3000/mcp \
-  -H "Content-Type: application/json" \
-  -H "Accept: text/event-stream" \
-  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"echo","arguments":{"message":"Test"}},"id":1}'
-
 # Run the test script
 just test
 
@@ -212,32 +99,15 @@ just example
 
 # Integration test
 just test-integration
+
+# View service logs
+just logs
+
+# Monitor health
+watch 'docker inspect mcp-echo | jq ".[0].State.Health"'
 ```
 
 **⚡ Real services, real tests - no mocking in this realm! ⚡**
-
-## 🔥 Common Issues and Divine Solutions!
-
-### "Connection Refused" - Service Not Ready!
-- Check Docker health status!
-- Verify port 3000 is exposed!
-- Ensure service started correctly!
-
-### "401 Unauthorized" - Token Rejection!
-- Verify Bearer token in Authorization header!
-- Check token hasn't expired!
-- Ensure ForwardAuth middleware active!
-
-### "Tool Not Found" - Invalid Tool Name!
-- Only "echo" and "printHeader" exist!
-- Check exact spelling and case!
-- Verify arguments match schema!
-- printHeader takes no arguments!
-
-### "Debug Output Missing" - Logging Not Enabled!
-- Ensure MCP_ECHO_DEBUG=true!
-- Check container logs with `just logs`!
-- Verify --debug flag if running locally!
 
 ## 📜 The Integration Flow - How Requests Reach Echo!
 
@@ -245,60 +115,70 @@ just test-integration
 2. **Traefik Routes** → Checks authentication via ForwardAuth
 3. **Auth Validates** → Token verification at /verify endpoint
 4. **Request Forwarded** → Reaches MCP-Echo on port 3000
-5. **Server Processes** → Direct handling, no proxy needed
-6. **Tool Executes** → Echo or printEnv runs
-7. **Response Returns** → StreamableHTTP → client
+5. **Server Processes** → Direct handling via mcp-echo-streamablehttp-server-stateless
+6. **Tool Executes** → One of 10 diagnostic tools runs
+7. **Response Returns** → StreamableHTTP SSE → client
 
 **⚡ Each layer has its purpose in the divine flow! ⚡**
 
-## 🎯 The Divine Mission - MCP-Echo Responsibilities!
+## 🎯 The Divine Mission - Service Responsibilities!
 
-**What MCP-Echo MUST Do:**
-- Implement echo and printHeader tools perfectly!
-- Provide stateless MCP protocol compliance!
-- Support debug logging when enabled!
-- Handle errors gracefully!
-- Serve as testing ground for clients!
-- Reveal HTTP headers for debugging OAuth flows!
+**What this Docker service MUST Do:**
+- Wrap mcp-echo-streamablehttp-server-stateless properly!
+- Configure environment for debugging!
+- Integrate with Traefik routing!
+- Provide health checks via MCP protocol!
+- Support test scripts and examples!
 
-**What MCP-Echo MUST NOT Do:**
-- Implement authentication logic!
-- Know about OAuth flows!
-- Store any state between calls!
-- Route to other services!
-- Add complexity beyond testing needs!
+**What this service MUST NOT Do:**
+- Implement server logic (that's in the Python package)!
+- Handle authentication (that's Traefik's job)!
+- Modify the MCP protocol (pure passthrough)!
 
-**⚡ Simplicity of purpose brings reliability! ⚡**
+**⚡ Separation of concerns brings clarity! ⚡**
 
-## 🛠️ Debugging Commands - Divine Troubleshooting!
+## 🛠️ Docker-Specific Commands - Divine Container Control!
 
 ```bash
-# View service logs
-just logs
+# Build the container
+just build
 
-# Test echo directly
-curl -H "Content-Type: application/json" \
-     -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"echo","arguments":{"message":"Debug test"}},"id":1}' \
-     http://localhost:3000/mcp
+# Run standalone for testing
+docker run -p 3000:3000 -e MCP_ECHO_DEBUG=true mcp-echo
 
-# Check debug output
-docker logs mcp-echo | grep DEBUG
+# Shell into container
+docker exec -it mcp-echo /bin/bash
 
-# Monitor health
-watch 'docker inspect mcp-echo | jq ".[0].State.Health"'
+# Check health status
+docker inspect mcp-echo --format='{{.State.Health.Status}}'
+
+# View environment
+docker exec mcp-echo env | grep MCP_
 ```
 
-## 🔱 The Sacred Truth of Testing Services!
+## 🔥 Common Docker Issues and Divine Solutions!
 
-**MCP-Echo serves as the divine testing ground for:**
-1. **Protocol compliance** - Verify MCP implementation!
-2. **Authentication flow** - Test OAuth integration!
-3. **Client development** - Simple tools for validation!
-4. **Debug workflows** - Trace message flow!
-5. **Health monitoring** - Verify service patterns!
+### "Container keeps restarting" - Health check failing!
+- Check if server starts correctly
+- Verify port 3000 is accessible inside container
+- Review health check command in docker-compose.yml
 
-**⚡ Simple tools enable complex testing! ⚡**
+### "Cannot connect to service" - Network issues!
+- Ensure container is on `public` network
+- Check Traefik routing labels
+- Verify port mapping in docker-compose
+
+### "Environment not loading" - Configuration problems!
+- Check .env file exists and is loaded
+- Verify docker-compose env_file directive
+- Use `docker exec mcp-echo env` to debug
+
+## 📚 Related Documentation
+
+- **Server Implementation**: See `../mcp-echo-streamablehttp-server-stateless/CLAUDE.md`
+- **OAuth Gateway**: See `../CLAUDE.md` for system architecture
+- **Testing Guide**: See `./tests/README.md` for test details
 
 ---
 
-**🔥 May your echoes be true, your environment revealed, and your debugging forever enlightened! ⚡**
+**🔥 May your containers be stable, your routes be true, and your echoes forever diagnostic! ⚡**

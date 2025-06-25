@@ -1,12 +1,25 @@
 # MCP Echo StreamableHTTP Server - Stateless
 
-A stateless MCP (Model Context Protocol) server that implements echo and printEnv tools using the StreamableHTTP transport.
+A comprehensive diagnostic MCP (Model Context Protocol) server that provides powerful tools for debugging OAuth flows, authentication contexts, and protocol behavior using the StreamableHTTP transport.
+
+## Overview
+
+This server is much more than a simple echo service - it's a complete diagnostic toolkit designed to help developers understand and debug:
+- OAuth authentication flows
+- JWT token structures
+- HTTP headers and CORS configuration
+- MCP protocol negotiation
+- Request timing and performance
+- System health and environment configuration
 
 ## Features
 
 - **Stateless Operation**: No session management, each request is independent
-- **Echo Tool**: Returns the provided message
-- **PrintEnv Tool**: Prints environment variable values
+- **10 Diagnostic Tools**: Comprehensive suite for debugging authentication and protocol issues
+- **StreamableHTTP Transport**: Full Server-Sent Events (SSE) support
+- **Protocol Version Negotiation**: Supports multiple MCP protocol versions
+- **OAuth Flow Analysis**: Detects and analyzes OAuth flow stages
+- **JWT Token Decoding**: Decode and inspect Bearer tokens without signature verification
 - **Debug Mode**: Detailed message tracing for development
 - **Strict MCP Compliance**: Follows the MCP specification exactly
 
@@ -36,11 +49,13 @@ mcp-echo-streamablehttp-server-stateless --debug
 - `MCP_ECHO_HOST`: Host to bind to (default: 0.0.0.0)
 - `MCP_ECHO_PORT`: Port to bind to (default: 3000)
 - `MCP_ECHO_DEBUG`: Enable debug logging (true/false, default: false)
+- `MCP_PROTOCOL_VERSION`: Default protocol version (default: 2025-06-18)
+- `MCP_PROTOCOL_VERSIONS_SUPPORTED`: Comma-separated list of supported versions
 
-### Available Tools
+## Available Tools
 
-#### echo
-Echoes back the provided message.
+### 1. echo
+Basic echo functionality - returns the provided message.
 
 **Parameters:**
 - `message` (string, required): The message to echo back
@@ -60,26 +75,71 @@ Echoes back the provided message.
 }
 ```
 
-#### printEnv
-Prints the value of an environment variable.
+### 2. printHeader
+Displays all HTTP headers from the current request - useful for debugging authentication headers.
+
+**Parameters:** None
+
+**Use Case:** Verify OAuth headers, Bearer tokens, and CORS configuration.
+
+### 3. bearerDecode
+Decodes JWT Bearer tokens from the Authorization header without signature verification.
 
 **Parameters:**
-- `name` (string, required): The name of the environment variable
+- `includeRaw` (boolean, optional): Include raw token parts (default: false)
 
-**Example:**
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "printEnv",
-    "arguments": {
-      "name": "PATH"
-    }
-  },
-  "id": 2
-}
-```
+**Use Case:** Inspect JWT claims, expiration times, and token structure during OAuth debugging.
+
+### 4. authContext
+Displays the complete authentication context including OAuth headers, session info, and security status.
+
+**Parameters:** None
+
+**Use Case:** Comprehensive view of authentication state for troubleshooting access issues.
+
+### 5. oauthFlowTrace
+Analyzes OAuth flow state from request context, detecting flow stage and PKCE parameters.
+
+**Parameters:** None
+
+**Use Case:** Debug OAuth flows by understanding which stage of the flow you're in and what parameters are present.
+
+### 6. requestTiming
+Shows request timing and performance metrics.
+
+**Parameters:** None
+
+**Use Case:** Performance debugging and latency analysis.
+
+### 7. protocolNegotiation
+Analyzes MCP protocol version negotiation.
+
+**Parameters:**
+- `testVersion` (string, optional): Test a specific protocol version
+
+**Use Case:** Debug protocol compatibility issues between clients and servers.
+
+### 8. corsAnalysis
+Analyzes CORS configuration and requirements.
+
+**Parameters:** None
+
+**Use Case:** Debug cross-origin request issues and validate CORS headers.
+
+### 9. environmentDump
+Displays sanitized environment configuration.
+
+**Parameters:**
+- `showSecrets` (boolean, optional): Show first/last 4 chars of secrets (default: false)
+
+**Use Case:** Verify environment configuration without exposing sensitive data.
+
+### 10. healthProbe
+Performs deep health check of service and dependencies.
+
+**Parameters:** None
+
+**Use Case:** Comprehensive health monitoring including system resources and service status.
 
 ## Development
 
@@ -93,18 +153,19 @@ mcp-echo-streamablehttp-server-stateless --debug
 
 This will log all incoming requests and outgoing responses.
 
-### Testing with curl
+### Testing OAuth Flows
 
-Initialize the server:
+Initialize the server with Bearer token:
 ```bash
 curl -X POST http://localhost:3000/mcp \
   -H "Content-Type: application/json" \
-  -H "Accept: text/event-stream" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Authorization: Bearer your-jwt-token" \
   -d '{
     "jsonrpc": "2.0",
     "method": "initialize",
     "params": {
-      "protocolVersion": "2025-03-26",
+      "protocolVersion": "2025-06-18",
       "capabilities": {},
       "clientInfo": {
         "name": "test-client",
@@ -115,24 +176,31 @@ curl -X POST http://localhost:3000/mcp \
   }'
 ```
 
-Call the echo tool:
+Analyze authentication context:
 ```bash
 curl -X POST http://localhost:3000/mcp \
   -H "Content-Type: application/json" \
-  -H "Accept: text/event-stream" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Authorization: Bearer your-jwt-token" \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/call",
     "params": {
-      "name": "echo",
-      "arguments": {
-        "message": "Hello from MCP!"
-      }
+      "name": "authContext"
     },
     "id": 2
   }'
 ```
 
+## Architecture
+
+This server implements the MCP 2025-06-18 StreamableHTTP transport specification with:
+- Stateless request handling
+- Full CORS support
+- SSE (Server-Sent Events) responses
+- Protocol version negotiation
+- Request context tracking for diagnostic tools
+
 ## License
 
-MIT
+Apache-2.0
