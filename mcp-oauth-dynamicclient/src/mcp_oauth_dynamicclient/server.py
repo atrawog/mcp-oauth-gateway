@@ -2,6 +2,7 @@
 Main server module for MCP OAuth Dynamic Client
 """
 
+import logging
 import os
 from contextlib import asynccontextmanager
 
@@ -13,6 +14,12 @@ from .auth_authlib import AuthManager
 from .config import Settings
 from .redis_client import RedisManager
 from .routes import create_oauth_router
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 
 def _is_browser_request(request: Request) -> bool:

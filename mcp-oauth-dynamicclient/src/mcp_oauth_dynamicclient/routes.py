@@ -4,6 +4,7 @@ Using Authlib's security framework instead of custom implementations
 """
 
 import json
+import logging
 import secrets
 import time
 from typing import Optional
@@ -18,6 +19,9 @@ from .auth_authlib import AuthManager
 from .config import Settings
 from .models import ClientRegistration, TokenResponse
 from .rfc7592 import DynamicClientConfigurationEndpoint
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthManager) -> APIRouter:
@@ -324,6 +328,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         }
 
         await redis_client.setex(f"oauth:state:{auth_state}", 300, json.dumps(auth_data))  # TODO: Break long line
+        logger.info(f"Created OAuth state: {auth_state} for client: {client_id}, original state: {state}")
 
         # Redirect to GitHub OAuth
         github_params = {
@@ -353,17 +358,27 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         """The blessed return path - handles GitHub OAuth callback"""
 
         # Retrieve authorization state
+        logger.info(f"Callback received with state: {state}, code: {code[:8]}..." if code else "no code")
         auth_data_str = await redis_client.get(f"oauth:state:{state}")
         if not auth_data_str:
-            raise HTTPException(
-                status_code=400,
-                detail={
-                    "error": "invalid_request",
-                    "error_description": "Invalid or expired state",
-                },
+            logger.warning(f"State not found in Redis: {state}")
+            # Check if any similar states exist (for debugging)
+            all_states = await redis_client.keys("oauth:state:*")
+            logger.debug(f"Current states in Redis: {len(all_states)} total")
+            
+            # Redirect to user-friendly error page instead of returning JSON
+            return RedirectResponse(
+                url=f"/error?{urlencode({'error': 'invalid_request', 'error_description': 'Invalid or expired state. This usually happens when you take longer than 5 minutes to complete the authentication, or when you refresh an old authentication page.'})}",
+                status_code=302,
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0"
+                }
             )
 
         auth_data = json.loads(auth_data_str)
+        logger.info(f"State validated successfully: {state}, client_id: {auth_data.get('client_id')}")
 
         # Exchange GitHub code
         user_info = await auth_manager.exchange_github_code(code)
@@ -399,6 +414,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
 
         # Clean up state
         await redis_client.delete(f"oauth:state:{state}")
+        logger.info(f"Cleaned up state after successful auth: {state}")
 
         # Handle out-of-band redirect URI
         if auth_data["redirect_uri"] == "urn:ietf:wg:oauth:2.0:oob":
@@ -666,6 +682,61 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         introspection_result = await auth_manager.introspect_token(token, redis_client)
 
         return introspection_result
+
+    # OAuth error page
+    @router.get("/error")
+    async def oauth_error_page(
+        error: str = Query(...),
+        error_description: Optional[str] = Query(None),
+    ):
+        """User-friendly error page for OAuth flow failures"""
+        return HTMLResponse(
+            content=f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>OAuth Error</title>
+                <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+                <meta http-equiv="Pragma" content="no-cache">
+                <meta http-equiv="Expires" content="0">
+            </head>
+            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; max-width: 600px; margin: 0 auto;">
+                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                    <h1 style="color: #dc2626; margin: 0 0 10px 0;">❌ OAuth Authentication Failed</h1>
+                    <p style="font-size: 18px; margin: 0;"><strong>Error:</strong> {error}</p>
+                    <p style="margin: 10px 0 0 0;"><strong>Details:</strong> {error_description or "No additional details available"}</p>
+                </div>
+                
+                <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                    <h2 style="margin: 0 0 10px 0;">What happened?</h2>
+                    <p style="margin: 0;">{"Your authentication session expired. OAuth state tokens are valid for only 5 minutes for security reasons." if "expired state" in (error_description or "").lower() else "The OAuth authentication process encountered an error."}</p>
+                </div>
+                
+                <div style="background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px; padding: 20px;">
+                    <h2 style="color: #1d4ed8; margin: 0 0 10px 0;">How to fix this:</h2>
+                    <ol style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>Close this browser tab</strong></li>
+                        <li><strong>Close any other OAuth tabs</strong> from previous attempts</li>
+                        <li><strong>Run the command again:</strong> <code style="background: #f3f4f6; padding: 2px 4px; border-radius: 3px;">just generate-github-token</code></li>
+                        <li><strong>Complete the flow quickly</strong> (within 5 minutes)</li>
+                    </ol>
+                    <p style="margin: 10px 0 0 0; font-size: 14px; color: #4b5563;">
+                        <strong>Tip:</strong> If you see multiple browser tabs open, close all but the newest one to avoid confusion.
+                    </p>
+                </div>
+                
+                <p style="text-align: center; margin-top: 30px; color: #6b7280;">
+                    This page prevents caching. You can safely close this tab.
+                </p>
+            </body>
+            </html>
+            """,
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
 
     # OAuth success page
     @router.get("/success")

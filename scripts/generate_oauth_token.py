@@ -89,18 +89,18 @@ async def register_oauth_client_with_user_token(
     base_url: str, user_jwt_token: str
 ) -> dict[str, str]:
     """Register OAuth client using a valid user JWT token."""
-    # Get REAL callback URLs from environment - must be REAL FQDNs
+    # Get callback URLs from environment - MUST be set properly!
     test_callback_url = os.getenv("TEST_CALLBACK_URL")
     test_redirect_uri = os.getenv("TEST_REDIRECT_URI")
-
+    
     if not test_callback_url or not test_redirect_uri:
         raise Exception(
-            "TEST_CALLBACK_URL and TEST_REDIRECT_URI must be set in .env with REAL FQDNs"
+            "TEST_CALLBACK_URL and TEST_REDIRECT_URI must be set in .env\n"
+            "Example: TEST_CALLBACK_URL=https://auth.yourdomain.com/success"
         )
 
-    verify_ssl = (
-        not base_url.startswith("https://localhost") and "127.0.0.1" not in base_url
-    )
+    # Always verify SSL - no exceptions for localhost per CLAUDE.md
+    verify_ssl = True
 
     async with httpx.AsyncClient(verify=verify_ssl) as client:
         response = await client.post(
@@ -200,10 +200,10 @@ async def complete_real_oauth_flow(
 
     state = secrets.token_urlsafe(16)
 
-    # Step 2: Construct REAL authorization URL using REAL FQDN
+    # Step 2: Construct REAL authorization URL
     callback_url = os.getenv("TEST_CALLBACK_URL")
     if not callback_url:
-        raise Exception("TEST_CALLBACK_URL must be set in .env with REAL FQDN")
+        raise Exception("TEST_CALLBACK_URL must be set in .env - No defaults allowed per CLAUDE.md!")
 
     auth_params = {
         "client_id": client_id,
@@ -247,10 +247,8 @@ async def complete_real_oauth_flow(
         raise Exception("No authorization code provided")
 
     # Step 3: Exchange code for tokens
-    verify_ssl = (
-        not auth_base_url.startswith("https://localhost")
-        and "127.0.0.1" not in auth_base_url
-    )
+    # Always verify SSL - no exceptions for localhost per CLAUDE.md
+    verify_ssl = True
 
     async with httpx.AsyncClient(verify=verify_ssl) as client:
         token_response = await client.post(
@@ -329,10 +327,8 @@ async def main():
         print(f"🔍 Validating OAuth client credentials: {client_id}...")
 
         # Try to use the client credentials with a dummy auth code to see if client is valid
-        verify_ssl = (
-            not auth_base_url.startswith("https://localhost")
-            and "127.0.0.1" not in auth_base_url
-        )
+        # Always verify SSL - no exceptions for localhost per CLAUDE.md
+        verify_ssl = True
         async with httpx.AsyncClient(verify=verify_ssl) as client:
             try:
                 # Try token endpoint with client credentials to validate them
@@ -406,10 +402,8 @@ async def main():
         print("🔍 Checking existing GATEWAY_OAUTH_ACCESS_TOKEN...")
 
         # Test if the token is valid by calling /verify
-        verify_ssl = (
-            not auth_base_url.startswith("https://localhost")
-            and "127.0.0.1" not in auth_base_url
-        )
+        # Always verify SSL - no exceptions for localhost per CLAUDE.md
+        verify_ssl = True
         async with httpx.AsyncClient(verify=verify_ssl) as client:
             try:
                 response = await client.get(
@@ -437,22 +431,16 @@ async def main():
             print("\n🔧 Registering new OAuth client (no auth required)...")
 
             # Register a new client - no authentication needed!
-            verify_ssl = (
-                not auth_base_url.startswith("https://localhost")
-                and "127.0.0.1" not in auth_base_url
-            )
+            # Always verify SSL - no exceptions for localhost per CLAUDE.md
+            verify_ssl = True
 
             async with httpx.AsyncClient(verify=verify_ssl) as client:
                 response = await client.post(
                     f"{auth_base_url}/register",
                     json={
                         "redirect_uris": [
-                            os.getenv(
-                                "TEST_CALLBACK_URL", "https://auth.atradev.org/success"
-                            ),
-                            os.getenv(
-                                "TEST_REDIRECT_URI", "https://auth.atradev.org/callback"
-                            ),
+                            os.getenv("TEST_CALLBACK_URL"),
+                            os.getenv("TEST_REDIRECT_URI"),
                         ],
                         "client_name": "MCP OAuth Gateway Client",
                         "scope": "openid profile email",
