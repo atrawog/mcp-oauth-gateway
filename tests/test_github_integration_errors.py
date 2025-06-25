@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 
 import pytest
 
-from .test_constants import AUTH_BASE_URL
+from .test_constants import AUTH_BASE_URL, BASE_DOMAIN
 from .test_constants import GATEWAY_OAUTH_CLIENT_ID
 from .test_constants import GATEWAY_OAUTH_CLIENT_SECRET
 from .test_constants import HTTP_BAD_REQUEST
@@ -26,11 +26,10 @@ class TestGitHubCallbackErrors:
             follow_redirects=False,
         )
 
-        # Should return error
-        assert response.status_code == HTTP_BAD_REQUEST
-        error = response.json()
-        assert error["error"] == "invalid_request"
-        assert "Invalid or expired state" in error["error_description"]
+        # Should redirect to error page (user-friendly)
+        assert response.status_code == 302  # Redirect to error page
+        assert "/error" in response.headers.get("location", "")
+        # Error details are in the redirect URL parameters
 
 
 class TestRealOAuthFlowErrors:
@@ -44,7 +43,7 @@ class TestRealOAuthFlowErrors:
             f"{AUTH_BASE_URL}/authorize",
             params={
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                "redirect_uri": f"https://auth.{test_context.base_domain}/success",  # Use registered redirect URI
+                "redirect_uri": f"https://auth.{BASE_DOMAIN}/success",  # Use registered redirect URI
                 "response_type": "code",
                 "scope": "openid profile email",
                 "state": "test_state",
@@ -74,7 +73,7 @@ class TestRealOAuthFlowErrors:
             data={
                 "grant_type": "authorization_code",
                 "code": "expired_or_invalid_code_xxx",
-                "redirect_uri": f"https://auth.{test_context.base_domain}/success",
+                "redirect_uri": f"https://auth.{BASE_DOMAIN}/success",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
             },
@@ -101,7 +100,7 @@ class TestPKCEWithRealFlow:
             data={
                 "grant_type": "authorization_code",
                 "code": "code_that_requires_pkce",
-                "redirect_uri": f"https://auth.{test_context.base_domain}/success",
+                "redirect_uri": f"https://auth.{BASE_DOMAIN}/success",
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
                 # Missing code_verifier

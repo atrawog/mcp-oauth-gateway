@@ -12,6 +12,7 @@ import sys
 import time
 from collections.abc import AsyncGenerator
 from pathlib import Path
+from asyncio import Semaphore
 
 import httpx
 import pytest
@@ -37,6 +38,16 @@ MCP_CLIENT_ID = os.getenv("MCP_CLIENT_ID")
 MCP_CLIENT_SECRET = os.getenv("MCP_CLIENT_SECRET")
 
 # pytest-asyncio handles event loop automatically with asyncio_mode = auto
+
+# Global rate limiter to prevent overwhelming services
+_RATE_LIMITER = Semaphore(10)  # Max 10 concurrent requests across all tests
+
+
+@pytest.fixture
+async def rate_limiter():
+    """Provides a rate limiter to prevent overwhelming services."""
+    async with _RATE_LIMITER:
+        yield _RATE_LIMITER
 
 
 def check_token_expiry(token: str) -> tuple[bool, int]:
@@ -276,11 +287,58 @@ async def http_client() -> AsyncGenerator[httpx.AsyncClient, None]:
     """Provides an async HTTP client for tests with proper SSL verification."""
     # Use timeout from test_constants - already validated!
     # ALWAYS verify SSL certificates - security is paramount!
+    # Add connection limits to prevent exhaustion when running all tests
+    limits = httpx.Limits(
+        max_keepalive_connections=5,
+        max_connections=10,
+        keepalive_expiry=5.0
+    )
     async with httpx.AsyncClient(
         timeout=TEST_HTTP_TIMEOUT,
-        verify=True  # Explicitly enable SSL verification
+        verify=True,  # Explicitly enable SSL verification
+        limits=limits  # Prevent connection pool exhaustion
     ) as client:
         yield client
+
+
+@pytest.fixture(autouse=True)
+async def cleanup_redis_test_data(request):
+    """Clean up test-specific Redis data after each test to prevent interference."""
+    import redis.asyncio as redis
+    from .test_constants import REDIS_PASSWORD
+    
+    # Skip cleanup for tests that manage their own Redis state
+    if hasattr(request, "node") and hasattr(request.node, "get_closest_marker"):
+        if request.node.get_closest_marker("skip_redis_cleanup"):
+            yield
+            return
+    
+    yield  # Run the test
+    
+    # Cleanup after test
+    try:
+        r = redis.Redis(
+            host="localhost",
+            port=6379,
+            password=REDIS_PASSWORD,
+            decode_responses=True
+        )
+        # Clean up common test patterns
+        test_patterns = [
+            "oauth:state:test_*",
+            "oauth:code:test_*",
+            "oauth:client:test_*",
+            "mcp:session:test_*",
+            "redis:session:test_*"
+        ]
+        for pattern in test_patterns:
+            keys = await r.keys(pattern)
+            if keys:
+                await r.delete(*keys)
+        await r.aclose()
+    except Exception:
+        # Ignore cleanup errors - don't fail tests due to cleanup
+        pass
 
 
 @pytest.fixture(scope="session", autouse=True)

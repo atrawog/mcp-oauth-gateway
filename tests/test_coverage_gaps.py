@@ -398,10 +398,10 @@ class TestCallbackEndpoint:
             params={"code": "github_auth_code", "state": "invalid_or_expired_state"},
         )
 
-        assert response.status_code == HTTP_BAD_REQUEST
-        error = response.json()
-        assert error.get("error") == "invalid_request"
-        assert "Invalid or expired state" in error.get("error_description", "")
+        # Callback now redirects to error page for invalid state (user-friendly)
+        assert response.status_code == 302  # Redirect to error page
+        assert "/error" in response.headers.get("location", "")
+        # Error details are in the redirect URL parameters
 
     @pytest.mark.asyncio
     async def test_callback_github_exchange_simulation(

@@ -9,6 +9,7 @@ import httpx
 import pytest
 import os
 from urllib3.exceptions import InsecureRequestWarning
+from .test_constants import BASE_DOMAIN
 
 
 class TestSSLSecurity:
@@ -56,9 +57,9 @@ class TestSSLSecurity:
             "SSL context must require certificates!"
 
     @pytest.mark.parametrize("url", [
-        f"https://auth.{test_context.base_domain}",
-        f"https://echo.{test_context.base_domain}", 
-        f"https://everything.{test_context.base_domain}"
+        f"https://auth.{BASE_DOMAIN}",
+        f"https://echo.{BASE_DOMAIN}", 
+        f"https://everything.{BASE_DOMAIN}"
     ])
     def test_services_have_valid_certificates(self, url):
         """Test that all services have valid SSL certificates."""
