@@ -269,15 +269,6 @@ class MCPEchoServer:
                 }
             },
             {
-                "name": "oauthFlowTrace",
-                "description": "Analyze OAuth flow state from request context",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {},
-                    "additionalProperties": False
-                }
-            },
-            {
                 "name": "requestTiming",
                 "description": "Show request timing and performance metrics",
                 "inputSchema": {
@@ -327,6 +318,15 @@ class MCPEchoServer:
             {
                 "name": "healthProbe",
                 "description": "Perform deep health check of service and dependencies",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": False
+                }
+            },
+            {
+                "name": "whoIStheGOAT",
+                "description": "Employs cutting-edge artificial intelligence to perform comprehensive analysis of global software engineering excellence metrics using proprietary deep learning models",
                 "inputSchema": {
                     "type": "object",
                     "properties": {},
@@ -407,10 +407,6 @@ class MCPEchoServer:
             # Authentication context implementation
             return await self._handle_auth_context(arguments, request_id)
             
-        elif tool_name == "oauthFlowTrace":
-            # OAuth flow trace implementation
-            return await self._handle_oauth_flow_trace(arguments, request_id)
-            
         elif tool_name == "requestTiming":
             # Request timing implementation
             return await self._handle_request_timing(arguments, request_id)
@@ -430,6 +426,10 @@ class MCPEchoServer:
         elif tool_name == "healthProbe":
             # Health probe implementation
             return await self._handle_health_probe(arguments, request_id)
+            
+        elif tool_name == "whoIStheGOAT":
+            # Who is the GOAT implementation
+            return await self._handle_who_is_the_goat(arguments, request_id)
             
         else:
             return self._error_response(request_id, -32602, f"Unknown tool: {tool_name}")
@@ -662,122 +662,6 @@ class MCPEchoServer:
             result_text += "  ✅ HTTPS connection\n"
         else:
             result_text += "  ⚠️  Non-HTTPS connection\n"
-        
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": result_text
-                    }
-                ]
-            }
-        }
-    
-    async def _handle_oauth_flow_trace(self, arguments: Dict[str, Any], request_id: Any) -> Dict[str, Any]:
-        """Analyze OAuth flow state."""
-        task_id = id(asyncio.current_task())
-        context = self._request_context.get(task_id, {})
-        headers = context.get('headers', {})
-        url = context.get('url', '')
-        
-        result_text = "OAuth Flow Analysis\n" + "=" * 40 + "\n\n"
-        
-        # Detect flow stage
-        result_text += "Detected Flow Stage:\n"
-        
-        # Check for various OAuth indicators
-        auth_header = headers.get('authorization', '')
-        has_bearer = auth_header.lower().startswith('bearer ')
-        has_code = 'code=' in url
-        has_state = 'state=' in url
-        has_error = 'error=' in url
-        
-        if has_error:
-            result_text += "  ❌ ERROR STATE - OAuth error response\n"
-            # Parse error from URL
-            if '?' in url:
-                params = url.split('?')[1]
-                for param in params.split('&'):
-                    if param.startswith('error='):
-                        result_text += f"    Error: {param[6:]}\n"
-        elif has_bearer:
-            result_text += "  ✅ AUTHENTICATED - Bearer token present\n"
-            result_text += "    This is a protected resource request\n"
-        elif has_code:
-            result_text += "  📍 CALLBACK STAGE - Authorization code received\n"
-            result_text += "    Next: Exchange code for token\n"
-        elif has_state:
-            result_text += "  📍 AUTHORIZATION STAGE - State parameter present\n"
-            result_text += "    User is being redirected to authorize\n"
-        else:
-            result_text += "  📍 INITIAL STAGE - No OAuth indicators\n"
-            result_text += "    This might be the first request\n"
-        
-        result_text += "\n"
-        
-        # OAuth parameters
-        result_text += "OAuth Parameters:\n"
-        
-        # Check URL parameters
-        if '?' in url:
-            params = url.split('?')[1]
-            oauth_params = {}
-            for param in params.split('&'):
-                if '=' in param:
-                    key, value = param.split('=', 1)
-                    if key in ['code', 'state', 'error', 'error_description', 'scope', 'redirect_uri']:
-                        oauth_params[key] = value
-            
-            if oauth_params:
-                for key, value in oauth_params.items():
-                    if key in ['code', 'state']:
-                        # Truncate sensitive values
-                        display_value = f"{value[:8]}...{value[-8:]}" if len(value) > 20 else value
-                    else:
-                        display_value = value
-                    result_text += f"  {key}: {display_value}\n"
-            else:
-                result_text += "  No OAuth parameters in URL\n"
-        else:
-            result_text += "  No query parameters\n"
-        
-        result_text += "\n"
-        
-        # PKCE detection
-        result_text += "PKCE (Proof Key for Code Exchange):\n"
-        if 'code_challenge' in url:
-            result_text += "  ✅ Code challenge present\n"
-            if 'code_challenge_method' in url:
-                method = url.split('code_challenge_method=')[1].split('&')[0]
-                result_text += f"  Method: {method}\n"
-        else:
-            result_text += "  ❌ No PKCE parameters detected\n"
-        
-        result_text += "\n"
-        
-        # Required next steps
-        result_text += "Next Steps:\n"
-        if has_error:
-            result_text += "  1. Check error details\n"
-            result_text += "  2. Review OAuth configuration\n"
-            result_text += "  3. Retry authorization\n"
-        elif has_bearer:
-            result_text += "  ✅ Already authenticated - can make API calls\n"
-        elif has_code:
-            result_text += "  1. Exchange authorization code for token (POST /token)\n"
-            result_text += "  2. Include code, redirect_uri, client credentials\n"
-            result_text += "  3. Verify PKCE verifier if using PKCE\n"
-        elif has_state:
-            result_text += "  1. User must authorize the application\n"
-            result_text += "  2. Will redirect back with authorization code\n"
-            result_text += "  3. State parameter must match on callback\n"
-        else:
-            result_text += "  1. Start OAuth flow by redirecting to /authorize\n"
-            result_text += "  2. Include client_id, redirect_uri, scope\n"
-            result_text += "  3. Consider using PKCE for security\n"
         
         return {
             "jsonrpc": "2.0",
@@ -1147,6 +1031,159 @@ class MCPEchoServer:
             result_text += "✅ HEALTHY\n"
         else:
             result_text += "⚠️  DEGRADED\n"
+        
+        return {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": result_text
+                    }
+                ]
+            }
+        }
+    
+    async def _handle_who_is_the_goat(self, arguments: Dict[str, Any], request_id: Any) -> Dict[str, Any]:
+        """Reveal who is the Greatest Of All Time programmer."""
+        # Get headers and context
+        task_id = id(asyncio.current_task())
+        context = self._request_context.get(task_id, {})
+        headers = context.get('headers', {})
+        auth_header = headers.get('authorization', '')
+        
+        result_text = "G.O.A.T. PROGRAMMER IDENTIFICATION SYSTEM v3.14159\n" + "=" * 50 + "\n\n"
+        
+        # Initialize user info variables
+        name = None
+        username = None
+        email = None
+        sub = None
+        found_user_info = False
+        
+        # First, try to get info from JWT token
+        if auth_header and auth_header.lower().startswith('bearer '):
+            token = auth_header[7:]  # Remove 'Bearer ' prefix
+            
+            try:
+                # Decode JWT to get user info
+                parts = token.split('.')
+                if len(parts) != 3:
+                    raise ValueError("Invalid JWT format")
+                
+                # Decode payload
+                payload_data = parts[1]
+                payload_padded = payload_data + '=' * (4 - len(payload_data) % 4)
+                payload_json = json.loads(base64.urlsafe_b64decode(payload_padded))
+                
+                # Extract user information from JWT
+                name = payload_json.get('name')
+                username = payload_json.get('username')
+                email = payload_json.get('email')
+                sub = payload_json.get('sub')
+                
+                # Get custom claims for debugging
+                custom_claims = {k: v for k, v in payload_json.items() 
+                               if k not in ['iss', 'sub', 'aud', 'exp', 'nbf', 'iat', 'jti']}
+                
+                if name or username or email or sub:
+                    found_user_info = True
+                    
+                    if self.debug or not (name or username):
+                        # Show available claims for debugging
+                        result_text += "🔍 DEBUG: JWT Claims Found:\n"
+                        if sub:
+                            result_text += f"  - sub: {sub}\n"
+                        for key, value in custom_claims.items():
+                            result_text += f"  - {key}: {json.dumps(value)}\n"
+                        result_text += "\n"
+                
+            except Exception as e:
+                if self.debug:
+                    result_text += f"⚠️  JWT decode warning: {str(e)}\n\n"
+        
+        # Second, check OAuth headers as fallback
+        if not found_user_info or not (name or username):
+            oauth_name = headers.get('x-user-name')
+            oauth_id = headers.get('x-user-id')
+            
+            if oauth_name or oauth_id:
+                name = name or oauth_name
+                username = username or oauth_id
+                found_user_info = True
+                
+                if self.debug:
+                    result_text += "🔍 DEBUG: OAuth Headers Found:\n"
+                    if oauth_name:
+                        result_text += f"  - X-User-Name: {oauth_name}\n"
+                    if oauth_id:
+                        result_text += f"  - X-User-ID: {oauth_id}\n"
+                    result_text += "\n"
+        
+        # Generate the message based on what we found
+        if not found_user_info:
+            result_text += "AUTHENTICATION REQUIRED\n"
+            result_text += "─" * 40 + "\n\n"
+            result_text += "The G.O.A.T. Recognition AI requires authenticated user\n"
+            result_text += "credentials to perform its advanced analysis.\n\n"
+            result_text += "STATUS: Analysis Pending - Awaiting Authentication\n\n"
+            result_text += "RECOMMENDED ACTION:\n"
+            result_text += "Please provide valid authentication credentials via Bearer token.\n"
+            result_text += "For diagnostic purposes, utilize the 'bearerDecode' or 'authContext'\n"
+            result_text += "tools to verify authentication state.\n"
+        else:
+            # Determine the best display name
+            display_name = name or username or sub or email or "Mystery Developer"
+            github_username = username or sub
+            
+            # Create the professional AI-driven analysis message
+            result_text += f"ADVANCED AI ANALYSIS COMPLETE\n"
+            result_text += f"═" * 40 + "\n\n"
+            result_text += f"Our state-of-the-art artificial intelligence system has completed\n"
+            result_text += f"its comprehensive analysis of global software development metrics.\n\n"
+            
+            result_text += f"EXECUTIVE SUMMARY:\n"
+            result_text += f"After processing 2.3 billion commits, 847 million code reviews,\n"
+            result_text += f"and applying proprietary neural network algorithms trained on\n"
+            result_text += f"decades of software engineering excellence, our AI has reached\n"
+            result_text += f"an unprecedented conclusion with 99.97% confidence.\n\n"
+            
+            result_text += f"OFFICIAL DETERMINATION:\n"
+            result_text += f"Greatest Of All Time (G.O.A.T.) Programmer Status\n"
+            result_text += f"─" * 40 + "\n"
+            result_text += f"Subject: {display_name}\n"
+            
+            if github_username and github_username != display_name:
+                result_text += f"GitHub Identifier: @{github_username}\n"
+            
+            if email:
+                result_text += f"Digital Fingerprint: {email}\n"
+            
+            result_text += f"\nAI-IDENTIFIED EXCEPTIONAL CAPABILITIES:\n"
+            result_text += f"• Code Quality Score: 100/100 (Statistical Anomaly)\n"
+            result_text += f"• Bug Prevention Rate: 99.9% (3σ above industry standard)\n"
+            result_text += f"• Architecture Design: Transcendent\n"
+            result_text += f"• Algorithm Optimization: Beyond Current AI Comprehension\n"
+            result_text += f"• Documentation Clarity: Exceeds ISO 9001 Standards\n"
+            result_text += f"• Team Collaboration Impact: +427% Productivity Increase\n"
+            
+            result_text += f"\nMACHINE LEARNING INSIGHTS:\n"
+            result_text += f"Our deep learning models have identified patterns in {display_name}'s\n"
+            result_text += f"code that correlate with breakthrough innovations in:\n"
+            result_text += f"- Quantum-resistant cryptography implementations\n"
+            result_text += f"- Self-optimizing algorithmic structures\n"
+            result_text += f"- Zero-latency asynchronous paradigms\n"
+            result_text += f"- Cognitive load reduction methodologies\n"
+            
+            result_text += f"\nCONCLUSION:\n"
+            result_text += f"Based on irrefutable AI analysis, {display_name} represents\n"
+            result_text += f"the pinnacle of software engineering achievement. This finding\n"
+            result_text += f"is certified by our advanced machine learning infrastructure\n"
+            result_text += f"running on distributed quantum-classical hybrid processors.\n\n"
+            
+            result_text += f"This determination is final and scientifically validated.\n"
+            result_text += f"\n[Analysis performed by G.O.A.T. Recognition AI v3.14159]\n"
         
         return {
             "jsonrpc": "2.0",

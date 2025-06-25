@@ -25,12 +25,12 @@ This is a **diagnostic MCP server** that provides 10 powerful tools for debuggin
 2. **printHeader** - Shows all HTTP headers (debug auth headers)
 3. **bearerDecode** - Decodes JWT tokens without verification (inspect claims)
 4. **authContext** - Complete authentication context display
-5. **oauthFlowTrace** - Analyzes OAuth flow stages and parameters
-6. **requestTiming** - Performance metrics and timing
-7. **protocolNegotiation** - Debug MCP protocol version issues
-8. **corsAnalysis** - Debug CORS configuration
-9. **environmentDump** - Sanitized environment display
-10. **healthProbe** - Deep health check with system metrics
+5. **requestTiming** - Performance metrics and timing
+6. **protocolNegotiation** - Debug MCP protocol version issues
+7. **corsAnalysis** - Debug CORS configuration
+8. **environmentDump** - Sanitized environment display
+9. **healthProbe** - Deep health check with system metrics
+10. **whoIStheGOAT** - Advanced AI-driven programmer excellence analysis system
 
 ## Development Guidelines
 
@@ -50,9 +50,8 @@ curl -X POST http://localhost:3000/mcp \
 ### Common Debugging Scenarios
 
 #### OAuth Flow Issues
-1. Use `oauthFlowTrace` to understand current flow stage
-2. Use `bearerDecode` to inspect token claims
-3. Use `authContext` for complete auth state
+1. Use `bearerDecode` to inspect token claims
+2. Use `authContext` for complete auth state
 
 #### CORS Problems
 1. Use `corsAnalysis` to check CORS headers

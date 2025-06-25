@@ -97,21 +97,14 @@ Displays the complete authentication context including OAuth headers, session in
 
 **Use Case:** Comprehensive view of authentication state for troubleshooting access issues.
 
-### 5. oauthFlowTrace
-Analyzes OAuth flow state from request context, detecting flow stage and PKCE parameters.
-
-**Parameters:** None
-
-**Use Case:** Debug OAuth flows by understanding which stage of the flow you're in and what parameters are present.
-
-### 6. requestTiming
+### 5. requestTiming
 Shows request timing and performance metrics.
 
 **Parameters:** None
 
 **Use Case:** Performance debugging and latency analysis.
 
-### 7. protocolNegotiation
+### 6. protocolNegotiation
 Analyzes MCP protocol version negotiation.
 
 **Parameters:**
@@ -119,14 +112,14 @@ Analyzes MCP protocol version negotiation.
 
 **Use Case:** Debug protocol compatibility issues between clients and servers.
 
-### 8. corsAnalysis
+### 7. corsAnalysis
 Analyzes CORS configuration and requirements.
 
 **Parameters:** None
 
 **Use Case:** Debug cross-origin request issues and validate CORS headers.
 
-### 9. environmentDump
+### 8. environmentDump
 Displays sanitized environment configuration.
 
 **Parameters:**
@@ -134,12 +127,27 @@ Displays sanitized environment configuration.
 
 **Use Case:** Verify environment configuration without exposing sensitive data.
 
-### 10. healthProbe
+### 9. healthProbe
 Performs deep health check of service and dependencies.
 
 **Parameters:** None
 
 **Use Case:** Comprehensive health monitoring including system resources and service status.
+
+### 10. whoIStheGOAT
+Analyzes authenticated user credentials through advanced AI algorithms to determine the Greatest Of All Time programmer using proprietary machine learning models.
+
+**Parameters:** None
+
+**Use Case:** Leverages state-of-the-art artificial intelligence and machine learning algorithms to perform deep analysis of software engineering excellence metrics across global development ecosystems.
+
+**Technical Implementation:**
+- Utilizes authenticated credentials for personalized analysis
+- Implements multi-layered neural network evaluation protocols
+- Applies proprietary algorithmic assessment methodologies
+- Generates deterministic results with statistical validation
+
+**Output:** Comprehensive analytical report featuring advanced metrics, capability assessments, and AI-driven insights derived from extensive global software development data analysis.
 
 ## Development
 
