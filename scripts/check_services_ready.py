@@ -29,7 +29,7 @@ def check_docker_service(service_name: str) -> bool:
     # Skip mcp-fetch if it's disabled
     if (
         service_name == "mcp-fetch"
-        and os.getenv("MCP_FETCH_ENABLED", "true").lower() != "true"
+        and os.getenv("MCP_FETCH_ENABLED", "false").lower() != "true"
     ):
         print(
             f"{YELLOW}⊝ Service {service_name} is disabled via MCP_FETCH_ENABLED{RESET}"
@@ -39,7 +39,7 @@ def check_docker_service(service_name: str) -> bool:
     # Skip mcp-echo if it's disabled
     if (
         service_name == "mcp-echo"
-        and os.getenv("MCP_ECHO_ENABLED", "true").lower() != "true"
+        and os.getenv("MCP_ECHO_ENABLED", "false").lower() != "true"
     ):
         print(
             f"{YELLOW}⊝ Service {service_name} is disabled via MCP_ECHO_ENABLED{RESET}"
@@ -49,7 +49,7 @@ def check_docker_service(service_name: str) -> bool:
     # Skip mcp-everything if it's disabled
     if (
         service_name == "mcp-everything"
-        and os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() != "true"
+        and os.getenv("MCP_EVERYTHING_ENABLED", "false").lower() != "true"
     ):
         print(
             f"{YELLOW}⊝ Service {service_name} is disabled via MCP_EVERYTHING_ENABLED{RESET}"
@@ -69,7 +69,7 @@ def check_docker_service(service_name: str) -> bool:
     
     if service_name in service_env_map:
         env_var = service_env_map[service_name]
-        if os.getenv(env_var, "true").lower() != "true":
+        if os.getenv(env_var, "false").lower() != "true":
             print(
                 f"{YELLOW}⊝ Service {service_name} is disabled via {env_var}{RESET}"
             )
@@ -185,15 +185,15 @@ async def wait_for_services(max_wait: int = 60) -> bool:
     services_to_check = ["traefik", "auth", "redis"]
 
     # Add mcp-fetch if enabled
-    if os.getenv("MCP_FETCH_ENABLED", "true").lower() == "true":
+    if os.getenv("MCP_FETCH_ENABLED", "false").lower() == "true":
         services_to_check.append("mcp-fetch")
 
     # Add mcp-echo if enabled
-    if os.getenv("MCP_ECHO_ENABLED", "true").lower() == "true":
+    if os.getenv("MCP_ECHO_ENABLED", "false").lower() == "true":
         services_to_check.append("mcp-echo")
 
     # Add mcp-everything if enabled
-    if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
+    if os.getenv("MCP_EVERYTHING_ENABLED", "false").lower() == "true":
         services_to_check.append("mcp-everything")
 
     # Add other MCP services if enabled
@@ -208,7 +208,7 @@ async def wait_for_services(max_wait: int = 60) -> bool:
     ]
     
     for service_name, env_var in optional_services:
-        if os.getenv(env_var, "true").lower() == "true":
+        if os.getenv(env_var, "false").lower() == "true":
             services_to_check.append(service_name)
 
     start_time = time.time()
@@ -305,11 +305,11 @@ async def main():
 
     # Build services if needed
     base_services = ["traefik", "auth", "redis"]
-    if os.getenv("MCP_FETCH_ENABLED", "true").lower() == "true":
+    if os.getenv("MCP_FETCH_ENABLED", "false").lower() == "true":
         base_services.append("mcp-fetch")
-    if os.getenv("MCP_ECHO_ENABLED", "true").lower() == "true":
+    if os.getenv("MCP_ECHO_ENABLED", "false").lower() == "true":
         base_services.append("mcp-echo")
-    if os.getenv("MCP_EVERYTHING_ENABLED", "true").lower() == "true":
+    if os.getenv("MCP_EVERYTHING_ENABLED", "false").lower() == "true":
         base_services.append("mcp-everything")
     
     # Add other MCP services if enabled
@@ -324,7 +324,7 @@ async def main():
     ]
     
     for service_name, env_var in optional_services:
-        if os.getenv(env_var, "true").lower() == "true":
+        if os.getenv(env_var, "false").lower() == "true":
             base_services.append(service_name)
 
     if not all(check_docker_service(s) for s in base_services):
