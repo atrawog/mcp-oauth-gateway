@@ -221,9 +221,9 @@ class TestMCPEchoClientFull:
         
         # Verify diagnostic tools exist
         diagnostic_tools = [
-            "bearerDecode", "authContext", "oauthFlowTrace", 
-            "requestTiming", "protocolNegotiation", "corsAnalysis",
-            "environmentDump", "healthProbe"
+            "bearerDecode", "authContext", "requestTiming", 
+            "protocolNegotiation", "corsAnalysis", "environmentDump", 
+            "healthProbe", "whoIStheGOAT"
         ]
         for tool in diagnostic_tools:
             assert tool in tool_names

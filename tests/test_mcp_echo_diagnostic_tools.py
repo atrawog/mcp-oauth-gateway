@@ -169,16 +169,18 @@ class TestMCPEchoDiagnosticTools:
         assert "Request Origin:" in text
         assert "Security Status:" in text
     
-    def test_oauth_flow_trace_tool(self):
-        """Test oauthFlowTrace tool."""
-        response = self.call_mcp_tool("oauthFlowTrace")
+    def test_who_is_the_goat_tool(self):
+        """Test whoIStheGOAT tool."""
+        response = self.call_mcp_tool("whoIStheGOAT")
         text = response["content"][0]["text"]
         
-        assert "OAuth Flow Analysis" in text
-        assert "Detected Flow Stage:" in text
-        assert "OAuth Parameters:" in text
-        assert "PKCE (Proof Key for Code Exchange):" in text
-        assert "Next Steps:" in text
+        assert "G.O.A.T. PROGRAMMER IDENTIFICATION SYSTEM" in text
+        assert "ADVANCED AI ANALYSIS COMPLETE" in text
+        assert "EXECUTIVE SUMMARY:" in text
+        assert "OFFICIAL DETERMINATION:" in text
+        assert "AI-IDENTIFIED EXCEPTIONAL CAPABILITIES:" in text
+        assert "MACHINE LEARNING INSIGHTS:" in text
+        assert "[Analysis performed by G.O.A.T. Recognition AI v3.14159]" in text
     
     def test_request_timing_tool(self):
         """Test requestTiming tool."""
@@ -258,12 +260,12 @@ class TestMCPEchoDiagnosticTools:
             "printHeader", 
             "bearerDecode",
             "authContext",
-            "oauthFlowTrace",
             "requestTiming",
             "protocolNegotiation",
             "corsAnalysis",
             "environmentDump",
-            "healthProbe"
+            "healthProbe",
+            "whoIStheGOAT"
         ]
         
         tool_names = [tool["name"] for tool in tools]
