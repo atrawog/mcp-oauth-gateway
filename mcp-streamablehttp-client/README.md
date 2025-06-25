@@ -23,7 +23,11 @@ This client bridges the gap between:
 
 ```bash
 # Via pixi (recommended)
-pixi add mcp-streamablehttp-client
+pixi add --pypi mcp-streamablehttp-client
+
+# Via pip (recommended)
+pip install mcp-streamablehttp-client
+
 
 # Or from source
 cd mcp-streamablehttp-client
