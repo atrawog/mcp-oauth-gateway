@@ -375,9 +375,9 @@ class TestMCPFetchComplete:
         # Test 1: No auth header at all
         response = await http_client.post(f"{mcp_test_url}", json=mcp_request)
 
-        assert (
-            response.status_code == HTTP_UNAUTHORIZED
-        ), f"SECURITY VIOLATION! Got {response.status_code} without auth! MCP fetch MUST require authentication!"
+        assert response.status_code == HTTP_UNAUTHORIZED, (
+            f"SECURITY VIOLATION! Got {response.status_code} without auth! MCP fetch MUST require authentication!"
+        )
         assert "WWW-Authenticate" in response.headers, "Missing WWW-Authenticate header!"
         assert response.headers["WWW-Authenticate"] == "Bearer", "Wrong auth challenge!"
 
@@ -394,9 +394,9 @@ class TestMCPFetchComplete:
             headers={"Authorization": "Bearer completely-invalid-token"},
         )
 
-        assert (
-            response.status_code == HTTP_UNAUTHORIZED
-        ), f"SECURITY VIOLATION! Got {response.status_code} with invalid token! MCP fetch MUST validate tokens!"
+        assert response.status_code == HTTP_UNAUTHORIZED, (
+            f"SECURITY VIOLATION! Got {response.status_code} with invalid token! MCP fetch MUST validate tokens!"
+        )
 
         # Test 4: Wrong auth scheme
         response = await http_client.post(
@@ -405,9 +405,9 @@ class TestMCPFetchComplete:
             headers={"Authorization": "Basic dXNlcjpwYXNz"},  # Basic auth
         )
 
-        assert (
-            response.status_code == HTTP_UNAUTHORIZED
-        ), f"SECURITY VIOLATION! Got {response.status_code} with Basic auth! MCP fetch MUST only accept Bearer tokens!"
+        assert response.status_code == HTTP_UNAUTHORIZED, (
+            f"SECURITY VIOLATION! Got {response.status_code} with Basic auth! MCP fetch MUST only accept Bearer tokens!"
+        )
 
 
 @pytest.mark.skipif(
@@ -495,9 +495,9 @@ async def test_complete_oauth_flow_integration(http_client, _wait_for_services, 
         content_text = json.dumps(mcp_result)
 
     # example.com returns a simple HTML page
-    assert (
-        "example" in content_text.lower() or "domain" in content_text.lower()
-    ), f"Didn't get expected content from example.com! Got: {content_text[:200]}"
+    assert "example" in content_text.lower() or "domain" in content_text.lower(), (
+        f"Didn't get expected content from example.com! Got: {content_text[:200]}"
+    )
 
     print("✅ COMPLETE INTEGRATION TEST PASSED!")
     print("✅ OAuth + MCP + Fetch all working together!")

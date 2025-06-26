@@ -34,9 +34,9 @@ class TestRoutingBugRegression:
         )
 
         # CRITICAL: Must be 401 (requires auth), not 404 (not found)
-        assert (
-            response.status_code == HTTP_UNAUTHORIZED
-        ), f"REGRESSION: Got {response.status_code} instead of 401. The PathPrefix routing rule may be missing!"
+        assert response.status_code == HTTP_UNAUTHORIZED, (
+            f"REGRESSION: Got {response.status_code} instead of 401. The PathPrefix routing rule may be missing!"
+        )
 
         # Verify it's an auth error, not a routing error
         assert "www-authenticate" in response.headers
@@ -61,9 +61,9 @@ class TestRoutingBugRegression:
 
         # Check that MCP path routing is present
         # Accept both the old PathPrefix style and new Path||PathPrefix style
-        assert (
-            "PathPrefix(`/mcp`)" in content or "(Path(`/mcp`) || PathPrefix(`/mcp/`))" in content
-        ), "REGRESSION: MCP path routing missing from routing rules!"
+        assert "PathPrefix(`/mcp`)" in content or "(Path(`/mcp`) || PathPrefix(`/mcp/`))" in content, (
+            "REGRESSION: MCP path routing missing from routing rules!"
+        )
 
         # Verify the host rule is present
         assert "Host(`fetch.${BASE_DOMAIN}`)" in content, "REGRESSION: Host rule not found!"
@@ -81,9 +81,9 @@ class TestRoutingBugRegression:
 
         for path, expected_status, description in routes_to_test:
             response = await http_client.get(f"{MCP_FETCH_URL}{path}", follow_redirects=False)
-            assert (
-                response.status_code == expected_status
-            ), f"{description}: Expected {expected_status}, got {response.status_code}"
+            assert response.status_code == expected_status, (
+                f"{description}: Expected {expected_status}, got {response.status_code}"
+            )
 
     @pytest.mark.asyncio
     async def test_routing_priorities_correct(self, http_client, _wait_for_services):

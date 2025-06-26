@@ -57,19 +57,19 @@ class TestMCPCORS:
                 assert response.status_code == HTTP_OK, f"CORS preflight failed for origin {test_origin}"
 
                 # Check CORS headers
-                assert (
-                    "access-control-allow-origin" in response.headers
-                ), f"Missing Access-Control-Allow-Origin header for {test_origin}"
+                assert "access-control-allow-origin" in response.headers, (
+                    f"Missing Access-Control-Allow-Origin header for {test_origin}"
+                )
 
                 # When wildcard is configured, server returns "*" - this is correct CORS behavior
                 if self.cors_origins == ["*"]:
-                    assert (
-                        response.headers["access-control-allow-origin"] == "*"
-                    ), f"CORS wildcard should return '*', got: {response.headers.get('access-control-allow-origin')}"
+                    assert response.headers["access-control-allow-origin"] == "*", (
+                        f"CORS wildcard should return '*', got: {response.headers.get('access-control-allow-origin')}"
+                    )
                 else:
-                    assert (
-                        response.headers["access-control-allow-origin"] == test_origin
-                    ), f"CORS origin mismatch for {test_origin}"
+                    assert response.headers["access-control-allow-origin"] == test_origin, (
+                        f"CORS origin mismatch for {test_origin}"
+                    )
 
                 assert "access-control-allow-methods" in response.headers, "Missing Access-Control-Allow-Methods header"
                 allowed_methods = response.headers["access-control-allow-methods"].upper()
@@ -87,12 +87,12 @@ class TestMCPCORS:
                     ], f"With wildcard CORS origin, credentials should be false or omitted, got: {credentials_header}"
                 else:
                     # With specific origins, credentials should be allowed
-                    assert (
-                        "access-control-allow-credentials" in response.headers
-                    ), "Missing Access-Control-Allow-Credentials header"
-                    assert (
-                        response.headers["access-control-allow-credentials"].lower() == "true"
-                    ), "CORS credentials not allowed"
+                    assert "access-control-allow-credentials" in response.headers, (
+                        "Missing Access-Control-Allow-Credentials header"
+                    )
+                    assert response.headers["access-control-allow-credentials"].lower() == "true", (
+                        "CORS credentials not allowed"
+                    )
 
     async def test_mcp_actual_request_cors_headers(self):
         """Test that actual MCP requests include proper CORS headers."""
@@ -135,9 +135,9 @@ class TestMCPCORS:
                 assert init_response.status_code == HTTP_OK, f"Request failed: {init_response.status_code}"
 
                 # Check CORS headers in response
-                assert (
-                    "access-control-allow-origin" in init_response.headers
-                ), "Missing Access-Control-Allow-Origin in response"
+                assert "access-control-allow-origin" in init_response.headers, (
+                    "Missing Access-Control-Allow-Origin in response"
+                )
 
                 # When wildcard is configured, the response may be "*" instead of the specific origin
                 allowed_origin = init_response.headers["access-control-allow-origin"]
@@ -179,9 +179,9 @@ class TestMCPCORS:
             response = client.get(health_url, headers={"Origin": test_origin})
 
             # Per divine CLAUDE.md, health checks use /mcp and require auth
-            assert (
-                response.status_code == HTTP_UNAUTHORIZED
-            ), "Health endpoint must require authentication per divine CLAUDE.md"
+            assert response.status_code == HTTP_UNAUTHORIZED, (
+                "Health endpoint must require authentication per divine CLAUDE.md"
+            )
 
             # Even 401 responses should have CORS headers
             assert "access-control-allow-origin" in response.headers, "401 response should still have CORS headers"
@@ -309,9 +309,9 @@ class TestMCPCORS:
                 assert response.status_code == HTTP_UNAUTHORIZED, (
                     f"Service {service} health endpoint must require authentication per divine CLAUDE.md"  # TODO: Break long line
                 )
-                assert (
-                    "access-control-allow-origin" in response.headers
-                ), f"Service {service} missing CORS headers on 401 response"
+                assert "access-control-allow-origin" in response.headers, (
+                    f"Service {service} missing CORS headers on 401 response"
+                )
 
                 # When wildcard is configured, verify CORS works
                 allowed_origin = response.headers["access-control-allow-origin"]

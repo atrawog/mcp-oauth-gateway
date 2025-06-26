@@ -119,9 +119,9 @@ class TestMCPPlaywrightIntegration:
 
         # First verify that /health requires authentication
         response = requests.get(f"{mcp_playwright_url}/health", timeout=10)
-        assert (
-            response.status_code == HTTP_UNAUTHORIZED
-        ), "/health endpoint must require authentication per divine CLAUDE.md"
+        assert response.status_code == HTTP_UNAUTHORIZED, (
+            "/health endpoint must require authentication per divine CLAUDE.md"
+        )
 
         # Health checks should use MCP protocol initialization
         response = self.run_mcp_client_raw(

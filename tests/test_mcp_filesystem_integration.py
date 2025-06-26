@@ -95,9 +95,9 @@ class TestMCPFilesystemIntegration:
             timeout=TEST_HTTP_TIMEOUT,
         )
 
-        assert (
-            init_response.status_code == HTTP_OK
-        ), f"Initialize failed: {init_response.status_code} - {init_response.text}"
+        assert init_response.status_code == HTTP_OK, (
+            f"Initialize failed: {init_response.status_code} - {init_response.text}"
+        )
 
         # Extract session ID if provided
         session_id = None

@@ -95,15 +95,15 @@ class TestMCPEchoAllUrls:
         print(f"All URLs working: {'✅ Yes' if all('✅' in s for s in results.values()) else '❌ No'}")
 
         # Verify we tested all expected URLs
-        assert len(results) == len(
-            mcp_echo_urls
-        ), f"Expected to test {len(mcp_echo_urls)} URLs, but tested {len(results)}"
+        assert len(results) == len(mcp_echo_urls), (
+            f"Expected to test {len(mcp_echo_urls)} URLs, but tested {len(results)}"
+        )
 
         # Verify we have echo plus echo-a through echo-z (27 total)
         expected_count = 27  # echo + 26 letters
-        assert (
-            len(results) == expected_count
-        ), f"Expected {expected_count} URLs (echo + echo-a through echo-z), but found {len(results)}"
+        assert len(results) == expected_count, (
+            f"Expected {expected_count} URLs (echo + echo-a through echo-z), but found {len(results)}"
+        )
 
     @pytest.mark.asyncio
     async def test_echo_tool_on_random_urls(

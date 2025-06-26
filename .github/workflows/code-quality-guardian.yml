@@ -58,7 +58,7 @@ jobs:
       - name: "🎨 Check Code Formatting"
         run: |
           echo "🔥 CHECKING SACRED CODE FORMATTING ⚡"
-          pixi run format --check
+          pixi run format-check
 
       - name: "🔒 Security Scan with Bandit"
         run: |

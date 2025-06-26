@@ -57,9 +57,9 @@ class TestMCPEverythingSSE:
         )
 
         # Check SSE headers are present
-        assert (
-            init_response.headers.get("X-Accel-Buffering") == "no"
-        ), "X-Accel-Buffering header should be 'no' for SSE support"
+        assert init_response.headers.get("X-Accel-Buffering") == "no", (
+            "X-Accel-Buffering header should be 'no' for SSE support"
+        )
         assert init_response.headers.get("Cache-Control") == "no-cache", "Cache-Control should be 'no-cache' for SSE"
         assert init_response.headers.get("Connection") == "keep-alive", "Connection should be 'keep-alive' for SSE"
 

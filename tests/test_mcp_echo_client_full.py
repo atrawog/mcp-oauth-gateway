@@ -314,9 +314,9 @@ class TestMCPEchoClientFull:
         ]
 
         for expected_header in expected_headers:
-            assert (
-                expected_header in headers_text.lower()
-            ), f"Expected header '{expected_header}' not found in: {headers_text}"
+            assert expected_header in headers_text.lower(), (
+                f"Expected header '{expected_header}' not found in: {headers_text}"
+            )
 
         # Verify authorization header shows Bearer token (converted to lowercase)
         assert "authorization: bearer" in headers_text.lower()

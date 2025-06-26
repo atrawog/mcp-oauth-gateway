@@ -107,9 +107,9 @@ class TestMCPAuthWorking:
         # CORS MUST be configured for web clients
         assert response.status_code == HTTP_OK, "❌ MCP MUST support CORS preflight requests!"
         assert "access-control-allow-origin" in response.headers, "❌ Missing CORS headers!"
-        assert (
-            response.headers["access-control-allow-origin"] == test_origin
-        ), f"❌ CORS origin mismatch! Expected {test_origin}"
+        assert response.headers["access-control-allow-origin"] == test_origin, (
+            f"❌ CORS origin mismatch! Expected {test_origin}"
+        )
         assert "access-control-allow-methods" in response.headers, "❌ Missing allowed methods!"
         assert "access-control-allow-credentials" in response.headers, "❌ Missing credentials header!"
 

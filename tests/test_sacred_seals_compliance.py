@@ -291,9 +291,9 @@ class TestSacredSealsCompliance:
             # Skip pixi environment files
             if ".pixi" in str(py_file):
                 continue  # These are installed packages, not our tests
-            assert py_file.parent.name == "tests" or "tests" in str(
-                py_file.parent
-            ), f"Test file {py_file} violates sacred structure - must be in ./tests/!"
+            assert py_file.parent.name == "tests" or "tests" in str(py_file.parent), (
+                f"Test file {py_file} violates sacred structure - must be in ./tests/!"
+            )
 
     @pytest.mark.asyncio
     async def test_sidecar_coverage_collection(self):
@@ -310,9 +310,9 @@ class TestSacredSealsCompliance:
 
         # Check sitecustomize.py has proper coverage initialization
         sitecustomize_content = Path("./coverage-spy/sitecustomize.py").read_text()
-        assert (
-            "coverage.process_startup()" in sitecustomize_content
-        ), "sitecustomize.py must call coverage.process_startup()!"
+        assert "coverage.process_startup()" in sitecustomize_content, (
+            "sitecustomize.py must call coverage.process_startup()!"
+        )
 
         # Check docker-compose.coverage.yml has proper setup
         coverage_compose = Path("./docker-compose.coverage.yml").read_text()
@@ -321,9 +321,9 @@ class TestSacredSealsCompliance:
         assert "PYTHONPATH=/coverage-spy" in coverage_compose, "Coverage must be injected via PYTHONPATH!"
 
         # Verify COVERAGE_PROCESS_START
-        assert (
-            "COVERAGE_PROCESS_START=" in coverage_compose
-        ), "COVERAGE_PROCESS_START must be set for subprocess coverage!"
+        assert "COVERAGE_PROCESS_START=" in coverage_compose, (
+            "COVERAGE_PROCESS_START must be set for subprocess coverage!"
+        )
 
         # Verify read-only mounts
         assert ":ro" in coverage_compose, "Source mounts must be read-only - observer pattern!"

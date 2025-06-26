@@ -115,9 +115,9 @@ class TestMCPTmuxIntegration:
 
         # First verify that /health requires authentication
         response = requests.get(f"{mcp_tmux_url}/health", timeout=10)
-        assert (
-            response.status_code == HTTP_UNAUTHORIZED
-        ), "/health endpoint must require authentication per divine CLAUDE.md"
+        assert response.status_code == HTTP_UNAUTHORIZED, (
+            "/health endpoint must require authentication per divine CLAUDE.md"
+        )
 
         # Health checks should use MCP protocol initialization
         response = self.run_mcp_client_raw(

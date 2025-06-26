@@ -74,11 +74,11 @@ lint:
     @echo "========================================"
     @echo ""
     @echo "1️⃣ Ruff Linting..."
-    pixi run ruff check .
+    pixi run pre-commit run ruff --all-files
     @echo "✅ Ruff linting passed!"
     @echo ""
     @echo "2️⃣ Code Formatting Check..."
-    pixi run ruff format . --check
+    pixi run pre-commit run ruff-format --all-files
     @echo "✅ Code formatting check passed!"
     @echo ""
     @echo "3️⃣ Pre-commit Hooks..."
@@ -92,15 +92,19 @@ lint:
 
 # Quick lint - just run ruff check (for fast feedback)
 lint-quick:
-    pixi run ruff check .
+    pixi run pre-commit run ruff --all-files
 
 # Fix linting issues automatically
 lint-fix:
-    pixi run ruff check . --fix
+    pixi run pre-commit run ruff --all-files
 
 # Format code with divine standards
 format:
-    pixi run ruff format .
+    pixi run pre-commit run ruff-format --all-files
+
+# Check code formatting without making changes
+format-check:
+    pixi run pre-commit run ruff-format --all-files
 
 # Hunt for Pydantic deprecations
 lint-pydantic:
@@ -108,13 +112,13 @@ lint-pydantic:
 
 # Complete linting with deprecation hunting
 lint-all:
-    pixi run ruff check .
+    pixi run pre-commit run ruff --all-files
     pixi run python scripts/lint_pydantic_compliance.py
 
 # Comprehensive linting: fix, format, and hunt deprecations
 lint-comprehensive:
-    pixi run ruff check . --fix
-    pixi run ruff format .
+    pixi run pre-commit run ruff --all-files
+    pixi run pre-commit run ruff-format --all-files
     pixi run python scripts/lint_pydantic_compliance.py
 
 
