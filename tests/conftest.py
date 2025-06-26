@@ -10,9 +10,9 @@ import json
 import os
 import sys
 import time
+from asyncio import Semaphore
 from collections.abc import AsyncGenerator
 from pathlib import Path
-from asyncio import Semaphore
 
 import httpx
 import pytest
@@ -24,11 +24,11 @@ import pytest
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import MCP_FETCH_URL
-from .test_constants import TEST_OAUTH_CALLBACK_URL
 from .test_constants import TEST_CLIENT_NAME
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_HTTP_TIMEOUT
 from .test_constants import TEST_MAX_RETRIES
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 from .test_constants import TEST_RETRY_DELAY
 
 
@@ -305,16 +305,17 @@ async def http_client() -> AsyncGenerator[httpx.AsyncClient, None]:
 async def cleanup_redis_test_data(request):
     """Clean up test-specific Redis data after each test to prevent interference."""
     import redis.asyncio as redis
+
     from .test_constants import REDIS_PASSWORD
-    
+
     # Skip cleanup for tests that manage their own Redis state
     if hasattr(request, "node") and hasattr(request.node, "get_closest_marker"):
         if request.node.get_closest_marker("skip_redis_cleanup"):
             yield
             return
-    
+
     yield  # Run the test
-    
+
     # Cleanup after test
     try:
         r = redis.Redis(
@@ -361,20 +362,20 @@ async def ensure_services_ready():
         )
         running_services = set(result.stdout.strip().split("\n"))
         required_services = {"traefik", "auth", "redis"}
-        
+
         # Only require service-specific containers if their tests are enabled
         from .test_constants import MCP_ECHO_TESTS_ENABLED
-        from .test_constants import MCP_FETCH_TESTS_ENABLED
-        from .test_constants import MCP_FETCHS_TESTS_ENABLED 
         from .test_constants import MCP_EVERYTHING_TESTS_ENABLED
+        from .test_constants import MCP_FETCH_TESTS_ENABLED
+        from .test_constants import MCP_FETCHS_TESTS_ENABLED
         from .test_constants import MCP_FILESYSTEM_TESTS_ENABLED
         from .test_constants import MCP_MEMORY_TESTS_ENABLED
         from .test_constants import MCP_PLAYWRIGHT_TESTS_ENABLED
         from .test_constants import MCP_SEQUENTIALTHINKING_TESTS_ENABLED
+        from .test_constants import MCP_TESTING_URL
         from .test_constants import MCP_TIME_TESTS_ENABLED
         from .test_constants import MCP_TMUX_TESTS_ENABLED
-        from .test_constants import MCP_TESTING_URL
-        
+
         # Add service-specific requirements if enabled
         if MCP_ECHO_TESTS_ENABLED and not MCP_TESTING_URL:
             required_services.add("mcp-echo")
@@ -595,7 +596,7 @@ async def refresh_and_validate_tokens(ensure_services_ready):
     # Validate all required environment variables (centralized from check_services_ready.py)
     required_vars = {
         "GATEWAY_OAUTH_ACCESS_TOKEN": "Gateway OAuth access token",
-        "MCP_CLIENT_ACCESS_TOKEN": "MCP client access token", 
+        "MCP_CLIENT_ACCESS_TOKEN": "MCP client access token",
         "GITHUB_PAT": "GitHub Personal Access Token",
         "BASE_DOMAIN": "Base domain for services",
         "GITHUB_CLIENT_ID": "GitHub OAuth client ID",
@@ -988,18 +989,18 @@ def parse_error_response(response_json):
         # OAuth 2.0 format: {"error": "...", "error_description": "..."}
         if "error" in response_json and "error_description" in response_json:
             return response_json["error"], response_json["error_description"]
-        
+
         # Custom format: {"detail": {"error": "...", "error_description": "..."}}
         if "detail" in response_json and isinstance(response_json["detail"], dict):
             detail = response_json["detail"]
             if "error" in detail and "error_description" in detail:
                 return detail["error"], detail["error_description"]
-            elif "error_description" in detail:
+            if "error_description" in detail:
                 return detail.get("error", "unknown_error"), detail["error_description"]
-        
+
         # Legacy format: {"detail": "..."}
         if "detail" in response_json and isinstance(response_json["detail"], str):
             return "unknown_error", response_json["detail"]
-    
+
     # Fallback
     return "unknown_error", str(response_json)

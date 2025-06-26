@@ -6,8 +6,8 @@ This test file follows CLAUDE.md Sacred Commandments:
 - Ensures each hostname works correctly with OAuth authentication
 """
 
-import pytest
 import httpx
+import pytest
 
 
 class TestMCPEchoAllUrls:
@@ -29,7 +29,7 @@ class TestMCPEchoAllUrls:
     ):
         """Test that all echo URLs (echo, echo-a through echo-z) are accessible."""
         results = {}
-        
+
         for url in mcp_echo_urls:
             # Test basic authentication requirement
             response = await http_client.post(
@@ -45,10 +45,10 @@ class TestMCPEchoAllUrls:
                     "id": 1
                 }
             )
-            
+
             # Should require authentication
             assert response.status_code == 401, f"{url} should require authentication"
-            
+
             # Test with authentication
             response = await http_client.post(
                 url,
@@ -69,20 +69,20 @@ class TestMCPEchoAllUrls:
                     "MCP-Protocol-Version": "2025-06-18"
                 }
             )
-            
+
             assert response.status_code == 200, f"{url} should accept authenticated requests"
-            
+
             # Parse and verify response
             data = self._parse_sse_response(response.text)
             assert data["jsonrpc"] == "2.0"
             assert data["id"] == 1
             assert "result" in data
             assert data["result"]["protocolVersion"] == "2025-06-18"
-            
+
             # Extract hostname from URL for results
             hostname = url.split("//")[1].split("/")[0]
             results[hostname] = "✅ Working"
-            
+
         # Print summary
         print(f"\n{'='*60}")
         print("MCP Echo URL Test Results:")
@@ -92,10 +92,10 @@ class TestMCPEchoAllUrls:
         print(f"{'='*60}")
         print(f"Total URLs tested: {len(results)}")
         print(f"All URLs working: {'✅ Yes' if all('✅' in s for s in results.values()) else '❌ No'}")
-        
+
         # Verify we tested all expected URLs
         assert len(results) == len(mcp_echo_urls), f"Expected to test {len(mcp_echo_urls)} URLs, but tested {len(results)}"
-        
+
         # Verify we have echo plus echo-a through echo-z (27 total)
         expected_count = 27  # echo + 26 letters
         assert len(results) == expected_count, f"Expected {expected_count} URLs (echo + echo-a through echo-z), but found {len(results)}"
@@ -106,10 +106,10 @@ class TestMCPEchoAllUrls:
     ):
         """Test echo tool functionality on a random sample of URLs."""
         import random
-        
+
         # Test on 5 random URLs to avoid excessive testing
         sample_urls = random.sample(mcp_echo_urls, min(5, len(mcp_echo_urls)))
-        
+
         for url in sample_urls:
             # Initialize session
             init_response = await http_client.post(
@@ -131,9 +131,9 @@ class TestMCPEchoAllUrls:
                     "MCP-Protocol-Version": "2025-06-18"
                 }
             )
-            
+
             assert init_response.status_code == 200
-            
+
             # Call echo tool
             echo_response = await http_client.post(
                 url,
@@ -155,9 +155,9 @@ class TestMCPEchoAllUrls:
                     "MCP-Protocol-Version": "2025-06-18"
                 }
             )
-            
+
             assert echo_response.status_code == 200
-            
+
             # Verify echo response
             data = self._parse_sse_response(echo_response.text)
             assert data["jsonrpc"] == "2.0"

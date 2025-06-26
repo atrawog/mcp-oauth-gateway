@@ -1,19 +1,18 @@
-"""
-Test SSE (Server-Sent Events) support for mcp-everything service.
+"""Test SSE (Server-Sent Events) support for mcp-everything service.
 Verifies that SSE responses flow through properly for claude.ai compatibility.
 """
 
 import json
-import pytest
-import requests
+import re
 import time
 from urllib.parse import urljoin
-import re
+
+import pytest
+import requests
 
 from tests.test_constants import BASE_DOMAIN
 from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
-from tests.test_constants import MCP_EVERYTHING_URLS
 
 
 @pytest.fixture
@@ -61,7 +60,7 @@ class TestMCPEverythingSSE:
             },
             verify=True
         )
-        
+
         # Check SSE headers are present
         assert init_response.headers.get("X-Accel-Buffering") == "no", \
             "X-Accel-Buffering header should be 'no' for SSE support"
@@ -95,31 +94,31 @@ class TestMCPEverythingSSE:
             verify=True,
             stream=True  # Important for SSE
         )
-        
+
         assert response.status_code == 200
-        
+
         # Read the SSE response
         content = response.text
-        
+
         # SSE format should have event: and data: lines
         assert "event: message" in content, "Response should contain 'event: message'"
         assert "data: " in content, "Response should contain 'data: ' line"
-        
+
         # Parse the SSE data
         data_match = re.search(r'data: (.+)', content)
         assert data_match, "Should find data line in SSE response"
-        
+
         # Parse the JSON data
         data_json = json.loads(data_match.group(1))
         assert data_json.get("jsonrpc") == "2.0"
         assert "result" in data_json
         assert data_json["result"]["protocolVersion"] == "2025-06-18"
-        
+
         # Extract session ID from the id line
         id_match = re.search(r'id: (.+)', content)
         assert id_match, "Should find id line in SSE response"
         session_id = id_match.group(1)
-        
+
         return session_id
 
     def test_echo_tool_with_sse_response(self, base_url, auth_headers):
@@ -148,14 +147,14 @@ class TestMCPEverythingSSE:
             verify=True,
             stream=True
         )
-        
+
         assert init_response.status_code == 200, f"Initialize failed: {init_response.text}"
-        
+
         # Extract session ID from response headers
         session_id = init_response.headers.get("Mcp-Session-Id")
-        
+
         # Step 2: Send initialized notification (required!)
-        notification_response = requests.post(
+        requests.post(
             urljoin(base_url, "mcp"),
             headers={
                 **auth_headers,
@@ -171,7 +170,7 @@ class TestMCPEverythingSSE:
             },
             verify=True
         )
-        
+
         # Now test echo tool
         echo_message = "Hello from SSE test!"
         echo_response = requests.post(
@@ -196,30 +195,30 @@ class TestMCPEverythingSSE:
             verify=True,
             stream=True
         )
-        
+
         if echo_response.status_code != 200:
             print(f"Echo response status: {echo_response.status_code}")
             print(f"Echo response text: {echo_response.text}")
         assert echo_response.status_code == 200
-        
+
         # Check SSE format
         echo_content = echo_response.text
         assert "event: message" in echo_content, "Echo response should be in SSE format"
         assert "data: " in echo_content, "Echo response should have data line"
-        
+
         # Parse and verify echo response
         data_match = re.search(r'data: (.+)', echo_content)
         assert data_match, "Should find data in echo response"
-        
+
         echo_data = json.loads(data_match.group(1))
         assert echo_data.get("jsonrpc") == "2.0"
         assert "result" in echo_data
-        
+
         # Verify echo content
         result = echo_data["result"]
         assert "content" in result
         assert len(result["content"]) > 0
-        
+
         # The echo tool should return our message
         echo_text = result["content"][0]["text"]
         assert echo_message in echo_text, f"Echo should contain our message, got: {echo_text}"
@@ -227,7 +226,7 @@ class TestMCPEverythingSSE:
     def test_sse_streaming_not_buffered(self, base_url, auth_headers):
         """Test that SSE responses are not buffered (stream immediately)."""
         start_time = time.time()
-        
+
         response = requests.post(
             urljoin(base_url, "mcp"),
             headers={
@@ -251,15 +250,15 @@ class TestMCPEverythingSSE:
             verify=True,
             stream=True
         )
-        
+
         # Read first chunk immediately
         first_chunk = None
         for chunk in response.iter_content(chunk_size=1024, decode_unicode=True):
             first_chunk = chunk
             break
-        
+
         elapsed = time.time() - start_time
-        
+
         # Should receive first chunk quickly (not buffered)
         assert elapsed < 2.0, f"First chunk should arrive quickly, took {elapsed}s"
         assert first_chunk is not None, "Should receive data immediately"
@@ -291,14 +290,14 @@ class TestMCPEverythingSSE:
             verify=True,
             stream=True
         )
-        
+
         assert init_response.status_code == 200, f"Initialize failed: {init_response.text}"
-        
+
         # Extract session ID from response headers
         session_id = init_response.headers.get("Mcp-Session-Id")
-        
+
         # Step 2: Send initialized notification (required!)
-        notification_response = requests.post(
+        requests.post(
             urljoin(base_url, "mcp"),
             headers={
                 **auth_headers,
@@ -314,7 +313,7 @@ class TestMCPEverythingSSE:
             },
             verify=True
         )
-        
+
         # Now list tools
         tools_response = requests.post(
             urljoin(base_url, "mcp"),
@@ -332,13 +331,13 @@ class TestMCPEverythingSSE:
             },
             verify=True
         )
-        
+
         assert tools_response.status_code == 200
-        
+
         # Parse SSE response
         data_match = re.search(r'data: (.+)', tools_response.text)
         tools_data = json.loads(data_match.group(1))
-        
+
         # Verify tools list contains echo
         assert "result" in tools_data
         tools = tools_data["result"]["tools"]
@@ -371,14 +370,14 @@ class TestMCPEverythingSSE:
             verify=True,
             stream=True
         )
-        
+
         assert init_response.status_code == 200, f"Initialize failed: {init_response.text}"
-        
+
         # Extract session ID from response headers
         session_id = init_response.headers.get("Mcp-Session-Id")
-        
+
         # Step 2: Send initialized notification (required!)
-        notification_response = requests.post(
+        requests.post(
             urljoin(base_url, "mcp"),
             headers={
                 **auth_headers,
@@ -394,7 +393,7 @@ class TestMCPEverythingSSE:
             },
             verify=True
         )
-        
+
         # Now try to call a non-existent tool (should error)
         response = requests.post(
             urljoin(base_url, "mcp"),
@@ -415,15 +414,15 @@ class TestMCPEverythingSSE:
             },
             verify=True
         )
-        
+
         # Should return 200 with SSE-formatted error
         assert response.status_code == 200
-        
+
         content = response.text
         # Should be in SSE format even for errors
         assert "event: message" in content or "data: " in content, \
             "Error response should be in SSE format"
-        
+
         # Parse the error
         data_match = re.search(r'data: (.+)', content)
         if data_match:

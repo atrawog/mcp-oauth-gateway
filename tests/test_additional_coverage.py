@@ -257,9 +257,7 @@ class TestAdditionalCoverage:
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
         # Handle both OAuth 2.0 format and custom format
-        if "error_description" in error:
-            assert "The access token is invalid or expired" in error["error_description"]
-        elif "detail" in error and isinstance(error["detail"], dict):
+        if "error_description" in error or ("detail" in error and isinstance(error["detail"], dict)):
             assert "The access token is invalid or expired" in error["error_description"]
         else:
             raise AssertionError(f"Unexpected error structure: {error}")

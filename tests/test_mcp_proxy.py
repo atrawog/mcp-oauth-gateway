@@ -12,8 +12,8 @@ import pytest
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import MCP_TESTING_URL
 from .test_constants import MCP_PROTOCOL_VERSION
+from .test_constants import MCP_TESTING_URL
 
 
 # MCP Client tokens for external client testing
@@ -27,11 +27,11 @@ def parse_sse_response(response: httpx.Response) -> dict:
     SSE format: "event: message\ndata: {...}\n\n"
     """
     content_type = response.headers.get("content-type", "")
-    
+
     # If it's already JSON, return it directly
     if "application/json" in content_type:
         return response.json()
-    
+
     # Otherwise parse SSE format
     if "text/event-stream" in content_type or response.status_code == 200:
         text = response.text
@@ -39,10 +39,10 @@ def parse_sse_response(response: httpx.Response) -> dict:
             if line.startswith('data: '):
                 json_data = line[6:]  # Remove "data: " prefix
                 return json.loads(json_data)
-        
+
         # If no data line found, raise an error
         raise ValueError(f"No valid JSON data found in SSE response: {text}")
-    
+
     # Fallback: try to parse as JSON anyway
     return response.json()
 
@@ -346,7 +346,7 @@ class TestMCPFetchCapabilities:
                 }, timeout=30.0)
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
-        
+
         # Session ID is optional for stateless servers
         if session_id:
             # Send initialized with session ID for stateful servers
@@ -366,7 +366,7 @@ class TestMCPFetchCapabilities:
         }
         if session_id:
             headers["Mcp-Session-Id"] = session_id
-            
+
         response = await http_client.post(
             f"{MCP_TESTING_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
@@ -428,7 +428,7 @@ class TestMCPProxyErrorHandling:
         }
         if session_id:
             headers["Mcp-Session-Id"] = session_id
-            
+
         response = await http_client.post(
             f"{MCP_TESTING_URL}",
             json={

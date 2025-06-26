@@ -122,7 +122,7 @@ class TestMCPProxyWithSessionHandling:
             pytest.fail(
                 "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
             )
-        
+
         # Try to list tools without session ID
         response = await http_client.post(
             f"{mcp_fetch_url}",
@@ -333,15 +333,16 @@ class TestMCPSessionIsolation:
 class MCPClientHelper:
     """Helper class for MCP client operations with session management."""
 
-    def __init__(self, http_client: httpx.AsyncClient, auth_token: str):
+    def __init__(self, http_client: httpx.AsyncClient, auth_token: str, mcp_url: str):
         self.client = http_client
         self.auth_token = auth_token
+        self.mcp_url = mcp_url
         self.session_id: str | None = None
 
     async def initialize(self, client_name: str = "test-client") -> dict:
         """Initialize MCP session and store session ID."""
         response = await self.client.post(
-            f"{mcp_fetch_url}",
+            f"{self.mcp_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -383,7 +384,7 @@ class MCPClientHelper:
             request["id"] = request_id
 
         response = await self.client.post(
-            f"{mcp_fetch_url}", json=request, headers=headers
+            f"{self.mcp_url}", json=request, headers=headers
         )
 
         if response.status_code != 200:

@@ -412,13 +412,6 @@ class TestCallbackEdgeCases:
         assert "/error" in response.headers.get("location", "")
         # Skip JSON error checks since we now redirect
         return  # Early exit since we're not checking JSON errors
-        if False:  # Keep structure but skip
-            assert "error" in error["detail"]
-        elif "error" in error:
-            assert error["error"] == "invalid_request"
-        else:
-            # Fallback: check if it's a string detail containing "invalid"
-            assert "detail" in error and "invalid" in str(error["detail"]).lower()
 
         # Test callback with missing code parameter (only state)
         response = await http_client.get(

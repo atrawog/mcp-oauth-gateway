@@ -11,8 +11,8 @@ import pytest
 from .mcp_helpers import initialize_mcp_session
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import MCP_TESTING_URL
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
+from .test_constants import MCP_TESTING_URL
 
 
 class TestMCPCORS:
@@ -312,17 +312,15 @@ class TestMCPCORS:
 
     def test_all_mcp_services_have_cors(self):
         """Test that all MCP services have CORS configured."""
-        from tests.test_constants import (
-            MCP_FETCH_TESTS_ENABLED,
-            MCP_FETCHS_TESTS_ENABLED, 
-            MCP_FILESYSTEM_TESTS_ENABLED,
-            MCP_PLAYWRIGHT_TESTS_ENABLED,
-            MCP_ECHO_TESTS_ENABLED
-        )
-        
+        from tests.test_constants import MCP_ECHO_TESTS_ENABLED
+        from tests.test_constants import MCP_FETCH_TESTS_ENABLED
+        from tests.test_constants import MCP_FETCHS_TESTS_ENABLED
+        from tests.test_constants import MCP_FILESYSTEM_TESTS_ENABLED
+        from tests.test_constants import MCP_PLAYWRIGHT_TESTS_ENABLED
+
         # Build list of enabled MCP services only
         mcp_services = []
-        
+
         if MCP_ECHO_TESTS_ENABLED:
             mcp_services.append(f"echo.{self.base_domain}")
         if MCP_FETCH_TESTS_ENABLED:
@@ -333,7 +331,7 @@ class TestMCPCORS:
             mcp_services.append(f"filesystem.{self.base_domain}")
         if MCP_PLAYWRIGHT_TESTS_ENABLED:
             mcp_services.append(f"playwright.{self.base_domain}")
-            
+
         if not mcp_services:
             pytest.skip("No MCP services are enabled for testing")
 

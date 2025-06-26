@@ -194,7 +194,7 @@ class TestMCPJSONRPCCompliance:
         }
         if session_id:
             error_headers["Mcp-Session-Id"] = session_id
-        
+
         response = await http_client.post(
             f"{mcp_test_url}",
             json={
@@ -707,7 +707,7 @@ class TestMCPErrorHandling:
         }
         if session_id:
             bad_headers["Mcp-Session-Id"] = session_id
-        
+
         await http_client.post(
             f"{mcp_test_url}",
             json={"jsonrpc": "2.0", "method": "bad_method", "params": {}, "id": 2},
@@ -721,7 +721,7 @@ class TestMCPErrorHandling:
         }
         if session_id:
             good_headers["Mcp-Session-Id"] = session_id
-        
+
         good_response = await http_client.post(
             f"{mcp_test_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 3},

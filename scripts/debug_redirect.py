@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Debug MCP redirect issue."""
 
+import os
+
 import httpx
 
 

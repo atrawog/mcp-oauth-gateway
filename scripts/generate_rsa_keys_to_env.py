@@ -26,12 +26,12 @@ def validate_existing_jwt_key(env_content):
     # Extract JWT_PRIVATE_KEY_B64 value
     jwt_key_pattern = r"^JWT_PRIVATE_KEY_B64=(.*)$"
     existing_match = re.search(jwt_key_pattern, env_content, re.MULTILINE)
-    
+
     if not existing_match:
         return False, None, "JWT_PRIVATE_KEY_B64 not found"
-    
+
     key_value = existing_match.group(1).strip()
-    
+
     # Check for placeholder values
     placeholder_patterns = [
         "your_base64_encoded_private_key_here",
@@ -40,34 +40,34 @@ def validate_existing_jwt_key(env_content):
         "PLACEHOLDER",
         "",
     ]
-    
+
     if key_value in placeholder_patterns:
         return False, key_value, f"Placeholder value detected: '{key_value}'"
-    
+
     # Validate base64 encoding
     try:
         decoded_key = base64.b64decode(key_value, validate=True)
     except Exception as e:
         return False, key_value, f"Invalid base64 encoding: {e}"
-    
+
     # Validate RSA private key format
     try:
         private_key = serialization.load_pem_private_key(
             decoded_key, password=None, backend=default_backend()
         )
-        
+
         # Verify it's actually an RSA key
         if not isinstance(private_key, rsa.RSAPrivateKey):
             return False, key_value, "Not an RSA private key"
-            
+
         # Additional sanity check - ensure key size is reasonable
         key_size = private_key.key_size
         if key_size < 2048:
             return False, key_value, f"Key size too small: {key_size} bits (minimum 2048)"
-            
+
     except Exception as e:
         return False, key_value, f"Invalid RSA private key: {e}"
-    
+
     return True, key_value, "Valid RSA private key"
 
 
@@ -93,7 +93,7 @@ def generate_rsa_key_to_env(force=False):
         print("✅ JWT_PRIVATE_KEY_B64 already exists and is valid. No action needed.")
         print(f"   Validation: {reason}")
         return
-    elif existing_match and not is_valid:
+    if existing_match and not is_valid:
         # Key exists but is invalid - explain why we're regenerating
         print(f"⚠️  JWT_PRIVATE_KEY_B64 exists but is invalid: {reason}")
         print("🔄 Auto-regenerating to fix the issue...")

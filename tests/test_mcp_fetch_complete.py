@@ -16,10 +16,10 @@ from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_NOT_FOUND
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import MCP_FETCH_TESTS_ENABLED
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_OAUTH_CALLBACK_URL
-from .test_constants import MCP_FETCH_TESTS_ENABLED
 
 
 @pytest.mark.skipif(

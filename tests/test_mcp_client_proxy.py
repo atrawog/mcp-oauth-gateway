@@ -15,8 +15,8 @@ import pytest
 from .test_constants import BASE_DOMAIN
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import MCP_TESTING_URL
 from .test_constants import MCP_PROTOCOL_VERSION
+from .test_constants import MCP_TESTING_URL
 
 
 # MCP Client tokens from environment
@@ -28,7 +28,7 @@ def parse_mcp_response(response):
     try:
         if not response.content:
             pytest.fail(f"Empty response from MCP service. Status: {response.status_code}, Headers: {dict(response.headers)}")
-        
+
         content_type = response.headers.get("content-type", "")
         if "text/event-stream" in content_type:
             # Parse SSE format: extract JSON from "data:" line
@@ -85,7 +85,7 @@ class TestMCPClientProxyBasics:
             assert response.status_code == HTTP_OK, (
                 "MCP health check should succeed with valid token"
             )
-            
+
             result = parse_mcp_response(response)
             assert "result" in result or "error" in result
             if "result" in result:
@@ -161,7 +161,7 @@ class TestMCPProtocolHandling:
             }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
-        
+
         result = parse_mcp_response(response)
 
         # Verify JSON-RPC response structure
@@ -267,7 +267,7 @@ class TestMCPProtocolHandling:
                 }, timeout=30.0)
 
             assert response.status_code == HTTP_OK
-            
+
             result = parse_mcp_response(response)
 
             if "result" in result:
@@ -295,7 +295,7 @@ class TestProxyErrorHandling:
         # Missing required fields - all include "id" to ensure they're treated as requests, not notifications
         invalid_requests = [
             {"id": 1},  # Empty request with id only
-            {"method": "test", "id": 2},  # Missing jsonrpc 
+            {"method": "test", "id": 2},  # Missing jsonrpc
             {"jsonrpc": "2.0", "id": 3},  # Missing method
             {"jsonrpc": "1.0", "method": "test", "id": 4},  # Wrong version
         ]

@@ -4,9 +4,9 @@ NO MOCKING - real services only per the divine commandments!
 """
 
 import json
-import pytest
+
 import httpx
-from typing import AsyncGenerator
+import pytest
 
 
 class TestMCPEchoIntegration:
@@ -31,7 +31,7 @@ class TestMCPEchoIntegration:
                 "id": 1
             }
         )
-        
+
         assert response.status_code == 401, "Echo service must reject unauthenticated requests"
         assert "WWW-Authenticate" in response.headers
         assert response.headers["WWW-Authenticate"] == "Bearer"
@@ -60,9 +60,9 @@ class TestMCPEchoIntegration:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
-        
+
         # Parse SSE response
         data = self._parse_sse_response(response.text)
         assert data["jsonrpc"] == "2.0"
@@ -78,7 +78,7 @@ class TestMCPEchoIntegration:
         """Test listing available tools from Echo service."""
         # Initialize first
         await self._initialize_session(http_client, mcp_echo_url, gateway_auth_headers)
-        
+
         # List tools
         response = await http_client.post(
             mcp_echo_url,
@@ -95,32 +95,32 @@ class TestMCPEchoIntegration:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
-        
+
         data = self._parse_sse_response(response.text)
         assert data["jsonrpc"] == "2.0"
         assert data["id"] == 2
         assert "result" in data
-        
+
         tools = data["result"]["tools"]
         assert len(tools) == 10  # Now we have 10 tools including diagnostic tools
-        
+
         # Check echo tool
         echo_tool = next(t for t in tools if t["name"] == "echo")
         assert echo_tool["description"] == "Echo back the provided message"
         assert "message" in echo_tool["inputSchema"]["properties"]
-        
+
         # Check printHeader tool
         header_tool = next(t for t in tools if t["name"] == "printHeader")
         assert header_tool["description"] == "Print all HTTP headers from the current request"
         assert header_tool["inputSchema"]["properties"] == {}
-        
+
         # Verify diagnostic tools exist
         tool_names = [t["name"] for t in tools]
         diagnostic_tools = [
-            "bearerDecode", "authContext", "requestTiming", 
-            "protocolNegotiation", "corsAnalysis", "environmentDump", 
+            "bearerDecode", "authContext", "requestTiming",
+            "protocolNegotiation", "corsAnalysis", "environmentDump",
             "healthProbe", "whoIStheGOAT"
         ]
         for tool in diagnostic_tools:
@@ -133,9 +133,9 @@ class TestMCPEchoIntegration:
         """Test the echo tool returns the exact message."""
         # Initialize first
         await self._initialize_session(http_client, mcp_echo_url, gateway_auth_headers)
-        
+
         test_message = "Hello from MCP Echo Test! 🚀"
-        
+
         response = await http_client.post(
             mcp_echo_url,
             json={
@@ -156,9 +156,9 @@ class TestMCPEchoIntegration:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
-        
+
         data = self._parse_sse_response(response.text)
         assert data["jsonrpc"] == "2.0"
         assert data["id"] == 3
@@ -174,7 +174,7 @@ class TestMCPEchoIntegration:
         """Test the printHeader tool shows HTTP headers including auth headers."""
         # Initialize first
         await self._initialize_session(http_client, mcp_echo_url, gateway_auth_headers)
-        
+
         # Add custom headers for testing
         custom_headers = {
             **gateway_auth_headers,
@@ -183,7 +183,7 @@ class TestMCPEchoIntegration:
             "X-Test-Header": "test-value-123",
             "X-Custom-Header": "custom-value-456"
         }
-        
+
         response = await http_client.post(
             mcp_echo_url,
             json={
@@ -197,14 +197,14 @@ class TestMCPEchoIntegration:
             },
             headers=custom_headers
         )
-        
+
         assert response.status_code == 200
-        
+
         data = self._parse_sse_response(response.text)
         assert data["jsonrpc"] == "2.0"
         assert data["id"] == 4
         assert "result" in data
-        
+
         headers_text = data["result"]["content"][0]["text"]
         assert "HTTP Headers:" in headers_text
         assert "authorization: Bearer" in headers_text  # Should show auth header
@@ -219,7 +219,7 @@ class TestMCPEchoIntegration:
         """Test error handling for invalid tool name."""
         # Initialize first
         await self._initialize_session(http_client, mcp_echo_url, gateway_auth_headers)
-        
+
         response = await http_client.post(
             mcp_echo_url,
             json={
@@ -238,9 +238,9 @@ class TestMCPEchoIntegration:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
-        
+
         data = self._parse_sse_response(response.text)
         assert data["jsonrpc"] == "2.0"
         assert data["id"] == 5
@@ -254,7 +254,7 @@ class TestMCPEchoIntegration:
         """Test error handling for invalid tool arguments."""
         # Initialize first
         await self._initialize_session(http_client, mcp_echo_url, gateway_auth_headers)
-        
+
         # Call echo without required message argument
         response = await http_client.post(
             mcp_echo_url,
@@ -274,9 +274,9 @@ class TestMCPEchoIntegration:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
-        
+
         data = self._parse_sse_response(response.text)
         assert data["jsonrpc"] == "2.0"
         assert data["id"] == 6
@@ -296,7 +296,7 @@ class TestMCPEchoIntegration:
                 "Access-Control-Request-Headers": "content-type,authorization"
             }
         )
-        
+
         # CORS preflight should work without auth
         assert response.status_code == 200
         assert "Access-Control-Allow-Origin" in response.headers
@@ -310,7 +310,7 @@ class TestMCPEchoIntegration:
         """Test that ForwardAuth headers are visible in printHeader output."""
         # Initialize first
         await self._initialize_session(http_client, mcp_echo_url, gateway_auth_headers)
-        
+
         response = await http_client.post(
             mcp_echo_url,
             json={
@@ -329,12 +329,12 @@ class TestMCPEchoIntegration:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
-        
+
         data = self._parse_sse_response(response.text)
         headers_text = data["result"]["content"][0]["text"]
-        
+
         # Check for ForwardAuth headers that Traefik adds
         # These might include X-User-Id, X-User-Name, etc.
         assert "authorization: Bearer" in headers_text
@@ -366,7 +366,7 @@ class TestMCPEchoIntegration:
                     "Content-Type": "application/json"
                 }
             )
-            
+
             assert response.status_code == 200
             data = self._parse_sse_response(response.text)
             assert data["result"]["content"][0]["text"] == f"Stateless test {i}"

@@ -14,9 +14,9 @@ import redis.asyncio as redis
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tests.test_constants import AUTH_BASE_URL
 from tests.test_constants import REDIS_PASSWORD
-from tests.test_constants import TEST_OAUTH_CALLBACK_URL
 from tests.test_constants import TEST_CLIENT_NAME
 from tests.test_constants import TEST_CLIENT_SCOPE
+from tests.test_constants import TEST_OAUTH_CALLBACK_URL
 
 
 async def register_persistent_client():

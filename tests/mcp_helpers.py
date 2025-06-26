@@ -1,7 +1,7 @@
 """Helper functions for MCP testing."""
 
 import json
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -92,7 +92,7 @@ async def call_mcp_tool(
     http_client: httpx.AsyncClient,
     mcp_url: str,
     auth_token: str,
-    session_id: Optional[str],
+    session_id: str | None,
     tool_name: str,
     arguments: dict[str, Any],
     request_id: str = "tool-call-1",
@@ -140,7 +140,7 @@ async def call_mcp_tool(
 
 
 async def list_mcp_tools(
-    http_client: httpx.AsyncClient, mcp_url: str, auth_token: str, session_id: Optional[str]
+    http_client: httpx.AsyncClient, mcp_url: str, auth_token: str, session_id: str | None
 ) -> dict[str, Any]:
     """List available MCP tools."""
     request = {"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "list-1"}

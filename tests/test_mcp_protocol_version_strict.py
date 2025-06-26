@@ -16,9 +16,9 @@ from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import HTTP_OK
 from .test_constants import MCP_CLIENT_ACCESS_TOKEN
-from .test_constants import MCP_TESTING_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
+from .test_constants import MCP_TESTING_URL
 from .test_constants import REDIS_URL
 
 
@@ -28,11 +28,11 @@ def parse_sse_response(response: httpx.Response) -> dict:
     SSE format: "event: message\ndata: {...}\n\n"
     """
     content_type = response.headers.get("content-type", "")
-    
+
     # If it's already JSON, return it directly
     if "application/json" in content_type:
         return response.json()
-    
+
     # Otherwise parse SSE format
     if "text/event-stream" in content_type or response.status_code == 200:
         text = response.text
@@ -40,10 +40,10 @@ def parse_sse_response(response: httpx.Response) -> dict:
             if line.startswith('data: '):
                 json_data = line[6:]  # Remove "data: " prefix
                 return json.loads(json_data)
-        
+
         # If no data line found, raise an error
         raise ValueError(f"No valid JSON data found in SSE response: {text}")
-    
+
     # Fallback: try to parse as JSON anyway
     return response.json()
 

@@ -147,10 +147,10 @@ class TestMCPPlaywrightIntegration:
     def test_playwright_oauth_discovery(self):
         """Test OAuth discovery endpoint routing."""
         from tests.test_constants import MCP_PLAYWRIGHT_TESTS_ENABLED
-        
+
         if not MCP_PLAYWRIGHT_TESTS_ENABLED:
             pytest.skip("MCP Playwright tests are disabled. Set MCP_PLAYWRIGHT_TESTS_ENABLED=true to enable.")
-            
+
         import requests
         import urllib3
 

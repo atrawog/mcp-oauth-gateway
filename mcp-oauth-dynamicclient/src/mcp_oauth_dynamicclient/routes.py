@@ -365,7 +365,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             # Check if any similar states exist (for debugging)
             all_states = await redis_client.keys("oauth:state:*")
             logger.debug(f"Current states in Redis: {len(all_states)} total")
-            
+
             # Redirect to user-friendly error page instead of returning JSON
             return RedirectResponse(
                 url=f"/error?{urlencode({'error': 'invalid_request', 'error_description': 'Invalid or expired state. This usually happens when you take longer than 5 minutes to complete the authentication, or when you refresh an old authentication page.'})}",
@@ -434,7 +434,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             url=f"{auth_data['redirect_uri']}?{urlencode(redirect_params)}",  # TODO: Break long line
             headers={
                 "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache", 
+                "Pragma": "no-cache",
                 "Expires": "0"
             }
         )

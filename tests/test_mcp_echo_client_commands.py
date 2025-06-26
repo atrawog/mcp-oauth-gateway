@@ -18,8 +18,9 @@ from tests.test_constants import AUTH_BASE_URL
 from tests.test_constants import MCP_ECHO_TESTS_ENABLED
 from tests.test_constants import MCP_ECHO_URLS
 
+
 # MCP Client tokens from environment - NO .env loading in tests!
-# All configuration must come from environment variables  
+# All configuration must come from environment variables
 MCP_CLIENT_ACCESS_TOKEN = os.environ.get("MCP_CLIENT_ACCESS_TOKEN")
 MCP_CLIENT_ID = os.environ.get("MCP_CLIENT_ID")
 MCP_CLIENT_SECRET = os.environ.get("MCP_CLIENT_SECRET")
@@ -30,9 +31,9 @@ def temp_env_file(tmp_path):
     """Create a temporary .env file for mcp-streamablehttp-client."""
     if not MCP_ECHO_URLS:
         pytest.skip("MCP_ECHO_URLS environment variable not set")
-    
+
     echo_url = MCP_ECHO_URLS[0]
-    
+
     env_content = f"""
 # MCP Server Configuration
 MCP_SERVER_URL={echo_url}
@@ -109,7 +110,7 @@ class TestMCPEchoClientCommands:
 
         # The output should contain tool information
         output = result.stdout
-        
+
         # Check for expected tools
         assert "echo" in output, f"'echo' tool not found in output: {output}"
         assert "printHeader" in output, f"'printHeader' tool not found in output: {output}"
@@ -160,7 +161,7 @@ class TestMCPEchoClientCommands:
             f"'{test_message}' not found in output: {output[:500]}..."
         )
 
-        print(f"✅ Successfully echoed message via command interface")
+        print("✅ Successfully echoed message via command interface")
         print(f"   Message: {test_message}")
 
     @pytest.mark.integration
@@ -202,7 +203,7 @@ class TestMCPEchoClientCommands:
             f"'{test_message}' not found in output: {output[:500]}..."
         )
 
-        print(f"✅ Successfully echoed message via JSON command interface")
+        print("✅ Successfully echoed message via JSON command interface")
         print(f"   Message: {test_message}")
 
     @pytest.mark.integration
@@ -244,7 +245,7 @@ class TestMCPEchoClientCommands:
         expected_in_output = test_message.replace("\\n", "\n")
         assert "Line 1" in output and "Line 2" in output and "Line 3" in output
 
-        print(f"✅ Successfully echoed multiline message via command interface")
+        print("✅ Successfully echoed multiline message via command interface")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -280,7 +281,7 @@ class TestMCPEchoClientCommands:
         # The output should contain HTTP headers
         output = result.stdout
         assert "HTTP Headers:" in output, f"'HTTP Headers:' not found in output: {output}"
-        
+
         # Should show some expected headers
         assert "authorization:" in output.lower() or "bearer" in output.lower()
         assert "accept:" in output.lower()  # This header is actually present
@@ -391,7 +392,7 @@ class TestMCPEchoClientCommands:
         # Run multiple echo commands rapidly
         for i in range(5):
             test_message = f"Stress test message {i+1}/5"
-            
+
             cmd = [
                 "pixi",
                 "run",
@@ -423,13 +424,13 @@ class TestMCPEchoClientCommands:
         """Test echo command on multiple configured URLs."""
         if not MCP_ECHO_URLS:
             pytest.skip("MCP_ECHO_URLS environment variable not set")
-        
+
         # Test up to 5 URLs to avoid excessive testing time
         urls_to_test = MCP_ECHO_URLS[:5]
-        
+
         env = os.environ.copy()
         env.update(mcp_client_env)
-        
+
         results = []
         for url in urls_to_test:
             # Create temp env file for this URL
@@ -451,7 +452,7 @@ OAUTH_DISCOVERY_URL={url.replace("/mcp", "")}/.well-known/oauth-authorization-se
 LOG_LEVEL=INFO
 """)
                 temp_env_path = f.name
-            
+
             try:
                 # Test echo command on this URL
                 test_message = f"Testing {url.split('//')[1].split('/')[0]}"
@@ -464,11 +465,11 @@ LOG_LEVEL=INFO
                     "--command",
                     f'echo {{"message": "{test_message}"}}',
                 ]
-                
+
                 result = subprocess.run(
                     cmd, check=False, capture_output=True, text=True, env=env, timeout=30
                 )
-                
+
                 if result.returncode == 0 and test_message in result.stdout:
                     results.append((url, "✅ Success"))
                 else:
@@ -476,7 +477,7 @@ LOG_LEVEL=INFO
             finally:
                 # Clean up temp file
                 Path(temp_env_path).unlink(missing_ok=True)
-        
+
         # Print results
         print(f"\n{'='*60}")
         print("Multiple URL Test Results:")
@@ -485,7 +486,7 @@ LOG_LEVEL=INFO
             hostname = url.split("//")[1].split("/")[0]
             print(f"{hostname}: {status}")
         print(f"{'='*60}")
-        
+
         # All tested URLs should succeed
         failed = [url for url, status in results if "❌" in status]
         assert not failed, f"Failed URLs: {failed}"

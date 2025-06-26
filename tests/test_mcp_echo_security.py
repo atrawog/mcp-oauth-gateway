@@ -4,11 +4,12 @@ NO MOCKING - testing real security against deployed service!
 """
 
 import json
-import jwt
 import time
-import pytest
+from typing import Any
+
 import httpx
-from typing import Dict, Any
+import jwt
+import pytest
 
 
 class TestMCPEchoSecurity:
@@ -33,7 +34,7 @@ class TestMCPEchoSecurity:
             ("resources/list", {}),
             ("prompts/list", {}),
         ]
-        
+
         for method, params in methods:
             response = await http_client.post(
                 mcp_echo_url,
@@ -48,7 +49,7 @@ class TestMCPEchoSecurity:
                     "Content-Type": "application/json"
                 }
             )
-            
+
             assert response.status_code == 401, f"Method {method} must require authentication"
             assert response.headers.get("WWW-Authenticate") == "Bearer"
 
@@ -64,11 +65,11 @@ class TestMCPEchoSecurity:
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid.signature",  # Malformed JWT
             "",  # Empty token
         ]
-        
+
         for token in invalid_tokens:
             # Handle empty token case specially
             auth_header = "Bearer" if token == "" else f"Bearer {token}"
-            
+
             response = await http_client.post(
                 mcp_echo_url,
                 json={
@@ -83,7 +84,7 @@ class TestMCPEchoSecurity:
                     "Content-Type": "application/json"
                 }
             )
-            
+
             assert response.status_code == 401, f"Should reject invalid token: {token[:20]}..."
 
     @pytest.mark.asyncio
@@ -97,10 +98,10 @@ class TestMCPEchoSecurity:
             "exp": int(time.time()) - 3600,  # Expired 1 hour ago
             "iat": int(time.time()) - 7200,  # Issued 2 hours ago
         }
-        
+
         # Create a fake expired token (won't have valid signature but that's OK for this test)
         expired_token = jwt.encode(expired_payload, "fake-secret", algorithm="HS256")
-        
+
         response = await http_client.post(
             mcp_echo_url,
             json={
@@ -116,7 +117,7 @@ class TestMCPEchoSecurity:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 401
 
     @pytest.mark.asyncio
@@ -140,7 +141,7 @@ class TestMCPEchoSecurity:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
 
     @pytest.mark.asyncio
@@ -149,7 +150,7 @@ class TestMCPEchoSecurity:
     ):
         """Test CORS security - preflight should work but actual requests need auth."""
         origin = "https://malicious-site.com"
-        
+
         # Preflight should work without auth
         preflight_response = await http_client.options(
             mcp_echo_url,
@@ -159,9 +160,9 @@ class TestMCPEchoSecurity:
                 "Access-Control-Request-Headers": "content-type,authorization"
             }
         )
-        
+
         assert preflight_response.status_code == 200
-        
+
         # But actual POST should require auth even with CORS headers
         post_response = await http_client.post(
             mcp_echo_url,
@@ -177,7 +178,7 @@ class TestMCPEchoSecurity:
                 "Accept": "application/json, text/event-stream"
             }
         )
-        
+
         assert post_response.status_code == 401
 
     @pytest.mark.asyncio
@@ -185,9 +186,9 @@ class TestMCPEchoSecurity:
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
         """Test that the HTTP client prevents header injection attacks."""
-        import pytest
         import httpx
-        
+        import pytest
+
         # Test 1: Verify that httpx prevents CRLF injection in header values
         with pytest.raises(httpx.LocalProtocolError):
             await http_client.post(
@@ -200,7 +201,7 @@ class TestMCPEchoSecurity:
                     "Content-Type": "application/json"
                 }
             )
-        
+
         # Test 2: Verify safe headers work normally
         safe_response = await http_client.post(
             mcp_echo_url,
@@ -221,7 +222,7 @@ class TestMCPEchoSecurity:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         # Safe headers should work fine
         assert safe_response.status_code == 200
 
@@ -246,7 +247,7 @@ class TestMCPEchoSecurity:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
 
     @pytest.mark.asyncio
@@ -275,7 +276,7 @@ class TestMCPEchoSecurity:
                 }
             )
             responses.append(response.status_code)
-        
+
         # Should handle all requests (rate limiting might be at gateway level)
         assert all(status in [200, 429] for status in responses)
 
@@ -286,7 +287,7 @@ class TestMCPEchoSecurity:
         """Test that Echo service handles large payloads safely."""
         # Create a large message (1MB)
         large_message = "x" * (1024 * 1024)
-        
+
         response = await http_client.post(
             mcp_echo_url,
             json={
@@ -306,7 +307,7 @@ class TestMCPEchoSecurity:
             },
             timeout=30.0  # Longer timeout for large payload
         )
-        
+
         # Should either handle it or reject with appropriate error
         assert response.status_code in [200, 413, 400]
 
@@ -323,7 +324,7 @@ class TestMCPEchoSecurity:
             "<img src=x onerror=alert(1)>",  # XSS
             "../../../etc/passwd",  # Path traversal
         ]
-        
+
         for attempt in injection_attempts:
             response = await http_client.post(
                 mcp_echo_url,
@@ -342,9 +343,9 @@ class TestMCPEchoSecurity:
                     "Content-Type": "application/json"
                 }
             )
-            
+
             assert response.status_code == 200
-            
+
             # Echo should return the exact string safely
             data = self._parse_sse_response(response.text)
             assert data["result"]["content"][0]["text"] == attempt
@@ -372,18 +373,18 @@ class TestMCPEchoSecurity:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
-        
+
         data = self._parse_sse_response(response.text)
         headers_text = data["result"]["content"][0]["text"].lower()
-        
+
         # Should see evidence of ForwardAuth processing
         assert "authorization: bearer" in headers_text
         # Might also see X-User-Id, X-User-Name etc from ForwardAuth
 
     # Helper methods
-    def _parse_sse_response(self, sse_text: str) -> Dict[str, Any]:
+    def _parse_sse_response(self, sse_text: str) -> dict[str, Any]:
         """Parse SSE response to extract JSON data."""
         for line in sse_text.strip().split('\n'):
             if line.startswith('data: '):

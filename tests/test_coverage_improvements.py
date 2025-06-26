@@ -9,7 +9,6 @@ import json
 import os
 import secrets
 import subprocess
-import sys
 import time
 from datetime import UTC
 from datetime import datetime
@@ -357,7 +356,7 @@ class TestKeysModuleCoverage:
     def test_rs256_key_loading_from_env(self, monkeypatch):
         """Test RS256 key loading from environment."""
         import base64
-        
+
         # Skip this test if the module is not available
         try:
             from mcp_oauth_dynamicclient.keys import RSAKeyManager

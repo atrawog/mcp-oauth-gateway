@@ -72,7 +72,7 @@ class TestMCPEchoClientFull:
 
         # Convert to JSON string with proper escaping
         raw_request = json.dumps(request)
-        
+
         # Build the command - subprocess handles escaping when using list format
         cmd = [
             "pixi",
@@ -218,16 +218,16 @@ class TestMCPEchoClientFull:
         # Verify both original tools exist
         assert "echo" in tool_names
         assert "printHeader" in tool_names
-        
+
         # Verify diagnostic tools exist
         diagnostic_tools = [
-            "bearerDecode", "authContext", "requestTiming", 
-            "protocolNegotiation", "corsAnalysis", "environmentDump", 
+            "bearerDecode", "authContext", "requestTiming",
+            "protocolNegotiation", "corsAnalysis", "environmentDump",
             "healthProbe", "whoIStheGOAT"
         ]
         for tool in diagnostic_tools:
             assert tool in tool_names
-        
+
         print(f"✅ Found all {len(tools)} expected tools: {tool_names}")
 
         # Verify echo tool schema
@@ -236,7 +236,7 @@ class TestMCPEchoClientFull:
         assert "message" in echo_tool["inputSchema"]["properties"]
         assert echo_tool["inputSchema"]["required"] == ["message"]
 
-        # Verify printHeader tool schema  
+        # Verify printHeader tool schema
         header_tool = next(t for t in tools if t["name"] == "printHeader")
         assert header_tool["description"] == "Print all HTTP headers from the current request"
         assert header_tool["inputSchema"]["properties"] == {}
@@ -445,7 +445,7 @@ class TestMCPEchoClientFull:
         assert "content" in result
         assert len(result["content"]) == 1
         assert result["content"][0]["type"] == "text"
-        
+
         headers_text = result["content"][0]["text"]
         assert "HTTP Headers:" in headers_text
         print("✅ printHeader tool handles extra arguments gracefully")
@@ -521,7 +521,7 @@ class TestMCPEchoClientFull:
         """Test MCP protocol compliance with proper versioning."""
         # Test with different protocol versions to ensure compliance
         protocol_versions = ["2025-06-18", "2024-11-05"]
-        
+
         for version in protocol_versions:
             response = self.run_mcp_client(
                 url=echo_url,
@@ -537,11 +537,11 @@ class TestMCPEchoClientFull:
             # Handle both success and error responses
             if "result" in response:
                 result = response["result"]
-                
+
                 # Server should respond with supported protocol version
                 assert "protocolVersion" in result
                 server_version = result["protocolVersion"]
-                
+
                 # For mcp-echo, it should support the current version
                 if version == "2025-06-18":
                     assert server_version == "2025-06-18"

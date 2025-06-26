@@ -7,6 +7,7 @@ import os
 
 import httpx
 
+
 MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
 BASE_DOMAIN = os.getenv("BASE_DOMAIN", "atratest.org")
 MCP_PROTOCOL_VERSION = os.getenv("MCP_PROTOCOL_VERSION", "2025-06-18")
@@ -21,7 +22,7 @@ async def test_request(description: str, headers: dict, json_data: dict):
     print(f"Headers: {json.dumps(headers, indent=2)}")
     print(f"JSON: {json.dumps(json_data, indent=2)}")
     print("="*60)
-    
+
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
             response = await client.post(
@@ -29,16 +30,16 @@ async def test_request(description: str, headers: dict, json_data: dict):
                 json=json_data,
                 headers=headers,
             )
-            
+
             print(f"Status: {response.status_code}")
             print(f"Response Headers: {dict(response.headers)}")
-            
+
             try:
                 response_json = response.json()
                 print(f"Response JSON: {json.dumps(response_json, indent=2)}")
             except:
                 print(f"Response Text: {response.text}")
-            
+
         except Exception as e:
             print(f"Error: {e}")
 
@@ -47,7 +48,7 @@ async def main():
     if not MCP_CLIENT_ACCESS_TOKEN:
         print("❌ No MCP_CLIENT_ACCESS_TOKEN found!")
         return
-    
+
     # Test 1: Missing Accept header
     await test_request(
         "Missing Accept header",
@@ -67,7 +68,7 @@ async def main():
             "id": 1,
         }
     )
-    
+
     # Test 2: With Accept header
     await test_request(
         "With Accept header",
@@ -88,7 +89,7 @@ async def main():
             "id": 1,
         }
     )
-    
+
     # Test 3: Wrong protocol version (hardcoded)
     await test_request(
         "Wrong protocol version (hardcoded)",

@@ -1,14 +1,14 @@
-"""
-Simple SSE tests focusing on verifying the headers fix for claude.ai.
+"""Simple SSE tests focusing on verifying the headers fix for claude.ai.
 Tests that SSE responses can flow through without buffering.
 """
 
 import json
-import pytest
-import requests
+import re
 import time
 from urllib.parse import urljoin
-import re
+
+import pytest
+import requests
 
 from tests.test_constants import BASE_DOMAIN
 from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
@@ -58,7 +58,7 @@ class TestMCPEverythingSSESimple:
             },
             verify=True
         )
-        
+
         # These headers should be added by our middleware
         assert response.headers.get("X-Accel-Buffering") == "no", \
             "X-Accel-Buffering header should be 'no'"
@@ -66,7 +66,7 @@ class TestMCPEverythingSSESimple:
             "Cache-Control should be 'no-cache'"
         assert response.headers.get("Connection") == "keep-alive", \
             "Connection should be 'keep-alive'"
-        
+
         # Response should be successful
         assert response.status_code == 200
         assert "event: message" in response.text
@@ -96,7 +96,7 @@ class TestMCPEverythingSSESimple:
             },
             verify=True
         )
-        
+
         # Verify SSE format
         lines = response.text.strip().split('\n')
         assert any(line.startswith("event: ") for line in lines), \
@@ -105,7 +105,7 @@ class TestMCPEverythingSSESimple:
             "Should have id: line"
         assert any(line.startswith("data: ") for line in lines), \
             "Should have data: line"
-        
+
         # Parse the JSON from data line
         for line in lines:
             if line.startswith("data: "):
@@ -117,7 +117,7 @@ class TestMCPEverythingSSESimple:
     def test_no_buffering_delay(self, base_url, auth_headers):
         """Test that responses are not buffered (arrive quickly)."""
         start_time = time.time()
-        
+
         response = requests.post(
             urljoin(base_url, "mcp"),
             headers={
@@ -141,15 +141,15 @@ class TestMCPEverythingSSESimple:
             verify=True,
             stream=True  # Stream the response
         )
-        
+
         # Read first chunk
         first_chunk = None
         for chunk in response.iter_content(chunk_size=1024, decode_unicode=True):
             first_chunk = chunk
             break
-        
+
         elapsed = time.time() - start_time
-        
+
         # Should receive data quickly (not buffered)
         assert elapsed < 2.0, f"Response took {elapsed}s, might be buffered"
         assert first_chunk is not None
@@ -173,7 +173,7 @@ class TestMCPEverythingSSESimple:
             },
             verify=True
         )
-        
+
         # Native streamableHttp might return JSON errors
         if response.status_code == 400:
             # JSON error response
@@ -213,7 +213,7 @@ class TestMCPEverythingSSESimple:
             },
             verify=True
         )
-        
+
         # Check CORS headers
         assert "Access-Control-Allow-Origin" in response.headers
         assert "Access-Control-Allow-Credentials" in response.headers

@@ -263,10 +263,10 @@ async def test_fetch_native_unknown_method(
 async def test_fetch_native_oauth_discovery(wait_for_services):
     """Test OAuth discovery endpoint routing."""
     from tests.test_constants import MCP_FETCH_TESTS_ENABLED
-    
+
     if not MCP_FETCH_TESTS_ENABLED:
         pytest.skip("MCP Fetch tests are disabled. Set MCP_FETCH_TESTS_ENABLED=true to enable.")
-    
+
     # Use base domain for OAuth discovery, not the /mcp endpoint
     oauth_discovery_url = (
         f"https://fetch.{BASE_DOMAIN}/.well-known/oauth-authorization-server"

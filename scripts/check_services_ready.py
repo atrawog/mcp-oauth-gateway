@@ -59,14 +59,14 @@ def check_docker_service(service_name: str) -> bool:
     # Skip other MCP services if they're disabled
     service_env_map = {
         "mcp-fetchs": "MCP_FETCHS_ENABLED",
-        "mcp-filesystem": "MCP_FILESYSTEM_ENABLED", 
+        "mcp-filesystem": "MCP_FILESYSTEM_ENABLED",
         "mcp-memory": "MCP_MEMORY_ENABLED",
         "mcp-playwright": "MCP_PLAYWRIGHT_ENABLED",
         "mcp-sequentialthinking": "MCP_SEQUENTIALTHINKING_ENABLED",
         "mcp-time": "MCP_TIME_ENABLED",
         "mcp-tmux": "MCP_TMUX_ENABLED",
     }
-    
+
     if service_name in service_env_map:
         env_var = service_env_map[service_name]
         if os.getenv(env_var, "false").lower() != "true":
@@ -206,7 +206,7 @@ async def wait_for_services(max_wait: int = 60) -> bool:
         ("mcp-time", "MCP_TIME_ENABLED"),
         ("mcp-tmux", "MCP_TMUX_ENABLED"),
     ]
-    
+
     for service_name, env_var in optional_services:
         if os.getenv(env_var, "false").lower() == "true":
             services_to_check.append(service_name)
@@ -311,7 +311,7 @@ async def main():
         base_services.append("mcp-echo")
     if os.getenv("MCP_EVERYTHING_ENABLED", "false").lower() == "true":
         base_services.append("mcp-everything")
-    
+
     # Add other MCP services if enabled
     optional_services = [
         ("mcp-fetchs", "MCP_FETCHS_ENABLED"),
@@ -322,7 +322,7 @@ async def main():
         ("mcp-time", "MCP_TIME_ENABLED"),
         ("mcp-tmux", "MCP_TMUX_ENABLED"),
     ]
-    
+
     for service_name, env_var in optional_services:
         if os.getenv(env_var, "false").lower() == "true":
             base_services.append(service_name)

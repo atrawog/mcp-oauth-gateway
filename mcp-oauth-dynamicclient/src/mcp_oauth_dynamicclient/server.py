@@ -251,13 +251,13 @@ def create_app(settings: Settings = None) -> FastAPI:
             error_description = "Authentication required"
             if isinstance(exc.detail, dict) and "error_description" in exc.detail:
                 error_description = exc.detail["error_description"]
-            
+
             return HTMLResponse(
                 status_code=401,
                 content=_generate_gateway_error_html(error_description),
                 headers=exc.headers or {"WWW-Authenticate": "Bearer"},
             )
-        
+
         # For non-browser requests or other status codes, return JSON
         return JSONResponse(
             status_code=exc.status_code,

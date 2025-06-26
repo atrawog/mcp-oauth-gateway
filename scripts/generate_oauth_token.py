@@ -91,7 +91,7 @@ async def register_oauth_client_with_user_token(
     """Register OAuth client using a valid user JWT token."""
     # Get OAuth callback URL from environment - MUST be set properly!
     oauth_callback_url = os.getenv("TEST_OAUTH_CALLBACK_URL")
-    
+
     if not oauth_callback_url:
         raise Exception(
             "TEST_OAUTH_CALLBACK_URL must be set in .env\n"
@@ -218,7 +218,7 @@ async def complete_real_oauth_flow(
 
     # Generate a unique session identifier for this OAuth flow
     session_id = secrets.token_urlsafe(8)[:8]
-    
+
     print("\n🌐 Please complete REAL OAuth flow:")
     print(f"📌 Session ID: {session_id} (use this to identify the correct browser tab)")
     print(f"1. Visit: {auth_url}")

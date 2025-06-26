@@ -2,18 +2,19 @@
 """Analyze error checking contexts in test files."""
 
 import re
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
+
 
 def find_error_contexts():
     """Find error checking patterns with their context."""
     tests_dir = Path("/home/atrawog/AI/atrawog/mcp-oauth-gateway/tests")
-    
+
     contexts = defaultdict(list)
-    
+
     for test_file in tests_dir.glob("test_*.py"):
         lines = test_file.read_text().splitlines()
-        
+
         for i, line in enumerate(lines):
             # Check for error variable assignment
             if 'response.json()' in line and i + 1 < len(lines):
@@ -26,23 +27,23 @@ def find_error_contexts():
                     for j in range(i, min(i + 10, len(lines))):
                         if var_name in lines[j]:
                             context_lines.append(lines[j].strip())
-                    
+
                     if context_lines:
                         contexts[test_file.name].append({
                             'var': var_name,
                             'line': i + 1,
                             'usage': context_lines[:5]  # First 5 usages
                         })
-    
+
     # Categorize the patterns
     print("Error response handling patterns:\n")
-    
+
     # Group by variable name patterns
     var_patterns = defaultdict(list)
     for file_name, file_contexts in contexts.items():
         for ctx in file_contexts:
             var_patterns[ctx['var']].append((file_name, ctx))
-    
+
     # Print most common variable names
     print("Common variable names for response.json():")
     for var_name, occurrences in sorted(var_patterns.items(), key=lambda x: len(x[1]), reverse=True):
@@ -55,7 +56,7 @@ def find_error_contexts():
 
     # Look for specific error checking patterns
     print("\n\nError checking patterns by structure:")
-    
+
     structure_patterns = {
         'Direct detail access': r'error\["detail"\]',
         'Safe detail access': r'error\.get\("detail"',
@@ -66,7 +67,7 @@ def find_error_contexts():
         'Detail in check': r'"detail" in error',
         'Error in check': r'"error" in error',
     }
-    
+
     for pattern_name, regex in structure_patterns.items():
         files_with_pattern = []
         for test_file in tests_dir.glob("test_*.py"):
@@ -74,7 +75,7 @@ def find_error_contexts():
             if re.search(regex, content):
                 count = len(re.findall(regex, content))
                 files_with_pattern.append((test_file.name, count))
-        
+
         if files_with_pattern:
             print(f"\n{pattern_name}:")
             for file_name, count in sorted(files_with_pattern, key=lambda x: x[1], reverse=True)[:5]:

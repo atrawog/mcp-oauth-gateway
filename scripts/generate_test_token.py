@@ -36,17 +36,17 @@ def main():
     # Load environment
     env_vars = load_env()
     os.environ.update(env_vars)
-    
+
     # Get required variables
     jwt_algorithm = os.getenv("JWT_ALGORITHM", "RS256")
-    
+
     if jwt_algorithm == "RS256":
         # Get RSA private key
         private_key_b64 = os.getenv("JWT_PRIVATE_KEY_B64")
         if not private_key_b64:
             print("❌ JWT_PRIVATE_KEY_B64 not found in environment")
             sys.exit(1)
-        
+
         # Decode base64 private key
         private_key = base64.b64decode(private_key_b64).decode('utf-8')
         secret = private_key
@@ -56,7 +56,7 @@ def main():
         if not secret:
             print("❌ GATEWAY_JWT_SECRET not found in environment")
             sys.exit(1)
-    
+
     # Create test payload
     now = int(time.time())
     payload = {
@@ -71,24 +71,24 @@ def main():
         "client_id": os.getenv("GATEWAY_OAUTH_CLIENT_ID", "test-client"),
         "jti": f"test-{now}"
     }
-    
+
     # Create header
     header = {"alg": jwt_algorithm}
-    
+
     # Encode token
     token = jwt.encode(header, payload, secret)
-    
+
     # Convert bytes to string if needed
     if isinstance(token, bytes):
         token = token.decode("utf-8")
-    
+
     print(f"Generated test token: {token}")
-    
+
     # Save to .env
     env_file = Path(__file__).parent.parent / ".env"
     lines = []
     found = False
-    
+
     if env_file.exists():
         with open(env_file) as f:
             for line in f:
@@ -97,13 +97,13 @@ def main():
                     found = True
                 else:
                     lines.append(line)
-    
+
     if not found:
         lines.append(f"\nGATEWAY_OAUTH_ACCESS_TOKEN={token}\n")
-    
+
     with open(env_file, "w") as f:
         f.writelines(lines)
-    
+
     print("✅ Token saved to .env")
 
 

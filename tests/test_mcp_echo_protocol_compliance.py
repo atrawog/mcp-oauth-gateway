@@ -4,9 +4,10 @@ NO MOCKING - testing against real deployed service!
 """
 
 import json
-import pytest
+from typing import Any
+
 import httpx
-from typing import Any, Dict
+import pytest
 
 
 class TestMCPEchoProtocolCompliance:
@@ -37,10 +38,10 @@ class TestMCPEchoProtocolCompliance:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
         data = self._parse_sse_response(response.text)
-        
+
         # Verify JSON-RPC response structure
         assert data["jsonrpc"] == "2.0"
         assert data["id"] == 1
@@ -67,7 +68,7 @@ class TestMCPEchoProtocolCompliance:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         # Should handle gracefully, possibly with error
         assert response.status_code in [200, 400]
 
@@ -91,7 +92,7 @@ class TestMCPEchoProtocolCompliance:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         # Should return error
         assert response.status_code in [200, 400]
 
@@ -122,7 +123,7 @@ class TestMCPEchoProtocolCompliance:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         # Stateless server might not support batches
         assert response.status_code in [200, 400]
 
@@ -151,7 +152,7 @@ class TestMCPEchoProtocolCompliance:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
         data = self._parse_sse_response(response.text)
         assert data["result"]["protocolVersion"] == "2025-06-18"
@@ -180,11 +181,11 @@ class TestMCPEchoProtocolCompliance:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         # Should either negotiate down or error
         assert response.status_code == 200
         data = self._parse_sse_response(response.text)
-        
+
         if "error" not in data:
             # If successful, should negotiate to supported version
             assert data["result"]["protocolVersion"] in ["2025-03-26"]
@@ -213,7 +214,7 @@ class TestMCPEchoProtocolCompliance:
                 "MCP-Protocol-Version": "2025-06-18"  # Required per spec
             }
         )
-        
+
         assert response.status_code == 200
 
     @pytest.mark.asyncio
@@ -231,7 +232,7 @@ class TestMCPEchoProtocolCompliance:
                 "Accept": "application/json, text/event-stream"
             }
         )
-        
+
         # Should reject non-JSON content
         assert response.status_code in [400, 415]
 
@@ -255,10 +256,10 @@ class TestMCPEchoProtocolCompliance:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
         assert response.headers.get("content-type", "").startswith("text/event-stream")
-        
+
         # Verify SSE format
         lines = response.text.strip().split('\n')
         assert any(line.startswith('event:') or line.startswith('data:') for line in lines)
@@ -286,16 +287,16 @@ class TestMCPEchoProtocolCompliance:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         assert response.status_code == 200
         data = self._parse_sse_response(response.text)
-        
+
         # Verify error response format
         assert data["jsonrpc"] == "2.0"
         assert data["id"] == 8
         assert "error" in data
         assert "result" not in data  # Cannot have both
-        
+
         error = data["error"]
         assert "code" in error
         assert "message" in error
@@ -322,7 +323,7 @@ class TestMCPEchoProtocolCompliance:
                 "MCP-Protocol-Version": "2025-06-18"
             }
         )
-        
+
         # Server should accept notifications with 202 Accepted per MCP 2025-06-18 spec
         assert response.status_code == 202
 
@@ -339,7 +340,7 @@ class TestMCPEchoProtocolCompliance:
             "resources/list",  # Even if not implemented
             "prompts/list"     # Even if not implemented
         ]
-        
+
         for method in valid_methods[:3]:  # Test first 3 that echo supports
             response = await http_client.post(
                 mcp_echo_url,
@@ -358,11 +359,11 @@ class TestMCPEchoProtocolCompliance:
                     "Content-Type": "application/json"
                 }
             )
-            
+
             assert response.status_code == 200
 
     # Helper methods
-    def _parse_sse_response(self, sse_text: str) -> Dict[str, Any]:
+    def _parse_sse_response(self, sse_text: str) -> dict[str, Any]:
         """Parse SSE response to extract JSON data."""
         for line in sse_text.strip().split('\n'):
             if line.startswith('data: '):

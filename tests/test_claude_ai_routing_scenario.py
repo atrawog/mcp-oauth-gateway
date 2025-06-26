@@ -8,7 +8,6 @@ When Claude.ai tries to access the MCP endpoint at /mcp
 import httpx
 import pytest
 
-from .test_constants import BASE_DOMAIN
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_TESTING_URL
 
