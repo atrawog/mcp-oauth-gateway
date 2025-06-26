@@ -8,9 +8,11 @@ when accessing /mcp endpoint is fixed and stays fixed.
 import pytest
 
 from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import MCP_FETCH_TESTS_ENABLED
 from .test_constants import MCP_FETCH_URL
 
 
+@pytest.mark.skipif(not MCP_FETCH_TESTS_ENABLED, reason="MCP Fetch tests disabled")
 class TestRoutingBugRegression:
     """Regression test for the routing configuration bug."""
 

@@ -12,8 +12,10 @@ import os
 import pytest
 
 from tests.test_constants import BASE_DOMAIN
+from tests.test_constants import MCP_TMUX_TESTS_ENABLED
 
 
+@pytest.mark.skipif(not MCP_TMUX_TESTS_ENABLED, reason="MCP Tmux tests disabled")
 class TestMCPTmuxIntegration:
     """Test MCP Tmux service integration with OAuth authentication."""
 

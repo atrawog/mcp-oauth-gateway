@@ -13,9 +13,11 @@ from .test_constants import HTTP_NOT_FOUND
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import HTTP_UNPROCESSABLE_ENTITY
+from .test_constants import MCP_FETCH_TESTS_ENABLED
 from .test_constants import MCP_FETCH_URL
 
 
+@pytest.mark.skipif(not MCP_FETCH_TESTS_ENABLED, reason="MCP Fetch tests disabled")
 class TestTraefikRouting:
     """Test Traefik routing configuration for all services."""
 
