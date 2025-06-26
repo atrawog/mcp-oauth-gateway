@@ -142,7 +142,7 @@ class TestMCPEchoClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
-    async def test_echo_initialize(self, echo_url, client_token, wait_for_services):
+    async def test_echo_initialize(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test initialize method to establish connection with mcp-echo."""
         response = self.run_mcp_client(
             url=echo_url,
@@ -153,7 +153,7 @@ class TestMCPEchoClientFull:
                 "capabilities": {
                     "tools": {},
                 },
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -167,7 +167,7 @@ class TestMCPEchoClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
-    async def test_echo_list_tools(self, echo_url, client_token, wait_for_services):
+    async def test_echo_list_tools(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test listing available tools from mcp-echo service."""
         # First initialize
         self.run_mcp_client(
@@ -177,7 +177,7 @@ class TestMCPEchoClientFull:
             params={
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"tools": {}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -232,7 +232,7 @@ class TestMCPEchoClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
-    async def test_echo_tool_functionality(self, echo_url, client_token, wait_for_services):
+    async def test_echo_tool_functionality(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test the echo tool returns the exact message provided."""
         # Initialize first
         self.run_mcp_client(
@@ -242,7 +242,7 @@ class TestMCPEchoClientFull:
             params={
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"tools": {}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -274,7 +274,7 @@ class TestMCPEchoClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
-    async def test_print_header_tool_functionality(self, echo_url, client_token, wait_for_services):
+    async def test_print_header_tool_functionality(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test the printHeader tool shows HTTP headers including auth headers."""
         # Initialize first
         self.run_mcp_client(
@@ -284,7 +284,7 @@ class TestMCPEchoClientFull:
             params={
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"tools": {}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -325,7 +325,7 @@ class TestMCPEchoClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
-    async def test_echo_tool_error_handling(self, echo_url, client_token, wait_for_services):
+    async def test_echo_tool_error_handling(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test error handling for invalid tool usage."""
         # Initialize first
         self.run_mcp_client(
@@ -335,7 +335,7 @@ class TestMCPEchoClientFull:
             params={
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"tools": {}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -373,7 +373,7 @@ class TestMCPEchoClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
-    async def test_print_header_tool_error_handling(self, echo_url, client_token, wait_for_services):
+    async def test_print_header_tool_error_handling(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test that printHeader tool handles extra arguments gracefully."""
         # Initialize first
         self.run_mcp_client(
@@ -383,7 +383,7 @@ class TestMCPEchoClientFull:
             params={
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"tools": {}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -409,7 +409,7 @@ class TestMCPEchoClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
-    async def test_echo_stateless_behavior(self, echo_url, client_token, wait_for_services):
+    async def test_echo_stateless_behavior(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test that mcp-echo service is truly stateless - each request is independent."""
         # Test multiple independent tool calls without reinitializing
         for i in range(5):
@@ -425,7 +425,7 @@ class TestMCPEchoClientFull:
                     params={
                         "protocolVersion": "2025-06-18",
                         "capabilities": {"tools": {}},
-                        "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                        "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
                     },
                 )
 
@@ -459,7 +459,7 @@ class TestMCPEchoClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
-    async def test_echo_protocol_compliance(self, echo_url, client_token, wait_for_services):
+    async def test_echo_protocol_compliance(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test MCP protocol compliance with proper versioning."""
         # Test with different protocol versions to ensure compliance
         protocol_versions = ["2025-06-18", "2024-11-05"]
@@ -472,7 +472,7 @@ class TestMCPEchoClientFull:
                 params={
                     "protocolVersion": version,
                     "capabilities": {"tools": {}},
-                    "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                    "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
                 },
             )
 

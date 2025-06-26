@@ -28,7 +28,9 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_initialize_protocol_negotiation(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_initialize_protocol_negotiation(
+        self, mcp_fetchs_url, valid_token, _wait_for_services, unique_test_id
+    ):
         """Test protocol version negotiation per MCP 2025-06-18."""
         # Test supported version
         async with httpx.AsyncClient(verify=True) as client:
@@ -40,7 +42,7 @@ class TestMCPFetchsCompliance:
                     "params": {
                         "protocolVersion": "2025-06-18",
                         "capabilities": {},
-                        "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                        "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
                     },
                     "id": 1,
                 },
@@ -71,7 +73,7 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_unsupported_protocol_version(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_unsupported_protocol_version(self, mcp_fetchs_url, valid_token, _wait_for_services, unique_test_id):
         """Test rejection of unsupported protocol versions."""
         async with httpx.AsyncClient(verify=True) as client:
             # Test unsupported version in params
@@ -100,7 +102,7 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_protocol_version_header(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_protocol_version_header(self, mcp_fetchs_url, valid_token, _wait_for_services, unique_test_id):
         """Test MCP-Protocol-Version header handling."""
         async with httpx.AsyncClient(verify=True) as client:
             # Test mismatched header version
@@ -121,7 +123,7 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tools_list_pagination(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_tools_list_pagination(self, mcp_fetchs_url, valid_token, _wait_for_services, unique_test_id):
         """Test tools/list pagination support per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=True) as client:
             # Test without cursor
@@ -159,7 +161,7 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tool_definition_schema(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_tool_definition_schema(self, mcp_fetchs_url, valid_token, _wait_for_services, unique_test_id):
         """Test tool definitions match MCP 2025-06-18 schema."""
         async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
@@ -193,7 +195,7 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tools_call_validation(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_tools_call_validation(self, mcp_fetchs_url, valid_token, _wait_for_services, unique_test_id):
         """Test tools/call parameter validation per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=True) as client:
             # Test missing params
@@ -254,7 +256,9 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tool_execution_response_format(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_tool_execution_response_format(
+        self, mcp_fetchs_url, valid_token, _wait_for_services, unique_test_id
+    ):
         """Test tool execution response format per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=True) as client:
             # Successful tool call
@@ -298,7 +302,7 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_tool_execution_error_format(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_tool_execution_error_format(self, mcp_fetchs_url, valid_token, _wait_for_services, unique_test_id):
         """Test tool execution error format per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=True) as client:
             # Tool execution error (invalid URL)
@@ -338,7 +342,7 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_session_id_handling(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_session_id_handling(self, mcp_fetchs_url, valid_token, _wait_for_services, unique_test_id):
         """Test Mcp-Session-Id header handling per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=True) as client:
             # First request should return session ID
@@ -366,7 +370,7 @@ class TestMCPFetchsCompliance:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_streamable_http_endpoints(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_streamable_http_endpoints(self, mcp_fetchs_url, valid_token, _wait_for_services, unique_test_id):
         """Test Streamable HTTP transport endpoints per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=True) as client:
             # POST /mcp should work

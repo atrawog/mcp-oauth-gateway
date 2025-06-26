@@ -18,7 +18,7 @@ class TestPKCES256Enforcement:
     """Test PKCE S256 enforcement per CLAUDE.md sacred commandments."""
 
     @pytest.mark.asyncio
-    async def test_pkce_plain_method_rejected(self, http_client, _wait_for_services):
+    async def test_pkce_plain_method_rejected(self, http_client, _wait_for_services, unique_client_name):
         """Verify that plain PKCE method is rejected per CLAUDE.md commandments."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
@@ -30,7 +30,7 @@ class TestPKCES256Enforcement:
                 "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"],
-                "client_name": "TEST test_pkce_plain_method_rejected",
+                "client_name": unique_client_name,
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )
@@ -78,7 +78,7 @@ class TestPKCES256Enforcement:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_pkce_s256_proper_validation(self, http_client, _wait_for_services):
+    async def test_pkce_s256_proper_validation(self, http_client, _wait_for_services, unique_client_name):
         """Verify S256 PKCE validation actually works correctly."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
@@ -90,7 +90,7 @@ class TestPKCES256Enforcement:
                 "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"],
-                "client_name": "TEST test_pkce_s256_proper_validation",
+                "client_name": unique_client_name,
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )

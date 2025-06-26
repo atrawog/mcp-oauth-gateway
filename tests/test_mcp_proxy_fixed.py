@@ -22,7 +22,7 @@ class TestMCPProxyWithSessionHandling:
 
     @pytest.mark.asyncio
     async def test_initialize_returns_session_id(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url, unique_test_id
     ):
         """Test that initialize returns a session ID in headers."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -36,7 +36,7 @@ class TestMCPProxyWithSessionHandling:
                 "params": {
                     "protocolVersion": MCP_PROTOCOL_VERSION,
                     "capabilities": {},
-                    "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                    "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
                 },
                 "id": 1,
             },
@@ -61,7 +61,7 @@ class TestMCPProxyWithSessionHandling:
 
     @pytest.mark.asyncio
     async def test_session_persists_with_header(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url, unique_test_id
     ):
         """Test that session persists when using Mcp-Session-Id header."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -75,7 +75,7 @@ class TestMCPProxyWithSessionHandling:
                 "params": {
                     "protocolVersion": MCP_PROTOCOL_VERSION,
                     "capabilities": {},
-                    "clientInfo": {"name": "persistent-client", "version": "1.0.0"},
+                    "clientInfo": {"name": f"persistent-{unique_test_id}", "version": "1.0.0"},
                 },
                 "id": 1,
             },
@@ -119,7 +119,7 @@ class TestMCPProxyWithSessionHandling:
 
     @pytest.mark.asyncio
     async def test_request_without_session_id_fails(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url, unique_test_id
     ):
         """Test that non-initialize requests without session ID fail appropriately."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -143,7 +143,9 @@ class TestMCPProxyWithSessionHandling:
         assert "Session ID required" in data["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_invalid_session_id_rejected(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
+    async def test_invalid_session_id_rejected(
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url, unique_test_id
+    ):
         """Test that invalid session IDs are rejected."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
@@ -168,7 +170,9 @@ class TestMCPProtocolFlowWithSessions:
     """Test complete MCP protocol flow with proper session handling."""
 
     @pytest.mark.asyncio
-    async def test_complete_mcp_flow(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
+    async def test_complete_mcp_flow(
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url, unique_test_id
+    ):
         """Test complete MCP flow: initialize -> initialized -> tools/list -> tool/call."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
@@ -182,7 +186,7 @@ class TestMCPProtocolFlowWithSessions:
                 "params": {
                     "protocolVersion": MCP_PROTOCOL_VERSION,
                     "capabilities": {},
-                    "clientInfo": {"name": "flow-test", "version": "1.0.0"},
+                    "clientInfo": {"name": f"flow-{unique_test_id}", "version": "1.0.0"},
                 },
                 "id": 1,
             },
@@ -262,7 +266,7 @@ class TestMCPSessionIsolation:
     """Test that sessions are properly isolated."""
 
     @pytest.mark.asyncio
-    async def test_sessions_are_isolated(self, _wait_for_services, mcp_fetch_url):
+    async def test_sessions_are_isolated(self, _wait_for_services, mcp_fetch_url, unique_test_id):
         """Test that different clients get different isolated sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
@@ -281,7 +285,7 @@ class TestMCPSessionIsolation:
                     "params": {
                         "protocolVersion": MCP_PROTOCOL_VERSION,
                         "capabilities": {},
-                        "clientInfo": {"name": "client-1", "version": "1.0.0"},
+                        "clientInfo": {"name": f"client-1-{unique_test_id}", "version": "1.0.0"},
                     },
                     "id": 1,
                 },
@@ -303,7 +307,7 @@ class TestMCPSessionIsolation:
                     "params": {
                         "protocolVersion": MCP_PROTOCOL_VERSION,
                         "capabilities": {},
-                        "clientInfo": {"name": "client-2", "version": "1.0.0"},
+                        "clientInfo": {"name": f"client-2-{unique_test_id}", "version": "1.0.0"},
                     },
                     "id": 1,
                 },
@@ -343,8 +347,12 @@ class MCPClientHelper:
         self.mcp_url = mcp_url
         self.session_id: str | None = None
 
-    async def initialize(self, client_name: str = "test-client") -> dict:
+    async def initialize(self, client_name: str | None = None) -> dict:
         """Initialize MCP session and store session ID."""
+        if client_name is None:
+            import uuid
+
+            client_name = f"test-{uuid.uuid4().hex[:8]}"
         response = await self.client.post(
             f"{self.mcp_url}",
             json={
@@ -397,7 +405,9 @@ class TestMCPWithHelper:
     """Test MCP using the helper class."""
 
     @pytest.mark.asyncio
-    async def test_complete_flow_with_helper(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
+    async def test_complete_flow_with_helper(
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url, unique_test_id
+    ):
         """Test complete MCP flow using helper class."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
@@ -405,7 +415,7 @@ class TestMCPWithHelper:
         mcp = MCPClientHelper(http_client, MCP_CLIENT_ACCESS_TOKEN, mcp_fetch_url)
 
         # Initialize
-        init_result = await mcp.initialize("helper-test")
+        init_result = await mcp.initialize(f"helper-{unique_test_id}")
         # Server may negotiate a different protocol version
         assert "protocolVersion" in init_result["result"]
 

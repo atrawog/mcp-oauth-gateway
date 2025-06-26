@@ -128,7 +128,7 @@ class TestMCPMemoryIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_initialize(self, mcp_memory_url, client_token, wait_for_services):
+    async def test_memory_initialize(self, mcp_memory_url, client_token, wait_for_services, unique_test_id):
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -160,7 +160,7 @@ class TestMCPMemoryIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_list_tools(self, mcp_memory_url, client_token, wait_for_services):
+    async def test_memory_list_tools(self, mcp_memory_url, client_token, wait_for_services, unique_test_id):
         """Test listing available tools."""
         # First initialize
         self.run_mcp_client(
@@ -170,7 +170,7 @@ class TestMCPMemoryIntegration:
             params={
                 "protocolVersion": MCP_PROTOCOL_VERSION,
                 "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -212,7 +212,7 @@ class TestMCPMemoryIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_list_resources(self, mcp_memory_url, client_token, wait_for_services):
+    async def test_memory_list_resources(self, mcp_memory_url, client_token, wait_for_services, unique_test_id):
         """Test listing available resources."""
         # Initialize first
         self.run_mcp_client(
@@ -222,7 +222,7 @@ class TestMCPMemoryIntegration:
             params={
                 "protocolVersion": MCP_PROTOCOL_VERSION,
                 "capabilities": {"resources": {"subscribe": True}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -257,7 +257,7 @@ class TestMCPMemoryIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_basic_functionality(self, mcp_memory_url, client_token, wait_for_services):
+    async def test_memory_basic_functionality(self, mcp_memory_url, client_token, wait_for_services, unique_test_id):
         """Test basic memory functionality if tools are available."""
         # Initialize
         self.run_mcp_client(
@@ -267,7 +267,7 @@ class TestMCPMemoryIntegration:
             params={
                 "protocolVersion": MCP_PROTOCOL_VERSION,
                 "capabilities": {"tools": {}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -315,7 +315,7 @@ class TestMCPMemoryIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_health_check(self, mcp_memory_url, client_token, wait_for_services):
+    async def test_memory_health_check(self, mcp_memory_url, client_token, wait_for_services, unique_test_id):
         """Test that the memory service health endpoint is accessible."""
         # This test verifies the service is running and accessible
         # The actual health check is done via the docker health check

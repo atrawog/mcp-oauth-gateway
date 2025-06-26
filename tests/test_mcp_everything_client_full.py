@@ -137,7 +137,7 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_initialize(self, everything_url, client_token, wait_for_services):
+    async def test_everything_initialize(self, everything_url, client_token, wait_for_services, unique_test_id):
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
             url=everything_url,
@@ -152,7 +152,7 @@ class TestMCPEverythingClientFull:
                     "logging": {},
                     "completions": {},
                 },
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -166,7 +166,7 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_list_tools(self, everything_url, client_token, wait_for_services):
+    async def test_everything_list_tools(self, everything_url, client_token, wait_for_services, unique_test_id):
         """Test listing available tools."""
         # First initialize
         self.run_mcp_client(
@@ -176,7 +176,7 @@ class TestMCPEverythingClientFull:
             params={
                 "protocolVersion": "2025-06-18",
                 "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -201,7 +201,7 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_list_resources(self, everything_url, client_token, wait_for_services):
+    async def test_everything_list_resources(self, everything_url, client_token, wait_for_services, unique_test_id):
         """Test listing available resources."""
         # Initialize first
         self.run_mcp_client(
@@ -211,7 +211,7 @@ class TestMCPEverythingClientFull:
             params={
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"resources": {"subscribe": True}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -233,7 +233,7 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_list_prompts(self, everything_url, client_token, wait_for_services):
+    async def test_everything_list_prompts(self, everything_url, client_token, wait_for_services, unique_test_id):
         """Test listing available prompts."""
         # Initialize first
         self.run_mcp_client(
@@ -243,7 +243,7 @@ class TestMCPEverythingClientFull:
             params={
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"prompts": {}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -265,7 +265,7 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_call_tool(self, everything_url, client_token, wait_for_services):
+    async def test_everything_call_tool(self, everything_url, client_token, wait_for_services, unique_test_id):
         """Test calling a tool if available."""
         # Initialize
         self.run_mcp_client(
@@ -275,7 +275,7 @@ class TestMCPEverythingClientFull:
             params={
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"tools": {}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -315,7 +315,7 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_read_resource(self, everything_url, client_token, wait_for_services):
+    async def test_everything_read_resource(self, everything_url, client_token, wait_for_services, unique_test_id):
         """Test reading a resource if available."""
         # Initialize
         self.run_mcp_client(
@@ -325,7 +325,7 @@ class TestMCPEverythingClientFull:
             params={
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"resources": {"subscribe": True}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -352,7 +352,7 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_get_prompt(self, everything_url, client_token, wait_for_services):
+    async def test_everything_get_prompt(self, everything_url, client_token, wait_for_services, unique_test_id):
         """Test getting a prompt if available."""
         # Initialize
         self.run_mcp_client(
@@ -362,7 +362,7 @@ class TestMCPEverythingClientFull:
             params={
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"prompts": {}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -396,7 +396,7 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_logging(self, everything_url, client_token, wait_for_services):
+    async def test_everything_logging(self, everything_url, client_token, wait_for_services, unique_test_id):
         """Test logging functionality."""
         # Initialize with logging capability
         self.run_mcp_client(
@@ -406,7 +406,7 @@ class TestMCPEverythingClientFull:
             params={
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"logging": {}},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -417,7 +417,9 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_protocol_compliance(self, everything_url, client_token, wait_for_services):
+    async def test_everything_protocol_compliance(
+        self, everything_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test protocol compliance and error handling."""
         # Test with unsupported method
         response = self.run_mcp_client(
@@ -438,7 +440,7 @@ class TestMCPEverythingClientFull:
             params={
                 "protocolVersion": "1.0.0",
                 "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
             },
         )
 
@@ -453,7 +455,7 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_full_workflow(self, everything_url, client_token, wait_for_services):
+    async def test_everything_full_workflow(self, everything_url, client_token, wait_for_services, unique_test_id):
         """Test a complete workflow using multiple capabilities."""
         print("\n=== Starting full workflow test ===")
 

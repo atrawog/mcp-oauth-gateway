@@ -58,14 +58,14 @@ async def get_oauth_token(http_client, client_id: str, client_secret: str) -> st
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_rejects_oauth_bearer_tokens(http_client):
+async def test_rfc7592_rejects_oauth_bearer_tokens(http_client, unique_client_name, unique_test_id):
     """RFC 7592 endpoints MUST reject OAuth Bearer tokens and only accept registration_access_token."""
     # Register a client
     response = await http_client.post(
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://bearer-test.example.com/callback"],
-            "client_name": "TEST Bearer Rejection Test",
+            "client_name": unique_client_name,
         },
     )
     assert response.status_code == HTTP_CREATED
@@ -120,14 +120,14 @@ async def test_rfc7592_rejects_oauth_bearer_tokens(http_client):
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_authentication_edge_cases(http_client):
+async def test_rfc7592_authentication_edge_cases(http_client, unique_client_name, unique_test_id):
     """Test various authentication edge cases for RFC 7592."""
     # Register a client
     response = await http_client.post(
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://edge-case.example.com/callback"],
-            "client_name": "TEST Edge Case Test",
+            "client_name": unique_client_name,
         },
     )
     assert response.status_code == HTTP_CREATED
@@ -250,7 +250,7 @@ async def test_rfc7592_cross_client_access_forbidden(http_client):
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_timing_attack_resistance(http_client):
+async def test_rfc7592_timing_attack_resistance(http_client, unique_client_name, unique_test_id):
     """Test that authentication is resistant to timing attacks."""
     import time
 
@@ -259,7 +259,7 @@ async def test_rfc7592_timing_attack_resistance(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://timing.example.com/callback"],
-            "client_name": "TEST Timing Test",
+            "client_name": unique_client_name,
         },
     )
     assert response.status_code == HTTP_CREATED
@@ -334,14 +334,14 @@ async def test_rfc7592_timing_attack_resistance(http_client):
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_rate_limiting(http_client):
+async def test_rfc7592_rate_limiting(http_client, unique_client_name, unique_test_id):
     """Test that RFC 7592 endpoints have appropriate rate limiting."""
     # Register a client
     response = await http_client.post(
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://ratelimit.example.com/callback"],
-            "client_name": "TEST Rate Limit Test",
+            "client_name": unique_client_name,
         },
     )
     assert response.status_code == HTTP_CREATED
@@ -386,14 +386,14 @@ async def test_rfc7592_rate_limiting(http_client):
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_sql_injection_attempts(http_client):
+async def test_rfc7592_sql_injection_attempts(http_client, unique_client_name, unique_test_id):
     """Test that RFC 7592 endpoints are safe from SQL injection."""
     # Register a legitimate client first
     response = await http_client.post(
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://sqltest.example.com/callback"],
-            "client_name": "TEST SQL Test Client",
+            "client_name": unique_client_name,
         },
     )
     assert response.status_code == HTTP_CREATED
@@ -437,7 +437,7 @@ async def test_rfc7592_sql_injection_attempts(http_client):
     # Verify original client still exists and works
     response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
     assert response.status_code == HTTP_OK
-    assert response.json()["client_name"] == "TEST SQL Test Client"
+    assert response.json()["client_name"] == unique_client_name
 
     # Clean up
     await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})

@@ -162,7 +162,7 @@ class TestMCPAIHostnames:
                 continue
 
     @pytest.mark.asyncio
-    async def test_fetch_through_ai_hostname(self, http_client: httpx.AsyncClient):
+    async def test_fetch_through_ai_hostname(self, http_client: httpx.AsyncClient, unique_client_name):
         """Test actual fetch capability through one of the AI hostnames."""
         # Use the first available hostname for this test
         if not self.HOSTNAMES:
@@ -178,7 +178,7 @@ class TestMCPAIHostnames:
                 "protocolVersion": MCP_PROTOCOL_VERSION,
                 "capabilities": {},
                 "clientInfo": {
-                    "name": "TEST test_fetch_through_ai_hostname",
+                    "name": unique_client_name,
                     "version": "1.0.0",
                 },
             },

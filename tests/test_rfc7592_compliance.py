@@ -40,12 +40,12 @@ def create_bearer_auth_header(token: str) -> str:
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_get_client_configuration(http_client):
+async def test_rfc7592_get_client_configuration(http_client, unique_client_name, unique_test_id):
     """Test RFC 7592 GET /register/{client_id} endpoint."""
     # First register a client
     registration_data = {
         "redirect_uris": ["https://test.example.com/callback"],
-        "client_name": "TEST RFC 7592 GET Test Client",
+        "client_name": unique_client_name,
         "scope": "openid profile email",
         "grant_types": ["authorization_code", "refresh_token"],
         "response_types": ["code"],
@@ -103,12 +103,12 @@ async def test_rfc7592_get_client_configuration(http_client):
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_put_update_client(http_client):
+async def test_rfc7592_put_update_client(http_client, unique_client_name, unique_test_id):
     """Test RFC 7592 PUT /register/{client_id} endpoint."""
     # Register initial client
     initial_data = {
         "redirect_uris": ["https://original.example.com/callback"],
-        "client_name": "TEST Original Name",
+        "client_name": unique_client_name,
         "scope": "openid",
         "grant_types": ["authorization_code"],
     }
@@ -129,7 +129,7 @@ async def test_rfc7592_put_update_client(http_client):
             "https://updated.example.com/callback",
             "https://secondary.example.com/callback",
         ],
-        "client_name": "TEST Updated Name via RFC 7592",
+        "client_name": f"{unique_client_name} Updated Name via RFC 7592",
         "scope": "openid profile email",
         "grant_types": ["authorization_code", "refresh_token"],
         "contacts": ["admin@example.com"],
@@ -195,21 +195,21 @@ async def test_rfc7592_put_update_client(http_client):
     response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
     assert response.status_code == HTTP_OK
     persisted = response.json()
-    assert persisted["client_name"] == "TEST Updated Name via RFC 7592"
+    assert "Updated Name via RFC 7592" in persisted["client_name"]  # Should contain update text
 
     # Clean up
     await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_delete_client(http_client):
+async def test_rfc7592_delete_client(http_client, unique_client_name, unique_test_id):
     """Test RFC 7592 DELETE /register/{client_id} endpoint."""
     # Register a client to delete
     response = await http_client.post(
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://delete.example.com/callback"],
-            "client_name": "TEST Client to Delete",
+            "client_name": unique_client_name,
         },
     )
     assert response.status_code == HTTP_CREATED
@@ -256,14 +256,14 @@ async def test_rfc7592_delete_client(http_client):
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_requires_correct_bearer_token(http_client):
+async def test_rfc7592_requires_correct_bearer_token(http_client, unique_client_name, unique_test_id):
     """Test that RFC 7592 endpoints require the correct registration_access_token."""
     # Register a client
     response = await http_client.post(
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://bearer.example.com/callback"],
-            "client_name": "TEST Bearer Token Test",
+            "client_name": unique_client_name,
         },
     )
     assert response.status_code == HTTP_CREATED
@@ -325,14 +325,14 @@ async def test_rfc7592_requires_correct_bearer_token(http_client):
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_client_isolation(http_client):
+async def test_rfc7592_client_isolation(http_client, unique_client_name, unique_test_id):
     """Test that clients cannot access or modify other clients' registrations."""
     # Register two different clients
     response1 = await http_client.post(
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://client1.example.com/callback"],
-            "client_name": "TEST Client 1",
+            "client_name": unique_client_name,
         },
     )
     assert response1.status_code == HTTP_CREATED
@@ -342,7 +342,7 @@ async def test_rfc7592_client_isolation(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://client2.example.com/callback"],
-            "client_name": "TEST Client 2",
+            "client_name": f"{unique_client_name}-2",
         },
     )
     assert response2.status_code == HTTP_CREATED
@@ -384,7 +384,7 @@ async def test_rfc7592_client_isolation(http_client):
         headers={"Authorization": auth2},
     )
     assert response.status_code == HTTP_OK
-    assert response.json()["client_name"] == "TEST Client 2"
+    assert response.json()["client_name"] == f"{unique_client_name}-2"  # Should match registered name
 
     # Clean up both clients
     await http_client.delete(
@@ -398,14 +398,14 @@ async def test_rfc7592_client_isolation(http_client):
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_malformed_requests(http_client):
+async def test_rfc7592_malformed_requests(http_client, unique_client_name, unique_test_id):
     """Test RFC 7592 endpoints handle malformed requests properly."""
     # Register a client
     response = await http_client.post(
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://malformed.example.com/callback"],
-            "client_name": "TEST Malformed Test Client",
+            "client_name": unique_client_name,
         },
     )
     assert response.status_code == HTTP_CREATED
@@ -467,14 +467,14 @@ async def test_rfc7592_malformed_requests(http_client):
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_concurrent_updates(http_client):
+async def test_rfc7592_concurrent_updates(http_client, unique_client_name, unique_test_id):
     """Test RFC 7592 handles concurrent update requests properly."""
     # Register a client
     response = await http_client.post(
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://concurrent.example.com/callback"],
-            "client_name": "TEST Concurrent Test",
+            "client_name": unique_client_name,
             "scope": "openid",
         },
     )
@@ -522,7 +522,7 @@ async def test_rfc7592_concurrent_updates(http_client):
 
 
 @pytest.mark.asyncio
-async def test_rfc7592_client_lifetime_handling(http_client):
+async def test_rfc7592_client_lifetime_handling(http_client, unique_client_name, unique_test_id):
     """Test RFC 7592 respects CLIENT_LIFETIME configuration."""
     client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
 
@@ -531,7 +531,7 @@ async def test_rfc7592_client_lifetime_handling(http_client):
         f"{AUTH_BASE_URL}/register",
         json={
             "redirect_uris": ["https://lifetime.example.com/callback"],
-            "client_name": "TEST Lifetime Test Client",
+            "client_name": unique_client_name,
         },
     )
     assert response.status_code == HTTP_CREATED

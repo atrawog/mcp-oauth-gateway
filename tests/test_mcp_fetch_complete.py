@@ -29,7 +29,9 @@ class TestMCPFetchComplete:
     """Test actual MCP fetch functionality - no shortcuts allowed!"""
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_actually_fetches_content(self, http_client, _wait_for_services, mcp_test_url):
+    async def test_mcp_fetch_actually_fetches_content(
+        self, http_client, _wait_for_services, mcp_test_url, unique_client_name
+    ):
         """This test MUST:
 
         1. Complete the FULL OAuth flow (no fake tokens!)
@@ -43,7 +45,7 @@ class TestMCPFetchComplete:
         # Step 1: Register an OAuth client
         registration_data = {
             "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
-            "client_name": "TEST test_mcp_fetch_actually_fetches_content",
+            "client_name": unique_client_name,
             "scope": TEST_CLIENT_SCOPE,
         }
 

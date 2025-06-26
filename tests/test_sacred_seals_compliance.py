@@ -24,7 +24,7 @@ class TestSacredSealsCompliance:
     """Test all 25 Sacred Seals for 100% divine compliance."""
 
     @pytest.mark.asyncio
-    async def test_redis_key_patterns_and_ttls(self, http_client, _wait_for_services):
+    async def test_redis_key_patterns_and_ttls(self, http_client, _wait_for_services, unique_client_name):
         """Test SEAL OF REDIS PATTERNS - Sacred key hierarchies preserve all state."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
@@ -40,7 +40,7 @@ class TestSacredSealsCompliance:
                     "redirect_uris": ["https://example.com/callback"],
                     "grant_types": ["authorization_code"],
                     "response_types": ["code"],
-                    "client_name": "TEST test_redis_key_patterns_and_ttls",
+                    "client_name": unique_client_name,
                 },
                 headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
             )
@@ -142,7 +142,7 @@ class TestSacredSealsCompliance:
                 logger.warning(f"Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_dual_realms_architecture(self, http_client, _wait_for_services):
+    async def test_dual_realms_architecture(self, http_client, _wait_for_services, unique_client_name):
         """Test SEAL OF DUAL REALMS - Client auth and user auth never intermingle."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
@@ -154,7 +154,7 @@ class TestSacredSealsCompliance:
                 "redirect_uris": ["https://claude.ai/callback"],
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"],
-                "client_name": "TEST test_seal_of_dual_realms",
+                "client_name": unique_client_name,
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
         )

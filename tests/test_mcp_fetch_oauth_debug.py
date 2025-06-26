@@ -9,7 +9,7 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_debug_mcp_fetch_with_real_oauth(http_client, _wait_for_services, mcp_fetch_url):
+async def test_debug_mcp_fetch_with_real_oauth(http_client, _wait_for_services, mcp_fetch_url, unique_test_id):
     """Debug test to see what's happening with real OAuth token."""
     oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if not oauth_token:
@@ -48,7 +48,7 @@ async def test_debug_mcp_fetch_with_real_oauth(http_client, _wait_for_services, 
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {"name": "test-client", "version": "1.0.0"},
+                    "clientInfo": {"name": f"test-{unique_test_id}", "version": "1.0.0"},
                 },
                 "id": "debug-init-1",
             }

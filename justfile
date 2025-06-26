@@ -29,6 +29,34 @@ test *args:
 # Alias for backwards compatibility
 alias t := test
 
+# Run tests in parallel using all CPU cores
+test-parallel *args:
+    pixi run pytest -n auto {{args}}
+
+# Run tests in parallel with specific worker count
+test-n count *args:
+    pixi run pytest -n {{count}} {{args}}
+
+# Run tests in parallel with optimal distribution strategy
+test-fast *args:
+    pixi run pytest -n auto --dist worksteal {{args}}
+
+# Run tests by module (keeps tests in same file together)
+test-by-module *args:
+    pixi run pytest -n auto --dist loadfile {{args}}
+
+# Run tests by class (keeps tests in same class together)
+test-by-class *args:
+    pixi run pytest -n auto --dist loadscope {{args}}
+
+# Run only serial tests (those marked with @pytest.mark.serial)
+test-serial:
+    pixi run pytest -m serial
+
+# Run parallel tests excluding serial ones
+test-parallel-safe:
+    pixi run pytest -n auto -m "not serial" --dist worksteal
+
 # Run tests with sidecar coverage pattern
 test-sidecar-coverage:
     docker compose down --remove-orphans

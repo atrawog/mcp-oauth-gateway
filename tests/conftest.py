@@ -25,7 +25,6 @@ import pytest
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import MCP_FETCH_URL
-from .test_constants import TEST_CLIENT_NAME
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_HTTP_TIMEOUT
 from .test_constants import TEST_MAX_RETRIES
@@ -676,7 +675,38 @@ def mcp_test_urls():
 
 
 @pytest.fixture
-async def registered_client(http_client: httpx.AsyncClient, _wait_for_services) -> dict:
+def worker_id(request):
+    """Return the current pytest-xdist worker ID.
+    Returns 'master' if not running in parallel mode.
+    Returns 'gw0', 'gw1', etc. when running with pytest-xdist.
+    """
+    return os.environ.get("PYTEST_XDIST_WORKER", "master")
+
+
+@pytest.fixture
+def unique_test_id(request, worker_id):
+    """Generate a unique test identifier including worker ID.
+    Format: {worker_id}_{timestamp}_{uuid}_{test_name}
+    """
+    import uuid
+
+    test_name = request.node.name.replace("[", "_").replace("]", "_").replace(" ", "_")
+    timestamp = int(time.time() * 1000)  # Millisecond precision
+    unique_part = str(uuid.uuid4())[:8]
+    return f"{worker_id}_{timestamp}_{unique_part}_{test_name}"
+
+
+@pytest.fixture
+def unique_client_name(unique_test_id):
+    """Generate a guaranteed unique client name for OAuth registration.
+    This ensures no conflicts between parallel test workers.
+    """
+    # Keep the TEST prefix for consistency with existing patterns
+    return f"TEST {unique_test_id}"
+
+
+@pytest.fixture
+async def registered_client(http_client: httpx.AsyncClient, _wait_for_services, unique_client_name) -> dict:
     """Register a test OAuth client dynamically - no hardcoded values!
 
     This fixture properly cleans up the registration using RFC 7592 DELETE endpoint.
@@ -688,7 +718,7 @@ async def registered_client(http_client: httpx.AsyncClient, _wait_for_services) 
 
     registration_data = {
         "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
-        "client_name": TEST_CLIENT_NAME,
+        "client_name": unique_client_name,  # Use unique name for parallel safety
         "scope": TEST_CLIENT_SCOPE,
     }
 

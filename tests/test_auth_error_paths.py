@@ -85,14 +85,14 @@ class TestClientRegistrationErrors:
     """Test client registration error paths."""
 
     @pytest.mark.asyncio
-    async def test_registration_empty_redirect_uris(self, http_client):
+    async def test_registration_empty_redirect_uris(self, http_client, unique_client_name):
         """Test registration with empty redirect_uris - covers line 172."""
         # RFC 7591: Registration is public, no auth required
         # But empty redirect_uris should still fail validation
 
         registration_data = {
             "redirect_uris": [],  # Empty list should fail
-            "client_name": "TEST test_registration_empty_redirect_uris",
+            "client_name": unique_client_name,
         }
 
         response = await http_client.post(f"{AUTH_BASE_URL}/register", json=registration_data)
@@ -285,14 +285,14 @@ class TestJWTTokenCreation:
     """Test JWT token creation helper function."""
 
     @pytest.mark.asyncio
-    async def test_create_token_with_user_tracking(self, http_client):
+    async def test_create_token_with_user_tracking(self, http_client, unique_client_name):
         """Test that registration is public but tokens require authentication - covers lines 660-664."""
         # RFC 7591: Client registration is public (no auth required)
         registration = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["https://test.example.com/callback"],
-                "client_name": "TEST test_create_token_with_user_tracking",
+                "client_name": unique_client_name,
             },
         )
 
