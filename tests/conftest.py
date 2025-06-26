@@ -77,6 +77,12 @@ def pytest_configure(config):
     """Run token validation BEFORE any test collection or execution."""
     import sys
 
+    # Skip validation in worker processes when using pytest-xdist
+    # Only run in the main process or when not using parallel execution
+    if hasattr(config, "workerinput"):
+        # This is a worker process, skip validation
+        return
+
     # Force output to be visible
     sys.stdout.flush()
     sys.stderr.flush()

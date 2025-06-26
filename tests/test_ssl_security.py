@@ -36,8 +36,9 @@ class TestSSLSecurity:
         # This would raise an error if any code tries to make unverified requests
         import warnings
 
-        # Try to make an unverified request (should fail due to filterwarnings)
-        with pytest.raises(UserWarning, match="InsecureRequestWarning"):
+        # The filterwarnings in pytest.ini converts InsecureRequestWarning to error
+        # When we trigger the warning, it becomes an exception
+        with pytest.raises(InsecureRequestWarning):
             warnings.warn("test", InsecureRequestWarning, stacklevel=2)
 
     def test_ssl_context_uses_certifi(self):
