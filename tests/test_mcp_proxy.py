@@ -95,8 +95,8 @@ class TestMCPProxyBasicFunctionality:
         assert response.status_code == HTTP_OK
         data = parse_sse_response(response)
         assert "error" in data
-        # The proxy returns -32002 for missing session ID on non-initialize requests
-        assert data["error"]["code"] == -32002
+        # Invalid JSON-RPC request should return -32600 (Invalid Request)
+        assert data["error"]["code"] == -32600
 
 
 class TestMCPProxyAuthentication:
@@ -346,38 +346,44 @@ class TestMCPFetchCapabilities:
                 }, timeout=30.0)
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
-        assert session_id
+        
+        # Session ID is optional for stateless servers
+        if session_id:
+            # Send initialized with session ID for stateful servers
+            await http_client.post(
+                f"{MCP_TESTING_URL}",
+                json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Mcp-Session-Id": session_id,
+                }, timeout=30.0)
 
-        # Send initialized with session ID
-        await http_client.post(
-            f"{MCP_TESTING_URL}",
-            json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
-            headers={
-                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                "Mcp-Session-Id": session_id,
-            }, timeout=30.0)
-
-        # List tools with session ID
+        # List tools with optional session ID
+        headers = {
+            "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
+        if session_id:
+            headers["Mcp-Session-Id"] = session_id
+            
         response = await http_client.post(
             f"{MCP_TESTING_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
-            headers={
-                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                "Mcp-Session-Id": session_id,
-            }, timeout=30.0)
+            headers=headers, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = parse_sse_response(response)
         assert "result" in data
         assert "tools" in data["result"]
 
-        # mcp-server-fetch should have fetch tool
+        # Test that tools are returned (echo server has echo tool)
         tools = data["result"]["tools"]
         assert len(tools) > 0
-        fetch_tool = next((t for t in tools if t["name"] == "fetch"), None)
-        assert fetch_tool is not None
-        assert "description" in fetch_tool
-        assert "inputSchema" in fetch_tool
+        echo_tool = next((t for t in tools if t["name"] == "echo"), None)
+        assert echo_tool is not None
+        assert "description" in echo_tool
+        assert "inputSchema" in echo_tool
 
 
 class TestMCPProxyErrorHandling:
@@ -414,7 +420,15 @@ class TestMCPProxyErrorHandling:
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
-        # Now test non-existent method with session ID
+        # Now test non-existent method with optional session ID
+        headers = {
+            "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
+        if session_id:
+            headers["Mcp-Session-Id"] = session_id
+            
         response = await http_client.post(
             f"{MCP_TESTING_URL}",
             json={
@@ -423,10 +437,7 @@ class TestMCPProxyErrorHandling:
                 "params": {},
                 "id": 2,
             },
-            headers={
-                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                "Mcp-Session-Id": session_id,
-            }, timeout=30.0)
+            headers=headers, timeout=30.0)
 
         assert response.status_code == HTTP_OK  # JSON-RPC errors still return 200
         data = parse_sse_response(response)

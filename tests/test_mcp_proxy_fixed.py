@@ -30,6 +30,14 @@ class TestMCPProxyWithSessionHandling:
             pytest.fail(
                 "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
             )
+        
+        # Check if fetch service is available first
+        try:
+            health_response = await http_client.get(f"{MCP_FETCH_URL.replace('/mcp', '')}", timeout=5.0)
+            if health_response.status_code == 404:
+                pytest.skip("MCP fetch service is not running/enabled - skipping session ID test")
+        except Exception:
+            pytest.skip("MCP fetch service is not accessible - skipping session ID test")
 
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
@@ -69,6 +77,14 @@ class TestMCPProxyWithSessionHandling:
             pytest.fail(
                 "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
             )
+        
+        # Check if fetch service is available first
+        try:
+            health_response = await http_client.get(f"{MCP_FETCH_URL.replace('/mcp', '')}", timeout=5.0)
+            if health_response.status_code == 404:
+                pytest.skip("MCP fetch service is not running/enabled - skipping session persistence test")
+        except Exception:
+            pytest.skip("MCP fetch service is not accessible - skipping session persistence test")
 
         # Initialize and get session ID
         init_response = await http_client.post(
@@ -124,6 +140,14 @@ class TestMCPProxyWithSessionHandling:
             pytest.fail(
                 "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
             )
+        
+        # Check if fetch service is available first
+        try:
+            health_response = await http_client.get(f"{MCP_FETCH_URL.replace('/mcp', '')}", timeout=5.0)
+            if health_response.status_code == 404:
+                pytest.skip("MCP fetch service is not running/enabled - skipping session requirement test")
+        except Exception:
+            pytest.skip("MCP fetch service is not accessible - skipping session requirement test")
 
         # Try to list tools without session ID
         response = await http_client.post(

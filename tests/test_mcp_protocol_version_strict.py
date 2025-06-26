@@ -77,6 +77,7 @@ class TestMCPProtocolVersionStrict:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
                 "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
             },
         )

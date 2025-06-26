@@ -144,9 +144,9 @@ class MCPEchoServer:
             if self.debug:
                 logger.debug(f"Response: {response}")
             
-            # Check if this is a notification (no id field)
-            if "id" not in body:
-                # Notifications get 202 Accepted per spec
+            # Check if this is a notification (no id field) AND not an error
+            if "id" not in body and "error" not in response:
+                # Valid notifications get 202 Accepted per spec
                 return Response(
                     content="",
                     status_code=202,
