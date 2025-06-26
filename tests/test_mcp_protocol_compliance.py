@@ -17,9 +17,19 @@ from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 
 def parse_sse_response(response_text: str) -> dict:
     """Parse SSE response format to extract JSON data."""
+    # Try to parse as plain JSON first
+    try:
+        return json.loads(response_text.strip())
+    except json.JSONDecodeError:
+        pass
+
+    # Then try SSE format
     for line in response_text.strip().split("\n"):
         if line.startswith("data: "):
             return json.loads(line[6:])
+
+    # If neither works, show what we got for debugging
+    print(f"DEBUG: Response text was: {response_text[:500]}")
     raise ValueError("No data found in SSE response")
 
 

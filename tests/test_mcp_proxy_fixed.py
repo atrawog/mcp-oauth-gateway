@@ -402,7 +402,7 @@ class TestMCPWithHelper:
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
-        mcp = MCPClientHelper(http_client, MCP_CLIENT_ACCESS_TOKEN)
+        mcp = MCPClientHelper(http_client, MCP_CLIENT_ACCESS_TOKEN, mcp_fetch_url)
 
         # Initialize
         init_result = await mcp.initialize("helper-test")

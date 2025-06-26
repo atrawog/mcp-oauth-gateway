@@ -42,15 +42,14 @@ class TestMCPPlaywrightIntegration:
             "python",
             "-m",
             "mcp_streamablehttp_client.cli",
-            "--server-url",
-            f"{url}",
             "--raw",
             raw_request,
         ]
 
-        # Set environment variables for token
+        # Set environment variables for token and server URL
         env = os.environ.copy()
         env["MCP_CLIENT_ACCESS_TOKEN"] = token
+        env["MCP_SERVER_URL"] = url
 
         result = subprocess.run(
             cmd,

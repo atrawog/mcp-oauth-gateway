@@ -29,20 +29,18 @@ class TestMCPTmuxComprehensive:
             "python",
             "-m",
             "mcp_streamablehttp_client.cli",
-            "--server-url",
-            f"{url}",
             "--raw",
             raw_request,
         ]
 
-        # Set environment variables for token
+        # Set environment variables for token and server URL
         env = os.environ.copy()
         env["MCP_CLIENT_ACCESS_TOKEN"] = token
+        env["MCP_SERVER_URL"] = url
 
         result = subprocess.run(
             cmd,
             check=False,
-            cwd="/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-streamablehttp-client",
             capture_output=True,
             text=True,
             timeout=30,
