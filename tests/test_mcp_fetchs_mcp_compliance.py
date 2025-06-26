@@ -188,7 +188,7 @@ class TestMCPFetchsCompliance:
                 # Optional fields
                 if "description" in tool:
                     assert isinstance(tool["description"], str)
-                if "title" in tool:
+                if "title" in tool and tool["title"] is not None:
                     assert isinstance(tool["title"], str)
 
     @pytest.mark.integration

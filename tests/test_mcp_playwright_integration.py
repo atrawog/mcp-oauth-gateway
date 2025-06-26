@@ -55,7 +55,6 @@ class TestMCPPlaywrightIntegration:
         result = subprocess.run(
             cmd,
             check=False,
-            cwd="/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-streamablehttp-client",
             capture_output=True,
             text=True,
             timeout=30,

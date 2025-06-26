@@ -80,7 +80,8 @@ class StreamableHTTPServer:
         async def list_tools() -> list[dict[str, Any]]:
             """List available tools."""
             tools = self.fetch_handler.get_tools()
-            return [tool.model_dump() for tool in tools]
+            # Filter out None values manually since exclude_none doesn't work for explicit None values
+            return [{k: v for k, v in tool.model_dump().items() if v is not None} for tool in tools]
 
     async def handle_request(self, request: Request) -> Response:
         """Handle HTTP request and route to transport."""
