@@ -1,4 +1,5 @@
 from .test_constants import HTTP_UNAUTHORIZED
+from .test_fetch_speedup_utils import get_local_test_url
 
 
 """Sacred MCP Fetch Integration Tests - Testing real MCP fetch with OAuth
@@ -55,7 +56,7 @@ class TestMCPFetchIntegration:
             "method": "tools/call",
             "params": {
                 "name": "fetch",
-                "arguments": {"url": "https://example.com", "max_length": 1000000},
+                "arguments": {"url": get_local_test_url(), "max_length": 1000000},
             },
             "id": "fetch-test-1",
         }
@@ -106,7 +107,7 @@ class TestMCPFetchIntegration:
                 "method": "tools/call",
                 "params": {
                     "name": "fetch",
-                    "arguments": {"url": "https://example.com"},
+                    "arguments": {"url": get_local_test_url()},
                 },
                 "id": 1,
             },
@@ -116,7 +117,7 @@ class TestMCPFetchIntegration:
                 "method": "tools/call",
                 "params": {
                     "name": "fetch",
-                    "arguments": {"url": "https://example.com"},
+                    "arguments": {"url": get_local_test_url()},
                 },
                 "id": 1,
             },
@@ -125,7 +126,7 @@ class TestMCPFetchIntegration:
                 "jsonrpc": "2.0",
                 "params": {
                     "name": "fetch",
-                    "arguments": {"url": "https://example.com"},
+                    "arguments": {"url": get_local_test_url()},
                 },
                 "id": 1,
             },
@@ -135,7 +136,7 @@ class TestMCPFetchIntegration:
                 "method": "invalid_method_name",
                 "params": {
                     "name": "fetch",
-                    "arguments": {"url": "https://example.com"},
+                    "arguments": {"url": get_local_test_url()},
                 },
                 "id": 1,
             },

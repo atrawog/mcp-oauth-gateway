@@ -14,6 +14,7 @@ from .test_constants import AUTH_BASE_URL
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
+from .test_fetch_speedup_utils import get_local_test_url
 
 
 @pytest.mark.asyncio
@@ -59,7 +60,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, _wait_for_se
         print(f"Warning: Could not list tools: {e}")
 
     # Step 3: Call the fetch tool
-    print("\nStep 3: Calling fetch tool to get https://example.com...")
+    print("\nStep 3: Calling fetch local test URL...")
     try:
         fetch_result = await call_mcp_tool(
             http_client,
@@ -67,7 +68,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, _wait_for_se
             oauth_token,
             session_id,
             "fetch",
-            {"url": "https://example.com"},
+            {"url": get_local_test_url()},
             "fetch-1",
         )
 
@@ -93,11 +94,11 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, _wait_for_se
                     content = item["text"]
 
                     # Verify we got example.com content
-                    assert "Example Domain" in content or "example" in content.lower(), (
+                    assert "MCP OAuth Gateway" in content or "example" in content.lower(), (
                         f"Didn't get expected content from example.com! Got: {content[:200]}"  # TODO: Break long line
                     )
 
-                    print("\n✅ SUCCESS! Fetched content from example.com")
+                    print("\n✅ SUCCESS! fetch local test URL")
                     print(f"✅ Content preview: {content[:200]}...")
                     print("✅ MCP Fetch is working with REAL OAuth!")
                     return

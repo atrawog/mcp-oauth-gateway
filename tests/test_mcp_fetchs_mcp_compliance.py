@@ -1,5 +1,6 @@
 from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_OK
+from .test_fetch_speedup_utils import get_local_test_url
 
 
 """Strict MCP 2025-06-18 protocol compliance tests for mcp-fetchs."""
@@ -269,7 +270,7 @@ class TestMCPFetchsCompliance:
                     "method": "tools/call",
                     "params": {
                         "name": "fetch",
-                        "arguments": {"url": "https://example.com"},
+                        "arguments": {"url": get_local_test_url()},
                     },
                     "id": 1,
                 },

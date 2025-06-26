@@ -1,6 +1,8 @@
 from .test_constants import HTTP_NOT_FOUND
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
+from .test_fetch_speedup_utils import get_local_test_url
+from .test_fetch_speedup_utils import verify_mcp_gateway_response
 
 
 """Test MCP Fetch with real content - Following CLAUDE.md
@@ -15,7 +17,7 @@ class TestMCPFetchRealContent:
 
     @pytest.mark.asyncio
     async def test_fetch_example_com_content(self, http_client, _wait_for_services, mcp_fetch_url):
-        """Attempt to fetch https://example.com and check for 'Example Domain' text."""
+        """Attempt to fetch local test URL and verify MCP OAuth Gateway response."""
         import os
 
         # Get REAL OAuth token from environment
@@ -25,11 +27,14 @@ class TestMCPFetchRealContent:
                 "No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
             )
 
-        # Make MCP request to fetch example.com
+        # Use local test URL instead of external example.com
+        test_url = get_local_test_url()
+
+        # Make MCP request to fetch local service
         mcp_request = {
             "jsonrpc": "2.0",
             "method": "tools/call",
-            "params": {"name": "fetch", "arguments": {"url": "https://example.com"}},
+            "params": {"name": "fetch", "arguments": {"url": test_url}},
             "id": "fetch-example-1",
         }
 
@@ -57,19 +62,28 @@ class TestMCPFetchRealContent:
             result = response.json()
             if "result" in result:
                 print("✅ Successfully fetched content through MCP!")
+                # Verify we hit our MCP OAuth Gateway, not external service
+                response_text = str(result)
+                assert verify_mcp_gateway_response(response_text), (
+                    "Response should contain MCP OAuth Gateway indicators"
+                )
             elif "error" in result:
                 print(f"MCP returned error: {result['error']}")
         else:
             print(f"Unexpected status: {response.status_code}")
             print(f"Response: {response.text[:200]}")
+            # Even error responses should indicate MCP OAuth Gateway
+            if verify_mcp_gateway_response(response.text):
+                print("✅ Response verified as coming from MCP OAuth Gateway")
 
     @pytest.mark.asyncio
     async def test_mcp_fetch_without_token(self, http_client, _wait_for_services, mcp_fetch_url):
         """Verify that mcp-fetch properly rejects unauthenticated requests."""
+        test_url = get_local_test_url()
         mcp_request = {
             "jsonrpc": "2.0",
             "method": "fetch/fetch",
-            "params": {"url": "https://example.com"},
+            "params": {"url": test_url},
             "id": 1,
         }
 

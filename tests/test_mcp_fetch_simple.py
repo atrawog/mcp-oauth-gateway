@@ -17,6 +17,7 @@ from .test_constants import HTTP_NOT_FOUND
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import REDIS_URL
+from .test_fetch_speedup_utils import get_local_test_url
 
 
 class TestMCPFetchSimple:
@@ -88,13 +89,13 @@ class TestMCPFetchSimple:
                 result = response.json()
                 print(f"MCP Response: {json.dumps(result, indent=2)}")
 
-                # If we can list tools, let's try fetching example.com
+                # If we can list tools, let's try fetch local test URL
                 fetch_request = {
                     "jsonrpc": "2.0",
                     "method": "tools/call",
                     "params": {
                         "name": "fetch",
-                        "arguments": {"url": "https://example.com"},
+                        "arguments": {"url": get_local_test_url()},
                     },
                     "id": 2,
                 }
@@ -112,13 +113,13 @@ class TestMCPFetchSimple:
                     fetch_result = fetch_response.json()
                     print(f"Fetch result: {json.dumps(fetch_result, indent=2)}")
 
-                    # Check for "Example Domain" in the content
+                    # Check for "MCP OAuth Gateway" in the content
                     if "result" in fetch_result:
                         content = str(fetch_result.get("result", {}))
-                        if "Example Domain" in content:
-                            print("✓ Successfully found 'Example Domain' in fetched content!")
+                        if "MCP OAuth Gateway" in content:
+                            print("✓ Successfully found 'MCP OAuth Gateway' in fetched content!")
                         else:
-                            print("Content fetched but 'Example Domain' not found")
+                            print("Content fetched but 'MCP OAuth Gateway' not found")
                             print(f"Content preview: {content[:200]}...")
 
             else:

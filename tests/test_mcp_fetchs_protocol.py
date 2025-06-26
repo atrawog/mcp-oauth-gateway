@@ -1,4 +1,5 @@
 from .test_constants import HTTP_OK
+from .test_fetch_speedup_utils import get_local_test_url
 
 
 """MCP protocol compliance tests for mcp-fetchs native implementation."""
@@ -118,7 +119,7 @@ class TestMCPFetchsProtocol:
                 elif method == "tools/call":
                     params = {
                         "name": "fetch",
-                        "arguments": {"url": "https://example.com"},
+                        "arguments": {"url": get_local_test_url()},
                     }
 
                 response = await client.post(

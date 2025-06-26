@@ -1,5 +1,6 @@
 from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_OK
+from .test_fetch_speedup_utils import get_local_test_url
 
 
 """Tests for MCP protocol version support validation."""
@@ -155,7 +156,7 @@ class TestMCPProtocolVersions:
                 elif method == "tools/call":
                     params = {
                         "name": "fetch",
-                        "arguments": {"url": "https://example.com"},
+                        "arguments": {"url": get_local_test_url()},
                     }
 
                 response = await client.post(

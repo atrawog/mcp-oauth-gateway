@@ -20,6 +20,7 @@ from .test_constants import MCP_FETCH_TESTS_ENABLED
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_OAUTH_CALLBACK_URL
+from .test_fetch_speedup_utils import get_local_test_url
 
 
 @pytest.mark.skipif(
@@ -97,7 +98,7 @@ class TestMCPFetchComplete:
                     oauth_token,
                     session_id,
                     "fetch",
-                    {"url": "https://example.com"},
+                    {"url": get_local_test_url()},
                     "complete-test-1",
                 )
 
@@ -341,7 +342,7 @@ class TestMCPFetchComplete:
                 oauth_token,
                 session_id,
                 "fetch",
-                {"url": "https://example.com", "max_length": 100},
+                {"url": get_local_test_url(), "max_length": 100},
                 "size-test-1",
             )
 
@@ -370,7 +371,7 @@ class TestMCPFetchComplete:
         mcp_request = {
             "jsonrpc": "2.0",
             "method": "tools/call",
-            "params": {"name": "fetch", "arguments": {"url": "https://example.com"}},
+            "params": {"name": "fetch", "arguments": {"url": get_local_test_url()}},
             "id": "auth-test-1",
         }
 
@@ -471,7 +472,7 @@ async def test_complete_oauth_flow_integration(http_client, _wait_for_services, 
             oauth_token,
             session_id,
             "fetch",
-            {"url": "https://example.com"},
+            {"url": get_local_test_url()},
             "integration-1",
         )
 

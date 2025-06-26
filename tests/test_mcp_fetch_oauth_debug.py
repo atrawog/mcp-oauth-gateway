@@ -1,4 +1,5 @@
 from .test_constants import HTTP_OK
+from .test_fetch_speedup_utils import get_local_test_url
 
 
 """Debug test to understand MCP fetch authentication with real OAuth token."""
@@ -78,7 +79,7 @@ async def test_debug_mcp_fetch_with_real_oauth(http_client, _wait_for_services, 
                         "method": "tools/call",
                         "params": {
                             "name": "fetch",
-                            "arguments": {"url": "https://example.com"},
+                            "arguments": {"url": get_local_test_url()},
                         },
                         "id": "debug-fetch-1",
                     }

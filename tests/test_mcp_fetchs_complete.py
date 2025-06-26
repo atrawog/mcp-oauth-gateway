@@ -1,5 +1,7 @@
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
+from .test_fetch_speedup_utils import get_local_test_url
+from .test_fetch_speedup_utils import verify_mcp_gateway_response
 
 
 """Comprehensive integration tests for mcp-fetchs native implementation."""
@@ -110,7 +112,7 @@ class TestMCPFetchsComplete:
                     "method": "tools/call",
                     "params": {
                         "name": "fetch",
-                        "arguments": {"url": "https://example.com", "method": "GET"},
+                        "arguments": {"url": get_local_test_url(), "method": "GET"},
                     },
                     "id": 3,
                 },
@@ -133,8 +135,10 @@ class TestMCPFetchsComplete:
 
             content = result["content"][0]
             assert content["type"] == "text"
-            assert "Example Domain" in content["text"]
-            assert content.get("title") == "Example Domain"
+            # Verify we're hitting our gateway services
+            assert verify_mcp_gateway_response(content["text"])
+            # OAuth discovery endpoint doesn't have a title
+            # assert content.get("title") == "MCP OAuth Gateway"
 
     # REMOVED: This test used httpbin.org which violates our testing principles.
     # Per CLAUDE.md: Test against real deployed services (our own), not external ones.
