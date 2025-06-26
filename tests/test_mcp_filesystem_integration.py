@@ -192,6 +192,11 @@ class TestMCPFilesystemIntegration:
     @pytest.mark.asyncio
     async def test_filesystem_oauth_discovery(self, http_client):
         """Test that OAuth discovery endpoint is accessible on filesystem subdomain."""
+        from tests.test_constants import MCP_FILESYSTEM_TESTS_ENABLED
+        
+        if not MCP_FILESYSTEM_TESTS_ENABLED:
+            pytest.skip("MCP Filesystem tests are disabled. Set MCP_FILESYSTEM_TESTS_ENABLED=true to enable.")
+        
         # Use base domain for OAuth discovery, not the /mcp endpoint
         oauth_discovery_url = (
             f"https://filesystem.{BASE_DOMAIN}/.well-known/oauth-authorization-server"

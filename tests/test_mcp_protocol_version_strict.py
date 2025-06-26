@@ -6,6 +6,7 @@ import json
 import secrets
 import time
 
+import httpx
 import pytest
 import redis.asyncio as redis
 
@@ -15,10 +16,36 @@ from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import HTTP_OK
 from .test_constants import MCP_CLIENT_ACCESS_TOKEN
-from .test_constants import MCP_FETCH_URL
+from .test_constants import MCP_TESTING_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 from .test_constants import REDIS_URL
+
+
+def parse_sse_response(response: httpx.Response) -> dict:
+    """Parse SSE response format to extract JSON data.
+    
+    SSE format: "event: message\ndata: {...}\n\n"
+    """
+    content_type = response.headers.get("content-type", "")
+    
+    # If it's already JSON, return it directly
+    if "application/json" in content_type:
+        return response.json()
+    
+    # Otherwise parse SSE format
+    if "text/event-stream" in content_type or response.status_code == 200:
+        text = response.text
+        for line in text.split('\n'):
+            if line.startswith('data: '):
+                json_data = line[6:]  # Remove "data: " prefix
+                return json.loads(json_data)
+        
+        # If no data line found, raise an error
+        raise ValueError(f"No valid JSON data found in SSE response: {text}")
+    
+    # Fallback: try to parse as JSON anyway
+    return response.json()
 
 
 class TestMCPProtocolVersionStrict:
@@ -36,7 +63,7 @@ class TestMCPProtocolVersionStrict:
 
         # Test 1: Correct version from .env MUST work
         correct_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -59,7 +86,7 @@ class TestMCPProtocolVersionStrict:
             f"MCP MUST accept protocol version {MCP_PROTOCOL_VERSION} from .env! Got {correct_response.status_code}"  # TODO: Break long line
         )
 
-        result = correct_response.json()
+        result = parse_sse_response(correct_response)
         assert "result" in result, "Initialize with correct version must return result"
         assert "protocolVersion" in result["result"], (
             "Result must include protocol version"
@@ -126,7 +153,7 @@ class TestMCPProtocolVersionStrict:
                     continue
 
                 response = await http_client.post(
-                    f"{MCP_FETCH_URL}",
+                    f"{MCP_TESTING_URL}",
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/list",
@@ -142,7 +169,7 @@ class TestMCPProtocolVersionStrict:
 
                 # The server might accept the request but should ideally validate headers
                 if response.status_code == HTTP_OK:
-                    result = response.json()
+                    result = parse_sse_response(response)
                     print(
                         f"⚠️  Server accepted request with wrong header version '{wrong_header}': {result}"  # TODO: Break long line
                     )

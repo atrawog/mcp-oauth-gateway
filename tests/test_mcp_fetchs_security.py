@@ -253,6 +253,11 @@ class TestMCPFetchsSecurity:
         self, base_domain, wait_for_services
     ):
         """Test OAuth discovery endpoint security."""
+        from tests.test_constants import MCP_FETCHS_TESTS_ENABLED
+        
+        if not MCP_FETCHS_TESTS_ENABLED:
+            pytest.skip("MCP Fetchs tests are disabled. Set MCP_FETCHS_TESTS_ENABLED=true to enable.")
+        
         # Use base domain for OAuth discovery, not the /mcp endpoint
         oauth_discovery_url = (
             f"https://fetchs.{base_domain}/.well-known/oauth-authorization-server"

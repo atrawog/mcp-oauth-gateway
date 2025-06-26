@@ -312,12 +312,30 @@ class TestMCPCORS:
 
     def test_all_mcp_services_have_cors(self):
         """Test that all MCP services have CORS configured."""
-        # List all MCP services from environment or configuration
-        # For now, we know about mcp-fetch
-        mcp_services = [
-            f"fetch.{self.base_domain}",
-            # Add other MCP services dynamically as they are configured
-        ]
+        from tests.test_constants import (
+            MCP_FETCH_TESTS_ENABLED,
+            MCP_FETCHS_TESTS_ENABLED, 
+            MCP_FILESYSTEM_TESTS_ENABLED,
+            MCP_PLAYWRIGHT_TESTS_ENABLED,
+            MCP_ECHO_TESTS_ENABLED
+        )
+        
+        # Build list of enabled MCP services only
+        mcp_services = []
+        
+        if MCP_ECHO_TESTS_ENABLED:
+            mcp_services.append(f"echo.{self.base_domain}")
+        if MCP_FETCH_TESTS_ENABLED:
+            mcp_services.append(f"fetch.{self.base_domain}")
+        if MCP_FETCHS_TESTS_ENABLED:
+            mcp_services.append(f"fetchs.{self.base_domain}")
+        if MCP_FILESYSTEM_TESTS_ENABLED:
+            mcp_services.append(f"filesystem.{self.base_domain}")
+        if MCP_PLAYWRIGHT_TESTS_ENABLED:
+            mcp_services.append(f"playwright.{self.base_domain}")
+            
+        if not mcp_services:
+            pytest.skip("No MCP services are enabled for testing")
 
         # Use the first configured origin for testing
         if not self.cors_origins:

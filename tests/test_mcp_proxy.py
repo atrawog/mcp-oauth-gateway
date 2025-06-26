@@ -3,6 +3,7 @@ Following Commandment 1: NO MOCKING! Test against real deployed services only!
 These tests verify the mcp-streamablehttp-proxy functionality using real MCP services.
 """
 
+import json
 import os
 
 import httpx
@@ -11,13 +12,39 @@ import pytest
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import MCP_FETCH_URL
+from .test_constants import MCP_TESTING_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 
 
 # MCP Client tokens for external client testing
 MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
 MCP_CLIENT_ID = os.getenv("MCP_CLIENT_ID")
+
+
+def parse_sse_response(response: httpx.Response) -> dict:
+    """Parse SSE response format to extract JSON data.
+    
+    SSE format: "event: message\ndata: {...}\n\n"
+    """
+    content_type = response.headers.get("content-type", "")
+    
+    # If it's already JSON, return it directly
+    if "application/json" in content_type:
+        return response.json()
+    
+    # Otherwise parse SSE format
+    if "text/event-stream" in content_type or response.status_code == 200:
+        text = response.text
+        for line in text.split('\n'):
+            if line.startswith('data: '):
+                json_data = line[6:]  # Remove "data: " prefix
+                return json.loads(json_data)
+        
+        # If no data line found, raise an error
+        raise ValueError(f"No valid JSON data found in SSE response: {text}")
+    
+    # Fallback: try to parse as JSON anyway
+    return response.json()
 
 
 class TestMCPProxyBasicFunctionality:
@@ -30,7 +57,7 @@ class TestMCPProxyBasicFunctionality:
         """Test that the MCP service is accessible (health is checked via MCP protocol)."""
         # According to CLAUDE.md, health checks use MCP protocol, not /health endpoint
         # We test accessibility by checking if auth is required
-        response = await http_client.get(f"{MCP_FETCH_URL}", timeout=30.0)
+        response = await http_client.get(f"{MCP_TESTING_URL}", timeout=30.0)
         assert response.status_code == HTTP_UNAUTHORIZED  # Should require auth
         assert "WWW-Authenticate" in response.headers
 
@@ -40,7 +67,7 @@ class TestMCPProxyBasicFunctionality:
     ):
         """Test that the MCP endpoint requires authentication."""
         response = await http_client.post(
-            f"{MCP_FETCH_URL}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}, timeout=30.0)
+            f"{MCP_TESTING_URL}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}, timeout=30.0)
         assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers
         assert response.headers["WWW-Authenticate"].startswith("Bearer")
@@ -57,7 +84,7 @@ class TestMCPProxyBasicFunctionality:
 
         # Send invalid JSON-RPC (missing required fields)
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={"invalid": "request"},
             headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -66,7 +93,7 @@ class TestMCPProxyBasicFunctionality:
                 }, timeout=30.0)
         # JSON-RPC errors return 200 with error in response body
         assert response.status_code == HTTP_OK
-        data = response.json()
+        data = parse_sse_response(response)
         assert "error" in data
         # The proxy returns -32002 for missing session ID on non-initialize requests
         assert data["error"]["code"] == -32002
@@ -87,7 +114,7 @@ class TestMCPProxyAuthentication:
 
         # Gateway token should work for authentication
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -104,7 +131,7 @@ class TestMCPProxyAuthentication:
                     "Accept": "application/json, text/event-stream",
                 }, timeout=30.0)
         assert response.status_code == HTTP_OK
-        data = response.json()
+        data = parse_sse_response(response)
         assert "result" in data
         # Server may negotiate a different protocol version
         assert "protocolVersion" in data["result"]
@@ -121,7 +148,7 @@ class TestMCPProxyAuthentication:
 
         # MCP client token should work for authentication
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -141,7 +168,7 @@ class TestMCPProxyAuthentication:
                     "Accept": "application/json, text/event-stream",
                 }, timeout=30.0)
         assert response.status_code == HTTP_OK
-        data = response.json()
+        data = parse_sse_response(response)
         assert "result" in data
         # Server may negotiate a different protocol version
         assert "protocolVersion" in data["result"]
@@ -152,7 +179,7 @@ class TestMCPProxyAuthentication:
     ):
         """Test that invalid tokens are rejected."""
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={"jsonrpc": "2.0", "method": "ping", "id": 1},
             headers={"Authorization": "Bearer invalid-token-12345"}, timeout=30.0)
         assert response.status_code == HTTP_UNAUTHORIZED
@@ -173,7 +200,7 @@ class TestMCPProtocolInitialization:
 
         # Send initialize request
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -191,7 +218,7 @@ class TestMCPProtocolInitialization:
                 }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
-        data = response.json()
+        data = parse_sse_response(response)
 
         # Verify response structure per MCP spec
         assert "jsonrpc" in data
@@ -221,7 +248,7 @@ class TestMCPProtocolInitialization:
 
         # First initialize
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -241,7 +268,7 @@ class TestMCPProtocolInitialization:
 
         # Send initialized notification (no id field for notifications)
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -267,7 +294,7 @@ class TestMCPFetchCapabilities:
 
         # Initialize to get capabilities
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -285,7 +312,7 @@ class TestMCPFetchCapabilities:
                 }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
-        data = response.json()
+        data = parse_sse_response(response)
         capabilities = data["result"]["capabilities"]
 
         # mcp-server-fetch should provide tools capability
@@ -301,7 +328,7 @@ class TestMCPFetchCapabilities:
 
         # Initialize first
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -323,7 +350,7 @@ class TestMCPFetchCapabilities:
 
         # Send initialized with session ID
         await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -332,7 +359,7 @@ class TestMCPFetchCapabilities:
 
         # List tools with session ID
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -340,7 +367,7 @@ class TestMCPFetchCapabilities:
             }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
-        data = response.json()
+        data = parse_sse_response(response)
         assert "result" in data
         assert "tools" in data["result"]
 
@@ -368,7 +395,7 @@ class TestMCPProxyErrorHandling:
 
         # Initialize first to get session ID
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -389,7 +416,7 @@ class TestMCPProxyErrorHandling:
 
         # Now test non-existent method with session ID
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "nonexistent/method",
@@ -402,7 +429,7 @@ class TestMCPProxyErrorHandling:
             }, timeout=30.0)
 
         assert response.status_code == HTTP_OK  # JSON-RPC errors still return 200
-        data = response.json()
+        data = parse_sse_response(response)
         assert "error" in data
         assert "code" in data["error"]
         assert "message" in data["error"]
@@ -422,7 +449,7 @@ class TestMCPProxyErrorHandling:
 
         # Try to initialize with wrong protocol version
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -439,7 +466,7 @@ class TestMCPProxyErrorHandling:
                 }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
-        data = response.json()
+        data = parse_sse_response(response)
         assert "error" in data or data["result"]["protocolVersion"] != "1999-01-01"
 
 
@@ -457,7 +484,7 @@ class TestMCPProxyHeaders:
             )
 
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={"jsonrpc": "2.0", "method": "ping", "id": 1},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -472,7 +499,7 @@ class TestMCPProxyHeaders:
     ):
         """Test CORS headers on OPTIONS request."""
         response = await http_client.options(
-            f"{MCP_FETCH_URL}", headers={"Origin": "https://claude.ai"}
+            f"{MCP_TESTING_URL}", headers={"Origin": "https://claude.ai"}
         )
         assert response.status_code == HTTP_OK
         # Check that some CORS headers are present
