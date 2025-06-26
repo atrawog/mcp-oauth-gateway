@@ -8,7 +8,7 @@ This script addresses the root cause of 400 Bad Request errors in MCP tests:
 
 Based on our debugging, the MCP servers require:
 - Accept: application/json, text/event-stream
-- Content-Type: application/json  
+- Content-Type: application/json
 - Authorization: Bearer <token>
 - MCP-Protocol-Version: <version> (optional but good practice)
 """
@@ -47,7 +47,7 @@ def fix_mcp_test_file(file_path: Path):
                 lines = content.split('\n')
                 insert_index = 0
                 for i, line in enumerate(lines):
-                    if line.startswith('import ') or line.startswith('from '):
+                    if line.startswith(('import ', 'from ')):
                         insert_index = i + 1
                     elif line.strip() == '':
                         continue

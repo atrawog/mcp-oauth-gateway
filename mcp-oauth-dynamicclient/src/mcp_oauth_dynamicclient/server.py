@@ -158,15 +158,15 @@ def _generate_gateway_error_html(error_description: str) -> str:
 
             <h2>What This Gateway Does</h2>
             <p>
-                This MCP OAuth Gateway acts as a security layer between AI applications and MCP servers. 
-                It implements OAuth 2.1 authentication to ensure that only authorized clients can access the powerful 
+                This MCP OAuth Gateway acts as a security layer between AI applications and MCP servers.
+                It implements OAuth 2.1 authentication to ensure that only authorized clients can access the powerful
                 capabilities provided by MCP services.
             </p>
 
             <div class="protocol-info">
                 <strong>🚀 MCP Protocol Implementation</strong>
                 <p style="margin: 8px 0 0 0;">
-                    This gateway implements <strong>MCP Protocol Version 2025-06-18</strong>, the latest specification 
+                    This gateway implements <strong>MCP Protocol Version 2025-06-18</strong>, the latest specification
                     for Model Context Protocol communication between AI assistants and external tools.
                 </p>
             </div>
@@ -174,8 +174,8 @@ def _generate_gateway_error_html(error_description: str) -> str:
             <div class="claude-info" style="background: #f3e8ff; border: 1px solid #c084fc; border-radius: 6px; padding: 16px; margin: 20px 0;">
                 <strong>🤖 Claude.ai Integration</strong>
                 <p style="margin: 8px 0 0 0;">
-                    This gateway can be used as a <strong>Custom Integration for Remote MCP</strong> in Claude.ai! 
-                    Simply add this gateway's URL when configuring custom integrations in Claude to access all 
+                    This gateway can be used as a <strong>Custom Integration for Remote MCP</strong> in Claude.ai!
+                    Simply add this gateway's URL when configuring custom integrations in Claude to access all
                     protected MCP services through a single secure endpoint.
                 </p>
             </div>
@@ -206,7 +206,7 @@ def _generate_gateway_error_html(error_description: str) -> str:
 
             <div class="tech-note">
                 <strong>Why am I seeing this?</strong> Your request is missing the required <code>Authorization</code> header.
-                This gateway requires Bearer token authentication for all MCP endpoints. Check the documentation 
+                This gateway requires Bearer token authentication for all MCP endpoints. Check the documentation
                 above to learn how to obtain and use access tokens.
             </div>
         </div>

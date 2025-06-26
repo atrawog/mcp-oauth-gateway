@@ -2,11 +2,16 @@
 This ensures 100% compliance with all divine requirements!
 """
 
+import logging
 import os
 from pathlib import Path
 
 import pytest
 import redis.asyncio as redis
+
+
+# Configure logger for test output
+logger = logging.getLogger(__name__)
 
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
@@ -95,10 +100,6 @@ class TestSacredSealsCompliance:
                     f"State key TTL {state_ttl} not in expected range"
                 )
 
-            # Test token key patterns when we have a valid token
-            # The existing OAuth token should be stored with proper pattern
-            token_keys = [key async for key in redis_client.scan_iter("oauth:token:*")]
-
             # Verify sacred key hierarchy patterns
             expected_patterns = [
                 "oauth:state:",  # 5 minute TTL
@@ -145,7 +146,7 @@ class TestSacredSealsCompliance:
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
-                print(f"Warning: Error during client cleanup: {e}")
+                logger.warning(f"Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
     async def test_dual_realms_architecture(self, http_client, wait_for_services):
@@ -237,7 +238,7 @@ class TestSacredSealsCompliance:
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
-                print(f"Warning: Error during client cleanup: {e}")
+                logger.warning(f"Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
     async def test_sacred_directory_structure(self):

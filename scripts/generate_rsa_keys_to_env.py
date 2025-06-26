@@ -19,7 +19,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 def validate_existing_jwt_key(env_content):
     """Validate if existing JWT_PRIVATE_KEY_B64 is a valid RSA private key.
-    
+
     Returns:
         tuple: (is_valid: bool, key_value: str|None, reason: str)
     """

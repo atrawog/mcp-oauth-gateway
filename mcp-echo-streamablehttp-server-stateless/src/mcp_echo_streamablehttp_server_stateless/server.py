@@ -71,21 +71,21 @@ class MCPEchoServer:
         # Route by method
         if request.method == "OPTIONS":
             return self._handle_cors_preflight(allowed_origin)
-        
+
         if request.method == "GET":
             return self._handle_sse_stream()
-        
+
         # POST method handling
         return await self._handle_post_request(request, allowed_origin)
-    
+
     def _determine_allowed_origin(self, cors_origins: str, origin: str) -> str:
         """Determine the allowed CORS origin."""
         if cors_origins == "*" or not origin:
             return "*"
-        
+
         allowed_origins = [o.strip() for o in cors_origins.split(",")]
         return origin if origin in allowed_origins else "*"
-    
+
     def _handle_cors_preflight(self, allowed_origin: str) -> Response:
         """Handle CORS preflight requests."""
         headers = {
@@ -96,7 +96,7 @@ class MCPEchoServer:
         if allowed_origin != "*":
             headers["Access-Control-Allow-Credentials"] = "true"
         return Response(content="", headers=headers)
-    
+
     def _handle_sse_stream(self) -> StreamingResponse:
         """Handle GET requests for SSE streams."""
         async def sse_stream():
@@ -113,14 +113,14 @@ class MCPEchoServer:
                 "Connection": "keep-alive"
             }
         )
-    
+
     async def _handle_post_request(self, request: Request, allowed_origin: str) -> Response:
         """Handle POST requests with validation and processing."""
         # Validate headers
         validation_error = self._validate_post_headers(request)
         if validation_error:
             return validation_error
-        
+
         # Store request context
         task_id = id(asyncio.current_task())
         self._request_context[task_id] = {
@@ -136,7 +136,7 @@ class MCPEchoServer:
         finally:
             # Clean up request context
             self._request_context.pop(task_id, None)
-    
+
     def _validate_post_headers(self, request: Request) -> JSONResponse | None:
         """Validate required headers for POST requests."""
         # Validate Content-Type
@@ -165,9 +165,9 @@ class MCPEchoServer:
                 status_code=400,
                 headers={"Access-Control-Allow-Origin": "*"}
             )
-        
+
         return None
-    
+
     async def _process_json_rpc_request(self, request: Request) -> Response:
         """Process the JSON-RPC request and return appropriate response."""
         try:
@@ -420,9 +420,9 @@ class MCPEchoServer:
         handler = tool_handlers.get(tool_name)
         if not handler:
             return self._error_response(request_id, -32602, f"Unknown tool: {tool_name}")
-        
+
         return await handler(arguments, request_id)
-    
+
     async def _handle_echo_tool(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
         """Handle the echo tool."""
         message = arguments.get("message")
@@ -441,7 +441,7 @@ class MCPEchoServer:
                 ]
             }
         }
-    
+
     async def _handle_print_header_tool(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
         """Handle the printHeader tool."""
         headers_text = "HTTP Headers:\n"
@@ -1057,10 +1057,7 @@ class MCPEchoServer:
 
         # Check required env vars
         required_vars = ['MCP_PROTOCOL_VERSION', 'MCP_PROTOCOL_VERSIONS_SUPPORTED']
-        missing_vars = []
-        for var in required_vars:
-            if not os.getenv(var):
-                missing_vars.append(var)
+        missing_vars = [var for var in required_vars if not os.getenv(var)]
 
         if missing_vars:
             result_text += f"  ❌ Missing required vars: {', '.join(missing_vars)}\n"

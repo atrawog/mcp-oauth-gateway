@@ -1,8 +1,13 @@
 """Test RFC 6749 and RFC 7591 compliance for OAuth endpoints."""
 
 import json
+import logging
 
 import pytest
+
+
+# Configure logger for test output
+logger = logging.getLogger(__name__)
 
 from .test_constants import AUTH_BASE_URL
 from .test_constants import HTTP_BAD_REQUEST
@@ -134,11 +139,11 @@ class TestRFCCompliance:
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
-                    print(
-                        f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                    logger.warning(
+                        f"Failed to delete client {client['client_id']}: {delete_response.status_code}"
                     )
             except Exception as e:
-                print(f"Warning: Error during client cleanup: {e}")
+                logger.warning(f"Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
     async def test_registration_missing_redirect_uris_rfc7591(self, http_client):

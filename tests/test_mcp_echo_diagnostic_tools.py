@@ -69,7 +69,7 @@ class TestMCPEchoDiagnosticTools:
             pytest.fail("No result found in SSE response")
         else:
             pytest.fail(f"HTTP {response.status_code}: {response.text}")
-        
+
         # This should never be reached due to pytest.fail() calls, but satisfies type checker
         return {}
 

@@ -1,12 +1,17 @@
 """Entry point for the MCP Echo StreamableHTTP Server."""
 
 import argparse
+import logging
 import os
 import sys
 
 from dotenv import load_dotenv
 
 from .server import MCPEchoServer
+
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -16,13 +21,13 @@ def main():
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description="MCP Echo Server - Stateless StreamableHTTP Implementation"
+        description="MCP Echo Server - Stateless StreamableHTTP Implementation",
     )
     parser.add_argument(
         "--host",
         type=str,
         default=os.getenv("MCP_ECHO_HOST", "127.0.0.1"),
-        help="Host to bind to (default: 127.0.0.1)"
+        help="Host to bind to (default: 127.0.0.1)",
     )
     parser.add_argument(
         "--port",
@@ -43,8 +48,14 @@ def main():
     supported_versions_str = os.getenv("MCP_PROTOCOL_VERSIONS_SUPPORTED", "2025-06-18")
     supported_versions = [v.strip() for v in supported_versions_str.split(",") if v.strip()]
 
+    # Configure logging
+    logging.basicConfig(
+        level=logging.DEBUG if args.debug else logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+
     if args.debug:
-        print(f"Supported protocol versions: {', '.join(supported_versions)}")
+        logger.debug(f"Supported protocol versions: {', '.join(supported_versions)}")
 
     # Create and run server
     server = MCPEchoServer(debug=args.debug, supported_versions=supported_versions)
@@ -53,10 +64,10 @@ def main():
         server.run(host=args.host, port=args.port)
     except KeyboardInterrupt:
         if args.debug:
-            print("\nShutting down server...")
+            logger.info("\nShutting down server...")
         sys.exit(0)
     except Exception as e:
-        print(f"Server error: {e}", file=sys.stderr)
+        logger.error(f"Server error: {e}")
         sys.exit(1)
 
 

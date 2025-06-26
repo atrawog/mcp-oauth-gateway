@@ -24,40 +24,13 @@ def run_command(cmd: list[str]) -> tuple[int, str, str]:
         return 1, "", str(e)
 
 
-def check_docker_service(service_name: str) -> bool:
-    """Check if a Docker service is running."""
-    # Skip mcp-fetch if it's disabled
-    if (
-        service_name == "mcp-fetch"
-        and os.getenv("MCP_FETCH_ENABLED", "false").lower() != "true"
-    ):
-        print(
-            f"{YELLOW}⊝ Service {service_name} is disabled via MCP_FETCH_ENABLED{RESET}"
-        )
-        return True  # Consider it "passing" since it's intentionally disabled
-
-    # Skip mcp-echo if it's disabled
-    if (
-        service_name == "mcp-echo"
-        and os.getenv("MCP_ECHO_ENABLED", "false").lower() != "true"
-    ):
-        print(
-            f"{YELLOW}⊝ Service {service_name} is disabled via MCP_ECHO_ENABLED{RESET}"
-        )
-        return True  # Consider it "passing" since it's intentionally disabled
-
-    # Skip mcp-everything if it's disabled
-    if (
-        service_name == "mcp-everything"
-        and os.getenv("MCP_EVERYTHING_ENABLED", "false").lower() != "true"
-    ):
-        print(
-            f"{YELLOW}⊝ Service {service_name} is disabled via MCP_EVERYTHING_ENABLED{RESET}"
-        )
-        return True  # Consider it "passing" since it's intentionally disabled
-
-    # Skip other MCP services if they're disabled
+def is_service_disabled(service_name: str) -> tuple[bool, str]:
+    """Check if a service is disabled via environment variables."""
+    # Map of service names to their enable environment variables
     service_env_map = {
+        "mcp-fetch": "MCP_FETCH_ENABLED",
+        "mcp-echo": "MCP_ECHO_ENABLED",
+        "mcp-everything": "MCP_EVERYTHING_ENABLED",
         "mcp-fetchs": "MCP_FETCHS_ENABLED",
         "mcp-filesystem": "MCP_FILESYSTEM_ENABLED",
         "mcp-memory": "MCP_MEMORY_ENABLED",
@@ -67,14 +40,23 @@ def check_docker_service(service_name: str) -> bool:
         "mcp-tmux": "MCP_TMUX_ENABLED",
     }
 
-    if service_name in service_env_map:
-        env_var = service_env_map[service_name]
-        if os.getenv(env_var, "false").lower() != "true":
-            print(
-                f"{YELLOW}⊝ Service {service_name} is disabled via {env_var}{RESET}"
-            )
-            return True  # Consider it "passing" since it's intentionally disabled
+    env_var = service_env_map.get(service_name)
+    if env_var and os.getenv(env_var, "false").lower() != "true":
+        return True, env_var
+    return False, ""
 
+
+def check_docker_service(service_name: str) -> bool:
+    """Check if a Docker service is running."""
+    # Check if service is disabled
+    disabled, env_var = is_service_disabled(service_name)
+    if disabled:
+        print(
+            f"{YELLOW}⊝ Service {service_name} is disabled via {env_var}{RESET}"
+        )
+        return True  # Consider it "passing" since it's intentionally disabled
+
+    # Check if service is running
     cmd = [
         "docker",
         "compose",
@@ -95,17 +77,16 @@ def check_docker_service(service_name: str) -> bool:
         print(f"{RED}✗ Service {service_name} is not running{RESET}")
         return False
 
-    # Check if service is actually running (not exited)
+    # Parse and check service state
     import json
-
     try:
         service_info = json.loads(stdout.strip())
         state = service_info.get("State", "unknown")
-        if state != "running":
-            print(f"{RED}✗ Service {service_name} is in state: {state}{RESET}")
-            return False
-        print(f"{GREEN}✓ Service {service_name} is running{RESET}")
-        return True
+        if state == "running":
+            print(f"{GREEN}✓ Service {service_name} is running{RESET}")
+            return True
+        print(f"{RED}✗ Service {service_name} is in state: {state}{RESET}")
+        return False
     except:
         print(f"{YELLOW}⚠ Could not parse {service_name} status{RESET}")
         return False

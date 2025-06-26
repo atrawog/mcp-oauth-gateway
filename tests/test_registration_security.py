@@ -24,11 +24,16 @@ Current Security Model:
 - Resource Access: REQUIRES valid bearer token from OAuth flow
 """
 
+import logging
 import secrets
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
 import pytest
+
+
+# Configure logger for test output
+logger = logging.getLogger(__name__)
 
 # Import all configuration from test_constants - NO HARDCODED VALUES!
 from .test_constants import AUTH_BASE_URL
@@ -68,7 +73,7 @@ class TestRegistrationPublicAccess:
             assert "WWW-Authenticate" in response.headers
             error = response.json()
             assert error["error"] == "authorization_required"
-            print(
+            logger.info(
                 "✓ Registration endpoint requires authentication (current implementation)"
             )
         elif response.status_code == HTTP_CREATED:
@@ -76,7 +81,7 @@ class TestRegistrationPublicAccess:
             client_data = response.json()
             assert "client_id" in client_data
             assert "client_secret" in client_data
-            print("✓ Registration endpoint is public (RFC 7591 allows both approaches)")
+            logger.info("✓ Registration endpoint is public (RFC 7591 allows both approaches)")
             # Cleanup if we got a client
             if "registration_access_token" in client_data:
                 try:
@@ -88,7 +93,7 @@ class TestRegistrationPublicAccess:
                     )
                     assert delete_response.status_code in (204, 404)
                 except Exception as e:
-                    print(f"Warning: Error during client cleanup: {e}")
+                    logger.warning(f"Error during client cleanup: {e}")
         else:
             pytest.fail(f"Unexpected status code: {response.status_code}")
 
@@ -135,7 +140,7 @@ class TestRegistrationPublicAccess:
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
-                print(f"Warning: Error during client cleanup: {e}")
+                logger.warning(f"Error during client cleanup: {e}")
 
 
 class TestTokenSecurityWithoutGitHub:
@@ -195,7 +200,7 @@ class TestTokenSecurityWithoutGitHub:
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
-                print(f"Warning: Error during client cleanup: {e}")
+                logger.warning(f"Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
     async def test_authorization_requires_github_login(
@@ -258,7 +263,7 @@ class TestTokenSecurityWithoutGitHub:
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
-                print(f"Warning: Error during client cleanup: {e}")
+                logger.warning(f"Error during client cleanup: {e}")
 
 
 class TestAllowedUsersEnforcement:
@@ -320,7 +325,7 @@ class TestAllowedUsersEnforcement:
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
-                print(f"Warning: Error during client cleanup: {e}")
+                logger.warning(f"Error during client cleanup: {e}")
 
 
 class TestUnauthorizedUserAccess:
@@ -409,7 +414,7 @@ class TestUnauthorizedUserAccess:
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
-                print(f"Warning: Error during client cleanup: {e}")
+                logger.warning(f"Error during client cleanup: {e}")
 
 
 @pytest.mark.skipif(not MCP_FETCH_TESTS_ENABLED, reason="MCP Fetch tests disabled")
@@ -471,10 +476,10 @@ class TestSecurityModelValidation:
         assert mcp_response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in mcp_response.headers
 
-        print("✓ Complete security model validated:")
-        print("  - Client registration requires authentication")
-        print("  - Authorization requires GitHub OAuth")
-        print("  - Resource access requires valid bearer token")
+        logger.info("✓ Complete security model validated:")
+        logger.info("  - Client registration requires authentication")
+        logger.info("  - Authorization requires GitHub OAuth")
+        logger.info("  - Resource access requires valid bearer token")
 
         # Cleanup: Delete the client registration using RFC 7592
         if "registration_access_token" in client_data:
@@ -487,7 +492,7 @@ class TestSecurityModelValidation:
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
-                print(f"Warning: Error during client cleanup: {e}")
+                logger.warning(f"Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
     async def test_oauth_discovery_is_public(self, http_client, wait_for_services):
@@ -506,4 +511,4 @@ class TestSecurityModelValidation:
         assert metadata["authorization_endpoint"] == f"{AUTH_BASE_URL}/authorize"
         assert metadata["token_endpoint"] == f"{AUTH_BASE_URL}/token"
 
-        print("✓ OAuth discovery endpoint is publicly accessible")
+        logger.info("✓ OAuth discovery endpoint is publicly accessible")

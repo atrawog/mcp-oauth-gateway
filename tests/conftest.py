@@ -7,6 +7,7 @@ Environment variables are loaded by 'just test' - NO .env loading in tests!
 import asyncio
 import base64
 import json
+import logging
 import os
 import sys
 import time
@@ -309,8 +310,7 @@ async def cleanup_redis_test_data(request):
     from .test_constants import REDIS_PASSWORD
 
     # Skip cleanup for tests that manage their own Redis state
-    if hasattr(request, "node") and hasattr(request.node, "get_closest_marker"):
-        if request.node.get_closest_marker("skip_redis_cleanup"):
+    if hasattr(request, "node") and hasattr(request.node, "get_closest_marker") and request.node.get_closest_marker("skip_redis_cleanup"):
             yield
             return
 
@@ -339,7 +339,9 @@ async def cleanup_redis_test_data(request):
         await r.aclose()
     except Exception:
         # Ignore cleanup errors - don't fail tests due to cleanup
-        pass
+        # This is acceptable because cleanup failures shouldn't cause test failures
+        # and Redis will automatically expire test keys anyway
+        logging.debug("Redis cleanup error ignored - test keys will auto-expire")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -979,10 +981,10 @@ def mcp_tmux_url():
 
 def parse_error_response(response_json):
     """Parse error response from auth service, handling both OAuth 2.0 format and custom format.
-    
+
     The auth service returns OAuth 2.0 compliant errors with 'error' and 'error_description'
     at the top level, but some tests expect a different format with 'detail'.
-    
+
     Returns: (error_code, error_description)
     """
     if isinstance(response_json, dict):

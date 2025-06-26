@@ -14,9 +14,14 @@ Key security requirements:
 4. Proper error codes must be returned (401, 403, 404)
 """
 
+import logging
 import os
 
 import pytest
+
+
+# Configure logger for test output
+logger = logging.getLogger(__name__)
 
 
 base_domain = os.environ.get('BASE_DOMAIN')
@@ -164,11 +169,11 @@ async def test_rfc7592_authentication_edge_cases(http_client):
         )
         # 204 No Content is success, 404 is okay if already deleted
         if delete_response.status_code not in (204, 404):
-            print(
-                f"Warning: Failed to delete client {client_id}: {delete_response.status_code}"  # TODO: Break long line
+            logger.warning(
+                f"Failed to delete client {client_id}: {delete_response.status_code}"
             )
     except Exception as e:
-        print(f"Warning: Error during client cleanup: {e}")
+        logger.warning(f"Error during client cleanup: {e}")
 
 
 @pytest.mark.asyncio

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test OAuth flow with proper redirect URIs"""
+"""Test OAuth flow with proper redirect URIs."""
 import asyncio
 import os
 
@@ -7,7 +7,7 @@ import httpx
 
 
 async def test_oauth_registration():
-    """Test OAuth client registration with proper redirect URIs"""
+    """Test OAuth client registration with proper redirect URIs."""
     base_domain = os.getenv("BASE_DOMAIN", "atratest.org")
     auth_base_url = f"https://auth.{base_domain}"
 

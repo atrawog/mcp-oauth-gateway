@@ -241,8 +241,7 @@ class TestMCPEchoClientCommands:
 
         # The output should contain the echoed message (with actual newlines)
         output = result.stdout
-        # Convert \\n to actual newlines for comparison
-        expected_in_output = test_message.replace("\\n", "\n")
+        # The test_message contains literal \n, so we check for the actual lines
         assert "Line 1" in output and "Line 2" in output and "Line 3" in output
 
         print("✅ Successfully echoed multiline message via command interface")

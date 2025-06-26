@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fix remaining error response checks in tests.
 
-Some tests have mixed patterns where they check for "detail" 
+Some tests have mixed patterns where they check for "detail"
 but then access error["error"] directly. Fix these inconsistencies.
 """
 

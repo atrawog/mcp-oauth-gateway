@@ -2,7 +2,7 @@
 
 This test file follows CLAUDE.md Sacred Commandments:
 - NO MOCKING - Tests against real deployed mcp-echo service
-- Uses MCP_ECHO_URLS configuration from test_constants  
+- Uses MCP_ECHO_URLS configuration from test_constants
 - Uses mcp-streamablehttp-client CLI tool via subprocess
 - Tests echo and printHeader tools with full protocol compliance
 """
@@ -548,13 +548,13 @@ class TestMCPEchoClientFull:
                     print(f"✅ Protocol version {version} properly supported")
                 else:
                     # Older versions may be supported or rejected - both are valid
-                    print(f"ℹ️  Protocol version {version} response: {server_version}")
+                    print(f"i  Protocol version {version} response: {server_version}")
             elif "error" in response:
                 # Server rejected the protocol version - this is valid behavior
                 error = response["error"]
                 if version == "2024-11-05":
                     # Old version rejection is expected
-                    print(f"ℹ️  Protocol version {version} properly rejected: {error}")
+                    print(f"i  Protocol version {version} properly rejected: {error}")
                 else:
                     # Current version should not be rejected
                     pytest.fail(f"Current protocol version {version} was rejected: {error}")
