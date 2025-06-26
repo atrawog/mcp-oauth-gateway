@@ -265,18 +265,32 @@ def create_app(settings: Settings = None) -> FastAPI:
         )
 
     # Configure CORS
-    cors_origins = os.getenv("MCP_CORS_ORIGINS", "").split(",")
-    cors_origins = [origin.strip() for origin in cors_origins if origin.strip()]
+    cors_origins_env = os.getenv("MCP_CORS_ORIGINS", "").strip()
 
-    if cors_origins:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=cors_origins,
-            allow_credentials=True,
-            allow_methods=["GET", "POST", "OPTIONS"],
-            allow_headers=["*"],
-            expose_headers=["X-User-Id", "X-User-Name", "X-Auth-Token"],
-        )
+    if cors_origins_env:
+        # Handle wildcard specially - cannot use credentials with wildcard
+        if cors_origins_env == "*":
+            app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_credentials=False,  # Cannot use credentials with wildcard
+                allow_methods=["GET", "POST", "OPTIONS"],
+                allow_headers=["*"],
+                expose_headers=["X-User-Id", "X-User-Name", "X-Auth-Token"],
+            )
+        else:
+            # Split by comma for multiple origins
+            cors_origins = [
+                origin.strip() for origin in cors_origins_env.split(",") if origin.strip()
+            ]
+            app.add_middleware(
+                CORSMiddleware,
+                allow_origins=cors_origins,
+                allow_credentials=True,
+                allow_methods=["GET", "POST", "OPTIONS"],
+                allow_headers=["*"],
+                expose_headers=["X-User-Id", "X-User-Name", "X-Auth-Token"],
+            )
 
     # Include OAuth routes with Authlib ResourceProtector for enhanced security
     oauth_router = create_oauth_router(settings, redis_manager, auth_manager)

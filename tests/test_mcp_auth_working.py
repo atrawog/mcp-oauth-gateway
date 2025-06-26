@@ -30,8 +30,9 @@ class TestMCPAuthWorking:
         assert response.headers["WWW-Authenticate"] == "Bearer"
 
         error = response.json()
-        assert "detail" in error
-        assert "error" in error["detail"]
+        assert "error" in error
+        assert error["error"] == "invalid_request"
+        assert "error_description" in error
 
         print("✅ MCP correctly rejects unauthenticated requests")
 
@@ -48,7 +49,8 @@ class TestMCPAuthWorking:
 
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
-        assert "detail" in error
+        assert "error" in error
+        assert error["error"] == "invalid_token"
 
         print("✅ MCP correctly rejects invalid tokens")
 
