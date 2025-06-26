@@ -990,17 +990,8 @@ class MCPEchoServer:
                 email = payload_json.get("email")
                 sub = payload_json.get("sub")
 
-                # Get custom claims for debugging
-                custom_claims = {
-                    k: v for k, v in payload_json.items() if k not in ["iss", "sub", "aud", "exp", "nbf", "iat", "jti"]
-                }
-
                 if name or username or email or sub:
                     found_user_info = True
-
-                # Show custom claims in debug mode
-                if self.debug and custom_claims:
-                    result_text += f"DEBUG: Custom JWT claims: {custom_claims}\n\n"
 
             except Exception as e:
                 if self.debug:
