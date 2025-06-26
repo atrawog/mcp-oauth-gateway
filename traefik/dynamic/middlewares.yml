@@ -1,0 +1,75 @@
+# Traefik Dynamic Configuration - Shared Middleware Definitions
+# This file contains all middleware that can be used across services
+# No more need to define these in individual service labels!
+
+http:
+  middlewares:
+    # Authentication middleware for MCP services
+    mcp-auth:
+      forwardAuth:
+        address: "http://auth:8000/verify"
+        authResponseHeaders:
+          - "X-User-Id"
+          - "X-User-Name"
+          - "X-Auth-Token"
+        trustForwardHeader: true
+
+    # CORS middleware for MCP services
+    mcp-cors:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+          - POST
+          - DELETE
+          - PATCH
+        accessControlAllowHeaders:
+          - "*"
+        accessControlAllowOriginList:
+          - "https://example.com"
+          - "https://claude.ai"
+          - "https://atratest.org"
+          - "https://auth.atratest.org"
+          - "https://echo.atratest.org"
+          # Note: These should match MCP_CORS_ORIGINS from .env
+        accessControlMaxAge: 100
+        addVaryHeader: true
+        accessControlAllowCredentials: true
+
+    # OAuth discovery rewrite middleware
+    # Note: This requires the Host header to be set dynamically per deployment
+    # Consider using labels on the auth service if the domain varies
+    oauth-discovery-rewrite:
+      headers:
+        customRequestHeaders:
+          Host: "auth.${BASE_DOMAIN}"  # Set this based on your domain
+
+    # HTTPS redirect middleware
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    # Security headers middleware
+    security-headers:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        frameDeny: true
+        sslRedirect: true
+        customFrameOptionsValue: "SAMEORIGIN"
+        customResponseHeaders:
+          X-Content-Type-Options: "nosniff"
+          X-Frame-Options: "SAMEORIGIN"
+          X-XSS-Protection: "1; mode=block"
+
+    # Rate limiting middleware (example)
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1m
+        sourceCriterion:
+          ipStrategy:
+            depth: 1

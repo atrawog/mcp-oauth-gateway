@@ -1,0 +1,100 @@
+# Template docker-compose.yml for MCP services
+# Replace SERVICE_NAME with your actual service name (e.g., mcp-fetch, mcp-filesystem)
+# This template demonstrates the divine pattern for all MCP services!
+
+services:
+  SERVICE_NAME:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: SERVICE_NAME
+    restart: unless-stopped
+    environment:
+      # NOTE: When using this template as part of the main docker-compose.yml,
+      # add the following line to import common MCP environment variables:
+      # <<: *mcp-common-env
+      MCP_CORS_ORIGINS: ${MCP_CORS_ORIGINS}
+      BASE_DOMAIN: ${BASE_DOMAIN}
+      NODE_ENV: production
+      # CRITICAL: Set the MCP protocol version for THIS specific service
+      # Do NOT use an environment variable here - hardcode the version this service supports!
+      # Example: MCP_PROTOCOL_VERSION: 2024-11-05
+      # Example: MCP_PROTOCOL_VERSION: 2025-03-26
+      MCP_PROTOCOL_VERSION: YOUR_SERVICE_PROTOCOL_VERSION  # REPLACE with actual version!
+      # Add service-specific environment variables here
+      SERVICE_SPECIFIC_VAR: ${SERVICE_SPECIFIC_VAR:-default_value}
+    networks:
+      - public
+    labels:
+      # NOTE: When using this template as part of the main docker-compose.yml,
+      # add the following line to import common labels:
+      # <<: *mcp-common-labels
+      traefik.enable: "true"
+      traefik.docker.network: "public"
+
+      # Service definition
+      traefik.http.services.SERVICE_NAME.loadbalancer.server.port: "3000"
+
+      # Priority 10: OAuth discovery route (highest priority)
+      traefik.http.routers.SERVICE_NAME-oauth-discovery.rule: "Host(`SERVICE_NAME.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      traefik.http.routers.SERVICE_NAME-oauth-discovery.priority: "10"
+      traefik.http.routers.SERVICE_NAME-oauth-discovery.entrypoints: "websecure"
+      traefik.http.routers.SERVICE_NAME-oauth-discovery.service: "auth@docker"
+      traefik.http.routers.SERVICE_NAME-oauth-discovery.middlewares: "oauth-discovery-rewrite@file"
+      traefik.http.routers.SERVICE_NAME-oauth-discovery.tls: "true"
+      traefik.http.routers.SERVICE_NAME-oauth-discovery.tls.certresolver: "letsencrypt"
+
+      # Priority 4: CORS preflight route
+      traefik.http.routers.SERVICE_NAME-cors.rule: "Host(`SERVICE_NAME.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
+      traefik.http.routers.SERVICE_NAME-cors.priority: "4"
+      traefik.http.routers.SERVICE_NAME-cors.entrypoints: "websecure"
+      traefik.http.routers.SERVICE_NAME-cors.middlewares: "mcp-cors@file"
+      traefik.http.routers.SERVICE_NAME-cors.service: "SERVICE_NAME"
+      traefik.http.routers.SERVICE_NAME-cors.tls: "true"
+      traefik.http.routers.SERVICE_NAME-cors.tls.certresolver: "letsencrypt"
+
+      # Priority 2: Main MCP route
+      traefik.http.routers.SERVICE_NAME.rule: "Host(`SERVICE_NAME.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      traefik.http.routers.SERVICE_NAME.priority: "2"
+      traefik.http.routers.SERVICE_NAME.entrypoints: "websecure"
+      traefik.http.routers.SERVICE_NAME.middlewares: "mcp-auth@file,mcp-cors@file"
+      traefik.http.routers.SERVICE_NAME.service: "SERVICE_NAME"
+      traefik.http.routers.SERVICE_NAME.tls: "true"
+      traefik.http.routers.SERVICE_NAME.tls.certresolver: "letsencrypt"
+
+      # Priority 1: HTTPS catch-all route
+      traefik.http.routers.SERVICE_NAME-catchall.rule: "Host(`SERVICE_NAME.${BASE_DOMAIN}`)"
+      traefik.http.routers.SERVICE_NAME-catchall.priority: "1"
+      traefik.http.routers.SERVICE_NAME-catchall.entrypoints: "websecure"
+      traefik.http.routers.SERVICE_NAME-catchall.middlewares: "mcp-auth@file,mcp-cors@file"
+      traefik.http.routers.SERVICE_NAME-catchall.service: "SERVICE_NAME"
+      traefik.http.routers.SERVICE_NAME-catchall.tls: "true"
+      traefik.http.routers.SERVICE_NAME-catchall.tls.certresolver: "letsencrypt"
+
+      # Priority 1: HTTP to HTTPS redirect
+      traefik.http.routers.SERVICE_NAME-http.rule: "Host(`SERVICE_NAME.${BASE_DOMAIN}`)"
+      traefik.http.routers.SERVICE_NAME-http.priority: "1"
+      traefik.http.routers.SERVICE_NAME-http.entrypoints: "web"
+      traefik.http.routers.SERVICE_NAME-http.middlewares: "redirect-to-https@file"
+
+    healthcheck:
+      # NOTE: When using this template as part of the main docker-compose.yml,
+      # add the following line to import common healthcheck settings:
+      # <<: *mcp-healthcheck
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+      # Option 1: Use the standardized shell script (copy script to container in Dockerfile)
+      test: ["CMD", "/app/scripts/mcp_healthcheck.sh"]
+      # Option 2: Use the Python script (if Python is available in container)
+      # test: ["CMD", "python", "/app/scripts/mcp_healthcheck.py"]
+      # Option 3: Inline curl command (original approach)
+      # test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp \
+      #   -H 'Content-Type: application/json' \
+      #   -H 'Accept: application/json, text/event-stream' \
+      #   -d \"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"method\\\":\\\"initialize\\\",\\\"params\\\":{\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION}\\\",\\\"capabilities\\\":{},\\\"clientInfo\\\":{\\\"name\\\":\\\"healthcheck\\\",\\\"version\\\":\\\"1.0\\\"}},\\\"id\\\":1}\" \
+      #   | grep -q \"\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION}\\\"\""]
+
+# Note: Networks and volumes are defined in the main docker-compose.yml
+# This service file will be included via the include directive

@@ -1,6 +1,34 @@
 # The root orchestrator that unites the three divine realms
 # Each service maintains its own docker-compose.yml for sacred isolation
 
+# Extension fields for common MCP service patterns - Divine templates!
+x-mcp-common-env: &mcp-common-env
+  MCP_CORS_ORIGINS: ${MCP_CORS_ORIGINS}
+  # NOTE: MCP_PROTOCOL_VERSION must be set by each service individually!
+  # Different services may use different protocol versions
+  BASE_DOMAIN: ${BASE_DOMAIN}
+  NODE_ENV: production
+
+x-mcp-common-labels: &mcp-common-labels
+  traefik.enable: "true"
+  traefik.docker.network: "public"
+
+x-mcp-healthcheck: &mcp-healthcheck
+  interval: 30s
+  timeout: 5s
+  retries: 3
+  start_period: 40s
+
+x-mcp-deploy: &mcp-deploy
+  restart_policy:
+    condition: unless-stopped
+    delay: 5s
+    max_attempts: 3
+
+x-mcp-networks: &mcp-networks
+  networks:
+    - public
+
 include:
   - traefik/docker-compose.yml
   - auth/docker-compose.yml
@@ -15,26 +43,8 @@ include:
   - mcp-tmux/docker-compose.yml
   - mcp-playwright/docker-compose.yml
 
-# Shared middleware definitions accessible to all services
-services:
-  # This is a dummy service that only defines shared middlewares
-  # It uses the smallest possible image and stays running to maintain middleware definitions
-  shared-middlewares:
-    image: busybox:latest
-    container_name: shared-middlewares
-    command: ["sleep", "infinity"]  # Stay running to maintain middleware definitions
-    restart: unless-stopped
-    networks:
-      - public
-    labels:
-      - "traefik.enable=false"  # Middlewares now defined in auth service
-      - "traefik.http.services.shared-middlewares.loadbalancer.server.port=1234"  # Dummy port (service not routed to)
-
-      # NOTE: Middleware definitions moved to auth/docker-compose.yml to avoid conflicts
-
-      # Shared HTTPS redirect middleware
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+# Services section removed - middleware now in Traefik dynamic config
+# Extension fields above provide common patterns for all services
 
 networks:
   public:

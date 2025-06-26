@@ -415,6 +415,10 @@ check-services:
     curl -f https://auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server || echo "Auth service not healthy"
     curl -f https://mcp-fetch.${BASE_DOMAIN}/.well-known/oauth-authorization-server || echo "MCP-fetch OAuth discovery not accessible"
 
+# Show service status with health information
+status:
+    @pixi run python scripts/show_service_status.py
+
 # Check SSL certificates
 check-ssl:
 	#!/usr/bin/env bash

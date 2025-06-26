@@ -47,22 +47,12 @@ services:
       # HTTP to HTTPS redirect for auth service - Priority 1 (lowest)
       - "traefik.http.routers.auth-redirect.rule=Host(`auth.${BASE_DOMAIN}`)"
       - "traefik.http.routers.auth-redirect.entrypoints=web"
-      - "traefik.http.routers.auth-redirect.middlewares=redirect-to-https"
+      - "traefik.http.routers.auth-redirect.middlewares=redirect-to-https@file"
       - "traefik.http.routers.auth-redirect.priority=1"
       - "traefik.http.routers.auth-redirect.service=auth"
 
-      # Shared middleware definitions (auth service stays running so these persist)
-      # ForwardAuth middleware for MCP services
-      - "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"
-      - "traefik.http.middlewares.mcp-auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name,X-Auth-Token"
-
-      # CORS middleware for MCP services
-      - "traefik.http.middlewares.mcp-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE,PATCH"
-      - "traefik.http.middlewares.mcp-cors.headers.accesscontrolallowheaders=*"
-      - "traefik.http.middlewares.mcp-cors.headers.accesscontrolalloworiginlist=${MCP_CORS_ORIGINS}"
-      - "traefik.http.middlewares.mcp-cors.headers.accesscontrolmaxage=100"
-      - "traefik.http.middlewares.mcp-cors.headers.addvaryheader=true"
-      - "traefik.http.middlewares.mcp-cors.headers.accesscontrolallowcredentials=true"
+      # Middleware definitions moved to Traefik dynamic config (/traefik/dynamic/middlewares.yml)
+      # This reduces coupling and allows middleware updates without restarting auth service
     healthcheck:
       test: ["CMD", "curl", "-f", "-s", "http://localhost:8000/.well-known/oauth-authorization-server"]
       interval: 10s
