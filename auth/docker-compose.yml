@@ -33,14 +33,24 @@ services:
       - "traefik.http.routers.auth-oauth.priority=4"
       - "traefik.http.routers.auth-oauth.entrypoints=websecure"
       - "traefik.http.routers.auth-oauth.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.auth-oauth.middlewares=mcp-cors@file"
       - "traefik.http.routers.auth-oauth.service=auth"
       - "traefik.http.services.auth.loadbalancer.server.port=8000"
+
+      # CORS preflight route (OPTIONS) - Priority 5 (HIGHEST for OPTIONS)
+      - "traefik.http.routers.auth-cors.rule=Host(`auth.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.auth-cors.priority=5"
+      - "traefik.http.routers.auth-cors.entrypoints=websecure"
+      - "traefik.http.routers.auth-cors.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.auth-cors.middlewares=mcp-cors@file"
+      - "traefik.http.routers.auth-cors.service=auth"
 
       # Verify endpoint for ForwardAuth - Priority 3
       - "traefik.http.routers.auth-verify.rule=Host(`auth.${BASE_DOMAIN}`) && Path(`/verify`)"
       - "traefik.http.routers.auth-verify.priority=3"
       - "traefik.http.routers.auth-verify.entrypoints=websecure"
       - "traefik.http.routers.auth-verify.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.auth-verify.middlewares=mcp-cors@file"
       - "traefik.http.routers.auth-verify.service=auth"
 
 

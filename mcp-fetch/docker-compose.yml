@@ -32,6 +32,7 @@ services:
       - "traefik.http.routers.mcp-fetch-cors.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-cors.tls.certresolver=letsencrypt"
       - "traefik.http.routers.mcp-fetch-cors.service=mcp-fetch"
+      - "traefik.http.routers.mcp-fetch-cors.middlewares=mcp-cors@file"
       # No auth middleware for CORS preflight!
 
       # MCP route with auth - Priority 2
@@ -40,7 +41,7 @@ services:
       - "traefik.http.routers.mcp-fetch.priority=2"
       - "traefik.http.routers.mcp-fetch.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-fetch.middlewares=mcp-cors@file,mcp-auth@file"
       - "traefik.http.routers.mcp-fetch.service=mcp-fetch"
 
       # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
@@ -48,7 +49,7 @@ services:
       - "traefik.http.routers.mcp-fetch-catchall.priority=1"
       - "traefik.http.routers.mcp-fetch-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetch-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-fetch-catchall.middlewares=mcp-cors@file,mcp-auth@file"
       - "traefik.http.routers.mcp-fetch-catchall.service=mcp-fetch"
 
       # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)

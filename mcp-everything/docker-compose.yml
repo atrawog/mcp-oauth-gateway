@@ -42,7 +42,7 @@ services:
       - "traefik.http.routers.everything.priority=2"
       - "traefik.http.routers.everything.entrypoints=websecure"
       - "traefik.http.routers.everything.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.everything.middlewares=mcp-auth@docker,mcp-cors@docker,everything-sse@docker"
+      - "traefik.http.routers.everything.middlewares=mcp-cors@file,mcp-auth@file,everything-sse@docker"
       - "traefik.http.routers.everything.service=mcp-everything"
 
       # SSE/Streaming support headers
@@ -55,7 +55,7 @@ services:
       - "traefik.http.routers.everything-catchall.priority=1"
       - "traefik.http.routers.everything-catchall.entrypoints=websecure"
       - "traefik.http.routers.everything-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.everything-catchall.middlewares=mcp-auth@docker,mcp-cors@docker,everything-sse@docker"
+      - "traefik.http.routers.everything-catchall.middlewares=mcp-cors@file,mcp-auth@file,everything-sse@docker"
       - "traefik.http.routers.everything-catchall.service=mcp-everything"
 
       # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)

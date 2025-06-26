@@ -60,58 +60,15 @@ class MCPEchoServer:
 
     async def handle_mcp_request(self, request: Request):
         """Handle MCP requests according to 2025-06-18 specification."""
-        # Get CORS origin configuration
-        cors_origins = os.getenv("MCP_CORS_ORIGINS", "*").strip()
-        origin = request.headers.get("origin", "")
-        allowed_origin = self._determine_allowed_origin(cors_origins, origin)
-
         # ⚡ DIVINE DECREE: CORS HANDLED BY TRAEFIK MIDDLEWARE! ⚡
         # MCP services must maintain "pure protocol innocence" per CLAUDE.md
-        # OPTIONS requests flow through Traefik CORS middleware
+        # All CORS headers are set by Traefik, not by the service
 
         if request.method == "GET":
             return self._handle_sse_stream()
 
         # POST method handling
-        return await self._handle_post_request(request, allowed_origin)
-
-    def _determine_allowed_origin(self, cors_origins: str, origin: str) -> str:
-        """Determine the allowed CORS origin."""
-        if cors_origins == "*":
-            return "*"
-
-        if not origin:
-            return "*"
-
-        allowed_origins = [o.strip() for o in cors_origins.split(",")]
-        if origin in allowed_origins:
-            return origin
-
-        # If origin not allowed, don't set any origin header (will be blocked by browser)
-        return ""
-
-    def _handle_cors_preflight(self, allowed_origin: str) -> Response:
-        """Handle CORS preflight requests."""
-        headers = {
-            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, MCP-Protocol-Version, Mcp-Session-Id",
-        }
-
-        if allowed_origin:
-            headers["Access-Control-Allow-Origin"] = allowed_origin
-            if allowed_origin != "*":
-                headers["Access-Control-Allow-Credentials"] = "true"
-
-        return Response(content="", headers=headers)
-
-    def _cors_headers(self, allowed_origin: str) -> dict:
-        """Generate CORS headers based on allowed origin."""
-        headers = {}
-        if allowed_origin:
-            headers["Access-Control-Allow-Origin"] = allowed_origin
-            if allowed_origin != "*":
-                headers["Access-Control-Allow-Credentials"] = "true"
-        return headers
+        return await self._handle_post_request(request)
 
     def _handle_sse_stream(self) -> StreamingResponse:
         """Handle GET requests for SSE streams."""
@@ -131,10 +88,10 @@ class MCPEchoServer:
             },
         )
 
-    async def _handle_post_request(self, request: Request, allowed_origin: str) -> Response:
+    async def _handle_post_request(self, request: Request) -> Response:
         """Handle POST requests with validation and processing."""
         # Validate headers
-        validation_error = self._validate_post_headers(request, allowed_origin)
+        validation_error = self._validate_post_headers(request)
         if validation_error:
             return validation_error
 
@@ -149,12 +106,12 @@ class MCPEchoServer:
 
         try:
             # Parse and process request
-            return await self._process_json_rpc_request(request, allowed_origin)
+            return await self._process_json_rpc_request(request)
         finally:
             # Clean up request context
             self._request_context.pop(task_id, None)
 
-    def _validate_post_headers(self, request: Request, allowed_origin: str) -> JSONResponse | None:
+    def _validate_post_headers(self, request: Request) -> JSONResponse | None:
         """Validate required headers for POST requests."""
         # Validate Content-Type
         content_type = request.headers.get("content-type", "")
@@ -162,7 +119,6 @@ class MCPEchoServer:
             return JSONResponse(
                 {"error": "Content-Type must be application/json"},
                 status_code=400,
-                headers=self._cors_headers(allowed_origin),
             )
 
         # Validate Accept header
@@ -171,7 +127,6 @@ class MCPEchoServer:
             return JSONResponse(
                 {"error": "Client must accept both application/json and text/event-stream"},
                 status_code=400,
-                headers=self._cors_headers(allowed_origin),
             )
 
         # Check MCP-Protocol-Version
@@ -182,12 +137,11 @@ class MCPEchoServer:
                     "error": f"Unsupported protocol version: {protocol_version}. Supported versions: {', '.join(self.supported_versions)}"
                 },
                 status_code=400,
-                headers=self._cors_headers(allowed_origin),
             )
 
         return None
 
-    async def _process_json_rpc_request(self, request: Request, allowed_origin: str) -> Response:
+    async def _process_json_rpc_request(self, request: Request) -> Response:
         """Process the JSON-RPC request and return appropriate response."""
         try:
             body = await request.json()
@@ -195,7 +149,6 @@ class MCPEchoServer:
             return StreamingResponse(
                 self._sse_error_stream(-32700, "Parse error"),
                 media_type="text/event-stream",
-                headers=self._cors_headers(allowed_origin),
             )
 
         if self.debug:
@@ -206,7 +159,6 @@ class MCPEchoServer:
             return JSONResponse(
                 {"error": "Batch requests not supported in stateless mode"},
                 status_code=400,
-                headers=self._cors_headers(allowed_origin),
             )
 
         # Handle the JSON-RPC request
@@ -217,13 +169,12 @@ class MCPEchoServer:
 
         # Check if this is a notification
         if "id" not in body and "error" not in response:
-            return Response(content="", status_code=202, headers=self._cors_headers(allowed_origin))
+            return Response(content="", status_code=202)
 
         # Return SSE response
         return StreamingResponse(
             self._sse_response_stream(response),
             media_type="text/event-stream",
-            headers=self._cors_headers(allowed_origin),
         )
 
     async def _handle_jsonrpc_request(self, request: dict[str, Any]) -> dict[str, Any]:
@@ -777,6 +728,11 @@ class MCPEchoServer:
 
         result_text = "CORS Configuration Analysis\n" + "=" * 40 + "\n\n"
 
+        # CORS Configuration Notice
+        result_text += "⚡ DIVINE DECREE: CORS IS HANDLED BY TRAEFIK! ⚡\n"
+        result_text += "This MCP service does not set CORS headers.\n"
+        result_text += "All CORS headers are managed by Traefik middleware.\n\n"
+
         # Request CORS headers
         result_text += "Request Headers:\n"
         origin = headers.get("origin", "")
@@ -802,10 +758,12 @@ class MCPEchoServer:
         result_text += "\n"
 
         # Expected response headers
-        result_text += "Response CORS Headers (configured):\n"
-        result_text += "  Access-Control-Allow-Origin: *\n"
-        result_text += "  Access-Control-Allow-Methods: POST, GET, OPTIONS\n"
-        result_text += "  Access-Control-Allow-Headers: Content-Type, Authorization, Accept, MCP-Protocol-Version, Mcp-Session-Id\n"
+        result_text += "Response CORS Headers (set by Traefik):\n"
+        result_text += "  Access-Control-Allow-Origin: (depends on MCP_CORS_ORIGINS env var)\n"
+        result_text += "  Access-Control-Allow-Methods: GET, OPTIONS, PUT, POST, DELETE, PATCH\n"
+        result_text += "  Access-Control-Allow-Headers: *\n"
+        result_text += "  Access-Control-Allow-Credentials: (true unless wildcard origin)\n"
+        result_text += "  Note: These headers are set by Traefik, not this service\n"
 
         result_text += "\n"
 

@@ -29,7 +29,7 @@ services:
       - "traefik.http.routers.mcp-tmux-cors.service=mcp-tmux"
       - "traefik.http.routers.mcp-tmux-cors.tls=true"
       - "traefik.http.routers.mcp-tmux-cors.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-tmux-cors.middlewares=mcp-cors@docker"
+      - "traefik.http.routers.mcp-tmux-cors.middlewares=mcp-cors@file"
 
       # MCP Route with Auth - Priority 2
       - "traefik.http.routers.mcp-tmux.rule=Host(`tmux.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
@@ -38,7 +38,7 @@ services:
       - "traefik.http.routers.mcp-tmux.service=mcp-tmux"
       - "traefik.http.routers.mcp-tmux.tls=true"
       - "traefik.http.routers.mcp-tmux.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-tmux.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-tmux.middlewares=mcp-cors@file,mcp-auth@file"
 
       # Catch-all Route with Auth - Priority 1 (Lowest!)
       - "traefik.http.routers.mcp-tmux-catchall.rule=Host(`tmux.${BASE_DOMAIN}`)"
@@ -47,7 +47,7 @@ services:
       - "traefik.http.routers.mcp-tmux-catchall.service=mcp-tmux"
       - "traefik.http.routers.mcp-tmux-catchall.tls=true"
       - "traefik.http.routers.mcp-tmux-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-tmux-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-tmux-catchall.middlewares=mcp-cors@file,mcp-auth@file"
 
       # Service definition
       - "traefik.http.services.mcp-tmux.loadbalancer.server.port=3000"

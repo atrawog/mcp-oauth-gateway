@@ -27,7 +27,7 @@ services:
       - "traefik.http.routers.mcp-sequentialthinking-cors.service=mcp-sequentialthinking"
       - "traefik.http.routers.mcp-sequentialthinking-cors.tls=true"
       - "traefik.http.routers.mcp-sequentialthinking-cors.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-sequentialthinking-cors.middlewares=mcp-cors@docker"
+      - "traefik.http.routers.mcp-sequentialthinking-cors.middlewares=mcp-cors@file"
 
       # MCP Route with Auth - Priority 2
       - "traefik.http.routers.mcp-sequentialthinking.rule=Host(`sequentialthinking.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
@@ -35,7 +35,7 @@ services:
       - "traefik.http.routers.mcp-sequentialthinking.service=mcp-sequentialthinking"
       - "traefik.http.routers.mcp-sequentialthinking.tls=true"
       - "traefik.http.routers.mcp-sequentialthinking.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-sequentialthinking.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-sequentialthinking.middlewares=mcp-cors@file,mcp-auth@file"
 
       # Catch-all Route with Auth - Priority 1 (Lowest!)
       - "traefik.http.routers.mcp-sequentialthinking-catchall.rule=Host(`sequentialthinking.${BASE_DOMAIN}`)"
@@ -43,7 +43,7 @@ services:
       - "traefik.http.routers.mcp-sequentialthinking-catchall.service=mcp-sequentialthinking"
       - "traefik.http.routers.mcp-sequentialthinking-catchall.tls=true"
       - "traefik.http.routers.mcp-sequentialthinking-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-sequentialthinking-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-sequentialthinking-catchall.middlewares=mcp-cors@file,mcp-auth@file"
 
       # Service definition
       - "traefik.http.services.mcp-sequentialthinking.loadbalancer.server.port=3000"

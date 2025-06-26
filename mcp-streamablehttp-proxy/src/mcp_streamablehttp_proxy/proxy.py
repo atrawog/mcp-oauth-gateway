@@ -3,14 +3,12 @@
 import asyncio
 import json
 import logging
-import os
 import subprocess
 import time
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
@@ -390,22 +388,8 @@ def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI
     """Create FastAPI app with MCP proxy endpoints."""
     app = FastAPI()
 
-    # Configure CORS
-    cors_origins = os.getenv("MCP_CORS_ORIGINS", "").split(",")
-    cors_origins = [origin.strip() for origin in cors_origins if origin.strip()]
-
-    if cors_origins:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=cors_origins,
-            allow_credentials=True,
-            allow_methods=["GET", "POST", "OPTIONS"],
-            allow_headers=["*"],
-            expose_headers=["Mcp-Session-Id", "MCP-Protocol-Version"],
-        )
-        logger.info(f"CORS enabled for origins: {cors_origins}")
-    else:
-        logger.warning("CORS not configured! Set MCP_CORS_ORIGINS environment variable")
+    # CORS is handled by Traefik middleware - no need to configure here
+    # This ensures CORS headers are set in only one place as required
 
     # Create session manager
     session_manager = MCPSessionManager(server_command, session_timeout)
@@ -432,13 +416,7 @@ def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI
     @app.post("/mcp")
     async def handle_mcp(request: Request):
         """Handle MCP requests without trailing slash redirect."""
-        # Validate Origin header for security (MCP spec requirement)
-        origin = request.headers.get("Origin")
-        if origin and cors_origins:
-            # Check if origin is allowed
-            if origin not in cors_origins:
-                logger.warning(f"Rejected request from unauthorized origin: {origin}")
-                raise HTTPException(status_code=403, detail="Origin not allowed")
+        # CORS is handled by Traefik middleware - no validation needed here
 
         try:
             request_data = await request.json()

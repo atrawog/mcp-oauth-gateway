@@ -42,7 +42,7 @@ services:
       - "traefik.http.routers.mcp-echo.priority=2"
       - "traefik.http.routers.mcp-echo.entrypoints=websecure"
       - "traefik.http.routers.mcp-echo.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-echo.middlewares=mcp-auth@file,mcp-cors@file"
+      - "traefik.http.routers.mcp-echo.middlewares=mcp-cors@file,mcp-auth@file"
       - "traefik.http.routers.mcp-echo.service=mcp-echo"
 
       # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
@@ -50,7 +50,7 @@ services:
       - "traefik.http.routers.mcp-echo-catchall.priority=1"
       - "traefik.http.routers.mcp-echo-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-echo-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-echo-catchall.middlewares=mcp-auth@file,mcp-cors@file"
+      - "traefik.http.routers.mcp-echo-catchall.middlewares=mcp-cors@file,mcp-auth@file"
       - "traefik.http.routers.mcp-echo-catchall.service=mcp-echo"
 
       # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)

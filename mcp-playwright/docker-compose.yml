@@ -32,7 +32,7 @@ services:
       - "traefik.http.routers.mcp-playwright.service=mcp-playwright"
       - "traefik.http.routers.mcp-playwright.tls=true"
       - "traefik.http.routers.mcp-playwright.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-playwright.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-playwright.middlewares=mcp-cors@file,mcp-auth@file"
 
       # Service Definition
       - "traefik.http.services.mcp-playwright.loadbalancer.server.port=3000"
@@ -43,13 +43,14 @@ services:
       - "traefik.http.routers.mcp-playwright-cors.entrypoints=websecure"
       - "traefik.http.routers.mcp-playwright-cors.tls.certresolver=letsencrypt"
       - "traefik.http.routers.mcp-playwright-cors.service=mcp-playwright"
+      - "traefik.http.routers.mcp-playwright-cors.middlewares=mcp-cors@file"
 
       # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
       - "traefik.http.routers.mcp-playwright-catchall.rule=Host(`playwright.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-playwright-catchall.priority=1"
       - "traefik.http.routers.mcp-playwright-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-playwright-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-playwright-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-playwright-catchall.middlewares=mcp-cors@file,mcp-auth@file"
       - "traefik.http.routers.mcp-playwright-catchall.service=mcp-playwright"
 
     healthcheck:

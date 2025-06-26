@@ -27,7 +27,7 @@ services:
       - "traefik.http.routers.mcp-time-cors.service=mcp-time"
       - "traefik.http.routers.mcp-time-cors.tls=true"
       - "traefik.http.routers.mcp-time-cors.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-time-cors.middlewares=mcp-cors@docker"
+      - "traefik.http.routers.mcp-time-cors.middlewares=mcp-cors@file"
 
       # MCP Route with Auth - Priority 2
       - "traefik.http.routers.mcp-time.rule=Host(`time.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
@@ -35,7 +35,7 @@ services:
       - "traefik.http.routers.mcp-time.service=mcp-time"
       - "traefik.http.routers.mcp-time.tls=true"
       - "traefik.http.routers.mcp-time.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-time.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-time.middlewares=mcp-cors@file,mcp-auth@file"
 
       # Catch-all Route with Auth - Priority 1 (Lowest!)
       - "traefik.http.routers.mcp-time-catchall.rule=Host(`time.${BASE_DOMAIN}`)"
@@ -43,7 +43,7 @@ services:
       - "traefik.http.routers.mcp-time-catchall.service=mcp-time"
       - "traefik.http.routers.mcp-time-catchall.tls=true"
       - "traefik.http.routers.mcp-time-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-time-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-time-catchall.middlewares=mcp-cors@file,mcp-auth@file"
 
       # Service definition
       - "traefik.http.services.mcp-time.loadbalancer.server.port=3000"

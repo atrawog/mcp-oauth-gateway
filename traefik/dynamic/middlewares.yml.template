@@ -27,10 +27,10 @@ http:
         accessControlAllowHeaders:
           - "*"
         accessControlAllowOriginList:
-          - "*"
+${CORS_ORIGINS_YAML}
         accessControlMaxAge: 100
         addVaryHeader: true
-        accessControlAllowCredentials: false
+        accessControlAllowCredentials: ${CORS_ALLOW_CREDENTIALS}
 
     # OAuth discovery rewrite middleware
     # Note: This requires the Host header to be set dynamically per deployment
@@ -38,7 +38,7 @@ http:
     oauth-discovery-rewrite:
       headers:
         customRequestHeaders:
-          Host: "auth.atratest.org"  # Set this based on your domain
+          Host: "auth.${BASE_DOMAIN}"  # Set this based on your domain
 
     # HTTPS redirect middleware
     redirect-to-https:

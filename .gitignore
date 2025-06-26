@@ -105,3 +105,6 @@ oauth-backup-*.json
 
 # Generated docker-compose includes
 docker-compose.includes.yml
+
+# Generated Traefik middleware configuration
+traefik/dynamic/middlewares.yml

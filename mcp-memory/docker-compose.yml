@@ -30,7 +30,7 @@ services:
       - "traefik.http.routers.mcp-memory-cors.service=mcp-memory"
       - "traefik.http.routers.mcp-memory-cors.tls=true"
       - "traefik.http.routers.mcp-memory-cors.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-memory-cors.middlewares=mcp-cors@docker"
+      - "traefik.http.routers.mcp-memory-cors.middlewares=mcp-cors@file"
 
       # MCP Route with Auth - Priority 2
       - "traefik.http.routers.mcp-memory.rule=Host(`memory.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
@@ -38,7 +38,7 @@ services:
       - "traefik.http.routers.mcp-memory.service=mcp-memory"
       - "traefik.http.routers.mcp-memory.tls=true"
       - "traefik.http.routers.mcp-memory.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-memory.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-memory.middlewares=mcp-cors@file,mcp-auth@file"
 
       # Catch-all Route with Auth - Priority 1 (Lowest!)
       - "traefik.http.routers.mcp-memory-catchall.rule=Host(`memory.${BASE_DOMAIN}`)"
@@ -46,7 +46,7 @@ services:
       - "traefik.http.routers.mcp-memory-catchall.service=mcp-memory"
       - "traefik.http.routers.mcp-memory-catchall.tls=true"
       - "traefik.http.routers.mcp-memory-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-memory-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-memory-catchall.middlewares=mcp-cors@file,mcp-auth@file"
 
       # Service definition
       - "traefik.http.services.mcp-memory.loadbalancer.server.port=3000"

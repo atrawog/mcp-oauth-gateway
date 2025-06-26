@@ -26,11 +26,12 @@ services:
       - "traefik.http.routers.mcp-fetchs-options.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetchs-options.tls=true"
       - "traefik.http.routers.mcp-fetchs-options.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetchs-options.middlewares=mcp-cors@file"
 
       # MCP endpoint with auth - lower priority catches all non-OPTIONS
       - "traefik.http.routers.mcp-fetchs.rule=Host(`fetchs.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.mcp-fetchs.priority=2"
-      - "traefik.http.routers.mcp-fetchs.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-fetchs.middlewares=mcp-cors@file,mcp-auth@file"
       - "traefik.http.routers.mcp-fetchs.service=mcp-fetchs"
       - "traefik.http.routers.mcp-fetchs.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetchs.tls=true"
@@ -41,7 +42,7 @@ services:
       - "traefik.http.routers.mcp-fetchs-catchall.priority=1"
       - "traefik.http.routers.mcp-fetchs-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetchs-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetchs-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-fetchs-catchall.middlewares=mcp-cors@file,mcp-auth@file"
       - "traefik.http.routers.mcp-fetchs-catchall.service=mcp-fetchs"
 
       # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)

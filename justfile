@@ -168,8 +168,12 @@ volumes-create:
 generate-includes:
     pixi run python scripts/generate_compose_includes.py
 
+# Generate Traefik middlewares from template with environment variables
+generate-middlewares:
+    pixi run python scripts/generate_middlewares.py
+
 # Flexible build command with optional services
-build *services: network-create volumes-create generate-includes
+build *services: network-create volumes-create generate-includes generate-middlewares
     #!/usr/bin/env bash
     if [ -z "{{services}}" ]; then
         echo "Building all services..."
@@ -181,13 +185,13 @@ build *services: network-create volumes-create generate-includes
     echo "✅ Build completed successfully"
 
 # Flexible up command with options
-up *args: network-create volumes-create generate-includes
+up *args: network-create volumes-create generate-includes generate-middlewares
     docker compose -f docker-compose.includes.yml up -d {{args}}
     echo "Waiting for services to be healthy..."
     pixi run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
 
 # Start all services with fresh build
-up-fresh: network-create volumes-create generate-includes
+up-fresh: network-create volumes-create generate-includes generate-middlewares
     just build
     docker compose -f docker-compose.includes.yml up -d --force-recreate
     echo "Waiting for services to be healthy..."
@@ -202,7 +206,7 @@ remove-orphans:
     docker compose -f docker-compose.includes.yml down --remove-orphans
 
 # Flexible rebuild command with optional services and no-cache by default
-rebuild *services: network-create volumes-create generate-includes
+rebuild *services: network-create volumes-create generate-includes generate-middlewares
     #!/usr/bin/env bash
     if [ -z "{{services}}" ]; then
         echo "Rebuilding all services from scratch..."

@@ -3,11 +3,9 @@ Main server module for MCP OAuth Dynamic Client
 """
 
 import logging
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from .auth_authlib import AuthManager
@@ -264,33 +262,8 @@ def create_app(settings: Settings = None) -> FastAPI:
             headers=exc.headers,
         )
 
-    # Configure CORS
-    cors_origins_env = os.getenv("MCP_CORS_ORIGINS", "").strip()
-
-    if cors_origins_env:
-        # Handle wildcard specially - cannot use credentials with wildcard
-        if cors_origins_env == "*":
-            app.add_middleware(
-                CORSMiddleware,
-                allow_origins=["*"],
-                allow_credentials=False,  # Cannot use credentials with wildcard
-                allow_methods=["GET", "POST", "OPTIONS"],
-                allow_headers=["*"],
-                expose_headers=["X-User-Id", "X-User-Name", "X-Auth-Token"],
-            )
-        else:
-            # Split by comma for multiple origins
-            cors_origins = [
-                origin.strip() for origin in cors_origins_env.split(",") if origin.strip()
-            ]
-            app.add_middleware(
-                CORSMiddleware,
-                allow_origins=cors_origins,
-                allow_credentials=True,
-                allow_methods=["GET", "POST", "OPTIONS"],
-                allow_headers=["*"],
-                expose_headers=["X-User-Id", "X-User-Name", "X-Auth-Token"],
-            )
+    # CORS is handled by Traefik middleware - no need to configure here
+    # This ensures CORS headers are set in only one place as required
 
     # Include OAuth routes with Authlib ResourceProtector for enhanced security
     oauth_router = create_oauth_router(settings, redis_manager, auth_manager)
