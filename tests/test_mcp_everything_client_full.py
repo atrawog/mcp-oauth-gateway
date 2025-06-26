@@ -74,7 +74,9 @@ class TestMCPEverythingClientFull:
         ]
 
         # Run the command
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=30, env=env)
+        result = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, timeout=20, env=env
+        )  # 20s for everything service
 
         if result.returncode != 0:
             # Check if it's an expected error

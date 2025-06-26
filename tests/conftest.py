@@ -402,8 +402,8 @@ async def _ensure_services_ready():
 
         print("✅ All required Docker services are running")
 
-        # Wait for health checks
-        max_wait = 60
+        # Wait for health checks with faster polling
+        max_wait = 30  # Reduced from 60 seconds
         start_time = time.time()
         while time.time() - start_time < max_wait:
             result = subprocess.run(
@@ -425,7 +425,7 @@ async def _ensure_services_ready():
                 print("✅ All services are healthy")
                 break
 
-            await asyncio.sleep(2)
+            await asyncio.sleep(0.5)  # Reduced from 2 seconds for faster detection
         else:
             pytest.fail(f"❌ Services did not become healthy within {max_wait} seconds")
 

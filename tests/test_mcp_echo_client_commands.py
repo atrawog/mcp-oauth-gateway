@@ -95,7 +95,9 @@ class TestMCPEchoClientCommands:
             "--list-tools",
         ]
 
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
+        result = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+        )  # Reduced from 30s
 
         # Check command executed successfully
         assert result.returncode == 0, f"Command failed with: {result.stderr}"
@@ -136,7 +138,9 @@ class TestMCPEchoClientCommands:
             f"echo {test_message}",
         ]
 
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
+        result = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+        )  # Reduced from 30s
 
         # Check command executed successfully
         assert result.returncode == 0, f"Command failed with: {result.stderr}"
@@ -170,7 +174,9 @@ class TestMCPEchoClientCommands:
             f'echo {{"message": "{test_message}"}}',
         ]
 
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
+        result = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+        )  # Reduced from 30s
 
         # Check command executed successfully
         assert result.returncode == 0, f"Command failed with: {result.stderr}"
@@ -204,7 +210,9 @@ class TestMCPEchoClientCommands:
             f'echo {{"message": "{test_message}"}}',
         ]
 
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
+        result = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+        )  # Reduced from 30s
 
         # Check command executed successfully
         assert result.returncode == 0, f"Command failed with: {result.stderr}"
@@ -236,7 +244,9 @@ class TestMCPEchoClientCommands:
             "printHeader",
         ]
 
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
+        result = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+        )  # Reduced from 30s
 
         # Check command executed successfully
         assert result.returncode == 0, f"Command failed with: {result.stderr}"
@@ -281,7 +291,9 @@ class TestMCPEchoClientCommands:
             "echo test message",
         ]
 
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
+        result = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+        )  # Reduced from 30s
 
         # Command should fail due to invalid token
         assert result.returncode != 0, "Command should have failed with invalid token"
@@ -314,7 +326,9 @@ class TestMCPEchoClientCommands:
             "invalid_tool_name test arguments",
         ]
 
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
+        result = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+        )  # Reduced from 30s
 
         # Command should fail due to invalid tool name
         assert result.returncode != 0, "Command should have failed with invalid tool name"
@@ -350,7 +364,9 @@ class TestMCPEchoClientCommands:
                 f"echo {test_message}",
             ]
 
-            result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
+            result = subprocess.run(
+                cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            )  # Reduced from 30s
 
             assert result.returncode == 0, f"Stress test {i + 1} failed: {result.stderr}"
             assert test_message in result.stdout
@@ -407,7 +423,9 @@ LOG_LEVEL=INFO
                     f'echo {{"message": "{test_message}"}}',
                 ]
 
-                result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
+                result = subprocess.run(
+                    cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+                )  # Reduced from 30s
 
                 if result.returncode == 0 and test_message in result.stdout:
                     results.append((url, "✅ Success"))

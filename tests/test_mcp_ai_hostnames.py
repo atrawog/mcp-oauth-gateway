@@ -58,7 +58,7 @@ class TestMCPAIHostnames:
 
             try:
                 # First test without auth - should get 401
-                response = await http_client.post(url, timeout=30.0)
+                response = await http_client.post(url, timeout=10.0)  # Reduced from 30s
                 assert response.status_code == HTTP_UNAUTHORIZED, f"{name} should require authentication"
 
                 # Test with auth - initialize request
@@ -233,7 +233,7 @@ class TestMCPAIHostnames:
         # Test actual accessibility
         for name, url, _ in self.HOSTNAMES:
             try:
-                response = await http_client.post(url, timeout=30.0)
+                response = await http_client.post(url, timeout=10.0)  # Reduced from 30s
                 if response.status_code == HTTP_UNAUTHORIZED:  # Expected when no auth
                     accessible.append((name, url))
                 else:

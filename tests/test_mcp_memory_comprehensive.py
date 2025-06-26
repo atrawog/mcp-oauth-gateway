@@ -66,7 +66,9 @@ class TestMCPMemoryComprehensive:
         ]
 
         # Run the command
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=30, env=env)
+        result = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, timeout=15, env=env
+        )  # 15s for comprehensive tests
 
         if result.returncode != 0:
             # Check if it's an expected error
