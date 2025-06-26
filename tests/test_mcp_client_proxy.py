@@ -6,6 +6,7 @@ HTTP requests to stdio-based MCP servers. All tests use REAL services and REAL t
 """
 
 import asyncio
+import json
 import os
 
 import httpx
@@ -20,6 +21,27 @@ from .test_constants import MCP_PROTOCOL_VERSION
 
 # MCP Client tokens from environment
 MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
+
+
+def parse_mcp_response(response):
+    """Parse MCP response, handling both JSON and SSE formats."""
+    try:
+        if not response.content:
+            pytest.fail(f"Empty response from MCP service. Status: {response.status_code}, Headers: {dict(response.headers)}")
+        
+        content_type = response.headers.get("content-type", "")
+        if "text/event-stream" in content_type:
+            # Parse SSE format: extract JSON from "data:" line
+            text = response.text
+            for line in text.split('\n'):
+                if line.startswith('data: '):
+                    json_data = line[6:]  # Remove "data: " prefix
+                    return json.loads(json_data)
+            pytest.fail(f"No data line found in SSE response. Content: {response.text[:200]}")
+        else:
+            return response.json()
+    except Exception as e:
+        pytest.fail(f"Failed to parse MCP response. Status: {response.status_code}, Content: {response.text[:200]}, Error: {e}")
 
 
 class TestMCPClientProxyBasics:
@@ -63,7 +85,8 @@ class TestMCPClientProxyBasics:
             assert response.status_code == HTTP_OK, (
                 "MCP health check should succeed with valid token"
             )
-            result = response.json()
+            
+            result = parse_mcp_response(response)
             assert "result" in result or "error" in result
             if "result" in result:
                 assert "protocolVersion" in result["result"]
@@ -138,7 +161,8 @@ class TestMCPProtocolHandling:
             }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
-        result = response.json()
+        
+        result = parse_mcp_response(response)
 
         # Verify JSON-RPC response structure
         assert "jsonrpc" in result
@@ -243,7 +267,8 @@ class TestMCPProtocolHandling:
                 }, timeout=30.0)
 
             assert response.status_code == HTTP_OK
-            result = response.json()
+            
+            result = parse_mcp_response(response)
 
             if "result" in result:
                 negotiated_version = result["result"].get("protocolVersion")

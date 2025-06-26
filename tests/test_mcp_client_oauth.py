@@ -351,7 +351,8 @@ class TestMCPClientTokenValidation:
             headers={
                 "Content-Type": "application/json",
                 "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
-                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
             }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
@@ -560,7 +561,8 @@ class TestMCPClientRealWorldScenarios:
                 headers={
                     "Content-Type": "application/json",
                     "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Accept": "application/json, text/event-stream",
                 }, timeout=30.0)
             return response
 
