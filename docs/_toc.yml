@@ -60,6 +60,8 @@ chapters:
         title: Time Service
       - file: services/sequential-thinking
         title: Sequential Thinking
+      - file: services/echo
+        title: Echo Service
       - file: services/others
         title: Other Services
   - file: usage

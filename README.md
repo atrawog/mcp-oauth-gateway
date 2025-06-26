@@ -500,6 +500,7 @@ MCP_SEQUENTIALTHINKING_ENABLED=true # Structured problem solving
 MCP_TMUX_ENABLED=true               # Terminal multiplexer integration
 MCP_PLAYWRIGHT_ENABLED=false        # Browser automation (resource intensive)
 MCP_EVERYTHING_ENABLED=true         # Test server with all features
+MCP_ECHO_ENABLED=true               # Diagnostic and debugging tools
 ```
 
 #### 5. Protocol Configuration
@@ -528,6 +529,7 @@ MCP_PROTOCOL_VERSION=2025-06-18
 | mcp-tmux | Terminal multiplexer integration | 2025-06-18 | 3000 |
 | mcp-playwright | Browser automation | 2025-06-18 | 3000 |
 | mcp-everything | Test server with all features | 2025-06-18 | 3000 |
+| mcp-echo | Diagnostic tools & OAuth debugging | 2025-06-18 | 3000 |
 
 All services use `mcp-streamablehttp-proxy` to wrap official MCP stdio servers, exposing them via HTTP on port 3000.
 
@@ -555,6 +557,7 @@ MCP_SEQUENTIALTHINKING_TESTS_ENABLED=false
 MCP_TIME_TESTS_ENABLED=false
 MCP_TMUX_TESTS_ENABLED=false
 MCP_EVERYTHING_TESTS_ENABLED=false
+MCP_ECHO_TESTS_ENABLED=false
 
 # Test parameters
 TEST_HTTP_TIMEOUT=30.0
