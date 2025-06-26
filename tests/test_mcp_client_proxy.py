@@ -292,12 +292,12 @@ class TestProxyErrorHandling:
                 "No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!"
             )
 
-        # Missing required fields
+        # Missing required fields - all include "id" to ensure they're treated as requests, not notifications
         invalid_requests = [
-            {},  # Empty request
-            {"method": "test"},  # Missing jsonrpc and id
-            {"jsonrpc": "2.0", "id": 1},  # Missing method
-            {"jsonrpc": "1.0", "method": "test", "id": 1},  # Wrong version
+            {"id": 1},  # Empty request with id only
+            {"method": "test", "id": 2},  # Missing jsonrpc 
+            {"jsonrpc": "2.0", "id": 3},  # Missing method
+            {"jsonrpc": "1.0", "method": "test", "id": 4},  # Wrong version
         ]
 
         for request in invalid_requests:
@@ -310,9 +310,22 @@ class TestProxyErrorHandling:
                     "Accept": "application/json, text/event-stream",
                 }, timeout=30.0)
 
-            # Should return 200 with JSON-RPC error
+            # Should return 200 with JSON-RPC error (SSE format)
             assert response.status_code == HTTP_OK
-            result = response.json()
+            # Parse SSE response format: "event: message\ndata: {...}\n\n"
+            content_type = response.headers.get("content-type", "")
+            if "text/event-stream" in content_type:
+                # Parse SSE format
+                text = response.text
+                for line in text.split('\n'):
+                    if line.startswith('data: '):
+                        json_data = line[6:]  # Remove "data: " prefix
+                        result = json.loads(json_data)
+                        break
+                else:
+                    pytest.fail(f"No data line found in SSE response. Content: {response.text[:200]}")
+            else:
+                result = response.json()
             assert "error" in result
             assert result["error"]["code"] < 0  # Negative error codes
 
@@ -343,7 +356,8 @@ class TestProxyErrorHandling:
                 }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
-        result = response.json()
+        # Parse response (could be JSON or SSE format)
+        result = parse_mcp_response(response)
         assert "error" in result
         # May return -32601 (method not found), -32001 (MCP error), or -32002 (session required)
         assert result["error"]["code"] in [-32601, -32001, -32002]
@@ -550,6 +564,7 @@ class TestProxyAuthenticationFlows:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
             }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
@@ -681,6 +696,7 @@ class TestProxyPerformance:
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                     "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
                 }, timeout=30.0)
             assert response.status_code == HTTP_OK
 
