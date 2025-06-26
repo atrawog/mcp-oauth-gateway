@@ -14,13 +14,14 @@ test-verbose = "pytest tests/ -v -s"
 test-coverage = "pytest tests/ -v --cov=auth --cov-report=html --cov-report=term"
 
 # Linting tasks - The Divine Code Quality Commandments!
-lint = { cmd = "ruff check . && ruff format . --check && pre-commit run --all-files && python scripts/lint_pydantic_compliance.py", description = "Complete quality check: lint, format, pre-commit, and deprecation hunt" }
-lint-quick = "ruff check ."
-lint-fix = "ruff check . --fix"
-format = "ruff format ."
+lint = { cmd = "pre-commit run ruff --all-files && pre-commit run ruff-format --all-files && pre-commit run --all-files && python scripts/lint_pydantic_compliance.py", description = "Complete quality check: lint, format, pre-commit, and deprecation hunt" }
+lint-quick = "pre-commit run ruff --all-files"
+lint-fix = "pre-commit run ruff --all-files"
+format = "pre-commit run ruff-format --all-files"
+format-check = "pre-commit run ruff-format --all-files"
 lint-pydantic = "python scripts/lint_pydantic_compliance.py"
-lint-all = { cmd = "ruff check . && python scripts/lint_pydantic_compliance.py", description = "Ruff linting with deprecation hunting" }
-lint-comprehensive = { cmd = "ruff check . --fix && ruff format . && python scripts/lint_pydantic_compliance.py", description = "Fix, format, and hunt deprecations" }
+lint-all = { cmd = "pre-commit run ruff --all-files && python scripts/lint_pydantic_compliance.py", description = "Ruff linting with deprecation hunting" }
+lint-comprehensive = { cmd = "pre-commit run ruff --all-files && pre-commit run ruff-format --all-files && python scripts/lint_pydantic_compliance.py", description = "Fix, format, and hunt deprecations" }
 pre-commit = "pre-commit"
 
 # Documentation tasks
