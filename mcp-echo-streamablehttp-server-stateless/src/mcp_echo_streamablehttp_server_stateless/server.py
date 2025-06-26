@@ -86,11 +86,22 @@ class MCPEchoServer:
         
         # Handle GET requests (for opening SSE streams)
         if request.method == "GET":
-            # For stateless operation, we don't support GET
-            return Response(
-                content="GET not supported in stateless mode",
-                status_code=405,
-                headers={"Access-Control-Allow-Origin": "*"}
+            # Support basic SSE stream for Claude.ai compatibility
+            # Even though we're "stateless", we need to support GET for the protocol
+            async def sse_stream():
+                # Send a keep-alive comment to establish the connection
+                yield "event: ping\ndata: {}\n\n"
+                # Keep connection open but don't send more data (stateless)
+                # Claude.ai will use POST for actual requests
+            
+            return StreamingResponse(
+                sse_stream(),
+                media_type="text/event-stream",
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive"
+                }
             )
         
         # Validate Content-Type header for POST requests
@@ -195,6 +206,10 @@ class MCPEchoServer:
         # Route to appropriate handler
         if method == "initialize":
             return await self._handle_initialize(params, request_id)
+        elif method == "notifications/initialized":
+            # Handle initialized notification - just acknowledge it
+            # This is a notification (no id), so return success with no id
+            return {"jsonrpc": "2.0"}
         elif method == "tools/list":
             return await self._handle_tools_list(params, request_id)
         elif method == "tools/call":
@@ -221,7 +236,9 @@ class MCPEchoServer:
             "result": {
                 "protocolVersion": client_protocol,  # Echo back the client's version
                 "capabilities": {
-                    "tools": {}
+                    "tools": {
+                        "listChanged": True
+                    }
                 },
                 "serverInfo": {
                     "name": self.SERVER_NAME,
