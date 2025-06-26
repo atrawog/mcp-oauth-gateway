@@ -23,6 +23,7 @@ services:
       - "traefik.http.routers.mcp-fetchs-options.rule=Host(`fetchs.${BASE_DOMAIN}`) && PathPrefix(`/mcp`) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-fetchs-options.priority=3"
       - "traefik.http.routers.mcp-fetchs-options.service=mcp-fetchs"
+      - "traefik.http.routers.mcp-fetchs-options.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetchs-options.tls=true"
       - "traefik.http.routers.mcp-fetchs-options.tls.certresolver=letsencrypt"
 
@@ -31,8 +32,24 @@ services:
       - "traefik.http.routers.mcp-fetchs.priority=2"
       - "traefik.http.routers.mcp-fetchs.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-fetchs.service=mcp-fetchs"
+      - "traefik.http.routers.mcp-fetchs.entrypoints=websecure"
       - "traefik.http.routers.mcp-fetchs.tls=true"
       - "traefik.http.routers.mcp-fetchs.tls.certresolver=letsencrypt"
+
+      # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
+      - "traefik.http.routers.mcp-fetchs-catchall.rule=Host(`fetchs.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetchs-catchall.priority=1"
+      - "traefik.http.routers.mcp-fetchs-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-fetchs-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-fetchs-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
+      - "traefik.http.routers.mcp-fetchs-catchall.service=mcp-fetchs"
+
+      # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)
+      - "traefik.http.routers.mcp-fetchs-redirect.rule=Host(`fetchs.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-fetchs-redirect.entrypoints=web"
+      - "traefik.http.routers.mcp-fetchs-redirect.middlewares=redirect-to-https"
+      - "traefik.http.routers.mcp-fetchs-redirect.priority=1"
+      - "traefik.http.routers.mcp-fetchs-redirect.service=mcp-fetchs"
 
       # OAuth discovery endpoint
       - "traefik.http.routers.mcp-fetchs-oauth-discovery.rule=Host(`fetchs.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"

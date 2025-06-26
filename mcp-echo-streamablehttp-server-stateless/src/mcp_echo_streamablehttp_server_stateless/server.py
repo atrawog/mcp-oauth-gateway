@@ -65,9 +65,9 @@ class MCPEchoServer:
         origin = request.headers.get("origin", "")
         allowed_origin = self._determine_allowed_origin(cors_origins, origin)
 
-        # Route by method
-        if request.method == "OPTIONS":
-            return self._handle_cors_preflight(allowed_origin)
+        # ⚡ DIVINE DECREE: CORS HANDLED BY TRAEFIK MIDDLEWARE! ⚡
+        # MCP services must maintain "pure protocol innocence" per CLAUDE.md
+        # OPTIONS requests flow through Traefik CORS middleware
 
         if request.method == "GET":
             return self._handle_sse_stream()

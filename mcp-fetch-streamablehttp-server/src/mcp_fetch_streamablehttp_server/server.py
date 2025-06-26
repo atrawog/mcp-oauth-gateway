@@ -94,18 +94,9 @@ class StreamableHTTPServer:
         if method in ["POST", "PUT"]:
             body = await request.body()
 
-        # Handle OPTIONS first (CORS preflight doesn't require auth)
-        if method == "OPTIONS":
-            # CORS preflight
-            return Response(
-                status_code=200,
-                headers={
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-                    "Access-Control-Allow-Headers": ("Content-Type, Mcp-Session-Id, MCP-Protocol-Version"),
-                    "Access-Control-Max-Age": "86400",
-                },
-            )
+        # ⚡ DIVINE DECREE: CORS HANDLED BY TRAEFIK MIDDLEWARE! ⚡
+        # MCP services must maintain "pure protocol innocence" per CLAUDE.md
+        # OPTIONS requests flow through Traefik CORS middleware
 
         # ⚡ DIVINE DECREE: NO AUTHENTICATION IN MCP SERVICES! ⚡
         # Authentication is handled by Traefik via ForwardAuth middleware

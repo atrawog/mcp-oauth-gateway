@@ -18,12 +18,14 @@ include:
 # Shared middleware definitions accessible to all services
 services:
   # This is a dummy service that only defines shared middlewares
-  # It uses the smallest possible image and exits immediately
+  # It uses the smallest possible image and stays running to maintain middleware definitions
   shared-middlewares:
     image: busybox:latest
     container_name: shared-middlewares
-    command: ["true"]  # Exit immediately with success
-    restart: "no"
+    command: ["sleep", "infinity"]  # Stay running to maintain middleware definitions
+    restart: unless-stopped
+    networks:
+      - public
     labels:
       - "traefik.enable=false"  # Don't route to this service
 
@@ -34,7 +36,7 @@ services:
       # Shared CORS middleware for MCP services
       - "traefik.http.middlewares.mcp-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE,PATCH"
       - "traefik.http.middlewares.mcp-cors.headers.accesscontrolallowheaders=*"
-      - "traefik.http.middlewares.mcp-cors.headers.accesscontrolalloworiginlist=https://claude.ai,https://console.anthropic.com"
+      - "traefik.http.middlewares.mcp-cors.headers.accesscontrolalloworiginlist=${MCP_CORS_ORIGINS}"
       - "traefik.http.middlewares.mcp-cors.headers.accesscontrolmaxage=100"
       - "traefik.http.middlewares.mcp-cors.headers.addvaryheader=true"
       - "traefik.http.middlewares.mcp-cors.headers.accesscontrolallowcredentials=true"

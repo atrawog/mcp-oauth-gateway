@@ -34,8 +34,9 @@ services:
       - "traefik.http.routers.mcp-echo-cors.priority=4"
       - "traefik.http.routers.mcp-echo-cors.entrypoints=websecure"
       - "traefik.http.routers.mcp-echo-cors.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-echo-cors.middlewares=mcp-cors@docker"
       - "traefik.http.routers.mcp-echo-cors.service=mcp-echo"
-      # No auth middleware for CORS preflight!
+      # No auth middleware for CORS preflight, but CORS middleware is essential!
 
       # MCP route with auth - Priority 2
       # Use PathPrefix to handle both /mcp and /mcp/
