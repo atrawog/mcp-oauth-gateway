@@ -72,8 +72,8 @@ def _get_mcp_service_urls(service_name: str, default_subdomain: str) -> list:
         url = MCP_TESTING_URL.strip().rstrip("/")
         return [url]
 
-    # Finally, construct from BASE_DOMAIN
-    return [f"https://{default_subdomain}.{BASE_DOMAIN}"]
+    # Finally, construct from BASE_DOMAIN (with /mcp path for MCP services)
+    return [f"https://{default_subdomain}.{BASE_DOMAIN}/mcp"]
 
 
 # Get the first URL for backwards compatibility (old single URL variables)

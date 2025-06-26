@@ -381,11 +381,11 @@ class TestMCPFetchComplete:
         assert "WWW-Authenticate" in response.headers, "Missing WWW-Authenticate header!"
         assert response.headers["WWW-Authenticate"] == "Bearer", "Wrong auth challenge!"
 
-        # Test 2: Verify error response format
+        # Test 2: Verify error response format (OAuth 2.0 compliant)
         error_data = response.json()
-        assert "detail" in error_data, "Missing error details!"
-        assert isinstance(error_data["detail"], dict), "Error detail should be a dict!"
-        assert "error" in error_data["detail"], "Missing error code!"
+        assert "error" in error_data, "Missing error code!"
+        assert "error_description" in error_data, "Missing error description!"
+        assert error_data["error"] == "invalid_request", f"Wrong error code: {error_data['error']}"
 
         # Test 3: Invalid bearer token
         response = await http_client.post(

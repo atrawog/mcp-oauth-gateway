@@ -17,8 +17,8 @@ from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import MCP_ECHO_URL
 from .test_constants import MCP_PROTOCOL_VERSION
-from .test_constants import MCP_TESTING_URL
 
 
 class TestClaudeIntegration:
@@ -34,7 +34,7 @@ class TestClaudeIntegration:
         try:
             # Step 1: First Contact - Claude.ai attempts /mcp
             response = await http_client.post(
-                f"{MCP_TESTING_URL}",
+                MCP_ECHO_URL,
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -153,7 +153,7 @@ class TestClaudeIntegration:
         """Test Claude.ai's OAuth discovery process."""
         # Claude.ai discovers auth is required
         mcp_response = await http_client.get(
-            f"{MCP_TESTING_URL}",
+            MCP_ECHO_URL,
             headers={"Accept": "application/json, text/event-stream"},
         )
 
@@ -213,7 +213,7 @@ class TestClaudeIntegration:
 
         # POST with potential for streaming response (no auth)
         response = await http_client.post(
-            f"{MCP_TESTING_URL}",
+            MCP_ECHO_URL,
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -271,7 +271,7 @@ class TestClaudeIntegration:
 
         # Send request with session ID (no auth)
         response = await http_client.post(
-            f"{MCP_TESTING_URL}",
+            MCP_ECHO_URL,
             json={"jsonrpc": "2.0", "method": "ping", "id": 1},
             headers={"Mcp-Session-Id": session_id},
         )

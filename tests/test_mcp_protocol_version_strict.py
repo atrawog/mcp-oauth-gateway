@@ -16,9 +16,9 @@ from .test_constants import BASE_DOMAIN
 from .test_constants import GATEWAY_JWT_SECRET
 from .test_constants import HTTP_OK
 from .test_constants import MCP_CLIENT_ACCESS_TOKEN
+from .test_constants import MCP_ECHO_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
-from .test_constants import MCP_TESTING_URL
 from .test_constants import REDIS_URL
 
 
@@ -59,7 +59,7 @@ class TestMCPProtocolVersionStrict:
 
         # Test 1: Correct version from .env MUST work
         correct_response = await http_client.post(
-            f"{MCP_TESTING_URL}",
+            MCP_ECHO_URL,
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -144,7 +144,7 @@ class TestMCPProtocolVersionStrict:
                     continue
 
                 response = await http_client.post(
-                    f"{MCP_TESTING_URL}",
+                    MCP_ECHO_URL,
                     json={
                         "jsonrpc": "2.0",
                         "method": "tools/list",

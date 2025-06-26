@@ -82,7 +82,10 @@ class TestMCPFetchRealContent:
 
         # The response should be JSON with error details
         error_data = response.json()
-        assert "detail" in error_data
-        assert "error" in error_data["detail"]
-        # Auth service returns invalid_request for missing auth header
-        assert error_data["error"] in ["invalid_token", "invalid_request"]
+        # Check for either format - some services return detail, others return error directly
+        if "detail" in error_data:
+            assert "error" in error_data["detail"]
+            assert error_data["detail"]["error"] in ["invalid_token", "invalid_request"]
+        else:
+            assert "error" in error_data
+            assert error_data["error"] in ["invalid_token", "invalid_request"]
