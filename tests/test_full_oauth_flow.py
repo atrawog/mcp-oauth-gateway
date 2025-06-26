@@ -16,9 +16,9 @@ from .test_constants import GATEWAY_OAUTH_CLIENT_SECRET
 from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import MCP_FETCH_URL
+from .test_constants import MCP_TESTING_URL
 from .test_constants import MCP_PROTOCOL_VERSION
-from .test_constants import TEST_REDIRECT_URI
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 
 
 class TestFullOAuthFlow:
@@ -39,7 +39,7 @@ class TestFullOAuthFlow:
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Step 1: Try to access MCP endpoint without auth
             response = await client.post(
-                f"{MCP_FETCH_URL}",
+                f"{MCP_TESTING_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -95,7 +95,7 @@ class TestFullOAuthFlow:
                 f"{AUTH_BASE_URL}/authorize",
                 params={
                     "client_id": GATEWAY_OAUTH_CLIENT_ID,
-                    "redirect_uri": TEST_REDIRECT_URI,  # Use REAL registered redirect URI
+                    "redirect_uri": TEST_OAUTH_CALLBACK_URL,  # Use REAL registered redirect URI
                     "response_type": "code",
                     "state": "test_state",
                     "code_challenge": code_challenge,
@@ -107,10 +107,11 @@ class TestFullOAuthFlow:
             # If client doesn't exist, fail with clear error
             if response.status_code == HTTP_BAD_REQUEST:
                 error = response.json()
-                if error.get("error") == "invalid_client":
-                    pytest.fail(
-                        f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials."  # TODO: Break long line
-                    )
+                pytest.fail(
+                    f"ERROR: Got 400 Bad Request. Error: {error.get('error')}, "
+                    f"Description: {error.get('error_description')}. "
+                    f"Client ID: {GATEWAY_OAUTH_CLIENT_ID}"
+                )
 
             # Should redirect to GitHub OAuth (means client is valid)
             assert response.status_code in [302, 307]
@@ -135,7 +136,7 @@ class TestFullOAuthFlow:
                     "code": "invalid_authorization_code",  # Will fail, but tests client auth
                     "client_id": GATEWAY_OAUTH_CLIENT_ID,
                     "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
-                    "redirect_uri": TEST_REDIRECT_URI,  # Use REAL registered redirect URI
+                    "redirect_uri": TEST_OAUTH_CALLBACK_URL,  # Use REAL registered redirect URI
                 },
             )
 

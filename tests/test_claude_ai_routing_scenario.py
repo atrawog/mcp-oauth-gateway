@@ -10,9 +10,13 @@ import pytest
 
 from .test_constants import BASE_DOMAIN
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import MCP_FETCH_URL
+from .test_constants import MCP_TESTING_URL
 
 
+@pytest.mark.skipif(
+    not MCP_TESTING_URL,
+    reason="MCP_TESTING_URL not configured"
+)
 class TestClaudeAIRoutingScenario:
     """Test the exact scenario that Claude.ai uses for MCP connections."""
 
@@ -30,7 +34,7 @@ class TestClaudeAIRoutingScenario:
         """
         # This is what Claude.ai does - tries to POST to /mcp
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{MCP_TESTING_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -72,7 +76,7 @@ class TestClaudeAIRoutingScenario:
 
         for path in paths:
             response = await http_client.post(
-                f"{MCP_FETCH_URL}{path}",
+                f"{MCP_TESTING_URL}{path}",
                 json={"jsonrpc": "2.0", "method": "ping", "id": 1},
                 headers={
                     "Content-Type": "application/json",
@@ -124,14 +128,14 @@ class TestClaudeAIRoutingScenario:
             if test["path"].startswith("/mcp"):
                 # POST request for MCP endpoints
                 response = await http_client.post(
-                    f"{MCP_FETCH_URL}{test['path']}",
+                    f"{MCP_TESTING_URL}{test['path']}",
                     json={"jsonrpc": "2.0", "method": "ping", "id": 1},
                     headers={"Content-Type": "application/json"},
                     follow_redirects=True, timeout=30.0)
             else:
                 # GET request for other endpoints
                 response = await http_client.get(
-                    f"{MCP_FETCH_URL}{test['path']}", follow_redirects=True, timeout=30.0)
+                    f"{MCP_TESTING_URL}{test['path']}", follow_redirects=True, timeout=30.0)
 
             assert response.status_code == test["expected"], (
                 f"{test['description']} ({test['path']}) returned {response.status_code}, expected {test['expected']}"  # TODO: Break long line
@@ -145,12 +149,12 @@ class TestClaudeAIRoutingScenario:
     ):
         """Test that accessing base domain without path requires auth."""
         # Just accessing the base domain should trigger auth
-        response = await http_client.get(MCP_FETCH_URL, timeout=30.0)
+        response = await http_client.get(MCP_TESTING_URL, timeout=30.0)
         assert response.status_code == HTTP_UNAUTHORIZED
 
         # Same for POST
         response = await http_client.post(
-            MCP_FETCH_URL,
+            MCP_TESTING_URL,
             json={"test": "data"},
             headers={"Content-Type": "application/json"}, timeout=30.0)
         assert response.status_code == HTTP_UNAUTHORIZED
@@ -162,7 +166,7 @@ class TestClaudeAIRoutingScenario:
         This test would FAIL with the old configuration!
         """
         # Simulate Claude.ai's exact request
-        url = f"https://fetch.{BASE_DOMAIN}/mcp"
+        url = MCP_TESTING_URL
 
         async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(

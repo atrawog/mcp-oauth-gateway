@@ -17,7 +17,7 @@ from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_NOT_FOUND
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import TEST_CALLBACK_URL
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 from .test_constants import TEST_INVALID_REDIRECT_URI
 
 
@@ -138,7 +138,7 @@ class TestOAuthFlow:
             f"{AUTH_BASE_URL}/authorize",
             params={
                 "client_id": "invalid_client",
-                "redirect_uri": TEST_CALLBACK_URL,
+                "redirect_uri": TEST_OAUTH_CALLBACK_URL,
                 "response_type": "code",
                 "state": "test_state",
             },

@@ -11,8 +11,13 @@ from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_PROTOCOL_VERSION
+from .test_constants import MCP_FETCH_TESTS_ENABLED
 
 
+@pytest.mark.skipif(
+    not MCP_FETCH_TESTS_ENABLED,
+    reason="MCP Fetch tests disabled"
+)
 class TestMCPAIHostnames:
     """Test suite for the 10 AI model hostnames."""
 

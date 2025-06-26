@@ -10,15 +10,13 @@ async def test_oauth_registration():
     auth_base_url = f"https://auth.{base_domain}"
     
     # Get redirect URIs from environment
-    test_callback_url = os.getenv("TEST_CALLBACK_URL")
-    test_redirect_uri = os.getenv("TEST_REDIRECT_URI")
+    test_callback_url = os.getenv("TEST_OAUTH_CALLBACK_URL")
     
     print(f"Auth URL: {auth_base_url}")
-    print(f"TEST_CALLBACK_URL: {test_callback_url}")
-    print(f"TEST_REDIRECT_URI: {test_redirect_uri}")
+    print(f"TEST_OAUTH_CALLBACK_URL: {test_callback_url}")
     
-    if not test_callback_url or not test_redirect_uri:
-        print("❌ TEST_CALLBACK_URL and TEST_REDIRECT_URI must be set in .env")
+    if not test_callback_url:
+        print("❌ TEST_OAUTH_CALLBACK_URL must be set in .env")
         return
     
     # Register a new client (no auth required per RFC 7591)
@@ -26,7 +24,7 @@ async def test_oauth_registration():
         response = await client.post(
             f"{auth_base_url}/register",
             json={
-                "redirect_uris": [test_callback_url, test_redirect_uri],
+                "redirect_uris": [test_callback_url],
                 "client_name": "OAuth Flow Test Client",
                 "scope": "openid profile email",
             },

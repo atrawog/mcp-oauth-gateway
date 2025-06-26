@@ -29,7 +29,7 @@ from .test_constants import GITHUB_PAT
 from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import TEST_CALLBACK_URL
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 
 
 class TestRealOAuthFlow:
@@ -57,7 +57,7 @@ class TestRealOAuthFlow:
         # Try to start auth flow to validate client registration
         auth_params = {
             "client_id": GATEWAY_OAUTH_CLIENT_ID,
-            "redirect_uri": TEST_CALLBACK_URL,
+            "redirect_uri": TEST_OAUTH_CALLBACK_URL,
             "response_type": "code",
             "scope": "openid profile email",
             "state": secrets.token_urlsafe(16),
@@ -112,7 +112,7 @@ class TestRealOAuthFlow:
             data={
                 "grant_type": "authorization_code",
                 "code": "invalid_code_for_testing",  # Will fail but validates client
-                "redirect_uri": TEST_CALLBACK_URL,
+                "redirect_uri": TEST_OAUTH_CALLBACK_URL,
                 "client_id": GATEWAY_OAUTH_CLIENT_ID,
                 "client_secret": GATEWAY_OAUTH_CLIENT_SECRET,
             }, timeout=30.0)
@@ -205,7 +205,7 @@ class TestRealPKCEFlow:
         # Start REAL auth flow with PKCE
         auth_params = {
             "client_id": GATEWAY_OAUTH_CLIENT_ID,
-            "redirect_uri": TEST_CALLBACK_URL,
+            "redirect_uri": TEST_OAUTH_CALLBACK_URL,
             "response_type": "code",
             "scope": "openid profile",
             "state": secrets.token_urlsafe(16),

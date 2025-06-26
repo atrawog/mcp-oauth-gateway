@@ -17,7 +17,7 @@ from .test_constants import GITHUB_PAT
 from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import TEST_REDIRECT_URI
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 
 
 # Use the existing OAuth credentials from .env - these are optional
@@ -188,7 +188,7 @@ class TestCompleteFlowWithExistingClient:
         # Start authorization with existing client
         auth_params = {
             "client_id": GATEWAY_OAUTH_CLIENT_ID,
-            "redirect_uri": TEST_REDIRECT_URI,  # Use TEST_REDIRECT_URI from constants
+            "redirect_uri": TEST_OAUTH_CALLBACK_URL,  # Use TEST_OAUTH_CALLBACK_URL from constants
             "response_type": "code",
             "scope": "openid profile email",
             "state": secrets.token_urlsafe(16),
@@ -204,10 +204,11 @@ class TestCompleteFlowWithExistingClient:
         # If client doesn't exist, fail with clear error
         if response.status_code == HTTP_BAD_REQUEST:
             error = response.json()
-            if error.get("error") == "invalid_client":
-                pytest.fail(
-                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first."  # TODO: Break long line
-                )
+            pytest.fail(
+                f"ERROR: Got 400 Bad Request. Error: {error.get('error')}, "
+                f"Description: {error.get('error_description')}. "
+                f"Client ID: {GATEWAY_OAUTH_CLIENT_ID}"
+            )
 
         # Should redirect to GitHub
         assert response.status_code == 307

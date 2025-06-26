@@ -24,7 +24,7 @@ import pytest
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import MCP_FETCH_URL
-from .test_constants import TEST_CALLBACK_URL
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 from .test_constants import TEST_CLIENT_NAME
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_HTTP_TIMEOUT
@@ -360,7 +360,42 @@ async def ensure_services_ready():
             check=True,
         )
         running_services = set(result.stdout.strip().split("\n"))
-        required_services = {"traefik", "auth", "redis", "mcp-fetch"}
+        required_services = {"traefik", "auth", "redis"}
+        
+        # Only require service-specific containers if their tests are enabled
+        from .test_constants import MCP_ECHO_TESTS_ENABLED
+        from .test_constants import MCP_FETCH_TESTS_ENABLED
+        from .test_constants import MCP_FETCHS_TESTS_ENABLED 
+        from .test_constants import MCP_EVERYTHING_TESTS_ENABLED
+        from .test_constants import MCP_FILESYSTEM_TESTS_ENABLED
+        from .test_constants import MCP_MEMORY_TESTS_ENABLED
+        from .test_constants import MCP_PLAYWRIGHT_TESTS_ENABLED
+        from .test_constants import MCP_SEQUENTIALTHINKING_TESTS_ENABLED
+        from .test_constants import MCP_TIME_TESTS_ENABLED
+        from .test_constants import MCP_TMUX_TESTS_ENABLED
+        from .test_constants import MCP_TESTING_URL
+        
+        # Add service-specific requirements if enabled
+        if MCP_ECHO_TESTS_ENABLED and not MCP_TESTING_URL:
+            required_services.add("mcp-echo")
+        if MCP_FETCH_TESTS_ENABLED and not MCP_TESTING_URL:
+            required_services.add("mcp-fetch")
+        if MCP_FETCHS_TESTS_ENABLED and not MCP_TESTING_URL:
+            required_services.add("mcp-fetchs")
+        if MCP_EVERYTHING_TESTS_ENABLED and not MCP_TESTING_URL:
+            required_services.add("mcp-everything")
+        if MCP_FILESYSTEM_TESTS_ENABLED and not MCP_TESTING_URL:
+            required_services.add("mcp-filesystem")
+        if MCP_MEMORY_TESTS_ENABLED and not MCP_TESTING_URL:
+            required_services.add("mcp-memory")
+        if MCP_PLAYWRIGHT_TESTS_ENABLED and not MCP_TESTING_URL:
+            required_services.add("mcp-playwright")
+        if MCP_SEQUENTIALTHINKING_TESTS_ENABLED and not MCP_TESTING_URL:
+            required_services.add("mcp-sequentialthinking")
+        if MCP_TIME_TESTS_ENABLED and not MCP_TESTING_URL:
+            required_services.add("mcp-time")
+        if MCP_TMUX_TESTS_ENABLED and not MCP_TESTING_URL:
+            required_services.add("mcp-tmux")
 
         missing = required_services - running_services
         if missing:
@@ -691,7 +726,7 @@ async def registered_client(http_client: httpx.AsyncClient, wait_for_services) -
     # Use test configuration from test_constants - already validated!
 
     registration_data = {
-        "redirect_uris": [TEST_CALLBACK_URL],
+        "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
         "client_name": TEST_CLIENT_NAME,
         "scope": TEST_CLIENT_SCOPE,
     }

@@ -21,7 +21,7 @@ from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import REDIS_URL
 from .test_constants import TEST_CLIENT_NAME
-from .test_constants import TEST_REDIRECT_URI
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 
 
 class TestHealthCheckErrors:
@@ -121,7 +121,7 @@ class TestAuthorizationErrors:
             f"{AUTH_BASE_URL}/authorize",
             params={
                 "client_id": "non_existent_client_12345",
-                "redirect_uri": TEST_REDIRECT_URI,
+                "redirect_uri": TEST_OAUTH_CALLBACK_URL,
                 "response_type": "code",
                 "state": "test_state",
             },

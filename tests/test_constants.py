@@ -146,10 +146,9 @@ OAUTH_ACCESS_TOKEN = GATEWAY_OAUTH_ACCESS_TOKEN
 TEST_HTTP_TIMEOUT = _get_env_float_or_fail("TEST_HTTP_TIMEOUT")
 TEST_MAX_RETRIES = _get_env_int_or_fail("TEST_MAX_RETRIES")
 TEST_RETRY_DELAY = _get_env_float_or_fail("TEST_RETRY_DELAY")
-TEST_CALLBACK_URL = _get_env_or_fail("TEST_CALLBACK_URL")
+TEST_OAUTH_CALLBACK_URL = _get_env_or_fail("TEST_OAUTH_CALLBACK_URL")
 TEST_CLIENT_NAME = _get_env_or_fail("TEST_CLIENT_NAME")
 TEST_CLIENT_SCOPE = _get_env_or_fail("TEST_CLIENT_SCOPE")
-TEST_REDIRECT_URI = _get_env_or_fail("TEST_REDIRECT_URI")
 TEST_INVALID_REDIRECT_URI = _get_env_or_fail("TEST_INVALID_REDIRECT_URI")
 
 # Health Check Configuration - From main .env

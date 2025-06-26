@@ -89,14 +89,13 @@ async def register_oauth_client_with_user_token(
     base_url: str, user_jwt_token: str
 ) -> dict[str, str]:
     """Register OAuth client using a valid user JWT token."""
-    # Get callback URLs from environment - MUST be set properly!
-    test_callback_url = os.getenv("TEST_CALLBACK_URL")
-    test_redirect_uri = os.getenv("TEST_REDIRECT_URI")
+    # Get OAuth callback URL from environment - MUST be set properly!
+    oauth_callback_url = os.getenv("TEST_OAUTH_CALLBACK_URL")
     
-    if not test_callback_url or not test_redirect_uri:
+    if not oauth_callback_url:
         raise Exception(
-            "TEST_CALLBACK_URL and TEST_REDIRECT_URI must be set in .env\n"
-            "Example: TEST_CALLBACK_URL=https://auth.yourdomain.com/success"
+            "TEST_OAUTH_CALLBACK_URL must be set in .env\n"
+            "Example: TEST_OAUTH_CALLBACK_URL=https://auth.yourdomain.com/success"
         )
 
     # Always verify SSL - no exceptions for localhost per CLAUDE.md
@@ -106,7 +105,7 @@ async def register_oauth_client_with_user_token(
         response = await client.post(
             f"{base_url}/register",
             json={
-                "redirect_uris": [test_callback_url, test_redirect_uri],
+                "redirect_uris": [oauth_callback_url],
                 "client_name": "MCP OAuth Token Generator",
                 "scope": "openid profile email",
             },
@@ -201,9 +200,9 @@ async def complete_real_oauth_flow(
     state = secrets.token_urlsafe(16)
 
     # Step 2: Construct REAL authorization URL
-    callback_url = os.getenv("TEST_CALLBACK_URL")
+    callback_url = os.getenv("TEST_OAUTH_CALLBACK_URL")
     if not callback_url:
-        raise Exception("TEST_CALLBACK_URL must be set in .env - No defaults allowed per CLAUDE.md!")
+        raise Exception("TEST_OAUTH_CALLBACK_URL must be set in .env - No defaults allowed per CLAUDE.md!")
 
     auth_params = {
         "client_id": client_id,
@@ -338,7 +337,7 @@ async def main():
                         "grant_type": "authorization_code",
                         "code": "dummy_code",  # This will fail, but we'll get different errors
                         "redirect_uri": os.getenv(
-                            "TEST_CALLBACK_URL", "https://example.com/callback"
+                            "TEST_OAUTH_CALLBACK_URL", "https://example.com/callback"
                         ),
                         "client_id": client_id,
                         "client_secret": client_secret,
@@ -439,8 +438,7 @@ async def main():
                     f"{auth_base_url}/register",
                     json={
                         "redirect_uris": [
-                            os.getenv("TEST_CALLBACK_URL"),
-                            os.getenv("TEST_REDIRECT_URI"),
+                            os.getenv("TEST_OAUTH_CALLBACK_URL"),
                         ],
                         "client_name": "MCP OAuth Gateway Client",
                         "scope": "openid profile email",

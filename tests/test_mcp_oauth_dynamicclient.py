@@ -24,7 +24,7 @@ from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import REDIS_PASSWORD
 from .test_constants import REDIS_URL
 from .test_constants import TEST_CLIENT_SCOPE
-from .test_constants import TEST_REDIRECT_URI
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 
 
 # MCP Client tokens from environment
@@ -94,7 +94,7 @@ class TestMCPOAuthDynamicClientPackage:
         client_name = "TEST test_dynamic_client_registration_rfc7591"
 
         registration_data = {
-            "redirect_uris": [TEST_REDIRECT_URI, "https://example.com/callback2"],
+            "redirect_uris": [TEST_OAUTH_CALLBACK_URL, "https://example.com/callback2"],
             "client_name": client_name,
             "scope": "openid profile email",
             "grant_types": ["authorization_code", "refresh_token"],
@@ -222,7 +222,7 @@ class TestMCPOAuthDynamicClientPackage:
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_REDIRECT_URI],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": client_name,
                 "scope": TEST_CLIENT_SCOPE,
             },
@@ -235,7 +235,7 @@ class TestMCPOAuthDynamicClientPackage:
         auth_params = {
             "response_type": "code",
             "client_id": client["client_id"],
-            "redirect_uri": TEST_REDIRECT_URI,
+            "redirect_uri": TEST_OAUTH_CALLBACK_URL,
             "scope": "openid profile",
             "state": secrets.token_urlsafe(16),
         }
@@ -275,7 +275,7 @@ class TestMCPOAuthDynamicClientPackage:
                 "code": "invalid_code",
                 "client_id": "invalid_client",
                 "client_secret": "invalid_secret",
-                "redirect_uri": TEST_REDIRECT_URI,
+                "redirect_uri": TEST_OAUTH_CALLBACK_URL,
             }, timeout=30.0)
 
         assert response.status_code == HTTP_UNAUTHORIZED
@@ -298,7 +298,7 @@ class TestMCPOAuthDynamicClientPackage:
 
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json={"redirect_uris": [TEST_REDIRECT_URI], "client_name": client_name},
+            json={"redirect_uris": [TEST_OAUTH_CALLBACK_URL], "client_name": client_name},
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
@@ -356,7 +356,7 @@ class TestMCPOAuthDynamicClientPackage:
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_REDIRECT_URI],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": "TEST test_pkce_support",
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
@@ -372,7 +372,7 @@ class TestMCPOAuthDynamicClientPackage:
         auth_params = {
             "response_type": "code",
             "client_id": client["client_id"],
-            "redirect_uri": TEST_REDIRECT_URI,
+            "redirect_uri": TEST_OAUTH_CALLBACK_URL,
             "state": secrets.token_urlsafe(16),
             "code_challenge": challenge,
             "code_challenge_method": "S256",
@@ -483,7 +483,7 @@ class TestMCPOAuthDynamicClientPackage:
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_REDIRECT_URI],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": "TEST test_invalid_grant_types",
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
@@ -539,7 +539,7 @@ class TestMCPOAuthDynamicClientIntegration:
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_REDIRECT_URI],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": client_name,
                 "scope": "read write",
             },
@@ -573,7 +573,7 @@ class TestMCPOAuthDynamicClientIntegration:
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_REDIRECT_URI],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": "TEST test_auth_service_handles_invalid_tokens",
             },
             headers={"Authorization": "Bearer invalid_token_12345"}, timeout=30.0)

@@ -19,7 +19,7 @@ from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import TEST_CLIENT_NAME
 from .test_constants import TEST_CLIENT_SCOPE
-from .test_constants import TEST_REDIRECT_URI
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 
 
 class TestAdditionalCoverage:
@@ -72,7 +72,7 @@ class TestAdditionalCoverage:
         try:
             # First register a client
             registration_data = {
-                "redirect_uris": [TEST_REDIRECT_URI],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": TEST_CLIENT_NAME,
                 "scope": TEST_CLIENT_SCOPE,
             }
@@ -180,7 +180,7 @@ class TestAdditionalCoverage:
         try:
             # Register with absolute minimum data
             registration_data = {
-                "redirect_uris": [TEST_REDIRECT_URI],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": "TEST test_registration_with_minimal_data",
             }
 
@@ -286,7 +286,7 @@ class TestAdditionalCoverage:
         # Missing client_id
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
-            params={"response_type": "code", "redirect_uri": TEST_REDIRECT_URI}, timeout=30.0)
+            params={"response_type": "code", "redirect_uri": TEST_OAUTH_CALLBACK_URL}, timeout=30.0)
 
         # FastAPI returns 422 for missing required query parameters
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY

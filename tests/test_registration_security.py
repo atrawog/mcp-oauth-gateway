@@ -38,7 +38,7 @@ from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_FETCH_URL
-from .test_constants import TEST_CALLBACK_URL
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 from .test_constants import TEST_CLIENT_SCOPE
 
 
@@ -50,7 +50,7 @@ class TestRegistrationPublicAccess:
         """Test that /register endpoint is publicly accessible without authentication."""
         # Try to access register endpoint without any authorization header
         registration_data = {
-            "redirect_uris": [TEST_CALLBACK_URL],
+            "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
             "client_name": "TEST test_register_endpoint_is_public",
             "scope": TEST_CLIENT_SCOPE,
         }
@@ -155,7 +155,7 @@ class TestTokenSecurityWithoutGitHub:
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_CALLBACK_URL],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": "TEST test_registered_client_cannot_get_token_without_github_auth",
                 "scope": "openid profile",
             },
@@ -210,7 +210,7 @@ class TestTokenSecurityWithoutGitHub:
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_CALLBACK_URL],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": "TEST test_authorization_requires_github_login",
                 "scope": "openid profile email",
             },
@@ -225,7 +225,7 @@ class TestTokenSecurityWithoutGitHub:
         state = secrets.token_urlsafe(16)
         auth_params = {
             "client_id": client_id,
-            "redirect_uri": TEST_CALLBACK_URL,
+            "redirect_uri": TEST_OAUTH_CALLBACK_URL,
             "response_type": "code",
             "scope": "openid profile email",
             "state": state,
@@ -282,7 +282,7 @@ class TestAllowedUsersEnforcement:
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_CALLBACK_URL],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": "TEST test_oauth_flow_checks_allowed_users",
                 "scope": "openid profile",
             },
@@ -295,7 +295,7 @@ class TestAllowedUsersEnforcement:
         # Verify that authorization flow is set up correctly
         auth_params = {
             "client_id": client_data["client_id"],
-            "redirect_uri": TEST_CALLBACK_URL,
+            "redirect_uri": TEST_OAUTH_CALLBACK_URL,
             "response_type": "code",
             "scope": "openid profile",
             "state": secrets.token_urlsafe(16),
@@ -370,7 +370,7 @@ class TestUnauthorizedUserAccess:
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_CALLBACK_URL],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": "TEST test_token_exchange_without_valid_code",
                 "scope": "openid profile",
             },
@@ -386,7 +386,7 @@ class TestUnauthorizedUserAccess:
             data={
                 "grant_type": "authorization_code",
                 "code": "invalid_authorization_code",
-                "redirect_uri": TEST_CALLBACK_URL,
+                "redirect_uri": TEST_OAUTH_CALLBACK_URL,
                 "client_id": client_data["client_id"],
                 "client_secret": client_data["client_secret"],
             },
@@ -433,7 +433,7 @@ class TestSecurityModelValidation:
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_CALLBACK_URL],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": "TEST test_complete_security_flow",
                 "scope": "openid profile email",
             },
@@ -446,7 +446,7 @@ class TestSecurityModelValidation:
         # Step 2: Verify authorization requires GitHub
         auth_params = {
             "client_id": client_data["client_id"],
-            "redirect_uri": TEST_CALLBACK_URL,
+            "redirect_uri": TEST_OAUTH_CALLBACK_URL,
             "response_type": "code",
             "scope": "openid profile email",
             "state": secrets.token_urlsafe(16),

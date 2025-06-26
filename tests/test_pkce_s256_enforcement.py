@@ -11,7 +11,7 @@ from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_OK
-from .test_constants import TEST_CALLBACK_URL
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 
 
 class TestPKCES256Enforcement:
@@ -29,7 +29,7 @@ class TestPKCES256Enforcement:
         register_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_CALLBACK_URL],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"],
                 "client_name": "TEST test_pkce_plain_method_rejected",
@@ -44,7 +44,7 @@ class TestPKCES256Enforcement:
         auth_params = {
             "response_type": "code",
             "client_id": client_data["client_id"],
-            "redirect_uri": TEST_CALLBACK_URL,
+            "redirect_uri": TEST_OAUTH_CALLBACK_URL,
             "code_challenge": code_verifier,  # Plain method uses verifier as challenge
             "code_challenge_method": "plain",
             "state": "test-state",
@@ -93,7 +93,7 @@ class TestPKCES256Enforcement:
         register_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_CALLBACK_URL],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"],
                 "client_name": "TEST test_pkce_s256_proper_validation",
@@ -112,7 +112,7 @@ class TestPKCES256Enforcement:
         auth_params = {
             "response_type": "code",
             "client_id": client_data["client_id"],
-            "redirect_uri": TEST_CALLBACK_URL,
+            "redirect_uri": TEST_OAUTH_CALLBACK_URL,
             "code_challenge": code_challenge,
             "code_challenge_method": "S256",
             "state": "test-state",

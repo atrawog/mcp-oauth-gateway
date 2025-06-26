@@ -36,7 +36,7 @@ from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import JWT_PRIVATE_KEY_B64
 from .test_constants import REDIS_URL
 from .test_constants import TEST_CLIENT_NAME
-from .test_constants import TEST_REDIRECT_URI
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 
 
 class TestAuthAuthlibErrorHandling:
@@ -261,7 +261,7 @@ class TestRoutesErrorHandling:
         client_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_REDIRECT_URI],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": TEST_CLIENT_NAME,
             },
         )
@@ -489,7 +489,7 @@ class TestRFC7592ErrorHandling:
         client_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_REDIRECT_URI],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": TEST_CLIENT_NAME,
             },
         )
@@ -523,7 +523,7 @@ class TestRFC7592ErrorHandling:
         client_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_REDIRECT_URI],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": TEST_CLIENT_NAME,
             },
         )
@@ -604,7 +604,7 @@ class TestEdgeCasesAndBranches:
         client_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_REDIRECT_URI],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": TEST_CLIENT_NAME,
             },
         )
@@ -628,7 +628,7 @@ class TestEdgeCasesAndBranches:
         client_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "redirect_uris": [TEST_REDIRECT_URI],
+                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": f"{TEST_CLIENT_NAME}_concurrent",
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"],

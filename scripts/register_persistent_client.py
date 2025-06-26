@@ -14,7 +14,7 @@ import redis.asyncio as redis
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tests.test_constants import AUTH_BASE_URL
 from tests.test_constants import REDIS_PASSWORD
-from tests.test_constants import TEST_CALLBACK_URL
+from tests.test_constants import TEST_OAUTH_CALLBACK_URL
 from tests.test_constants import TEST_CLIENT_NAME
 from tests.test_constants import TEST_CLIENT_SCOPE
 
@@ -24,7 +24,7 @@ async def register_persistent_client():
     # Register client via API
     async with httpx.AsyncClient(verify=True) as client:
         registration_data = {
-            "redirect_uris": [TEST_CALLBACK_URL],
+            "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
             "client_name": f"Persistent {TEST_CLIENT_NAME}",
             "scope": TEST_CLIENT_SCOPE,
         }

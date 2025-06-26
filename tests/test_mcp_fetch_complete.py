@@ -18,7 +18,7 @@ from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 from .test_constants import TEST_CLIENT_SCOPE
-from .test_constants import TEST_REDIRECT_URI
+from .test_constants import TEST_OAUTH_CALLBACK_URL
 from .test_constants import MCP_FETCH_TESTS_ENABLED
 
 
@@ -47,7 +47,7 @@ class TestMCPFetchComplete:
 
         # Step 1: Register an OAuth client
         registration_data = {
-            "redirect_uris": [TEST_REDIRECT_URI],
+            "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
             "client_name": "TEST test_mcp_fetch_actually_fetches_content",
             "scope": TEST_CLIENT_SCOPE,
         }
