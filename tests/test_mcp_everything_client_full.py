@@ -45,7 +45,9 @@ async def wait_for_services():
 class TestMCPEverythingClientFull:
     """Comprehensive test of mcp-everything using mcp-streamablehttp-client."""
 
-    def run_mcp_client(self, url: str, token: str, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+    def run_mcp_client(
+        self, url: str, token: str, method: str, params: dict[str, Any] | None = None, timeout: int = 20
+    ) -> dict[str, Any]:
         """Run mcp-streamablehttp-client and return the response."""
         # Set environment variables
         env = os.environ.copy()
@@ -75,8 +77,8 @@ class TestMCPEverythingClientFull:
 
         # Run the command
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, timeout=20, env=env
-        )  # 20s for everything service
+            cmd, check=False, capture_output=True, text=True, timeout=timeout, env=env
+        )  # Configurable timeout for different operations
 
         if result.returncode != 0:
             # Check if it's an expected error
@@ -249,8 +251,10 @@ class TestMCPEverythingClientFull:
             },
         )
 
-        # List prompts
-        response = self.run_mcp_client(url=everything_url, token=client_token, method="prompts/list", params={})
+        # List prompts (prompts operations can be resource-intensive)
+        response = self.run_mcp_client(
+            url=everything_url, token=client_token, method="prompts/list", params={}, timeout=30
+        )
 
         assert "result" in response
         prompts = response["result"]["prompts"]
@@ -369,7 +373,9 @@ class TestMCPEverythingClientFull:
         )
 
         # List prompts
-        list_response = self.run_mcp_client(url=everything_url, token=client_token, method="prompts/list", params={})
+        list_response = self.run_mcp_client(
+            url=everything_url, token=client_token, method="prompts/list", params={}, timeout=30
+        )
 
         prompts = list_response["result"]["prompts"]
         if len(prompts) > 0:
@@ -389,6 +395,7 @@ class TestMCPEverythingClientFull:
                 token=client_token,
                 method="prompts/get",
                 params={"name": first_prompt["name"], "arguments": prompt_args},
+                timeout=30,
             )
 
             assert "result" in response or "error" in response
@@ -500,7 +507,9 @@ class TestMCPEverythingClientFull:
         print(f"Found {len(resources)} resources")
 
         # List prompts
-        prompts_response = self.run_mcp_client(url=everything_url, token=client_token, method="prompts/list", params={})
+        prompts_response = self.run_mcp_client(
+            url=everything_url, token=client_token, method="prompts/list", params={}, timeout=30
+        )
         prompts = prompts_response["result"]["prompts"]
         print(f"Found {len(prompts)} prompts")
 

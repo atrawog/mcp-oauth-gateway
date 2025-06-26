@@ -84,17 +84,24 @@ class TestSacredSealsCompliance:
             assert len(state_keys) > 0
 
             # State keys should have 5 minute TTL (300 seconds)
+            valid_state_keys_checked = 0
             for state_key in state_keys:
                 state_ttl = await redis_client.ttl(state_key)
                 # TTL of -1 means no expiration, -2 means key doesn't exist
-                # TTL of 0 or positive means the key will expire
+                # TTL of 0 means key has expired (but not yet removed by Redis)
                 # We expect between 1 and 300 seconds (allow for test execution time)
-                if state_ttl == -1:
-                    # Key has no expiration - this is wrong for state keys
+                if state_ttl in (-1, 0):
+                    # Key has no expiration or has expired - this is wrong for state keys
                     # Clean it up to prevent test pollution
                     await redis_client.delete(state_key)
-                    continue  # Skip this key as it's likely from a previous test
+                    continue  # Skip this key as it's likely from a previous test or expired
                 assert 1 <= state_ttl <= 300, f"State key TTL {state_ttl} not in expected range"
+                valid_state_keys_checked += 1
+
+            # Ensure we actually validated at least one properly configured state key
+            assert valid_state_keys_checked > 0, (
+                "No valid state keys found with proper TTL - all keys were expired or misconfigured"
+            )
 
             # Verify sacred key hierarchy patterns
             expected_patterns = [

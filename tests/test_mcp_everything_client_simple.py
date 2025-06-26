@@ -43,7 +43,7 @@ async def wait_for_services():
 class TestMCPEverythingClientSimple:
     """Simple test of mcp-everything using mcp-streamablehttp-client."""
 
-    def run_client_command(self, url: str, token: str, command: str) -> tuple[int, str, str]:
+    def run_client_command(self, url: str, token: str, command: str, timeout: int = 30) -> tuple[int, str, str]:
         """Run mcp-streamablehttp-client with a command and return result."""
         # Set environment variables
         env = os.environ.copy()
@@ -62,7 +62,7 @@ class TestMCPEverythingClientSimple:
         ]
 
         # Run the command
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=30, env=env)
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=timeout, env=env)
 
         return result.returncode, result.stdout, result.stderr
 
@@ -156,7 +156,7 @@ class TestMCPEverythingClientSimple:
         for command in test_commands:
             print(f"\nTrying command: {command}")
             returncode, stdout, stderr = self.run_client_command(
-                url=everything_url, token=client_token, command=command
+                url=everything_url, token=client_token, command=command, timeout=10
             )
 
             if stdout:
