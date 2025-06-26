@@ -10,6 +10,7 @@ from mcp import Tool
 from mcp.types import ImageContent
 from mcp.types import TextContent
 from pydantic import BaseModel
+from pydantic import ConfigDict
 from pydantic import Field
 
 
@@ -26,6 +27,8 @@ except ImportError:
 
 class FetchArguments(BaseModel):
     """Arguments for the fetch tool."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     url: str = Field(description="URL to fetch")
     method: str = Field(default="GET", description="HTTP method (GET or POST)")
