@@ -19,7 +19,7 @@ from .test_constants import HTTP_UNAUTHORIZED
 class TestRFCCompliance:
     """Test that auth service is fully RFC compliant."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_authorize_invalid_client_rfc6749_compliance(self, http_client):
         """Test that authorize endpoint is RFC 6749 compliant for invalid_client."""
         response = await http_client.get(
@@ -46,7 +46,7 @@ class TestRFCCompliance:
             assert "invalid_client" in content or "Client authentication failed" in content
         # RFC 6749 compliant - only error and error_description fields
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_token_invalid_client_rfc6749_compliance(self, http_client):
         """Test that token endpoint is RFC 6749 Section 5.2 compliant for invalid_client."""
         response = await http_client.post(
@@ -67,7 +67,7 @@ class TestRFCCompliance:
         assert error["error_description"] == "Client authentication failed"
         # RFC 6749 Section 5.2 compliant - only error and error_description fields
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_oauth_discovery_includes_registration_endpoint(self, http_client):
         """Test that OAuth discovery metadata includes registration endpoint."""
         response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
@@ -82,7 +82,7 @@ class TestRFCCompliance:
         assert "op_policy_uri" in metadata
         assert "op_tos_uri" in metadata
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_registration_invalid_redirect_uri_rfc7591(self, http_client):
         """Test RFC 7591 compliance for invalid redirect URI."""
         # Test HTTP URI for non-localhost
@@ -99,7 +99,7 @@ class TestRFCCompliance:
         assert error["error"] == "invalid_redirect_uri"
         assert "localhost" in error["error_description"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_registration_valid_redirect_uris_rfc7591(self, http_client):
         """Test RFC 7591 compliance for valid redirect URIs."""
         # Test various valid redirect URIs
@@ -135,7 +135,7 @@ class TestRFCCompliance:
             except Exception as e:
                 logger.warning(f"Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_registration_missing_redirect_uris_rfc7591(self, http_client):
         """Test RFC 7591 compliance for missing redirect_uris."""
         response = await http_client.post(f"{AUTH_BASE_URL}/register", json={"client_name": "TEST Test Client"})

@@ -13,13 +13,13 @@ from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
 from tests.test_constants import MCP_EVERYTHING_URLS
 
 
-@pytest.fixture
+@pytest.fixture()
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture
+@pytest.fixture()
 def everything_url():
     """Full URL for everything service."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
@@ -29,7 +29,7 @@ def everything_url():
     return MCP_EVERYTHING_URLS[0]
 
 
-@pytest.fixture
+@pytest.fixture()
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
@@ -61,8 +61,8 @@ class TestMCPEverythingDirect:
 
         return response.json(), response
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_server_capabilities(self, everything_url, client_token):
         """Test the everything server's capabilities directly."""

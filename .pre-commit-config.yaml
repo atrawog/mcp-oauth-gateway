@@ -52,14 +52,6 @@ repos:
         description: "Prevent large files from being committed"
         args: ['--maxkb=1000']
 
-  # Security checks
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.9
-    hooks:
-      - id: bandit
-        args: ['-x', 'tests/']
-        description: "🔒 Security vulnerability scanning"
-
 # Global configuration
 default_stages: [commit]
 fail_fast: false

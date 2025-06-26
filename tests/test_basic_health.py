@@ -7,7 +7,7 @@ from .test_constants import AUTH_BASE_URL
 from .test_constants import HTTP_OK
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_auth_oauth_discovery_health():
     """Test auth service health via OAuth discovery endpoint."""
     async with httpx.AsyncClient(timeout=30.0) as client:
@@ -21,7 +21,7 @@ async def test_auth_oauth_discovery_health():
         assert "registration_endpoint" in data
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_auth_metadata_basic():
     """Test auth metadata endpoint."""
     async with httpx.AsyncClient(timeout=30.0) as client:

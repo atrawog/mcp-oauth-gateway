@@ -111,7 +111,7 @@ class MCPMemoryFunctionalitySummary:
     integrated into the OAuth gateway architecture!
     """
 
-    @pytest.mark.integration
+    @pytest.mark.integration()
     def test_memory_functionality_summary(self):
         """This test documents that all memory functionalities have been tested."""
         # This test always passes - it's for documentation

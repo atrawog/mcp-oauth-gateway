@@ -12,7 +12,7 @@ import pytest
 class TestMCPEchoIntegration:
     """Test MCP Echo service functionality with proper OAuth authentication."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_echo_requires_authentication(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
         """Test that Echo service REQUIRES OAuth authentication - no unauthorized access!"""
         # Test with no authentication
@@ -34,7 +34,7 @@ class TestMCPEchoIntegration:
         assert "WWW-Authenticate" in response.headers
         assert response.headers["WWW-Authenticate"] == "Bearer"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_echo_protocol_initialization(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -69,7 +69,7 @@ class TestMCPEchoIntegration:
         assert data["result"]["protocolVersion"] == "2025-06-18"
         assert data["result"]["serverInfo"]["name"] == "mcp-echo-streamablehttp-server-stateless"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_echo_list_tools(self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict):
         """Test listing available tools from Echo service."""
         # Initialize first
@@ -122,7 +122,7 @@ class TestMCPEchoIntegration:
         for tool in diagnostic_tools:
             assert tool in tool_names
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_echo_tool_functionality(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -158,7 +158,7 @@ class TestMCPEchoIntegration:
         assert data["result"]["content"][0]["type"] == "text"
         assert data["result"]["content"][0]["text"] == test_message
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_print_header_tool_functionality(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -200,7 +200,7 @@ class TestMCPEchoIntegration:
         assert "x-custom-header: custom-value-456" in headers_text
         assert "content-type: application/json" in headers_text
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_echo_error_handling_invalid_tool(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -232,7 +232,7 @@ class TestMCPEchoIntegration:
         assert "error" in data
         assert "Unknown tool: invalid_tool" in str(data["error"])
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_echo_error_handling_invalid_arguments(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -268,7 +268,7 @@ class TestMCPEchoIntegration:
         assert "error" in data
         assert "message must be a string" in str(data["error"])
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_echo_cors_headers(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
         """Test CORS preflight handling for Echo service."""
         response = await http_client.options(
@@ -286,7 +286,7 @@ class TestMCPEchoIntegration:
         assert "Access-Control-Allow-Methods" in response.headers
         assert "POST" in response.headers["Access-Control-Allow-Methods"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_echo_with_forwardauth_headers(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -319,7 +319,7 @@ class TestMCPEchoIntegration:
         # These might include X-User-Id, X-User-Name, etc.
         assert "authorization: Bearer" in headers_text
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_echo_stateless_behavior(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
