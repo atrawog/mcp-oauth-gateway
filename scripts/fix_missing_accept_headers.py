@@ -26,18 +26,18 @@ def fix_headers_in_file(file_path: Path):
         if '"Accept"' not in headers_content and "'Accept'" not in headers_content:
             # Add Accept header
             # Find the last header line and add Accept after it
-            lines = headers_content.strip().split('\n')
+            lines = headers_content.strip().split("\n")
             last_line = lines[-1].strip()
 
-            if last_line.endswith(','):
+            if last_line.endswith(","):
                 new_accept_line = '                "Accept": "application/json, text/event-stream",'
             else:
                 # Add comma to last line and new Accept line
-                lines[-1] = last_line + ','
+                lines[-1] = last_line + ","
                 new_accept_line = '                "Accept": "application/json, text/event-stream",'
 
             lines.append(new_accept_line)
-            new_headers_content = '\n'.join(lines)
+            new_headers_content = "\n".join(lines)
 
             # Replace in content
             old_headers_block = match.group(0)
@@ -53,20 +53,20 @@ def fix_headers_in_file(file_path: Path):
         full_headers = match.group(0)
         if '"Accept"' not in full_headers and "'Accept'" not in full_headers:
             # Extract the headers content
-            headers_content = re.search(r'headers\s*=\s*\{([^}]*)\}', full_headers, re.DOTALL).group(1)
+            headers_content = re.search(r"headers\s*=\s*\{([^}]*)\}", full_headers, re.DOTALL).group(1)
 
             # Add Accept header
-            lines = headers_content.strip().split('\n')
+            lines = headers_content.strip().split("\n")
             last_line = lines[-1].strip()
 
-            if last_line.endswith(','):
+            if last_line.endswith(","):
                 new_accept_line = '                "Accept": "application/json, text/event-stream",'
             else:
-                lines[-1] = last_line + ','
+                lines[-1] = last_line + ","
                 new_accept_line = '                "Accept": "application/json, text/event-stream",'
 
             lines.append(new_accept_line)
-            new_headers_content = '\n'.join(lines)
+            new_headers_content = "\n".join(lines)
 
             new_headers_block = f"headers = {{{new_headers_content}}}"
             content = content.replace(full_headers, new_headers_block)
@@ -81,6 +81,7 @@ def fix_headers_in_file(file_path: Path):
         return True
     print("  ℹ️  No additional fixes needed")
     return False
+
 
 def main():
     """Fix all MCP test files."""
@@ -107,6 +108,7 @@ def main():
 
     print(f"\n✅ Fixed {fixed_count} additional files")
     print("🎯 This should resolve the remaining 400 Bad Request errors!")
+
 
 if __name__ == "__main__":
     main()

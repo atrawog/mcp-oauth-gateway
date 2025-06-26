@@ -28,9 +28,7 @@ async def wait_for_services():
 class TestMCPSequentialThinkingComprehensive:
     """Comprehensive tests for mcp-sequentialthinking service functionality."""
 
-    def run_mcp_client_command(
-        self, url: str, token: str, command: str
-    ) -> dict[str, Any]:
+    def run_mcp_client_command(self, url: str, token: str, command: str) -> dict[str, Any]:
         """Run mcp-streamablehttp-client with a command and return the response."""
         # Set environment variables
         env = os.environ.copy()
@@ -111,9 +109,7 @@ class TestMCPSequentialThinkingComprehensive:
         ]
 
         # Run the command
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, timeout=60, env=env
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=60, env=env)
 
         if result.returncode != 0:
             # Check if it's an expected error
@@ -194,9 +190,7 @@ class TestMCPSequentialThinkingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_tool_discovery(
-        self, mcp_sequentialthinking_url, client_token, wait_for_services
-    ):
+    async def test_sequentialthinking_tool_discovery(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test discovering available sequential thinking tools."""
         # Initialize session
         self.initialize_session(mcp_sequentialthinking_url, client_token)
@@ -219,9 +213,7 @@ class TestMCPSequentialThinkingComprehensive:
         assert "sequentialthinking" in tool_names
 
         # Get the sequential thinking tool details
-        sequential_tool = next(
-            tool for tool in tools if tool["name"] == "sequentialthinking"
-        )
+        sequential_tool = next(tool for tool in tools if tool["name"] == "sequentialthinking")
         assert "description" in sequential_tool
         assert "inputSchema" in sequential_tool
         assert "properties" in sequential_tool["inputSchema"]
@@ -244,9 +236,7 @@ class TestMCPSequentialThinkingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_simple_problem(
-        self, mcp_sequentialthinking_url, client_token, wait_for_services
-    ):
+    async def test_sequentialthinking_simple_problem(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test solving a simple problem with sequential thinking."""
         # Initialize session
         self.initialize_session(mcp_sequentialthinking_url, client_token)
@@ -507,9 +497,7 @@ class TestMCPSequentialThinkingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_error_handling(
-        self, mcp_sequentialthinking_url, client_token, wait_for_services
-    ):
+    async def test_sequentialthinking_error_handling(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test error handling with invalid parameters."""
         # Initialize session
         self.initialize_session(mcp_sequentialthinking_url, client_token)
@@ -541,9 +529,7 @@ class TestMCPSequentialThinkingComprehensive:
             if isinstance(content, list) and len(content) > 0:
                 text_content = content[0].get("text", "")
                 if "error" in text_content.lower() or "invalid" in text_content.lower():
-                    print(
-                        "Tool correctly returned error in content for invalid parameters"
-                    )
+                    print("Tool correctly returned error in content for invalid parameters")
                 else:
                     print(f"Unexpected response content: {text_content}")
 
@@ -632,9 +618,7 @@ class TestMCPSequentialThinkingComprehensive:
                 },
             },
         )
-        print(
-            f"Step 4 - Refinement: {'✅ Success' if 'result' in step4 else '❌ Error'}"
-        )
+        print(f"Step 4 - Refinement: {'✅ Success' if 'result' in step4 else '❌ Error'}")
 
         # Step 5: Final solution
         step5 = self.run_mcp_client_raw(
@@ -659,13 +643,9 @@ class TestMCPSequentialThinkingComprehensive:
         print("=== Sequential Thinking Workflow Complete ===\n")
 
         # Verify at least some steps succeeded
-        successful_steps = sum(
-            1 for step in [step1, step2, step3, step4, step5] if "result" in step
-        )
+        successful_steps = sum(1 for step in [step1, step2, step3, step4, step5] if "result" in step)
         print(f"Successfully completed {successful_steps}/5 thinking steps")
-        assert successful_steps >= 3, (
-            f"Expected at least 3 successful steps, got {successful_steps}"
-        )
+        assert successful_steps >= 3, f"Expected at least 3 successful steps, got {successful_steps}"
 
     @pytest.mark.integration
     @pytest.mark.asyncio

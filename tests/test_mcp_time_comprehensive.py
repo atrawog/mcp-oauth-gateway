@@ -28,9 +28,7 @@ async def wait_for_services():
 class TestMCPTimeComprehensive:
     """Comprehensive tests for mcp-time service functionality."""
 
-    def run_mcp_client_command(
-        self, url: str, token: str, command: str
-    ) -> dict[str, Any]:
+    def run_mcp_client_command(self, url: str, token: str, command: str) -> dict[str, Any]:
         """Run mcp-streamablehttp-client with a command and return the response."""
         # Set environment variables
         env = os.environ.copy()
@@ -49,9 +47,7 @@ class TestMCPTimeComprehensive:
         ]
 
         # Run the command
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, timeout=30, env=env
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=30, env=env)
 
         if result.returncode != 0:
             pytest.fail(
@@ -106,9 +102,7 @@ class TestMCPTimeComprehensive:
         ]
 
         # Run the command
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, timeout=30, env=env
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=30, env=env)
 
         if result.returncode != 0:
             # Check if it's an expected error
@@ -189,18 +183,14 @@ class TestMCPTimeComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_tool_discovery(
-        self, mcp_time_url, client_token, wait_for_services
-    ):
+    async def test_time_tool_discovery(self, mcp_time_url, client_token, wait_for_services):
         """Test discovering available time tools."""
         time_url = f"{mcp_time_url}"
         # Initialize session
         self.initialize_session(time_url, client_token)
 
         # List available tools
-        response = self.run_mcp_client_raw(
-            url=time_url, token=client_token, method="tools/list", params={}
-        )
+        response = self.run_mcp_client_raw(url=time_url, token=client_token, method="tools/list", params={})
 
         assert "result" in response
         tools = response["result"]["tools"]
@@ -213,12 +203,8 @@ class TestMCPTimeComprehensive:
         assert "convert_time" in tool_names
 
         # Get tool details
-        get_current_time_tool = next(
-            tool for tool in tools if tool["name"] == "get_current_time"
-        )
-        convert_time_tool = next(
-            tool for tool in tools if tool["name"] == "convert_time"
-        )
+        get_current_time_tool = next(tool for tool in tools if tool["name"] == "get_current_time")
+        convert_time_tool = next(tool for tool in tools if tool["name"] == "convert_time")
 
         # Verify get_current_time tool structure
         assert "description" in get_current_time_tool
@@ -240,9 +226,7 @@ class TestMCPTimeComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_get_current_time_utc(
-        self, mcp_time_url, client_token, wait_for_services
-    ):
+    async def test_get_current_time_utc(self, mcp_time_url, client_token, wait_for_services):
         """Test getting current time in UTC."""
         time_url = f"{mcp_time_url}"
         # Initialize session
@@ -271,9 +255,7 @@ class TestMCPTimeComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_get_current_time_major_timezones(
-        self, mcp_time_url, client_token, wait_for_services
-    ):
+    async def test_get_current_time_major_timezones(self, mcp_time_url, client_token, wait_for_services):
         """Test getting current time in major global timezones."""
         time_url = f"{mcp_time_url}"
         # Initialize session
@@ -311,18 +293,14 @@ class TestMCPTimeComprehensive:
                 assert len(content) > 0
                 text_content = content[0]["text"]
                 # Timezone name should appear in the response
-                assert (
-                    timezone.split("/")[-1] in text_content or timezone in text_content
-                )
+                assert timezone.split("/")[-1] in text_content or timezone in text_content
                 print(f"✅ {timezone}: {text_content}")
             else:
                 print(f"❌ {timezone}: {response['error']}")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_convert_time_basic(
-        self, mcp_time_url, client_token, wait_for_services
-    ):
+    async def test_convert_time_basic(self, mcp_time_url, client_token, wait_for_services):
         """Test basic time conversion between timezones."""
         time_url = f"{mcp_time_url}"
         # Initialize session
@@ -360,9 +338,7 @@ class TestMCPTimeComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_convert_time_global_business_hours(
-        self, mcp_time_url, client_token, wait_for_services
-    ):
+    async def test_convert_time_global_business_hours(self, mcp_time_url, client_token, wait_for_services):
         """Test time conversion for global business hours coordination."""
         time_url = f"{mcp_time_url}"
         # Initialize session
@@ -419,15 +395,11 @@ class TestMCPTimeComprehensive:
                 print(f"❌ {conversion['name']}: Failed")
 
         # At least some conversions should work
-        assert successful_conversions >= 2, (
-            f"Expected at least 2 successful conversions, got {successful_conversions}"
-        )
+        assert successful_conversions >= 2, f"Expected at least 2 successful conversions, got {successful_conversions}"
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_convert_time_edge_cases(
-        self, mcp_time_url, client_token, wait_for_services
-    ):
+    async def test_convert_time_edge_cases(self, mcp_time_url, client_token, wait_for_services):
         """Test time conversion edge cases."""
         time_url = f"{mcp_time_url}"
         # Initialize session
@@ -477,15 +449,11 @@ class TestMCPTimeComprehensive:
             if "result" in response:
                 print(f"✅ {test_case['name']}: Success")
             else:
-                print(
-                    f"⚠️ {test_case['name']}: {response.get('error', 'Unknown error')}"
-                )
+                print(f"⚠️ {test_case['name']}: {response.get('error', 'Unknown error')}")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_error_handling(
-        self, mcp_time_url, client_token, wait_for_services
-    ):
+    async def test_time_error_handling(self, mcp_time_url, client_token, wait_for_services):
         """Test error handling with invalid parameters."""
         time_url = f"{mcp_time_url}"
         # Initialize session
@@ -515,9 +483,7 @@ class TestMCPTimeComprehensive:
                 text_content = content[0].get("text", "")
                 # Check if error is mentioned in content
                 if "error" in text_content.lower() or "invalid" in text_content.lower():
-                    print(
-                        "Tool correctly returned error in content for invalid timezone"
-                    )
+                    print("Tool correctly returned error in content for invalid timezone")
                 else:
                     print(f"Unexpected response for invalid timezone: {text_content}")
 
@@ -545,9 +511,7 @@ class TestMCPTimeComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_timezone_detection(
-        self, mcp_time_url, client_token, wait_for_services
-    ):
+    async def test_time_timezone_detection(self, mcp_time_url, client_token, wait_for_services):
         """Test timezone detection and handling."""
         time_url = f"{mcp_time_url}"
         # Initialize session
@@ -586,18 +550,14 @@ class TestMCPTimeComprehensive:
                 print(f"❌ {timezone}: Failed")
 
         # Most valid timezones should work
-        assert successful_queries >= 5, (
-            f"Expected at least 5 successful timezone queries, got {successful_queries}"
-        )
+        assert successful_queries >= 5, f"Expected at least 5 successful timezone queries, got {successful_queries}"
         print(
             f"Successfully queried {successful_queries}/{len(valid_timezones)} timezones"  # TODO: Break long line
         )
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_complete_workflow(
-        self, mcp_time_url, client_token, wait_for_services
-    ):
+    async def test_time_complete_workflow(self, mcp_time_url, client_token, wait_for_services):
         """Test a complete time-related workflow."""
         time_url = f"{mcp_time_url}"
         # Initialize session
@@ -680,15 +640,11 @@ class TestMCPTimeComprehensive:
             if "result" in step
         )
         print(f"Successfully completed {successful_steps}/4 time operations")
-        assert successful_steps >= 3, (
-            f"Expected at least 3 successful steps, got {successful_steps}"
-        )
+        assert successful_steps >= 3, f"Expected at least 3 successful steps, got {successful_steps}"
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_protocol_compliance(
-        self, mcp_time_url, client_token, wait_for_services
-    ):
+    async def test_time_protocol_compliance(self, mcp_time_url, client_token, wait_for_services):
         """Test MCP protocol compliance for time service."""
         time_url = f"{mcp_time_url}"
         # Test initialization
@@ -727,9 +683,7 @@ class TestMCPTimeComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_time_performance_batch(
-        self, mcp_time_url, client_token, wait_for_services
-    ):
+    async def test_time_performance_batch(self, mcp_time_url, client_token, wait_for_services):
         """Test time service performance with multiple requests."""
         time_url = f"{mcp_time_url}"
         # Initialize session
@@ -765,11 +719,7 @@ class TestMCPTimeComprehensive:
             else:
                 print(f"Request {i}/5 ({timezone}): ❌ Failed")
 
-        print(
-            f"=== Performance Test Complete: {successful_requests}/5 successful ===\\n"
-        )
+        print(f"=== Performance Test Complete: {successful_requests}/5 successful ===\\n")
 
         # Most requests should succeed
-        assert successful_requests >= 4, (
-            f"Expected at least 4 successful requests, got {successful_requests}"
-        )
+        assert successful_requests >= 4, f"Expected at least 4 successful requests, got {successful_requests}"

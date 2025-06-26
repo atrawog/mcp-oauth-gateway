@@ -42,10 +42,7 @@ class MCPEchoServer:
         self.debug = debug
         self.supported_versions = supported_versions or [self.PROTOCOL_VERSION]
         if debug:
-            logging.basicConfig(
-                level=logging.DEBUG,
-                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-            )
+            logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
         # Store request context per async task for stateless operation
         self._request_context = {}
@@ -99,6 +96,7 @@ class MCPEchoServer:
 
     def _handle_sse_stream(self) -> StreamingResponse:
         """Handle GET requests for SSE streams."""
+
         async def sse_stream():
             # Send a keep-alive comment to establish the connection
             yield "event: ping\ndata: {}\n\n"
@@ -107,11 +105,7 @@ class MCPEchoServer:
         return StreamingResponse(
             sse_stream(),
             media_type="text/event-stream",
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive"
-            }
+            headers={"Access-Control-Allow-Origin": "*", "Cache-Control": "no-cache", "Connection": "keep-alive"},
         )
 
     async def _handle_post_request(self, request: Request, allowed_origin: str) -> Response:
@@ -124,10 +118,10 @@ class MCPEchoServer:
         # Store request context
         task_id = id(asyncio.current_task())
         self._request_context[task_id] = {
-            'headers': dict(request.headers),
-            'start_time': time.time(),
-            'method': request.method,
-            'url': str(request.url)
+            "headers": dict(request.headers),
+            "start_time": time.time(),
+            "method": request.method,
+            "url": str(request.url),
         }
 
         try:
@@ -145,7 +139,7 @@ class MCPEchoServer:
             return JSONResponse(
                 {"error": "Content-Type must be application/json"},
                 status_code=400,
-                headers={"Access-Control-Allow-Origin": "*"}
+                headers={"Access-Control-Allow-Origin": "*"},
             )
 
         # Validate Accept header
@@ -154,16 +148,18 @@ class MCPEchoServer:
             return JSONResponse(
                 {"error": "Client must accept both application/json and text/event-stream"},
                 status_code=400,
-                headers={"Access-Control-Allow-Origin": "*"}
+                headers={"Access-Control-Allow-Origin": "*"},
             )
 
         # Check MCP-Protocol-Version
         protocol_version = request.headers.get("mcp-protocol-version")
         if protocol_version and protocol_version not in self.supported_versions:
             return JSONResponse(
-                {"error": f"Unsupported protocol version: {protocol_version}. Supported versions: {', '.join(self.supported_versions)}"},
+                {
+                    "error": f"Unsupported protocol version: {protocol_version}. Supported versions: {', '.join(self.supported_versions)}"
+                },
                 status_code=400,
-                headers={"Access-Control-Allow-Origin": "*"}
+                headers={"Access-Control-Allow-Origin": "*"},
             )
 
         return None
@@ -176,7 +172,7 @@ class MCPEchoServer:
             return StreamingResponse(
                 self._sse_error_stream(-32700, "Parse error"),
                 media_type="text/event-stream",
-                headers={"Access-Control-Allow-Origin": "*"}
+                headers={"Access-Control-Allow-Origin": "*"},
             )
 
         if self.debug:
@@ -187,7 +183,7 @@ class MCPEchoServer:
             return JSONResponse(
                 {"error": "Batch requests not supported in stateless mode"},
                 status_code=400,
-                headers={"Access-Control-Allow-Origin": "*"}
+                headers={"Access-Control-Allow-Origin": "*"},
             )
 
         # Handle the JSON-RPC request
@@ -198,17 +194,13 @@ class MCPEchoServer:
 
         # Check if this is a notification
         if "id" not in body and "error" not in response:
-            return Response(
-                content="",
-                status_code=202,
-                headers={"Access-Control-Allow-Origin": "*"}
-            )
+            return Response(content="", status_code=202, headers={"Access-Control-Allow-Origin": "*"})
 
         # Return SSE response
         return StreamingResponse(
             self._sse_response_stream(response),
             media_type="text/event-stream",
-            headers={"Access-Control-Allow-Origin": "*"}
+            headers={"Access-Control-Allow-Origin": "*"},
         )
 
     async def _handle_jsonrpc_request(self, request: dict[str, Any]) -> dict[str, Any]:
@@ -247,7 +239,7 @@ class MCPEchoServer:
             return self._error_response(
                 request_id,
                 -32602,
-                f"Unsupported protocol version: {client_protocol}. Supported versions: {', '.join(self.supported_versions)}"
+                f"Unsupported protocol version: {client_protocol}. Supported versions: {', '.join(self.supported_versions)}",
             )
 
         # Use the client's requested version if supported
@@ -256,16 +248,9 @@ class MCPEchoServer:
             "id": request_id,
             "result": {
                 "protocolVersion": client_protocol,  # Echo back the client's version
-                "capabilities": {
-                    "tools": {
-                        "listChanged": True
-                    }
-                },
-                "serverInfo": {
-                    "name": self.SERVER_NAME,
-                    "version": self.SERVER_VERSION
-                }
-            }
+                "capabilities": {"tools": {"listChanged": True}},
+                "serverInfo": {"name": self.SERVER_NAME, "version": self.SERVER_VERSION},
+            },
         }
 
     async def _handle_tools_list(self, params: dict[str, Any], request_id: Any) -> dict[str, Any]:
@@ -277,24 +262,15 @@ class MCPEchoServer:
                 "description": "Echo back the provided message",
                 "inputSchema": {
                     "type": "object",
-                    "properties": {
-                        "message": {
-                            "type": "string",
-                            "description": "The message to echo back"
-                        }
-                    },
+                    "properties": {"message": {"type": "string", "description": "The message to echo back"}},
                     "required": ["message"],
-                    "additionalProperties": False
-                }
+                    "additionalProperties": False,
+                },
             },
             {
                 "name": "printHeader",
                 "description": "Print all HTTP headers from the current request",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {},
-                    "additionalProperties": False
-                }
+                "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
             },
             {
                 "name": "bearerDecode",
@@ -302,32 +278,20 @@ class MCPEchoServer:
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "includeRaw": {
-                            "type": "boolean",
-                            "description": "Include raw token parts",
-                            "default": False
-                        }
+                        "includeRaw": {"type": "boolean", "description": "Include raw token parts", "default": False}
                     },
-                    "additionalProperties": False
-                }
+                    "additionalProperties": False,
+                },
             },
             {
                 "name": "authContext",
                 "description": "Display complete authentication context from request",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {},
-                    "additionalProperties": False
-                }
+                "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
             },
             {
                 "name": "requestTiming",
                 "description": "Show request timing and performance metrics",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {},
-                    "additionalProperties": False
-                }
+                "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
             },
             {
                 "name": "protocolNegotiation",
@@ -335,22 +299,15 @@ class MCPEchoServer:
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "testVersion": {
-                            "type": "string",
-                            "description": "Test a specific protocol version"
-                        }
+                        "testVersion": {"type": "string", "description": "Test a specific protocol version"}
                     },
-                    "additionalProperties": False
-                }
+                    "additionalProperties": False,
+                },
             },
             {
                 "name": "corsAnalysis",
                 "description": "Analyze CORS configuration and requirements",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {},
-                    "additionalProperties": False
-                }
+                "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
             },
             {
                 "name": "environmentDump",
@@ -361,39 +318,25 @@ class MCPEchoServer:
                         "showSecrets": {
                             "type": "boolean",
                             "description": "Show first/last 4 chars of secrets",
-                            "default": False
+                            "default": False,
                         }
                     },
-                    "additionalProperties": False
-                }
+                    "additionalProperties": False,
+                },
             },
             {
                 "name": "healthProbe",
                 "description": "Perform deep health check of service and dependencies",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {},
-                    "additionalProperties": False
-                }
+                "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
             },
             {
                 "name": "whoIStheGOAT",
                 "description": "Employs cutting-edge artificial intelligence to perform comprehensive analysis of global software engineering excellence metrics using proprietary deep learning models",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {},
-                    "additionalProperties": False
-                }
-            }
+                "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+            },
         ]
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "tools": tools
-            }
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"tools": tools}}
 
     async def _handle_tools_call(self, params: dict[str, Any], request_id: Any) -> dict[str, Any]:
         """Handle tools/call request."""
@@ -429,18 +372,7 @@ class MCPEchoServer:
         if not isinstance(message, str):
             return self._error_response(request_id, -32602, "message must be a string")
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": message
-                    }
-                ]
-            }
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": message}]}}
 
     async def _handle_print_header_tool(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
         """Handle the printHeader tool."""
@@ -450,7 +382,7 @@ class MCPEchoServer:
         # Get headers from the current task's context
         task_id = id(asyncio.current_task())
         context = self._request_context.get(task_id, {})
-        headers = context.get('headers', {})
+        headers = context.get("headers", {})
 
         if headers:
             for key, value in sorted(headers.items()):
@@ -458,33 +390,15 @@ class MCPEchoServer:
         else:
             headers_text += "No headers available (headers are captured per request)\n"
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": headers_text
-                    }
-                ]
-            }
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": headers_text}]}}
 
     def _error_response(self, request_id: Any, code: int, message: str, data: Any = None) -> dict[str, Any]:
         """Create a JSON-RPC error response."""
-        error = {
-            "code": code,
-            "message": message
-        }
+        error = {"code": code, "message": message}
         if data is not None:
             error["data"] = data
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "error": error
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "error": error}
 
     async def _handle_bearer_decode(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
         """Decode JWT Bearer token from Authorization header."""
@@ -493,33 +407,33 @@ class MCPEchoServer:
         # Get authorization header
         task_id = id(asyncio.current_task())
         context = self._request_context.get(task_id, {})
-        headers = context.get('headers', {})
-        auth_header = headers.get('authorization', '')
+        headers = context.get("headers", {})
+        auth_header = headers.get("authorization", "")
 
         result_text = "Bearer Token Analysis\n" + "=" * 40 + "\n\n"
 
         if not auth_header:
             result_text += "❌ No Authorization header found\n"
-        elif not auth_header.lower().startswith('bearer '):
+        elif not auth_header.lower().startswith("bearer "):
             result_text += f"❌ Authorization header is not Bearer type: {auth_header[:20]}...\n"
         else:
             token = auth_header[7:]  # Remove 'Bearer ' prefix
 
             try:
                 # Split JWT parts
-                parts = token.split('.')
+                parts = token.split(".")
                 if len(parts) != 3:
                     result_text += f"❌ Invalid JWT format (expected 3 parts, got {len(parts)})\n"
                 else:
                     # Decode header
                     header_data = parts[0]
                     # Add padding if needed
-                    header_padded = header_data + '=' * (4 - len(header_data) % 4)
+                    header_padded = header_data + "=" * (4 - len(header_data) % 4)
                     header_json = json.loads(base64.urlsafe_b64decode(header_padded))
 
                     # Decode payload
                     payload_data = parts[1]
-                    payload_padded = payload_data + '=' * (4 - len(payload_data) % 4)
+                    payload_padded = payload_data + "=" * (4 - len(payload_data) % 4)
                     payload_json = json.loads(base64.urlsafe_b64decode(payload_padded))
 
                     result_text += "✅ Valid JWT structure\n\n"
@@ -528,7 +442,7 @@ class MCPEchoServer:
                     result_text += "Header:\n"
                     result_text += f"  Algorithm: {header_json.get('alg', 'unknown')}\n"
                     result_text += f"  Type: {header_json.get('typ', 'unknown')}\n"
-                    if 'kid' in header_json:
+                    if "kid" in header_json:
                         result_text += f"  Key ID: {header_json['kid']}\n"
                     result_text += "\n"
 
@@ -536,41 +450,48 @@ class MCPEchoServer:
                     result_text += "Payload:\n"
 
                     # Standard claims
-                    if 'iss' in payload_json:
+                    if "iss" in payload_json:
                         result_text += f"  Issuer: {payload_json['iss']}\n"
-                    if 'sub' in payload_json:
+                    if "sub" in payload_json:
                         result_text += f"  Subject: {payload_json['sub']}\n"
-                    if 'aud' in payload_json:
+                    if "aud" in payload_json:
                         result_text += f"  Audience: {payload_json['aud']}\n"
-                    if 'jti' in payload_json:
+                    if "jti" in payload_json:
                         result_text += f"  JWT ID: {payload_json['jti']}\n"
 
                     # Time claims
                     current_time = int(time.time())
-                    if 'iat' in payload_json:
-                        iat = payload_json['iat']
+                    if "iat" in payload_json:
+                        iat = payload_json["iat"]
                         iat_dt = datetime.fromtimestamp(iat, tz=UTC)
                         result_text += f"  Issued At: {iat_dt.isoformat()} ({int(current_time - iat)}s ago)\n"
 
-                    if 'exp' in payload_json:
-                        exp = payload_json['exp']
+                    if "exp" in payload_json:
+                        exp = payload_json["exp"]
                         exp_dt = datetime.fromtimestamp(exp, tz=UTC)
                         if exp < current_time:
-                            result_text += f"  Expires: {exp_dt.isoformat()} (EXPIRED {int(current_time - exp)}s ago!)\n"
+                            result_text += (
+                                f"  Expires: {exp_dt.isoformat()} (EXPIRED {int(current_time - exp)}s ago!)\n"
+                            )
                         else:
                             result_text += f"  Expires: {exp_dt.isoformat()} (in {int(exp - current_time)}s)\n"
 
-                    if 'nbf' in payload_json:
-                        nbf = payload_json['nbf']
+                    if "nbf" in payload_json:
+                        nbf = payload_json["nbf"]
                         nbf_dt = datetime.fromtimestamp(nbf, tz=UTC)
                         if nbf > current_time:
-                            result_text += f"  Not Before: {nbf_dt.isoformat()} (NOT YET VALID - {int(nbf - current_time)}s)\n"
+                            result_text += (
+                                f"  Not Before: {nbf_dt.isoformat()} (NOT YET VALID - {int(nbf - current_time)}s)\n"
+                            )
                         else:
                             result_text += f"  Not Before: {nbf_dt.isoformat()} (valid)\n"
 
                     # Custom claims
-                    custom_claims = {k: v for k, v in payload_json.items()
-                                   if k not in ['iss', 'sub', 'aud', 'exp', 'nbf', 'iat', 'jti']}
+                    custom_claims = {
+                        k: v
+                        for k, v in payload_json.items()
+                        if k not in ["iss", "sub", "aud", "exp", "nbf", "iat", "jti"]
+                    }
 
                     if custom_claims:
                         result_text += "\nCustom Claims:\n"
@@ -590,43 +511,32 @@ class MCPEchoServer:
                 result_text += f"❌ Error decoding JWT: {e!s}\n"
                 result_text += f"Token preview: {token[:50]}...\n"
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": result_text
-                    }
-                ]
-            }
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_auth_context(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
         """Display complete authentication context."""
         task_id = id(asyncio.current_task())
         context = self._request_context.get(task_id, {})
-        headers = context.get('headers', {})
+        headers = context.get("headers", {})
 
         result_text = "Authentication Context Analysis\n" + "=" * 40 + "\n\n"
 
         # Bearer token info
-        auth_header = headers.get('authorization', '')
+        auth_header = headers.get("authorization", "")
         if auth_header:
             result_text += "Bearer Token:\n"
-            if auth_header.lower().startswith('bearer '):
+            if auth_header.lower().startswith("bearer "):
                 token = auth_header[7:]
                 result_text += f"  ✅ Present (length: {len(token)})\n"
                 # Try to decode
                 try:
-                    parts = token.split('.')
+                    parts = token.split(".")
                     if len(parts) == 3:
-                        payload_padded = parts[1] + '=' * (4 - len(parts[1]) % 4)
+                        payload_padded = parts[1] + "=" * (4 - len(parts[1]) % 4)
                         payload_json = json.loads(base64.urlsafe_b64decode(payload_padded))
-                        if 'sub' in payload_json:
+                        if "sub" in payload_json:
                             result_text += f"  Subject: {payload_json['sub']}\n"
-                        if 'client_id' in payload_json:
+                        if "client_id" in payload_json:
                             result_text += f"  Client ID: {payload_json['client_id']}\n"
                 except (json.JSONDecodeError, ValueError, KeyError) as e:
                     # JWT decode errors are expected for invalid tokens - this is a diagnostic tool
@@ -641,11 +551,11 @@ class MCPEchoServer:
         # OAuth headers
         result_text += "OAuth Headers:\n"
         oauth_headers = {
-            'x-user-id': 'User ID',
-            'x-user-name': 'User Name',
-            'x-auth-token': 'Auth Token',
-            'x-client-id': 'Client ID',
-            'x-oauth-client': 'OAuth Client'
+            "x-user-id": "User ID",
+            "x-user-name": "User Name",
+            "x-auth-token": "Auth Token",
+            "x-client-id": "Client ID",
+            "x-oauth-client": "OAuth Client",
         }
 
         found_oauth = False
@@ -661,21 +571,21 @@ class MCPEchoServer:
 
         # Session info
         result_text += "Session Information:\n"
-        session_id = headers.get('mcp-session-id', '')
+        session_id = headers.get("mcp-session-id", "")
         if session_id:
             result_text += f"  MCP Session ID: {session_id}\n"
         else:
             result_text += "  MCP Session ID: Not present\n"
 
         # Cookie info
-        cookies = headers.get('cookie', '')
+        cookies = headers.get("cookie", "")
         if cookies:
             result_text += f"  Cookies: Present ({len(cookies.split(';'))} cookies)\n"
             # Look for auth-related cookies
-            for cookie in cookies.split(';'):
+            for cookie in cookies.split(";"):
                 stripped_cookie = cookie.strip()
-                if any(auth_word in stripped_cookie.lower() for auth_word in ['auth', 'session', 'token']):
-                    name = stripped_cookie.split('=')[0] if '=' in stripped_cookie else stripped_cookie
+                if any(auth_word in stripped_cookie.lower() for auth_word in ["auth", "session", "token"]):
+                    name = stripped_cookie.split("=")[0] if "=" in stripped_cookie else stripped_cookie
                     result_text += f"    - {name}\n"
         else:
             result_text += "  Cookies: None\n"
@@ -691,34 +601,23 @@ class MCPEchoServer:
 
         # Security status
         result_text += "\nSecurity Status:\n"
-        if auth_header and auth_header.lower().startswith('bearer '):
+        if auth_header and auth_header.lower().startswith("bearer "):
             result_text += "  ✅ Bearer authentication present\n"
         else:
             result_text += "  ❌ No bearer authentication\n"
 
-        if 'https' in headers.get('x-forwarded-proto', '') or 'https' in str(context.get('url', '')):
+        if "https" in headers.get("x-forwarded-proto", "") or "https" in str(context.get("url", "")):
             result_text += "  ✅ HTTPS connection\n"
         else:
             result_text += "  ⚠️  Non-HTTPS connection\n"
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": result_text
-                    }
-                ]
-            }
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_request_timing(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
         """Show request timing metrics."""
         task_id = id(asyncio.current_task())
         context = self._request_context.get(task_id, {})
-        start_time = context.get('start_time', time.time())
+        start_time = context.get("start_time", time.time())
         current_time = time.time()
         elapsed = current_time - start_time
 
@@ -728,7 +627,7 @@ class MCPEchoServer:
         result_text += "Timing:\n"
         result_text += f"  Request received: {datetime.fromtimestamp(start_time, tz=UTC).isoformat()}\n"
         result_text += f"  Current time: {datetime.fromtimestamp(current_time, tz=UTC).isoformat()}\n"
-        result_text += f"  Elapsed: {elapsed*1000:.2f}ms\n"
+        result_text += f"  Elapsed: {elapsed * 1000:.2f}ms\n"
 
         result_text += "\n"
 
@@ -759,18 +658,7 @@ class MCPEchoServer:
         except:
             result_text += "  Unable to get system metrics\n"
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": result_text
-                    }
-                ]
-            }
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_protocol_negotiation(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
         """Analyze protocol version negotiation."""
@@ -778,14 +666,14 @@ class MCPEchoServer:
 
         task_id = id(asyncio.current_task())
         context = self._request_context.get(task_id, {})
-        headers = context.get('headers', {})
+        headers = context.get("headers", {})
 
         result_text = "MCP Protocol Negotiation Analysis\n" + "=" * 40 + "\n\n"
 
         # Current request info
         result_text += "Current Request:\n"
-        mcp_header = headers.get('mcp-protocol-version', None)
-        client_version = mcp_header if mcp_header is not None else 'not specified'
+        mcp_header = headers.get("mcp-protocol-version", None)
+        client_version = mcp_header if mcp_header is not None else "not specified"
         result_text += f"  MCP-Protocol-Version Header: {client_version}\n"
         if mcp_header:
             result_text += "  Header Present: ✅ Yes\n"
@@ -800,7 +688,7 @@ class MCPEchoServer:
         result_text += "MCP-Related Headers in Request:\n"
         mcp_headers_found = False
         for header_name, header_value in headers.items():
-            if 'mcp' in header_name.lower():
+            if "mcp" in header_name.lower():
                 result_text += f"  {header_name}: {header_value}\n"
                 mcp_headers_found = True
         if not mcp_headers_found:
@@ -810,7 +698,7 @@ class MCPEchoServer:
 
         # Negotiation result
         result_text += "Negotiation Result:\n"
-        if client_version == 'not specified':
+        if client_version == "not specified":
             result_text += "  ⚠️  No protocol version specified by client\n"
             result_text += f"  Server would use default: {self.PROTOCOL_VERSION}\n"
             result_text += "  Note: Actual negotiation happens during 'initialize' request\n"
@@ -855,31 +743,20 @@ class MCPEchoServer:
         result_text += "  Note: This is a stateless server, so each request is independent.\n"
         result_text += "  The MCP-Protocol-Version header should match what was negotiated.\n"
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": result_text
-                    }
-                ]
-            }
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_cors_analysis(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
         """Analyze CORS configuration."""
         task_id = id(asyncio.current_task())
         context = self._request_context.get(task_id, {})
-        headers = context.get('headers', {})
-        method = context.get('method', '')
+        headers = context.get("headers", {})
+        method = context.get("method", "")
 
         result_text = "CORS Configuration Analysis\n" + "=" * 40 + "\n\n"
 
         # Request CORS headers
         result_text += "Request Headers:\n"
-        origin = headers.get('origin', '')
+        origin = headers.get("origin", "")
         if origin:
             result_text += f"  Origin: {origin}\n"
         else:
@@ -889,8 +766,8 @@ class MCPEchoServer:
             result_text += "  ✅ This is a CORS preflight request\n"
 
             # Check preflight headers
-            ac_method = headers.get('access-control-request-method', '')
-            ac_headers = headers.get('access-control-request-headers', '')
+            ac_method = headers.get("access-control-request-method", "")
+            ac_headers = headers.get("access-control-request-headers", "")
 
             if ac_method:
                 result_text += f"  Requested Method: {ac_method}\n"
@@ -922,26 +799,15 @@ class MCPEchoServer:
         if not origin and method != "OPTIONS":
             result_text += "  i  No Origin header - this is a same-origin request\n"
 
-        auth_header = headers.get('authorization', '')
-        if auth_header and not headers.get('access-control-allow-credentials'):
+        auth_header = headers.get("authorization", "")
+        if auth_header and not headers.get("access-control-allow-credentials"):
             result_text += "  ⚠️  Authorization header present but credentials not explicitly allowed\n"
 
-        content_type = headers.get('content-type', '')
-        if content_type and content_type not in ['application/json', 'text/plain', 'application/x-www-form-urlencoded']:
+        content_type = headers.get("content-type", "")
+        if content_type and content_type not in ["application/json", "text/plain", "application/x-www-form-urlencoded"]:
             result_text += "  ⚠️  Complex content-type may require preflight\n"
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": result_text
-                    }
-                ]
-            }
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_environment_dump(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
         """Display sanitized environment configuration."""
@@ -952,23 +818,24 @@ class MCPEchoServer:
         # MCP Configuration
         result_text += "MCP Configuration:\n"
         mcp_vars = {
-            'MCP_PROTOCOL_VERSION': os.getenv('MCP_PROTOCOL_VERSION', 'not set'),
-            'MCP_PROTOCOL_VERSIONS_SUPPORTED': os.getenv('MCP_PROTOCOL_VERSIONS_SUPPORTED', 'not set'),
-            'MCP_ECHO_HOST': os.getenv('MCP_ECHO_HOST', 'not set'),
-            'MCP_ECHO_PORT': os.getenv('MCP_ECHO_PORT', 'not set'),
-            'MCP_ECHO_DEBUG': os.getenv('MCP_ECHO_DEBUG', 'not set'),
-            'MCP_CORS_ORIGINS': os.getenv('MCP_CORS_ORIGINS', 'not set'),
+            "MCP_PROTOCOL_VERSION": os.getenv("MCP_PROTOCOL_VERSION", "not set"),
+            "MCP_PROTOCOL_VERSIONS_SUPPORTED": os.getenv("MCP_PROTOCOL_VERSIONS_SUPPORTED", "not set"),
+            "MCP_ECHO_HOST": os.getenv("MCP_ECHO_HOST", "not set"),
+            "MCP_ECHO_PORT": os.getenv("MCP_ECHO_PORT", "not set"),
+            "MCP_ECHO_DEBUG": os.getenv("MCP_ECHO_DEBUG", "not set"),
+            "MCP_CORS_ORIGINS": os.getenv("MCP_CORS_ORIGINS", "not set"),
         }
 
         for var, value in mcp_vars.items():
             # Mask secrets unless explicitly requested
             display_value = value
-            if not show_secrets and any(secret_word in var.lower() for secret_word in ['secret', 'key', 'token', 'password']):
-                display_value = '***' if value != 'not set' else 'not set'
+            if not show_secrets and any(
+                secret_word in var.lower() for secret_word in ["secret", "key", "token", "password"]
+            ):
+                display_value = "***" if value != "not set" else "not set"
             result_text += f"  {var}: {display_value}\n"
 
         result_text += "\n"
-
 
         # System info
         result_text += "System Information:\n"
@@ -976,18 +843,7 @@ class MCPEchoServer:
         result_text += f"  Python: {platform.python_version()}\n"
         result_text += f"  Hostname: {platform.node()}\n"
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": result_text
-                    }
-                ]
-            }
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_health_probe(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
         """Perform deep health check."""
@@ -1004,7 +860,7 @@ class MCPEchoServer:
         try:
             cpu_percent = psutil.cpu_percent(interval=0.1)
             memory = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
 
             result_text += f"  CPU Usage: {cpu_percent}% "
             if cpu_percent < 50:
@@ -1056,7 +912,7 @@ class MCPEchoServer:
         result_text += "\nConfiguration Health:\n"
 
         # Check required env vars
-        required_vars = ['MCP_PROTOCOL_VERSION', 'MCP_PROTOCOL_VERSIONS_SUPPORTED']
+        required_vars = ["MCP_PROTOCOL_VERSION", "MCP_PROTOCOL_VERSIONS_SUPPORTED"]
         missing_vars = [var for var in required_vars if not os.getenv(var)]
 
         if missing_vars:
@@ -1071,26 +927,15 @@ class MCPEchoServer:
         else:
             result_text += "⚠️  DEGRADED\n"
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": result_text
-                    }
-                ]
-            }
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_who_is_the_goat(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
         """Reveal who is the Greatest Of All Time programmer."""
         # Get headers and context
         task_id = id(asyncio.current_task())
         context = self._request_context.get(task_id, {})
-        headers = context.get('headers', {})
-        auth_header = headers.get('authorization', '')
+        headers = context.get("headers", {})
+        auth_header = headers.get("authorization", "")
 
         result_text = "G.O.A.T. PROGRAMMER IDENTIFICATION SYSTEM v3.14159\n" + "=" * 50 + "\n\n"
 
@@ -1102,29 +947,30 @@ class MCPEchoServer:
         found_user_info = False
 
         # First, try to get info from JWT token
-        if auth_header and auth_header.lower().startswith('bearer '):
+        if auth_header and auth_header.lower().startswith("bearer "):
             token = auth_header[7:]  # Remove 'Bearer ' prefix
 
             try:
                 # Decode JWT to get user info
-                parts = token.split('.')
+                parts = token.split(".")
                 if len(parts) != 3:
                     raise ValueError("Invalid JWT format")
 
                 # Decode payload
                 payload_data = parts[1]
-                payload_padded = payload_data + '=' * (4 - len(payload_data) % 4)
+                payload_padded = payload_data + "=" * (4 - len(payload_data) % 4)
                 payload_json = json.loads(base64.urlsafe_b64decode(payload_padded))
 
                 # Extract user information from JWT
-                name = payload_json.get('name')
-                username = payload_json.get('username')
-                email = payload_json.get('email')
-                sub = payload_json.get('sub')
+                name = payload_json.get("name")
+                username = payload_json.get("username")
+                email = payload_json.get("email")
+                sub = payload_json.get("sub")
 
                 # Get custom claims for debugging
-                custom_claims = {k: v for k, v in payload_json.items()
-                               if k not in ['iss', 'sub', 'aud', 'exp', 'nbf', 'iat', 'jti']}
+                custom_claims = {
+                    k: v for k, v in payload_json.items() if k not in ["iss", "sub", "aud", "exp", "nbf", "iat", "jti"]
+                }
 
                 if name or username or email or sub:
                     found_user_info = True
@@ -1139,8 +985,8 @@ class MCPEchoServer:
 
         # Second, check OAuth headers as fallback
         if not found_user_info or not (name or username):
-            oauth_name = headers.get('x-user-name')
-            oauth_id = headers.get('x-user-id')
+            oauth_name = headers.get("x-user-name")
+            oauth_id = headers.get("x-user-id")
 
             if oauth_name or oauth_id:
                 name = name or oauth_name
@@ -1205,18 +1051,7 @@ class MCPEchoServer:
             result_text += "This determination is final and scientifically validated.\n"
             result_text += "\n[Analysis performed by G.O.A.T. Recognition AI v3.14159]\n"
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": result_text
-                    }
-                ]
-            }
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _sse_response_stream(self, response: dict[str, Any]):
         """Generate SSE stream for a response."""
@@ -1240,12 +1075,7 @@ class MCPEchoServer:
         if self.debug:
             logger.info(f"Starting MCP Echo Server (protocol {self.PROTOCOL_VERSION}) on {host}:{port}")
 
-        uvicorn.run(
-            self.app,
-            host=host,
-            port=port,
-            log_level="debug" if self.debug else "info"
-        )
+        uvicorn.run(self.app, host=host, port=port, log_level="debug" if self.debug else "info")
 
 
 def create_app(debug: bool = False, supported_versions: list[str] | None = None):

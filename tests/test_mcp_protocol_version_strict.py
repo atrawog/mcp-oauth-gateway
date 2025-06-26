@@ -36,8 +36,8 @@ def parse_sse_response(response: httpx.Response) -> dict:
     # Otherwise parse SSE format
     if "text/event-stream" in content_type or response.status_code == 200:
         text = response.text
-        for line in text.split('\n'):
-            if line.startswith('data: '):
+        for line in text.split("\n"):
+            if line.startswith("data: "):
                 json_data = line[6:]  # Remove "data: " prefix
                 return json.loads(json_data)
 
@@ -52,14 +52,10 @@ class TestMCPProtocolVersionStrict:
     """Strict MCP Protocol Version validation - MUST match .env exactly!"""
 
     @pytest.mark.asyncio
-    async def test_mcp_protocol_version_must_match_env_exactly(
-        self, http_client, wait_for_services
-    ):
+    async def test_mcp_protocol_version_must_match_env_exactly(self, http_client, wait_for_services):
         """Test that MCP ONLY accepts the exact protocol version from .env."""
         # MUST have MCP client access token - test FAILS if not available
-        assert MCP_CLIENT_ACCESS_TOKEN, (
-            "MCP_CLIENT_ACCESS_TOKEN not available - run: just mcp-client-token"
-        )
+        assert MCP_CLIENT_ACCESS_TOKEN, "MCP_CLIENT_ACCESS_TOKEN not available - run: just mcp-client-token"
 
         # Test 1: Correct version from .env MUST work
         correct_response = await http_client.post(
@@ -89,9 +85,7 @@ class TestMCPProtocolVersionStrict:
 
         result = parse_sse_response(correct_response)
         assert "result" in result, "Initialize with correct version must return result"
-        assert "protocolVersion" in result["result"], (
-            "Result must include protocol version"
-        )
+        assert "protocolVersion" in result["result"], "Result must include protocol version"
 
         # Verify it's using a supported version (per MCP spec, servers can return their own version)
         returned_version = result["result"]["protocolVersion"]
@@ -100,9 +94,7 @@ class TestMCPProtocolVersionStrict:
         )
 
     @pytest.mark.asyncio
-    async def test_mcp_version_header_must_match_env(
-        self, http_client, wait_for_services, registered_client
-    ):
+    async def test_mcp_version_header_must_match_env(self, http_client, wait_for_services, registered_client):
         """Test that MCP-Protocol-Version header MUST match .env version."""
         # Connect to Redis
         redis_client = await redis.from_url(REDIS_URL, decode_responses=True)
@@ -126,9 +118,7 @@ class TestMCPProtocolVersionStrict:
             }
 
             # Create JWT
-            access_token = jwt_encode(
-                token_claims, GATEWAY_JWT_SECRET, algorithm="HS256"
-            )
+            access_token = jwt_encode(token_claims, GATEWAY_JWT_SECRET, algorithm="HS256")
 
             # Store in Redis
             await redis_client.setex(

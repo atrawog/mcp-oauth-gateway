@@ -13,9 +13,7 @@ class TestDockerComposeValidation:
     def test_mcp_fetch_traefik_labels_complete(self):
         """Test that mcp-fetch has all required Traefik labels."""
         # Read the docker-compose.yml file
-        compose_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "mcp-fetch/docker-compose.yml"
-        )
+        compose_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mcp-fetch/docker-compose.yml")
 
         with open(compose_path) as f:
             compose_config = yaml.safe_load(f)
@@ -77,13 +75,9 @@ class TestDockerComposeValidation:
                             rule_found = True
                             break
                 else:
-                    rule_found = (
-                        router_config["path_rule"] in label_dict[f"{prefix}.rule"]
-                    )
+                    rule_found = router_config["path_rule"] in label_dict[f"{prefix}.rule"]
 
-                assert rule_found, (
-                    f"Router {router_name} rule missing expected path rule!"
-                )
+                assert rule_found, f"Router {router_name} rule missing expected path rule!"
 
             # Must have a service assignment - THIS IS THE KEY CHECK!
             assert f"{prefix}.service" in label_dict, (
@@ -95,38 +89,29 @@ class TestDockerComposeValidation:
             )
 
             # Must have priority
-            assert f"{prefix}.priority" in label_dict, (
-                f"Router {router_name} missing priority!"
-            )
+            assert f"{prefix}.priority" in label_dict, f"Router {router_name} missing priority!"
 
             # Must have entrypoints
-            assert f"{prefix}.entrypoints" in label_dict, (
-                f"Router {router_name} missing entrypoints!"
-            )
+            assert f"{prefix}.entrypoints" in label_dict, f"Router {router_name} missing entrypoints!"
 
             # Must have TLS configuration
-            assert f"{prefix}.tls.certresolver" in label_dict, (
-                f"Router {router_name} missing TLS certresolver!"
-            )
+            assert f"{prefix}.tls.certresolver" in label_dict, f"Router {router_name} missing TLS certresolver!"
 
             # Check auth middleware if needed
             if router_config["needs_auth"]:
-                assert f"{prefix}.middlewares" in label_dict, (
-                    f"Router {router_name} missing auth middleware!"
-                )
+                assert f"{prefix}.middlewares" in label_dict, f"Router {router_name} missing auth middleware!"
                 assert "mcp-auth@docker" in label_dict[f"{prefix}.middlewares"], (
                     f"Router {router_name} should use mcp-auth middleware!"
                 )
 
         # Check service definition exists
-        assert (
-            "traefik.http.services.mcp-fetch.loadbalancer.server.port" in label_dict
-        ), "Missing service port definition!"
+        assert "traefik.http.services.mcp-fetch.loadbalancer.server.port" in label_dict, (
+            "Missing service port definition!"
+        )
 
-        assert (
-            label_dict["traefik.http.services.mcp-fetch.loadbalancer.server.port"]
-            == "3000"
-        ), "Service port should be 3000!"
+        assert label_dict["traefik.http.services.mcp-fetch.loadbalancer.server.port"] == "3000", (
+            "Service port should be 3000!"
+        )
 
     def test_all_services_have_traefik_configuration(self):
         """Test that all services with Traefik enabled have complete configuration."""
@@ -141,9 +126,7 @@ class TestDockerComposeValidation:
             if service_name == "traefik":
                 continue  # Traefik doesn't route to itself
 
-            compose_path = os.path.join(
-                os.path.dirname(os.path.dirname(__file__)), compose_file
-            )
+            compose_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), compose_file)
 
             if not os.path.exists(compose_path):
                 continue
@@ -186,9 +169,7 @@ class TestDockerComposeValidation:
 
     def test_routing_priorities_are_correct(self):
         """Test that routing priorities follow the correct pattern."""
-        compose_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "mcp-fetch/docker-compose.yml"
-        )
+        compose_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mcp-fetch/docker-compose.yml")
 
         with open(compose_path) as f:
             compose_config = yaml.safe_load(f)

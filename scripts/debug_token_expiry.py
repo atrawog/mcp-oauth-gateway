@@ -36,9 +36,7 @@ async def debug_expiry():
     except:
         pass
 
-    client = await redis.from_url(
-        REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
-    )
+    client = await redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
 
     try:
         now = int(time.time())
@@ -60,12 +58,8 @@ async def debug_expiry():
                     ttl = await client.ttl(key)
 
                     print(f"Token: {key}")
-                    print(
-                        f"  Created: {datetime.fromtimestamp(created_at, tz=UTC)} ({created_at})"
-                    )
-                    print(
-                        f"  Expires: {datetime.fromtimestamp(expires_at, tz=UTC)} ({expires_at})"
-                    )
+                    print(f"  Created: {datetime.fromtimestamp(created_at, tz=UTC)} ({created_at})")
+                    print(f"  Expires: {datetime.fromtimestamp(expires_at, tz=UTC)} ({expires_at})")
                     print(f"  Redis TTL: {ttl} seconds")
                     print(f"  Time until expiry: {expires_at - now} seconds")
                     print(f"  Is expired: {expires_at < now}")

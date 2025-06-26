@@ -21,14 +21,14 @@ class TestSSLSecurity:
         """Test that SSL verification is enabled by default."""
         # Test requests session default
         session = requests.Session()
-        assert session.verify is not False, \
-            "requests session must have SSL verification enabled by default!"
+        assert session.verify is not False, "requests session must have SSL verification enabled by default!"
 
         # Test httpx default
         client = httpx.Client()
         # httpx uses verify parameter in constructor, check it's not False
-        assert getattr(client, '_transport', None) is None or True, \
+        assert getattr(client, "_transport", None) is None or True, (
             "httpx client must have SSL verification enabled by default!"
+        )
         client.close()
 
     def test_no_insecure_warnings_allowed(self):
@@ -51,24 +51,19 @@ class TestSSLSecurity:
         assert os.path.exists(ca_bundle), "certifi CA bundle file must exist!"
 
         # Verify context has proper settings
-        assert context.check_hostname is True, \
-            "SSL context must have hostname checking enabled!"
-        assert context.verify_mode == ssl.CERT_REQUIRED, \
-            "SSL context must require certificates!"
+        assert context.check_hostname is True, "SSL context must have hostname checking enabled!"
+        assert context.verify_mode == ssl.CERT_REQUIRED, "SSL context must require certificates!"
 
-    @pytest.mark.parametrize("url", [
-        f"https://auth.{BASE_DOMAIN}",
-        f"https://echo.{BASE_DOMAIN}",
-        f"https://everything.{BASE_DOMAIN}"
-    ])
+    @pytest.mark.parametrize(
+        "url", [f"https://auth.{BASE_DOMAIN}", f"https://echo.{BASE_DOMAIN}", f"https://everything.{BASE_DOMAIN}"]
+    )
     def test_services_have_valid_certificates(self, url):
         """Test that all services have valid SSL certificates."""
         try:
             # Make a simple HEAD request to verify certificate
             response = requests.head(url, timeout=5, verify=True)
             # Any response code is fine - we're just checking SSL
-            assert response.status_code in range(100, 600), \
-                f"Service {url} should respond with valid SSL"
+            assert response.status_code in range(100, 600), f"Service {url} should respond with valid SSL"
         except requests.exceptions.SSLError as e:
             pytest.fail(f"SSL verification failed for {url}: {e}")
         except requests.exceptions.ConnectionError:
@@ -93,13 +88,12 @@ class TestSSLSecurity:
             with open(test_file) as f:
                 content = f.read()
                 # Skip this test file itself which contains verify=False in test code
-                if test_file.name == 'test_ssl_security.py':
+                if test_file.name == "test_ssl_security.py":
                     continue
-                if 'verify=False' in content or 'verify = False' in content:
+                if "verify=False" in content or "verify = False" in content:
                     issues.append(test_file.name)
 
-        assert not issues, \
-            f"Found verify=False in test files: {issues}. SSL verification must always be enabled!"
+        assert not issues, f"Found verify=False in test files: {issues}. SSL verification must always be enabled!"
 
 
 class TestSSLBestPractices:
@@ -123,20 +117,20 @@ class TestSSLBestPractices:
 
         for url in urls_to_check:
             if url:  # Skip None/empty URLs
-                assert url.startswith('https://'), \
-                    f"URL {url} must use HTTPS for security!"
+                assert url.startswith("https://"), f"URL {url} must use HTTPS for security!"
 
     def test_certificate_validation_errors_helpful(self):
         """Test that certificate errors provide helpful messages."""
         try:
             # Try to connect to a known bad SSL site (self-signed cert)
             with pytest.raises(requests.exceptions.SSLError) as exc_info:
-                requests.get('https://self-signed.badssl.com/', verify=True, timeout=5)
+                requests.get("https://self-signed.badssl.com/", verify=True, timeout=5)
 
             # Should get a clear SSL error
             error_msg = str(exc_info.value).lower()
-            assert 'certificate' in error_msg or 'ssl' in error_msg, \
+            assert "certificate" in error_msg or "ssl" in error_msg, (
                 "SSL errors should mention certificates for clarity"
+            )
         except requests.exceptions.ConnectionError:
             # Network might block this test site
             pytest.skip("Could not connect to test site")

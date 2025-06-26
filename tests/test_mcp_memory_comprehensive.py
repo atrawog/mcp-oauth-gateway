@@ -37,9 +37,7 @@ async def wait_for_services():
 class TestMCPMemoryComprehensive:
     """Comprehensive tests for all mcp-memory service functionalities."""
 
-    def run_mcp_client(
-        self, url: str, token: str, method: str, params: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+    def run_mcp_client(self, url: str, token: str, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Run mcp-streamablehttp-client and return the response."""
         # Set environment variables
         env = os.environ.copy()
@@ -68,9 +66,7 @@ class TestMCPMemoryComprehensive:
         ]
 
         # Run the command
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, timeout=30, env=env
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=30, env=env)
 
         if result.returncode != 0:
             # Check if it's an expected error
@@ -151,9 +147,7 @@ class TestMCPMemoryComprehensive:
         """Get the schema for a specific tool."""
         self.initialize_session(url, token)
 
-        response = self.run_mcp_client(
-            url=url, token=token, method="tools/list", params={}
-        )
+        response = self.run_mcp_client(url=url, token=token, method="tools/list", params={})
 
         assert "result" in response, f"tools/list failed: {response}"
         tools = response["result"]["tools"]
@@ -168,14 +162,10 @@ class TestMCPMemoryComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_create_entities(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_create_entities(self, mcp_memory_url, client_token, wait_for_services):
         """Test creating entities in the memory graph."""
         # Get tool schema
-        tool_schema = self.get_tool_schema(
-            f"{mcp_memory_url}", client_token, "create_entities"
-        )
+        tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "create_entities")
         print(f"\\nTesting create_entities tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
 
@@ -211,9 +201,7 @@ class TestMCPMemoryComprehensive:
             assert isinstance(content, list)
             assert len(content) > 0
             # Memory server returns entity data or empty array - both are valid
-            text_content = "".join(
-                [item.get("text", "") for item in content if item.get("type") == "text"]
-            )
+            text_content = "".join([item.get("text", "") for item in content if item.get("type") == "text"])
             # If entities were created, they should be in the response
             if text_content and text_content != "[]":
                 assert "test_user" in text_content
@@ -226,13 +214,9 @@ class TestMCPMemoryComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_create_relations(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_create_relations(self, mcp_memory_url, client_token, wait_for_services):
         """Test creating relations between entities."""
-        tool_schema = self.get_tool_schema(
-            f"{mcp_memory_url}", client_token, "create_relations"
-        )
+        tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "create_relations")
         print(f"\\nTesting create_relations tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
 
@@ -277,13 +261,9 @@ class TestMCPMemoryComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_add_observations(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_add_observations(self, mcp_memory_url, client_token, wait_for_services):
         """Test adding observations to entities."""
-        tool_schema = self.get_tool_schema(
-            f"{mcp_memory_url}", client_token, "add_observations"
-        )
+        tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "add_observations")
         print(f"\\nTesting add_observations tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
 
@@ -294,9 +274,7 @@ class TestMCPMemoryComprehensive:
             method="tools/call",
             params={
                 "name": "create_entities",
-                "arguments": {
-                    "entities": [{"name": "test_entity", "entityType": "person"}]
-                },
+                "arguments": {"entities": [{"name": "test_entity", "entityType": "person"}]},
             },
         )
 
@@ -332,13 +310,9 @@ class TestMCPMemoryComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_read_graph(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_read_graph(self, mcp_memory_url, client_token, wait_for_services):
         """Test reading the entire memory graph."""
-        tool_schema = self.get_tool_schema(
-            f"{mcp_memory_url}", client_token, "read_graph"
-        )
+        tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "read_graph")
         print(f"\\nTesting read_graph tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
 
@@ -356,9 +330,7 @@ class TestMCPMemoryComprehensive:
             content = response["result"]["content"]
             assert isinstance(content, list)
             # Should return the current state of the memory graph
-            text_content = "".join(
-                [item.get("text", "") for item in content if item.get("type") == "text"]
-            )
+            text_content = "".join([item.get("text", "") for item in content if item.get("type") == "text"])
             assert len(text_content) > 0  # Should have some content about the graph
         else:
             assert "error" in response
@@ -366,13 +338,9 @@ class TestMCPMemoryComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_search_nodes(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_search_nodes(self, mcp_memory_url, client_token, wait_for_services):
         """Test searching for nodes in the memory graph."""
-        tool_schema = self.get_tool_schema(
-            f"{mcp_memory_url}", client_token, "search_nodes"
-        )
+        tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "search_nodes")
         print(f"\\nTesting search_nodes tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
 
@@ -413,13 +381,9 @@ class TestMCPMemoryComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_open_nodes(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_open_nodes(self, mcp_memory_url, client_token, wait_for_services):
         """Test opening specific nodes for detailed information."""
-        tool_schema = self.get_tool_schema(
-            f"{mcp_memory_url}", client_token, "open_nodes"
-        )
+        tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "open_nodes")
         print(f"\\nTesting open_nodes tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
 
@@ -430,9 +394,7 @@ class TestMCPMemoryComprehensive:
             method="tools/call",
             params={
                 "name": "create_entities",
-                "arguments": {
-                    "entities": [{"name": "detailed_entity", "entityType": "person"}]
-                },
+                "arguments": {"entities": [{"name": "detailed_entity", "entityType": "person"}]},
             },
         )
 
@@ -454,13 +416,9 @@ class TestMCPMemoryComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_delete_entities(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_delete_entities(self, mcp_memory_url, client_token, wait_for_services):
         """Test deleting entities from memory."""
-        tool_schema = self.get_tool_schema(
-            f"{mcp_memory_url}", client_token, "delete_entities"
-        )
+        tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "delete_entities")
         print(f"\\nTesting delete_entities tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
 
@@ -471,11 +429,7 @@ class TestMCPMemoryComprehensive:
             method="tools/call",
             params={
                 "name": "create_entities",
-                "arguments": {
-                    "entities": [
-                        {"name": "deletable_entity", "entityType": "temporary"}
-                    ]
-                },
+                "arguments": {"entities": [{"name": "deletable_entity", "entityType": "temporary"}]},
             },
         )
 
@@ -500,13 +454,9 @@ class TestMCPMemoryComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_delete_relations(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_delete_relations(self, mcp_memory_url, client_token, wait_for_services):
         """Test deleting relations from memory."""
-        tool_schema = self.get_tool_schema(
-            f"{mcp_memory_url}", client_token, "delete_relations"
-        )
+        tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "delete_relations")
         print(f"\\nTesting delete_relations tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
 
@@ -552,9 +502,7 @@ class TestMCPMemoryComprehensive:
             params={
                 "name": "delete_relations",
                 "arguments": {
-                    "relationIds": [
-                        "entity_a->entity_b"
-                    ]  # This might need adjustment based on actual ID format
+                    "relationIds": ["entity_a->entity_b"]  # This might need adjustment based on actual ID format
                 },
             },
         )
@@ -569,13 +517,9 @@ class TestMCPMemoryComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_delete_observations(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_delete_observations(self, mcp_memory_url, client_token, wait_for_services):
         """Test deleting observations from memory."""
-        tool_schema = self.get_tool_schema(
-            f"{mcp_memory_url}", client_token, "delete_observations"
-        )
+        tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "delete_observations")
         print(f"\\nTesting delete_observations tool: {tool_schema['description']}")
         print(f"Input schema: {json.dumps(tool_schema['inputSchema'], indent=2)}")
 
@@ -606,9 +550,7 @@ class TestMCPMemoryComprehensive:
             params={
                 "name": "delete_observations",
                 "arguments": {
-                    "observationIds": [
-                        "observed_entity_0"
-                    ]  # This might need adjustment based on actual ID format
+                    "observationIds": ["observed_entity_0"]  # This might need adjustment based on actual ID format
                 },
             },
         )
@@ -623,9 +565,7 @@ class TestMCPMemoryComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_complete_workflow(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_complete_workflow(self, mcp_memory_url, client_token, wait_for_services):
         """Test a complete memory workflow with all operations."""
         print("\\n=== Starting complete memory workflow test ===")
 
@@ -759,9 +699,7 @@ class TestMCPMemoryComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_error_handling(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_error_handling(self, mcp_memory_url, client_token, wait_for_services):
         """Test error handling for invalid operations."""
         self.initialize_session(f"{mcp_memory_url}", client_token)
 
@@ -778,9 +716,7 @@ class TestMCPMemoryComprehensive:
             },
         )
 
-        print(
-            f"Invalid entity response: {json.dumps(invalid_entity_response, indent=2)}"
-        )
+        print(f"Invalid entity response: {json.dumps(invalid_entity_response, indent=2)}")
 
         # Test searching non-existent entities
         search_missing_response = self.run_mcp_client(
@@ -793,9 +729,7 @@ class TestMCPMemoryComprehensive:
             },
         )
 
-        print(
-            f"Search missing response: {json.dumps(search_missing_response, indent=2)}"
-        )
+        print(f"Search missing response: {json.dumps(search_missing_response, indent=2)}")
 
         # Test opening non-existent nodes
         open_missing_response = self.run_mcp_client(
@@ -816,8 +750,6 @@ class TestMCPMemoryComprehensive:
             search_missing_response,
             open_missing_response,
         ]:
-            assert "result" in response or "error" in response, (
-                f"Response missing result or error: {response}"
-            )
+            assert "result" in response or "error" in response, f"Response missing result or error: {response}"
 
         print("✅ Error handling verification completed!")

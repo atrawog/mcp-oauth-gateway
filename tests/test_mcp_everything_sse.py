@@ -19,9 +19,7 @@ from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
 def base_url():
     """Base URL for tests."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
-        pytest.skip(
-            "MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable."
-        )
+        pytest.skip("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
     # Use HTTPS for all tests
     return f"https://everything.{BASE_DOMAIN}/"
 
@@ -43,7 +41,7 @@ class TestMCPEverythingSSE:
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"
+                "Accept": "application/json, text/event-stream",
             },
             json={
                 "jsonrpc": "2.0",
@@ -51,23 +49,19 @@ class TestMCPEverythingSSE:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {
-                        "name": "sse-test-client",
-                        "version": "1.0.0"
-                    }
+                    "clientInfo": {"name": "sse-test-client", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
-            verify=True
+            verify=True,
         )
 
         # Check SSE headers are present
-        assert init_response.headers.get("X-Accel-Buffering") == "no", \
+        assert init_response.headers.get("X-Accel-Buffering") == "no", (
             "X-Accel-Buffering header should be 'no' for SSE support"
-        assert init_response.headers.get("Cache-Control") == "no-cache", \
-            "Cache-Control should be 'no-cache' for SSE"
-        assert init_response.headers.get("Connection") == "keep-alive", \
-            "Connection should be 'keep-alive' for SSE"
+        )
+        assert init_response.headers.get("Cache-Control") == "no-cache", "Cache-Control should be 'no-cache' for SSE"
+        assert init_response.headers.get("Connection") == "keep-alive", "Connection should be 'keep-alive' for SSE"
 
     def test_initialize_returns_sse_format(self, base_url, auth_headers):
         """Test that initialize returns proper SSE format response."""
@@ -76,7 +70,7 @@ class TestMCPEverythingSSE:
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"
+                "Accept": "application/json, text/event-stream",
             },
             json={
                 "jsonrpc": "2.0",
@@ -84,15 +78,12 @@ class TestMCPEverythingSSE:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {
-                        "name": "sse-format-test",
-                        "version": "1.0.0"
-                    }
+                    "clientInfo": {"name": "sse-format-test", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
             verify=True,
-            stream=True  # Important for SSE
+            stream=True,  # Important for SSE
         )
 
         assert response.status_code == 200
@@ -105,7 +96,7 @@ class TestMCPEverythingSSE:
         assert "data: " in content, "Response should contain 'data: ' line"
 
         # Parse the SSE data
-        data_match = re.search(r'data: (.+)', content)
+        data_match = re.search(r"data: (.+)", content)
         assert data_match, "Should find data line in SSE response"
 
         # Parse the JSON data
@@ -115,7 +106,7 @@ class TestMCPEverythingSSE:
         assert data_json["result"]["protocolVersion"] == "2025-06-18"
 
         # Extract session ID from the id line
-        id_match = re.search(r'id: (.+)', content)
+        id_match = re.search(r"id: (.+)", content)
         assert id_match, "Should find id line in SSE response"
         session_id = id_match.group(1)
 
@@ -129,7 +120,7 @@ class TestMCPEverythingSSE:
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"
+                "Accept": "application/json, text/event-stream",
             },
             json={
                 "jsonrpc": "2.0",
@@ -137,15 +128,12 @@ class TestMCPEverythingSSE:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {"tools": {}},
-                    "clientInfo": {
-                        "name": "sse-echo-test",
-                        "version": "1.0.0"
-                    }
+                    "clientInfo": {"name": "sse-echo-test", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
             verify=True,
-            stream=True
+            stream=True,
         )
 
         assert init_response.status_code == 200, f"Initialize failed: {init_response.text}"
@@ -160,15 +148,15 @@ class TestMCPEverythingSSE:
                 **auth_headers,
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
-                "Mcp-Session-Id": session_id or ""
+                "Mcp-Session-Id": session_id or "",
             },
             json={
                 "jsonrpc": "2.0",
                 "method": "notifications/initialized",
-                "params": {}
+                "params": {},
                 # Note: No "id" field for notifications
             },
-            verify=True
+            verify=True,
         )
 
         # Now test echo tool
@@ -179,21 +167,16 @@ class TestMCPEverythingSSE:
                 **auth_headers,
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
-                "Mcp-Session-Id": session_id or ""
+                "Mcp-Session-Id": session_id or "",
             },
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
-                "params": {
-                    "name": "echo",
-                    "arguments": {
-                        "message": echo_message
-                    }
-                },
-                "id": 1
+                "params": {"name": "echo", "arguments": {"message": echo_message}},
+                "id": 1,
             },
             verify=True,
-            stream=True
+            stream=True,
         )
 
         if echo_response.status_code != 200:
@@ -207,7 +190,7 @@ class TestMCPEverythingSSE:
         assert "data: " in echo_content, "Echo response should have data line"
 
         # Parse and verify echo response
-        data_match = re.search(r'data: (.+)', echo_content)
+        data_match = re.search(r"data: (.+)", echo_content)
         assert data_match, "Should find data in echo response"
 
         echo_data = json.loads(data_match.group(1))
@@ -232,7 +215,7 @@ class TestMCPEverythingSSE:
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"
+                "Accept": "application/json, text/event-stream",
             },
             json={
                 "jsonrpc": "2.0",
@@ -240,15 +223,12 @@ class TestMCPEverythingSSE:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {
-                        "name": "stream-test",
-                        "version": "1.0.0"
-                    }
+                    "clientInfo": {"name": "stream-test", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
             verify=True,
-            stream=True
+            stream=True,
         )
 
         # Read first chunk immediately
@@ -272,7 +252,7 @@ class TestMCPEverythingSSE:
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"
+                "Accept": "application/json, text/event-stream",
             },
             json={
                 "jsonrpc": "2.0",
@@ -280,15 +260,12 @@ class TestMCPEverythingSSE:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {"tools": {}},
-                    "clientInfo": {
-                        "name": "sse-tools-test",
-                        "version": "1.0.0"
-                    }
+                    "clientInfo": {"name": "sse-tools-test", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
             verify=True,
-            stream=True
+            stream=True,
         )
 
         assert init_response.status_code == 200, f"Initialize failed: {init_response.text}"
@@ -303,15 +280,15 @@ class TestMCPEverythingSSE:
                 **auth_headers,
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
-                "Mcp-Session-Id": session_id or ""
+                "Mcp-Session-Id": session_id or "",
             },
             json={
                 "jsonrpc": "2.0",
                 "method": "notifications/initialized",
-                "params": {}
+                "params": {},
                 # Note: No "id" field for notifications
             },
-            verify=True
+            verify=True,
         )
 
         # Now list tools
@@ -321,28 +298,22 @@ class TestMCPEverythingSSE:
                 **auth_headers,
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
-                "Mcp-Session-Id": session_id or ""
+                "Mcp-Session-Id": session_id or "",
             },
-            json={
-                "jsonrpc": "2.0",
-                "method": "tools/list",
-                "params": {},
-                "id": 1
-            },
-            verify=True
+            json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
+            verify=True,
         )
 
         assert tools_response.status_code == 200
 
         # Parse SSE response
-        data_match = re.search(r'data: (.+)', tools_response.text)
+        data_match = re.search(r"data: (.+)", tools_response.text)
         tools_data = json.loads(data_match.group(1))
 
         # Verify tools list contains echo
         assert "result" in tools_data
         tools = tools_data["result"]["tools"]
-        assert any(tool["name"] == "echo" for tool in tools), \
-            "Tools list should contain echo tool"
+        assert any(tool["name"] == "echo" for tool in tools), "Tools list should contain echo tool"
 
     def test_error_response_in_sse_format(self, base_url, auth_headers):
         """Test that error responses also come in SSE format."""
@@ -352,7 +323,7 @@ class TestMCPEverythingSSE:
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"
+                "Accept": "application/json, text/event-stream",
             },
             json={
                 "jsonrpc": "2.0",
@@ -360,15 +331,12 @@ class TestMCPEverythingSSE:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {"tools": {}},
-                    "clientInfo": {
-                        "name": "sse-error-test",
-                        "version": "1.0.0"
-                    }
+                    "clientInfo": {"name": "sse-error-test", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
             verify=True,
-            stream=True
+            stream=True,
         )
 
         assert init_response.status_code == 200, f"Initialize failed: {init_response.text}"
@@ -383,15 +351,15 @@ class TestMCPEverythingSSE:
                 **auth_headers,
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
-                "Mcp-Session-Id": session_id or ""
+                "Mcp-Session-Id": session_id or "",
             },
             json={
                 "jsonrpc": "2.0",
                 "method": "notifications/initialized",
-                "params": {}
+                "params": {},
                 # Note: No "id" field for notifications
             },
-            verify=True
+            verify=True,
         )
 
         # Now try to call a non-existent tool (should error)
@@ -401,18 +369,15 @@ class TestMCPEverythingSSE:
                 **auth_headers,
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
-                "Mcp-Session-Id": session_id or ""
+                "Mcp-Session-Id": session_id or "",
             },
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
-                "params": {
-                    "name": "nonexistent-tool",
-                    "arguments": {"message": "test"}
-                },
-                "id": 1
+                "params": {"name": "nonexistent-tool", "arguments": {"message": "test"}},
+                "id": 1,
             },
-            verify=True
+            verify=True,
         )
 
         # Should return 200 with SSE-formatted error
@@ -420,11 +385,10 @@ class TestMCPEverythingSSE:
 
         content = response.text
         # Should be in SSE format even for errors
-        assert "event: message" in content or "data: " in content, \
-            "Error response should be in SSE format"
+        assert "event: message" in content or "data: " in content, "Error response should be in SSE format"
 
         # Parse the error
-        data_match = re.search(r'data: (.+)', content)
+        data_match = re.search(r"data: (.+)", content)
         if data_match:
             error_data = json.loads(data_match.group(1))
             assert "error" in error_data, "Should contain error in response"

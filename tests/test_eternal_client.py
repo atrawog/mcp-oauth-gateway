@@ -11,7 +11,7 @@ import os
 import pytest
 
 
-base_domain = os.environ.get('BASE_DOMAIN')
+base_domain = os.environ.get("BASE_DOMAIN")
 if not base_domain:
     raise Exception("BASE_DOMAIN must be set in environment")
 AUTH_BASE_URL = f"https://auth.{base_domain}"
@@ -44,17 +44,13 @@ async def test_client_lifetime_from_env(http_client):
         # Expiring client
         expected_expiry = created_at + CLIENT_LIFETIME
         # Allow 5 second tolerance for processing time
-        assert abs(expires_at - expected_expiry) <= 5, (
-            f"Expected expiry around {expected_expiry} but got {expires_at}"
-        )
+        assert abs(expires_at - expected_expiry) <= 5, f"Expected expiry around {expected_expiry} but got {expires_at}"
 
     # Test RFC 7592 GET endpoint
     client_id = data["client_id"]
     data["client_secret"]
     registration_token = data.get("registration_access_token")
-    assert registration_token, (
-        "registration_access_token missing from registration response"
-    )
+    assert registration_token, "registration_access_token missing from registration response"
 
     # Get client registration using Bearer token
     response = await http_client.get(
@@ -102,9 +98,7 @@ async def test_rfc7592_update_client(http_client):
     client_id = original["client_id"]
     client_secret = original["client_secret"]
     registration_token = original.get("registration_access_token")
-    assert registration_token, (
-        "registration_access_token missing from registration response"
-    )
+    assert registration_token, "registration_access_token missing from registration response"
 
     # Update the client
     update_data = {

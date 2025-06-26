@@ -13,7 +13,7 @@ def fix_mixed_patterns(content: str) -> str:
     """Fix mixed error access patterns."""
     # Fix cases where we check "detail" in error but then access error["error"] directly
     # Pattern: assert "detail" in error ... assert error["error"] ==
-    lines = content.split('\n')
+    lines = content.split("\n")
     fixed_lines = []
     i = 0
 
@@ -28,7 +28,9 @@ def fix_mixed_patterns(content: str) -> str:
                 if 'error["error"]' in lines[j] and 'error["detail"]["error"]' not in lines[j]:
                     # This line accesses error["error"] directly, should be error["detail"]["error"]
                     lines[j] = lines[j].replace('error["error"]', 'error["detail"]["error"]')
-                elif 'error["error_description"]' in lines[j] and 'error["detail"]["error_description"]' not in lines[j]:
+                elif (
+                    'error["error_description"]' in lines[j] and 'error["detail"]["error_description"]' not in lines[j]
+                ):
                     # This line accesses error["error_description"] directly
                     lines[j] = lines[j].replace('error["error_description"]', 'error["detail"]["error_description"]')
                 j += 1
@@ -36,7 +38,7 @@ def fix_mixed_patterns(content: str) -> str:
         fixed_lines.append(lines[i])
         i += 1
 
-    content = '\n'.join(fixed_lines)
+    content = "\n".join(fixed_lines)
 
     # Fix specific mixed patterns in test_claude_ai_routing_scenario.py
     # This file has a unique pattern where it checks detail but then accesses error directly
@@ -44,7 +46,7 @@ def fix_mixed_patterns(content: str) -> str:
         content = re.sub(
             r'assert "detail" in error\s*\n\s*assert "error" in error\["detail"\]\s*\n\s*assert error\["error"\]',
             'assert "detail" in error\n        assert "error" in error["detail"]\n        assert error["detail"]["error"]',
-            content
+            content,
         )
 
     # Fix test_coverage_gaps.py patterns where it uses error.get with mixed patterns
@@ -53,7 +55,7 @@ def fix_mixed_patterns(content: str) -> str:
         r'assert error\.get\("error"\) == "([^"]+)"\s*\n\s*assert ([^"]+ in )?error\.get\("detail", \{\}\)\.get\(\s*"error_description"',
         r'assert error.get("error") == "\1"\n        assert \2error.get("error_description"',
         content,
-        flags=re.MULTILINE
+        flags=re.MULTILINE,
     )
 
     return content

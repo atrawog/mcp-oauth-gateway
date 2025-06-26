@@ -32,9 +32,7 @@ class TestMCPProxySessionIssues:
         Actual behavior: Each request creates a new session, causing "not initialized" errors.
         """
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
         # Initialize session
         init_response = await http_client.post(
@@ -49,10 +47,12 @@ class TestMCPProxySessionIssues:
                 "id": 1,
             },
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         # This should succeed
         assert init_response.status_code == HTTP_OK
@@ -62,10 +62,12 @@ class TestMCPProxySessionIssues:
             f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         # The proxy now correctly returns an error for missing session ID
         assert tools_response.status_code == HTTP_OK  # JSON-RPC errors return 200
@@ -76,18 +78,14 @@ class TestMCPProxySessionIssues:
         assert "Session ID required" in data["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_session_id_header_missing(
-        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
-    ):
+    async def test_session_id_header_missing(self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url):
         """ISSUE: The proxy doesn't return Mcp-Session-Id header as expected by MCP spec.
 
         Per MCP 2025-06-18 spec, servers MAY assign session IDs during initialization
         and clients MUST include them in subsequent requests.
         """
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
         response = await http_client.post(
             f"{mcp_fetch_url}",
@@ -101,10 +99,12 @@ class TestMCPProxySessionIssues:
                 "id": 1,
             },
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         assert response.status_code == HTTP_OK
 
@@ -125,9 +125,7 @@ class TestMCPProxyWorkarounds:
         This is not ideal but works with current proxy implementation.
         """
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
         # Create new client for each operation (forces new session)
         async with httpx.AsyncClient(timeout=30.0) as client1:

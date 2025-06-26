@@ -117,9 +117,7 @@ def analyze_coverage():
             print(f"\n✅ {module}:")
             print(f"   Lines executed: {len(module_data['covered_lines'])}")
             print(f"   Branch coverage: {module_data['branches']} branches")
-            print(
-                f"   Line numbers covered: {sorted(module_data['covered_lines'])[:20]}..."
-            )
+            print(f"   Line numbers covered: {sorted(module_data['covered_lines'])[:20]}...")
 
     conn.close()
 

@@ -83,10 +83,7 @@ class TestRealOAuthFlowErrors:
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["error"] == "invalid_grant"
-        assert (
-            "Invalid or expired authorization code"
-            in error["error_description"]
-        )
+        assert "Invalid or expired authorization code" in error["error_description"]
 
 
 class TestPKCEWithRealFlow:
@@ -132,6 +129,4 @@ class TestRefreshTokenErrors:
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["error"] == "invalid_grant"
-        assert (
-            "Invalid or expired refresh token" in error["error_description"]
-        )
+        assert "Invalid or expired refresh token" in error["error_description"]

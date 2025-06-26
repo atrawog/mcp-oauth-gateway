@@ -38,9 +38,7 @@ async def wait_for_services():
 class TestMCPMemoryIntegration:
     """Integration tests for mcp-memory service using mcp-streamablehttp-client."""
 
-    def run_mcp_client(
-        self, url: str, token: str, method: str, params: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+    def run_mcp_client(self, url: str, token: str, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Run mcp-streamablehttp-client and return the response."""
         # Set environment variables
         env = os.environ.copy()
@@ -69,9 +67,7 @@ class TestMCPMemoryIntegration:
         ]
 
         # Run the command
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, timeout=30, env=env
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=30, env=env)
 
         if result.returncode != 0:
             # Check if it's an expected error
@@ -132,9 +128,7 @@ class TestMCPMemoryIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_initialize(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_initialize(self, mcp_memory_url, client_token, wait_for_services):
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
             url=f"{mcp_memory_url}",
@@ -166,9 +160,7 @@ class TestMCPMemoryIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_list_tools(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_list_tools(self, mcp_memory_url, client_token, wait_for_services):
         """Test listing available tools."""
         # First initialize
         self.run_mcp_client(
@@ -183,9 +175,7 @@ class TestMCPMemoryIntegration:
         )
 
         # List tools
-        response = self.run_mcp_client(
-            url=f"{mcp_memory_url}", token=client_token, method="tools/list", params={}
-        )
+        response = self.run_mcp_client(url=f"{mcp_memory_url}", token=client_token, method="tools/list", params={})
 
         assert "result" in response
         tools = response["result"]["tools"]
@@ -218,15 +208,11 @@ class TestMCPMemoryIntegration:
                 ]
             )
         ]
-        assert len(knowledge_graph_tools) > 0, (
-            f"No knowledge graph tools found in: {tool_names}"
-        )
+        assert len(knowledge_graph_tools) > 0, f"No knowledge graph tools found in: {tool_names}"
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_list_resources(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_list_resources(self, mcp_memory_url, client_token, wait_for_services):
         """Test listing available resources."""
         # Initialize first
         self.run_mcp_client(
@@ -271,9 +257,7 @@ class TestMCPMemoryIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_basic_functionality(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_basic_functionality(self, mcp_memory_url, client_token, wait_for_services):
         """Test basic memory functionality if tools are available."""
         # Initialize
         self.run_mcp_client(
@@ -288,9 +272,7 @@ class TestMCPMemoryIntegration:
         )
 
         # List tools to see what's available
-        list_response = self.run_mcp_client(
-            url=f"{mcp_memory_url}", token=client_token, method="tools/list", params={}
-        )
+        list_response = self.run_mcp_client(url=f"{mcp_memory_url}", token=client_token, method="tools/list", params={})
 
         tools = list_response["result"]["tools"]
         if len(tools) > 0:
@@ -300,10 +282,7 @@ class TestMCPMemoryIntegration:
 
             # Build basic arguments based on the input schema
             tool_args = {}
-            if (
-                "inputSchema" in first_tool
-                and "properties" in first_tool["inputSchema"]
-            ):
+            if "inputSchema" in first_tool and "properties" in first_tool["inputSchema"]:
                 # Add some basic arguments for memory operations
                 for prop, schema in first_tool["inputSchema"]["properties"].items():
                     if schema.get("type") == "string":
@@ -336,9 +315,7 @@ class TestMCPMemoryIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_health_check(
-        self, mcp_memory_url, client_token, wait_for_services
-    ):
+    async def test_memory_health_check(self, mcp_memory_url, client_token, wait_for_services):
         """Test that the memory service health endpoint is accessible."""
         # This test verifies the service is running and accessible
         # The actual health check is done via the docker health check

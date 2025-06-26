@@ -63,9 +63,7 @@ def create_mcp_config():
 
     # Provide instructions
     print("\n🚀 To use this configuration with Claude Code:")
-    print(
-        "1. The config has been automatically placed in ~/.config/claude/mcp-config.json"
-    )
+    print("1. The config has been automatically placed in ~/.config/claude/mcp-config.json")
     print("2. Claude Code should detect it automatically")
     print("3. If not, you can manually specify the config path")
     print("\n⚠️  Important notes:")

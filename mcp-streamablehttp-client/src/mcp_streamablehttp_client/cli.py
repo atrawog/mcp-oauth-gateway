@@ -26,11 +26,7 @@ def setup_logging(level: str) -> None:
     logging.basicConfig(
         level=getattr(logging, level.upper()),
         format="%(message)s",
-        handlers=[
-            RichHandler(
-                console=console, show_time=True, show_path=False, rich_tracebacks=True
-            )
-        ],
+        handlers=[RichHandler(console=console, show_time=True, show_path=False, rich_tracebacks=True)],
     )
 
 
@@ -48,9 +44,7 @@ def setup_logging(level: str) -> None:
     help="Logging level",
 )
 @click.option("--server-url", help="Override MCP server URL from .env")
-@click.option(
-    "--reset-auth", is_flag=True, help="Clear stored credentials and re-authenticate"
-)
+@click.option("--reset-auth", is_flag=True, help="Clear stored credentials and re-authenticate")
 @click.option("--test-auth", is_flag=True, help="Test authentication and exit")
 @click.option(
     "-t",
@@ -82,10 +76,7 @@ def setup_logging(level: str) -> None:
 )
 @click.option(
     "--raw",
-    help=(
-        "Send raw JSON-RPC request to MCP server. "
-        'Example: --raw \'{"method": "tools/list", "params": {}}\''
-    ),
+    help=('Send raw JSON-RPC request to MCP server. Example: --raw \'{"method": "tools/list", "params": {}}\''),
 )
 @click.option("--list-tools", is_flag=True, help="List all available MCP tools")
 @click.option("--list-resources", is_flag=True, help="List all available MCP resources")
@@ -151,10 +142,7 @@ def main(
             settings.oauth_client_id = None
             settings.oauth_client_secret = None
             console.print("[green]✓[/green] Credentials cleared")
-            console.print(
-                "[dim]Note: To fully reset, clear MCP_CLIENT_* "
-                "variables from .env[/dim]"
-            )
+            console.print("[dim]Note: To fully reset, clear MCP_CLIENT_* variables from .env[/dim]")
 
         # Run async main
         asyncio.run(
@@ -196,9 +184,7 @@ async def async_main(
 
     # Handle RFC 7592 client management commands
     if get_client_info or update_client or delete_client:
-        await handle_client_management(
-            settings, get_client_info, update_client, delete_client
-        )
+        await handle_client_management(settings, get_client_info, update_client, delete_client)
         return
 
     # Check and refresh tokens if requested
@@ -321,9 +307,7 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
         if settings.oauth_device_auth_url:
             console.print(f"[dim]  Device: {settings.oauth_device_auth_url}[/dim]")
         if settings.oauth_registration_url:
-            console.print(
-                f"[dim]  Registration: {settings.oauth_registration_url}[/dim]"
-            )
+            console.print(f"[dim]  Registration: {settings.oauth_registration_url}[/dim]")
 
     # Check client registration
     console.print("\n[cyan]Client Registration:[/cyan]")
@@ -335,14 +319,9 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
         # Check RFC 7592 management credentials
         if settings.registration_access_token:
             console.print("[green]✓[/green] RFC 7592 management enabled")
-            console.print(
-                f"[dim]  Management token: "
-                f"{settings.registration_access_token[:20]}...[/dim]"
-            )
+            console.print(f"[dim]  Management token: {settings.registration_access_token[:20]}...[/dim]")
             if settings.registration_client_uri:
-                console.print(
-                    f"[dim]  Management URI: {settings.registration_client_uri}[/dim]"
-                )
+                console.print(f"[dim]  Management URI: {settings.registration_client_uri}[/dim]")
         else:
             console.print("[yellow]⚠️  No RFC 7592 management credentials[/yellow]")
             console.print("[dim]  Client registered before RFC 7592 support[/dim]")
@@ -367,25 +346,15 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
 
             if time_left.total_seconds() > 0:
                 if time_left.total_seconds() < 300:  # Less than 5 minutes
-                    console.print(
-                        f"[yellow]⚠️  Expires soon: {expires_at.isoformat()}Z[/yellow]"
-                    )
-                    console.print(
-                        f"[dim]  Time left: "
-                        f"{int(time_left.total_seconds())} seconds[/dim]"
-                    )
+                    console.print(f"[yellow]⚠️  Expires soon: {expires_at.isoformat()}Z[/yellow]")
+                    console.print(f"[dim]  Time left: {int(time_left.total_seconds())} seconds[/dim]")
                 else:
                     hours_left = time_left.total_seconds() / 3600
-                    console.print(
-                        f"[green]✓[/green] Valid until: {expires_at.isoformat()}Z"
-                    )
+                    console.print(f"[green]✓[/green] Valid until: {expires_at.isoformat()}Z")
                     console.print(f"[dim]  Time left: {hours_left:.1f} hours[/dim]")
             else:
                 console.print(f"[red]✗[/red] Token expired: {expires_at.isoformat()}Z")
-                console.print(
-                    f"[dim]  Expired "
-                    f"{abs(int(time_left.total_seconds()))} seconds ago[/dim]"
-                )
+                console.print(f"[dim]  Expired {abs(int(time_left.total_seconds()))} seconds ago[/dim]")
         else:
             console.print("[yellow]⚠️  No expiration info (assuming valid)[/yellow]")
     else:
@@ -432,17 +401,11 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
                 console.print(f"[dim]  New token: {new_token_preview}[/dim]")
 
                 if settings.oauth_token_expires_at:
-                    console.print(
-                        f"[dim]  New expiry: "
-                        f"{settings.oauth_token_expires_at.isoformat()}Z[/dim]"
-                    )
+                    console.print(f"[dim]  New expiry: {settings.oauth_token_expires_at.isoformat()}Z[/dim]")
 
             except Exception as e:
                 console.print(f"[red]✗[/red] Token refresh failed: {e}")
-                console.print(
-                    "[yellow]⚠️  You may need to re-authenticate "
-                    "with --reset-auth[/yellow]"
-                )
+                console.print("[yellow]⚠️  You may need to re-authenticate with --reset-auth[/yellow]")
                 sys.exit(1)
 
     elif needs_auth:
@@ -489,9 +452,7 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
             response = await proxy._handle_request(test_request)
 
             if "error" in response:
-                console.print(
-                    f"[red]✗[/red] Server rejected token: {response['error']}"
-                )
+                console.print(f"[red]✗[/red] Server rejected token: {response['error']}")
                 sys.exit(1)
             else:
                 console.print("[green]✓[/green] Token accepted by server!")
@@ -551,9 +512,7 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
         console.print("   ✅ Saved MCP_CLIENT_SECRET")
 
     if settings.registration_access_token:
-        save_env_var(
-            "MCP_CLIENT_REGISTRATION_TOKEN", settings.registration_access_token
-        )
+        save_env_var("MCP_CLIENT_REGISTRATION_TOKEN", settings.registration_access_token)
         console.print("   ✅ Saved MCP_CLIENT_REGISTRATION_TOKEN")
 
     if settings.registration_client_uri:
@@ -571,9 +530,7 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
     if settings.oauth_client_secret:
         print(f"export MCP_CLIENT_SECRET={settings.oauth_client_secret}")
     if settings.registration_access_token:
-        print(
-            f"export MCP_CLIENT_REGISTRATION_TOKEN={settings.registration_access_token}"
-        )
+        print(f"export MCP_CLIENT_REGISTRATION_TOKEN={settings.registration_access_token}")
     if settings.registration_client_uri:
         print(f"export MCP_CLIENT_REGISTRATION_URI={settings.registration_client_uri}")
 
@@ -593,9 +550,7 @@ async def execute_mcp_command(settings: Settings, command: str) -> None:
         console.print("[dim]  --command 'fetch https://example.com'[/dim]")
         console.print("[dim]  --command 'search my query text'[/dim]")
         console.print("[dim]  --command 'read_file /path/to/file'[/dim]")
-        console.print(
-            '[dim]  --command \'mytool {"param1": "value", "param2": 123}\'[/dim]'
-        )
+        console.print('[dim]  --command \'mytool {"param1": "value", "param2": 123}\'[/dim]')
         console.print("[dim]  --command 'anytool key1=value1 key2=123'[/dim]")
         sys.exit(1)
 
@@ -623,9 +578,7 @@ async def execute_mcp_command(settings: Settings, command: str) -> None:
             init_response = await proxy._handle_request(init_request)
 
             if "error" in init_response:
-                console.print(
-                    f"[red]✗[/red] Initialization failed: {init_response['error']}"
-                )
+                console.print(f"[red]✗[/red] Initialization failed: {init_response['error']}")
                 sys.exit(1)
 
             console.print("[green]✓[/green] Server initialized successfully")
@@ -643,18 +596,14 @@ async def execute_mcp_command(settings: Settings, command: str) -> None:
             tools_response = await proxy._handle_request(tools_request)
 
             if "error" in tools_response:
-                console.print(
-                    f"[red]✗[/red] Tools listing failed: {tools_response['error']}"
-                )
+                console.print(f"[red]✗[/red] Tools listing failed: {tools_response['error']}")
                 sys.exit(1)
 
             available_tools = tools_response.get("result", {}).get("tools", [])
             tool_names = [tool["name"] for tool in available_tools]
 
             tools_list = ", ".join(tool_names)
-            console.print(
-                f"[green]✓[/green] Found {len(available_tools)} tools: {tools_list}"
-            )
+            console.print(f"[green]✓[/green] Found {len(available_tools)} tools: {tools_list}")
 
             # Check if requested tool exists
             if tool_name not in tool_names:
@@ -666,9 +615,7 @@ async def execute_mcp_command(settings: Settings, command: str) -> None:
             console.print(f"\n[cyan]3. Calling tool '{tool_name}'...[/cyan]")
 
             # Parse arguments based on tool type
-            tool_args = parse_tool_arguments(
-                tool_name, parts[1] if len(parts) > 1 else ""
-            )
+            tool_args = parse_tool_arguments(tool_name, parts[1] if len(parts) > 1 else "")
 
             call_request = {
                 "jsonrpc": "2.0",
@@ -682,9 +629,7 @@ async def execute_mcp_command(settings: Settings, command: str) -> None:
             call_response = await proxy._handle_request(call_request)
 
             if "error" in call_response:
-                console.print(
-                    f"[red]✗[/red] Tool execution failed: {call_response['error']}"
-                )
+                console.print(f"[red]✗[/red] Tool execution failed: {call_response['error']}")
                 sys.exit(1)
 
             result = call_response.get("result", {})
@@ -708,13 +653,9 @@ async def execute_mcp_command(settings: Settings, command: str) -> None:
                             console.print(text)
                         elif item_type == "resource":
                             console.print(f"[dim]Response {i} (resource):[/dim]")
-                            console.print(
-                                f"URI: {item.get('resource', {}).get('uri', 'N/A')}"
-                            )
+                            console.print(f"URI: {item.get('resource', {}).get('uri', 'N/A')}")
                             if "text" in item:
-                                text = item["text"][:500] + (
-                                    "..." if len(item["text"]) > 500 else ""
-                                )
+                                text = item["text"][:500] + ("..." if len(item["text"]) > 500 else "")
                                 console.print(text)
                         else:
                             console.print(f"[dim]Response {i} ({item_type}):[/dim]")
@@ -839,27 +780,15 @@ async def handle_client_management(
     # Create OAuth client
     async with OAuthClient(settings) as oauth:
         # Ensure we have registration credentials
-        if (
-            not settings.registration_access_token
-            or not settings.registration_client_uri
-        ):
+        if not settings.registration_access_token or not settings.registration_client_uri:
             console.print("[red]Error:[/red] No RFC 7592 management credentials found.")
             console.print("[dim]Client must be registered with RFC 7592 support.[/dim]")
 
             # Check if we have client_id but missing management creds
             if settings.oauth_client_id:
-                console.print(
-                    "\n[yellow]Client is registered but missing "
-                    "management credentials.[/yellow]"
-                )
-                console.print(
-                    "[dim]This can happen if the client was registered "
-                    "before RFC 7592 support.[/dim]"
-                )
-                console.print(
-                    "[dim]Consider re-registering with --reset-auth "
-                    "to get management capabilities.[/dim]"
-                )
+                console.print("\n[yellow]Client is registered but missing management credentials.[/yellow]")
+                console.print("[dim]This can happen if the client was registered before RFC 7592 support.[/dim]")
+                console.print("[dim]Consider re-registering with --reset-auth to get management capabilities.[/dim]")
             sys.exit(1)
 
         try:
@@ -877,9 +806,7 @@ async def handle_client_management(
                 console.print(f"  Scope: {config.get('scope', 'N/A')}")
 
                 if "redirect_uris" in config:
-                    console.print(
-                        f"  Redirect URIs: {', '.join(config['redirect_uris'])}"
-                    )
+                    console.print(f"  Redirect URIs: {', '.join(config['redirect_uris'])}")
 
                 if "grant_types" in config:
                     console.print(f"  Grant Types: {', '.join(config['grant_types'])}")
@@ -913,9 +840,7 @@ async def handle_client_management(
                 for pair in update_client.split(","):
                     if "=" not in pair:
                         console.print(f"[red]Error:[/red] Invalid format: {pair}")
-                        console.print(
-                            "[dim]Expected format: field=value,field2=value2[/dim]"
-                        )
+                        console.print("[dim]Expected format: field=value,field2=value2[/dim]")
                         sys.exit(1)
 
                     key, value = pair.split("=", 1)
@@ -942,9 +867,7 @@ async def handle_client_management(
                     console.print(f"  {k}: {v}")
 
                 # Confirm before updating
-                console.print(
-                    "\n[yellow]This will update your client registration.[/yellow]"
-                )
+                console.print("\n[yellow]This will update your client registration.[/yellow]")
                 console.print("Continue? [y/N]: ", end="")
                 if input().strip().lower() != "y":
                     console.print("[dim]Update cancelled.[/dim]")
@@ -963,13 +886,8 @@ async def handle_client_management(
                         console.print(f"  {key}: {updated[key]}")
 
                 # Save new client_secret if it changed
-                if (
-                    "client_secret" in updated
-                    and updated["client_secret"] != settings.oauth_client_secret
-                ):
-                    console.print(
-                        "\n[yellow]⚠️  Client secret was rotated by server![/yellow]"
-                    )
+                if "client_secret" in updated and updated["client_secret"] != settings.oauth_client_secret:
+                    console.print("\n[yellow]⚠️  Client secret was rotated by server![/yellow]")
                     console.print("[dim]Updating .env file with new secret...[/dim]")
 
                     from pathlib import Path
@@ -1001,13 +919,8 @@ async def handle_client_management(
 
             elif delete_client:
                 # Confirm deletion
-                console.print(
-                    "\n[red]⚠️  WARNING: This will PERMANENTLY delete "
-                    "your client registration![/red]"
-                )
-                console.print(
-                    "[dim]You will need to re-register to use this service again.[/dim]"
-                )
+                console.print("\n[red]⚠️  WARNING: This will PERMANENTLY delete your client registration![/red]")
+                console.print("[dim]You will need to re-register to use this service again.[/dim]")
                 console.print("\nClient to delete:")
                 console.print(f"  Client ID: {settings.oauth_client_id}")
                 console.print(f"  Client Name: {settings.client_name}")
@@ -1026,15 +939,9 @@ async def handle_client_management(
                 console.print("\n[cyan]Deleting client registration...[/cyan]")
                 await oauth.delete_client_registration()
 
-                console.print(
-                    "\n[green]✓[/green] Client registration deleted successfully!"
-                )
-                console.print(
-                    "[dim]All credentials have been cleared from memory.[/dim]"
-                )
-                console.print(
-                    "[dim]You may want to remove MCP_CLIENT_* variables from .env[/dim]"
-                )
+                console.print("\n[green]✓[/green] Client registration deleted successfully!")
+                console.print("[dim]All credentials have been cleared from memory.[/dim]")
+                console.print("[dim]You may want to remove MCP_CLIENT_* variables from .env[/dim]")
 
         except Exception as e:
             console.print(f"\n[red]Error:[/red] {e}")
@@ -1054,9 +961,7 @@ async def execute_raw_protocol(settings: Settings, raw_request: str) -> None:
         # Add required fields if missing
         if "jsonrpc" not in request:
             request["jsonrpc"] = "2.0"
-        if "id" not in request and request.get("method") not in [
-            "notifications/initialized"
-        ]:
+        if "id" not in request and request.get("method") not in ["notifications/initialized"]:
             request["id"] = str(uuid4())
 
         async with StreamableHttpToStdioProxy(settings) as proxy:
@@ -1078,9 +983,7 @@ async def execute_raw_protocol(settings: Settings, raw_request: str) -> None:
                 }
                 init_response = await proxy._handle_request(init_request)
                 if "error" in init_response:
-                    console.print(
-                        f"[red]Initialization failed:[/red] {init_response['error']}"
-                    )
+                    console.print(f"[red]Initialization failed:[/red] {init_response['error']}")
                     sys.exit(1)
 
             # Execute the raw request
@@ -1122,9 +1025,7 @@ async def execute_list_command(settings: Settings, method: str) -> None:
 
             init_response = await proxy._handle_request(init_request)
             if "error" in init_response:
-                console.print(
-                    f"[red]Initialization failed:[/red] {init_response['error']}"
-                )
+                console.print(f"[red]Initialization failed:[/red] {init_response['error']}")
                 sys.exit(1)
 
             # Execute the list request
@@ -1165,9 +1066,7 @@ async def execute_list_command(settings: Settings, method: str) -> None:
                                 param_type = details.get("type", "any")
                                 required = param in schema.get("required", [])
                                 req_marker = " [red]*[/red]" if required else ""
-                                console.print(
-                                    f"    - {param} ({param_type}){req_marker}"
-                                )
+                                console.print(f"    - {param} ({param_type}){req_marker}")
 
                     elif items_key == "resources" and "uri" in item:
                         console.print(f"  [dim]URI: {item['uri']}[/dim]")
@@ -1181,9 +1080,7 @@ async def execute_list_command(settings: Settings, method: str) -> None:
                                 arg_desc = arg.get("description", "")
                                 required = arg.get("required", False)
                                 req_marker = " [red]*[/red]" if required else ""
-                                console.print(
-                                    f"    - {arg_name}{req_marker}: {arg_desc}"
-                                )
+                                console.print(f"    - {arg_name}{req_marker}: {arg_desc}")
                 else:
                     console.print(f"  - {item}")
 

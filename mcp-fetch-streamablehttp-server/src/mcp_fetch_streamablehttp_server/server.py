@@ -36,18 +36,12 @@ class Settings(BaseSettings):
     protocol_version: str = Field(..., description="Protocol version")
 
     # Fetch settings
-    fetch_allowed_schemes: list[str] = Field(
-        default=["http", "https"], description="Allowed URL schemes"
-    )
+    fetch_allowed_schemes: list[str] = Field(default=["http", "https"], description="Allowed URL schemes")
     fetch_max_redirects: int = Field(default=5, description="Max redirects")
-    fetch_default_user_agent: str = Field(
-        default="ModelContextProtocol/1.0 (Fetch Server)", description="User agent"
-    )
+    fetch_default_user_agent: str = Field(default="ModelContextProtocol/1.0 (Fetch Server)", description="User agent")
 
     # Transport settings
-    fetch_enable_sse: bool = Field(
-        default=False, description="SSE support for future implementation"
-    )
+    fetch_enable_sse: bool = Field(default=False, description="SSE support for future implementation")
 
     model_config = ConfigDict(env_prefix="MCP_", env_file=".env", extra="allow")
 
@@ -76,9 +70,7 @@ class StreamableHTTPServer:
         """Register fetch tool with MCP server."""
 
         @self.server.call_tool()
-        async def call_tool(
-            name: str, arguments: dict[str, Any]
-        ) -> list[TextContent | ImageContent]:
+        async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent | ImageContent]:
             """Handle tool calls."""
             if name == "fetch":
                 return await self.fetch_handler.handle_fetch(arguments)
@@ -110,9 +102,7 @@ class StreamableHTTPServer:
                 headers={
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-                    "Access-Control-Allow-Headers": (
-                        "Content-Type, Mcp-Session-Id, MCP-Protocol-Version"
-                    ),
+                    "Access-Control-Allow-Headers": ("Content-Type, Mcp-Session-Id, MCP-Protocol-Version"),
                     "Access-Control-Max-Age": "86400",
                 },
             )
@@ -123,17 +113,14 @@ class StreamableHTTPServer:
         # The holy trinity separation demands it!
 
         # Check MCP protocol version header if provided
-        mcp_version = headers.get(
-            "mcp-protocol-version", headers.get("MCP-Protocol-Version")
-        )
+        mcp_version = headers.get("mcp-protocol-version", headers.get("MCP-Protocol-Version"))
         if mcp_version and mcp_version != self.settings.protocol_version:
             return JSONResponse(
                 status_code=400,
                 content={
                     "error": "Unsupported protocol version",
                     "message": (
-                        f"Server only supports MCP version: "
-                        f"{self.settings.protocol_version}, got {mcp_version}"
+                        f"Server only supports MCP version: {self.settings.protocol_version}, got {mcp_version}"
                     ),
                 },
             )
@@ -184,13 +171,9 @@ class StreamableHTTPServer:
 
         except Exception as e:
             # Return error response
-            return self._create_json_rpc_error(
-                -32603, "Internal error", str(e), request_id
-            )
+            return self._create_json_rpc_error(-32603, "Internal error", str(e), request_id)
 
-    def _parse_json_rpc_request(
-        self, body: bytes
-    ) -> tuple[dict[str, Any] | None, JSONResponse | None]:
+    def _parse_json_rpc_request(self, body: bytes) -> tuple[dict[str, Any] | None, JSONResponse | None]:
         """Parse and validate JSON-RPC request."""
         try:
             data = json.loads(body)
@@ -231,13 +214,9 @@ class StreamableHTTPServer:
             return self._handle_tools_list(params)
         if method == "tools/call":
             return await self._handle_tools_call(params, request_id)
-        return self._create_json_rpc_error(
-            -32601, "Method not found", f"Unknown method: {method}", request_id
-        )
+        return self._create_json_rpc_error(-32601, "Method not found", f"Unknown method: {method}", request_id)
 
-    def _handle_initialize(
-        self, params: dict[str, Any], request_id: Any
-    ) -> dict[str, Any] | JSONResponse:
+    def _handle_initialize(self, params: dict[str, Any], request_id: Any) -> dict[str, Any] | JSONResponse:
         """Handle initialize method."""
         client_protocol = params.get("protocolVersion", self.settings.protocol_version)
 
@@ -246,8 +225,7 @@ class StreamableHTTPServer:
             return self._create_json_rpc_error(
                 -32602,
                 "Invalid params",
-                f"Unsupported protocol version: {client_protocol}. "
-                f"Server supports: {self.settings.protocol_version}",
+                f"Unsupported protocol version: {client_protocol}. Server supports: {self.settings.protocol_version}",
                 request_id,
             )
 
@@ -277,20 +255,14 @@ class StreamableHTTPServer:
             # "nextCursor" would be included if we had more tools
         }
 
-    async def _handle_tools_call(
-        self, params: dict[str, Any], request_id: Any
-    ) -> dict[str, Any] | JSONResponse:
+    async def _handle_tools_call(self, params: dict[str, Any], request_id: Any) -> dict[str, Any] | JSONResponse:
         """Handle tools/call method."""
         if not params:
-            return self._create_json_rpc_error(
-                -32602, "Invalid params", "Missing params for tools/call", request_id
-            )
+            return self._create_json_rpc_error(-32602, "Invalid params", "Missing params for tools/call", request_id)
 
         tool_name = params.get("name")
         if not tool_name:
-            return self._create_json_rpc_error(
-                -32602, "Invalid params", "Missing required parameter: name", request_id
-            )
+            return self._create_json_rpc_error(-32602, "Invalid params", "Missing required parameter: name", request_id)
 
         tool_args = params.get("arguments", {})
 
@@ -313,13 +285,9 @@ class StreamableHTTPServer:
                     "isError": True,
                 }
         else:
-            return self._create_json_rpc_error(
-                -32602, "Invalid params", f"Unknown tool: {tool_name}", request_id
-            )
+            return self._create_json_rpc_error(-32602, "Invalid params", f"Unknown tool: {tool_name}", request_id)
 
-    def _create_json_rpc_response(
-        self, result: dict[str, Any], request_id: Any
-    ) -> JSONResponse:
+    def _create_json_rpc_response(self, result: dict[str, Any], request_id: Any) -> JSONResponse:
         """Create a JSON-RPC success response."""
         return JSONResponse(
             content={"jsonrpc": "2.0", "result": result, "id": request_id},
@@ -330,9 +298,7 @@ class StreamableHTTPServer:
             },
         )
 
-    def _create_json_rpc_error(
-        self, code: int, message: str, data: str, request_id: Any
-    ) -> JSONResponse:
+    def _create_json_rpc_error(self, code: int, message: str, data: str, request_id: Any) -> JSONResponse:
         """Create a JSON-RPC error response."""
         return JSONResponse(
             content={
@@ -361,9 +327,7 @@ class StreamableHTTPServer:
         )
 
         # Add routes
-        app.add_api_route(
-            "/mcp", self.handle_request, methods=["GET", "POST", "DELETE", "OPTIONS"]
-        )
+        app.add_api_route("/mcp", self.handle_request, methods=["GET", "POST", "DELETE", "OPTIONS"])
 
         return app
 

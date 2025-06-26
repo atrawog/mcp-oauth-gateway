@@ -24,9 +24,7 @@ class TestHealthCheckErrors:
     async def test_oauth_discovery_health_check(self, http_client):
         """Test OAuth discovery endpoint used as health check."""
         # Verify OAuth discovery endpoint is accessible
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         assert response.status_code == HTTP_OK
 
         # Verify it returns proper OAuth metadata
@@ -97,9 +95,7 @@ class TestClientRegistrationErrors:
             "client_name": "TEST test_registration_empty_redirect_uris",
         }
 
-        response = await http_client.post(
-            f"{AUTH_BASE_URL}/register", json=registration_data
-        )
+        response = await http_client.post(f"{AUTH_BASE_URL}/register", json=registration_data)
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
@@ -144,9 +140,7 @@ class TestTokenEndpointEdgeCases:
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
         assert error["error"] == "invalid_grant"
-        assert (
-            "Invalid or expired refresh token" in error["error_description"]
-        )
+        assert "Invalid or expired refresh token" in error["error_description"]
 
     @pytest.mark.asyncio
     async def test_token_with_redirect_uri_mismatch(self, http_client):
@@ -369,9 +363,7 @@ class TestAuthorizationEndpointErrors:
         except json.JSONDecodeError:
             # If response is not JSON, check if it's an HTML error page
             content = response.text
-            assert (
-                "invalid_client" in content or "Client authentication failed" in content
-            )
+            assert "invalid_client" in content or "Client authentication failed" in content
 
     @pytest.mark.asyncio
     async def test_authorize_with_unregistered_redirect_uri(self, http_client):
@@ -402,9 +394,7 @@ class TestShutdownHandler:
         """Verify app can handle shutdown gracefully - relates to line 119."""
         # We can't actually trigger shutdown in deployed service
         # But we can verify the app is running via OAuth discovery
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         assert response.status_code == HTTP_OK
 
         # The shutdown handler is tested implicitly when services restart

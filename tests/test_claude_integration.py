@@ -28,9 +28,7 @@ class TestClaudeIntegration:
     async def test_claude_nine_sacred_steps(self, http_client, wait_for_services):
         """Test the Nine Sacred Steps of Claude.ai Connection."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
-            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
-        )
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
 
         client_creds = None
         try:
@@ -55,9 +53,7 @@ class TestClaudeIntegration:
             assert response.headers["WWW-Authenticate"] == "Bearer"
 
             # Step 3: Metadata Quest - Seeks .well-known
-            metadata_response = await http_client.get(
-                f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-            )
+            metadata_response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
 
             assert metadata_response.status_code == HTTP_OK
             metadata = metadata_response.json()
@@ -95,22 +91,12 @@ class TestClaudeIntegration:
                 # Should be created_at + CLIENT_LIFETIME
                 created_at = client_creds.get("client_id_issued_at")
                 expected_expiry = created_at + client_lifetime
-                assert (
-                    abs(client_creds["client_secret_expires_at"] - expected_expiry) <= 5
-                )
+                assert abs(client_creds["client_secret_expires_at"] - expected_expiry) <= 5
 
             # Step 6: PKCE Summoning - S256 challenge generated
-            code_verifier = (
-                base64.urlsafe_b64encode(secrets.token_bytes(32))
-                .decode("utf-8")
-                .rstrip("=")
-            )
+            code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("utf-8").rstrip("=")
             code_challenge = (
-                base64.urlsafe_b64encode(
-                    hashlib.sha256(code_verifier.encode()).digest()
-                )
-                .decode("utf-8")
-                .rstrip("=")
+                base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest()).decode("utf-8").rstrip("=")
             )
 
             # Step 7: GitHub Pilgrimage - User authenticates
@@ -146,11 +132,7 @@ class TestClaudeIntegration:
 
         finally:
             # Clean up the created client using RFC 7592 DELETE
-            if (
-                client_creds
-                and "registration_access_token" in client_creds
-                and "client_id" in client_creds
-            ):
+            if client_creds and "registration_access_token" in client_creds and "client_id" in client_creds:
                 try:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client_creds['client_id']}",
@@ -180,9 +162,7 @@ class TestClaudeIntegration:
         assert www_auth.startswith("Bearer")
 
         # Claude.ai checks for OAuth metadata
-        metadata_response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-        )
+        metadata_response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
 
         assert metadata_response.status_code == HTTP_OK
         metadata = metadata_response.json()
@@ -218,9 +198,7 @@ class TestClaudeIntegration:
         }
 
         # Test that endpoint exists and validates input
-        token_response = await http_client.post(
-            f"{AUTH_BASE_URL}/token", data=token_request
-        )
+        token_response = await http_client.post(f"{AUTH_BASE_URL}/token", data=token_request)
 
         # Should fail with invalid_grant (not invalid_request)
         assert token_response.status_code == HTTP_BAD_REQUEST

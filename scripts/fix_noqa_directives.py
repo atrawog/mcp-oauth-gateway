@@ -8,15 +8,15 @@ from pathlib import Path
 def fix_invalid_noqa_directives(content: str) -> str:
     """Fix invalid noqa directives that were incorrectly placed."""
     # Pattern to find lines with invalid noqa directives at the end of function signatures
-    pattern = r'(\s+)(wait_for_services|capsys|caplog|tmp_path|monkeypatch),?\s*#\s*noqa:\s*ARG002\):'
-    replacement = r'\1\2):  # noqa: ARG002'
+    pattern = r"(\s+)(wait_for_services|capsys|caplog|tmp_path|monkeypatch),?\s*#\s*noqa:\s*ARG002\):"
+    replacement = r"\1\2):  # noqa: ARG002"
 
     content = re.sub(pattern, replacement, content)
 
     # Also fix lines where noqa was added at the wrong place
     # Pattern: parameter, noqa ARG002 at wrong position
-    pattern2 = r'(wait_for_services|capsys|caplog|tmp_path|monkeypatch),\s*#\s*noqa:\s*ARG002(\s*\):)'
-    replacement2 = r'\1\2  # noqa: ARG002'
+    pattern2 = r"(wait_for_services|capsys|caplog|tmp_path|monkeypatch),\s*#\s*noqa:\s*ARG002(\s*\):)"
+    replacement2 = r"\1\2  # noqa: ARG002"
 
     content = re.sub(pattern2, replacement2, content)
 

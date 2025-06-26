@@ -44,9 +44,7 @@ async def create_client_alias():
             redis_port = 6379
 
     # Connect to Redis
-    redis_client = await redis.Redis(
-        host=redis_host, port=redis_port, password=redis_password, decode_responses=True
-    )
+    redis_client = await redis.Redis(host=redis_host, port=redis_port, password=redis_password, decode_responses=True)
 
     try:
         # Test connection
@@ -79,9 +77,7 @@ async def create_client_alias():
         await redis_client.set(f"oauth:client:{old_client_id}", json.dumps(old_client))
 
         print(f"✅ Created alias: {old_client_id} → {new_client_id}")
-        print(
-            "⚠️  This is a temporary workaround. Claude.ai should update their implementation."
-        )
+        print("⚠️  This is a temporary workaround. Claude.ai should update their implementation.")
 
     finally:
         await redis_client.aclose()
@@ -95,9 +91,7 @@ async def main():
     await create_client_alias()
 
     print("\n✅ Fix applied. Claude.ai should now be able to authenticate.")
-    print(
-        "📝 Note: This creates an alias so the old client_id points to the new registration."
-    )
+    print("📝 Note: This creates an alias so the old client_id points to the new registration.")
 
 
 if __name__ == "__main__":

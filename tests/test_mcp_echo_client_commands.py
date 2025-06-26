@@ -59,9 +59,7 @@ LOG_LEVEL=INFO
 def mcp_client_env():
     """Setup MCP_CLIENT environment variables from test environment."""
     if not all([MCP_CLIENT_ACCESS_TOKEN, MCP_CLIENT_ID, MCP_CLIENT_SECRET]):
-        pytest.fail(
-            "Missing MCP_CLIENT credentials in environment - run: just mcp-client-token"
-        )
+        pytest.fail("Missing MCP_CLIENT credentials in environment - run: just mcp-client-token")
 
     print("Using MCP_CLIENT tokens from environment:")
     print(f"  Client ID: {MCP_CLIENT_ID}")
@@ -80,12 +78,8 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled"
-    )
-    async def test_echo_list_tools_command(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    async def test_echo_list_tools_command(self, temp_env_file, mcp_client_env, wait_for_services):
         """Test listing tools using --list-tools command."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -101,9 +95,7 @@ class TestMCPEchoClientCommands:
             "--list-tools",
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # Check command executed successfully
         assert result.returncode == 0, f"Command failed with: {result.stderr}"
@@ -124,12 +116,8 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled"
-    )
-    async def test_echo_tool_command_simple(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    async def test_echo_tool_command_simple(self, temp_env_file, mcp_client_env, wait_for_services):
         """Test echo tool using --command interface with simple message."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -148,30 +136,22 @@ class TestMCPEchoClientCommands:
             f"echo {test_message}",
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # Check command executed successfully
         assert result.returncode == 0, f"Command failed with: {result.stderr}"
 
         # The output should contain the echoed message
         output = result.stdout
-        assert test_message in output, (
-            f"'{test_message}' not found in output: {output[:500]}..."
-        )
+        assert test_message in output, f"'{test_message}' not found in output: {output[:500]}..."
 
         print("✅ Successfully echoed message via command interface")
         print(f"   Message: {test_message}")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled"
-    )
-    async def test_echo_tool_command_json_args(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    async def test_echo_tool_command_json_args(self, temp_env_file, mcp_client_env, wait_for_services):
         """Test echo tool using --command interface with JSON arguments."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -190,30 +170,22 @@ class TestMCPEchoClientCommands:
             f'echo {{"message": "{test_message}"}}',
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # Check command executed successfully
         assert result.returncode == 0, f"Command failed with: {result.stderr}"
 
         # The output should contain the echoed message
         output = result.stdout
-        assert test_message in output, (
-            f"'{test_message}' not found in output: {output[:500]}..."
-        )
+        assert test_message in output, f"'{test_message}' not found in output: {output[:500]}..."
 
         print("✅ Successfully echoed message via JSON command interface")
         print(f"   Message: {test_message}")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled"
-    )
-    async def test_echo_tool_command_multiline(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    async def test_echo_tool_command_multiline(self, temp_env_file, mcp_client_env, wait_for_services):
         """Test echo tool with multiline message via command interface."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -232,9 +204,7 @@ class TestMCPEchoClientCommands:
             f'echo {{"message": "{test_message}"}}',
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # Check command executed successfully
         assert result.returncode == 0, f"Command failed with: {result.stderr}"
@@ -248,12 +218,8 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled"
-    )
-    async def test_print_header_tool_command(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    async def test_print_header_tool_command(self, temp_env_file, mcp_client_env, wait_for_services):
         """Test printHeader tool using --command interface."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -270,9 +236,7 @@ class TestMCPEchoClientCommands:
             "printHeader",
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # Check command executed successfully
         assert result.returncode == 0, f"Command failed with: {result.stderr}"
@@ -291,12 +255,8 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled"
-    )
-    async def test_command_with_invalid_token(
-        self, temp_env_file, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    async def test_command_with_invalid_token(self, temp_env_file, wait_for_services):
         """Test that command fails properly with invalid token."""
         env = os.environ.copy()
         # CRITICAL: Clear ALL MCP_CLIENT_* variables that the client reads from environment
@@ -321,29 +281,23 @@ class TestMCPEchoClientCommands:
             "echo test message",
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # Command should fail due to invalid token
         assert result.returncode != 0, "Command should have failed with invalid token"
 
         # Check for authentication error indicators
         error_output = result.stderr + result.stdout
-        assert any(indicator in error_output.lower() for indicator in [
-            "401", "unauthorized", "invalid", "token", "auth"
-        ]), f"Expected auth error not found in: {error_output}"
+        assert any(
+            indicator in error_output.lower() for indicator in ["401", "unauthorized", "invalid", "token", "auth"]
+        ), f"Expected auth error not found in: {error_output}"
 
         print("✅ Command properly failed with invalid token")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled"
-    )
-    async def test_invalid_tool_command(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    async def test_invalid_tool_command(self, temp_env_file, mcp_client_env, wait_for_services):
         """Test that invalid tool commands fail properly."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -360,29 +314,23 @@ class TestMCPEchoClientCommands:
             "invalid_tool_name test arguments",
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # Command should fail due to invalid tool name
         assert result.returncode != 0, "Command should have failed with invalid tool name"
 
         # Check for tool error indicators
         error_output = result.stderr + result.stdout
-        assert any(indicator in error_output.lower() for indicator in [
-            "unknown tool", "invalid", "not found", "error"
-        ]), f"Expected tool error not found in: {error_output}"
+        assert any(
+            indicator in error_output.lower() for indicator in ["unknown tool", "invalid", "not found", "error"]
+        ), f"Expected tool error not found in: {error_output}"
 
         print("✅ Command properly failed with invalid tool name")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled"
-    )
-    async def test_echo_stress_test_commands(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    async def test_echo_stress_test_commands(self, temp_env_file, mcp_client_env, wait_for_services):
         """Stress test echo tool with multiple rapid commands."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -390,7 +338,7 @@ class TestMCPEchoClientCommands:
 
         # Run multiple echo commands rapidly
         for i in range(5):
-            test_message = f"Stress test message {i+1}/5"
+            test_message = f"Stress test message {i + 1}/5"
 
             cmd = [
                 "pixi",
@@ -402,24 +350,18 @@ class TestMCPEchoClientCommands:
                 f"echo {test_message}",
             ]
 
-            result = subprocess.run(
-                cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-            )
+            result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
-            assert result.returncode == 0, f"Stress test {i+1} failed: {result.stderr}"
+            assert result.returncode == 0, f"Stress test {i + 1} failed: {result.stderr}"
             assert test_message in result.stdout
-            print(f"✅ Stress test {i+1}/5 completed")
+            print(f"✅ Stress test {i + 1}/5 completed")
 
         print("✅ mcp-echo service handles rapid command requests properly")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled"
-    )
-    async def test_echo_multiple_urls(
-        self, mcp_client_env, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    async def test_echo_multiple_urls(self, mcp_client_env, wait_for_services):
         """Test echo command on multiple configured URLs."""
         if not MCP_ECHO_URLS:
             pytest.skip("MCP_ECHO_URLS environment variable not set")
@@ -433,7 +375,7 @@ class TestMCPEchoClientCommands:
         results = []
         for url in urls_to_test:
             # Create temp env file for this URL
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
                 f.write(f"""
 # MCP Server Configuration
 MCP_SERVER_URL={url}
@@ -465,9 +407,7 @@ LOG_LEVEL=INFO
                     f'echo {{"message": "{test_message}"}}',
                 ]
 
-                result = subprocess.run(
-                    cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-                )
+                result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
                 if result.returncode == 0 and test_message in result.stdout:
                     results.append((url, "✅ Success"))
@@ -478,13 +418,13 @@ LOG_LEVEL=INFO
                 Path(temp_env_path).unlink(missing_ok=True)
 
         # Print results
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("Multiple URL Test Results:")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         for url, status in results:
             hostname = url.split("//")[1].split("/")[0]
             print(f"{hostname}: {status}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         # All tested URLs should succeed
         failed = [url for url, status in results if "❌" in status]

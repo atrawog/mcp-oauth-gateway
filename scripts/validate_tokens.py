@@ -63,9 +63,7 @@ def check_token_expiry(payload: dict) -> bool:
         print(f"❌ TOKEN IS EXPIRED! (expired {now - exp} seconds ago)")
         return False
     remaining = exp - now
-    print(
-        f"✅ Token is valid (expires in {remaining} seconds / {remaining / 3600:.1f} hours)"
-    )
+    print(f"✅ Token is valid (expires in {remaining} seconds / {remaining / 3600:.1f} hours)")
     return True
 
 
@@ -79,9 +77,7 @@ async def test_auth_service(token: str) -> bool:
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(
-                auth_url, headers={"Authorization": f"Bearer {token}"}
-            )
+            response = await client.get(auth_url, headers={"Authorization": f"Bearer {token}"})
 
         if response.status_code == 200:
             print("✅ Auth service validates token successfully")
@@ -105,9 +101,7 @@ async def test_mcp_service(token: str) -> bool:
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(
-                mcp_url, headers={"Authorization": f"Bearer {token}"}
-            )
+            response = await client.get(mcp_url, headers={"Authorization": f"Bearer {token}"})
 
         if response.status_code in [200, 401]:  # 401 is expected for health endpoint
             print("✅ MCP service is reachable")
@@ -134,9 +128,7 @@ async def test_github_pat(pat: str) -> bool:
 
         if response.status_code == 200:
             user_data = response.json()
-            print(
-                f"✅ GitHub PAT is valid for user: {user_data.get('login', 'unknown')}"
-            )
+            print(f"✅ GitHub PAT is valid for user: {user_data.get('login', 'unknown')}")
             return True
         if response.status_code == 401:
             print("❌ GitHub PAT is invalid or expired!")
@@ -214,9 +206,7 @@ async def main():
     print("\n📋 Checking GATEWAY_OAUTH_REFRESH_TOKEN...")
     refresh_token = check_env_var("GATEWAY_OAUTH_REFRESH_TOKEN")
     if refresh_token:
-        print(
-            f"✅ Refresh token present: {'*' * (len(refresh_token) - 8)}{refresh_token[-8:]}"
-        )
+        print(f"✅ Refresh token present: {'*' * (len(refresh_token) - 8)}{refresh_token[-8:]}")
     else:
         print("⚠️  Refresh token not found")
 

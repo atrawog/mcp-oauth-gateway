@@ -90,9 +90,7 @@ class OAuthRestore:
             return []
 
         backups = []
-        for i, filepath in enumerate(
-            sorted(self.backup_dir.glob("oauth-backup-*.json"), reverse=True)
-        ):
+        for i, filepath in enumerate(sorted(self.backup_dir.glob("oauth-backup-*.json"), reverse=True)):
             stat = filepath.stat()
 
             # Load metadata
@@ -106,9 +104,7 @@ class OAuthRestore:
                         "filename": filepath.name,
                         "path": str(filepath),
                         "size_mb": stat.st_size / (1024 * 1024),
-                        "created": datetime.fromtimestamp(stat.st_mtime, tz=UTC).strftime(
-                            "%Y-%m-%d %H:%M:%S"
-                        ),
+                        "created": datetime.fromtimestamp(stat.st_mtime, tz=UTC).strftime("%Y-%m-%d %H:%M:%S"),
                         "timestamp": data.get("timestamp", "Unknown"),
                         "registrations": data["metadata"]["total_registrations"],
                         "tokens": data["metadata"]["total_tokens"],
@@ -139,9 +135,7 @@ class OAuthRestore:
             count = 0
 
             while True:
-                cursor, keys = await self.redis_client.scan(
-                    cursor, match=pattern, count=100
-                )
+                cursor, keys = await self.redis_client.scan(cursor, match=pattern, count=100)
                 count += len(keys)
                 if cursor == 0:
                     break
@@ -150,9 +144,7 @@ class OAuthRestore:
 
         return counts
 
-    async def restore_from_backup(
-        self, backup_path: str, dry_run: bool = False, clear_existing: bool = False
-    ):
+    async def restore_from_backup(self, backup_path: str, dry_run: bool = False, clear_existing: bool = False):
         """Restore OAuth data from backup file."""
         # Load backup
         print(f"\n📂 Loading backup from: {backup_path}")
@@ -227,9 +219,7 @@ class OAuthRestore:
 
                     value = data["value"]
                     ttl = data.get("ttl", -1)
-                    key_type = data.get(
-                        "type", "string"
-                    )  # Default to string for old backups
+                    key_type = data.get("type", "string")  # Default to string for old backups
 
                     if not dry_run:
                         # Restore based on data type
@@ -252,9 +242,7 @@ class OAuthRestore:
                             await self.redis_client.delete(full_key)
                             hash_data = json.loads(value)
                             if hash_data:
-                                await self.redis_client.hset(
-                                    full_key, mapping=hash_data
-                                )
+                                await self.redis_client.hset(full_key, mapping=hash_data)
 
                         # Set TTL if applicable
                         if ttl > 0:
@@ -307,9 +295,7 @@ class OAuthRestore:
         for pattern in patterns:
             cursor = 0
             while True:
-                cursor, keys = await self.redis_client.scan(
-                    cursor, match=pattern, count=100
-                )
+                cursor, keys = await self.redis_client.scan(cursor, match=pattern, count=100)
 
                 if keys:
                     deleted = await self.redis_client.delete(*keys)
@@ -333,17 +319,13 @@ async def main():
     parser = argparse.ArgumentParser(description="Restore OAuth data from backup")
     parser.add_argument("--list", action="store_true", help="List available backups")
     parser.add_argument("--file", type=str, help="Backup file to restore from")
-    parser.add_argument(
-        "--latest", action="store_true", help="Restore from latest backup"
-    )
+    parser.add_argument("--latest", action="store_true", help="Restore from latest backup")
     parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Show what would be restored without making changes",
     )
-    parser.add_argument(
-        "--clear", action="store_true", help="Clear existing data before restore"
-    )
+    parser.add_argument("--clear", action="store_true", help="Clear existing data before restore")
 
     args = parser.parse_args()
 
@@ -365,9 +347,7 @@ async def main():
 
             print("\n📋 Available Backups:")
             print("-" * 80)
-            print(
-                f"{'#':>3} {'Filename':<35} {'Created':<20} {'Regs':<6} {'Tokens':<8} {'Size':<8}"
-            )
+            print(f"{'#':>3} {'Filename':<35} {'Created':<20} {'Regs':<6} {'Tokens':<8} {'Size':<8}")
             print("-" * 80)
 
             for backup in backups:
@@ -396,9 +376,7 @@ async def main():
                 return
 
         # Perform restore
-        await restore.restore_from_backup(
-            str(backup_path), dry_run=args.dry_run, clear_existing=args.clear
-        )
+        await restore.restore_from_backup(str(backup_path), dry_run=args.dry_run, clear_existing=args.clear)
 
     finally:
         await restore.cleanup()

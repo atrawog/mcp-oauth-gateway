@@ -22,16 +22,12 @@ class TestAuthCORS:
             pytest.fail("BASE_DOMAIN environment variable not set")
 
         self.cors_origins = os.getenv("MCP_CORS_ORIGINS", "").split(",")
-        self.cors_origins = [
-            origin.strip() for origin in self.cors_origins if origin.strip()
-        ]
+        self.cors_origins = [origin.strip() for origin in self.cors_origins if origin.strip()]
 
     def test_cors_origins_configured(self):
         """Test that MCP_CORS_ORIGINS is configured."""
         assert os.getenv("MCP_CORS_ORIGINS"), "MCP_CORS_ORIGINS MUST be configured!"
-        assert len(self.cors_origins) > 0, (
-            "MCP_CORS_ORIGINS must contain at least one origin"
-        )
+        assert len(self.cors_origins) > 0, "MCP_CORS_ORIGINS must contain at least one origin"
 
     def test_auth_preflight_cors_headers(self):
         """Test that Auth endpoints respond correctly to CORS preflight requests."""
@@ -71,22 +67,18 @@ class TestAuthCORS:
 
                     # When wildcard is configured, FastAPI returns the specific origin, not "*"
                     if self.cors_origins == ["*"]:
-                        assert (
-                            response.headers["access-control-allow-origin"]
-                            == test_origin
-                        ), f"CORS origin mismatch for {endpoint}"
+                        assert response.headers["access-control-allow-origin"] == test_origin, (
+                            f"CORS origin mismatch for {endpoint}"
+                        )
                     else:
-                        assert (
-                            response.headers["access-control-allow-origin"]
-                            == test_origin
-                        ), f"CORS origin mismatch for {endpoint}"
+                        assert response.headers["access-control-allow-origin"] == test_origin, (
+                            f"CORS origin mismatch for {endpoint}"
+                        )
 
                     assert "access-control-allow-methods" in response.headers, (
                         f"Missing Access-Control-Allow-Methods header for {endpoint}"
                     )
-                    allowed_methods = response.headers[
-                        "access-control-allow-methods"
-                    ].upper()
+                    allowed_methods = response.headers["access-control-allow-methods"].upper()
                     assert "POST" in allowed_methods or "GET" in allowed_methods, (
                         f"Required methods not allowed in CORS for {endpoint}"
                     )
@@ -97,17 +89,14 @@ class TestAuthCORS:
                     assert "access-control-allow-credentials" in response.headers, (
                         f"Missing Access-Control-Allow-Credentials header for {endpoint}"  # TODO: Break long line
                     )
-                    assert (
-                        response.headers["access-control-allow-credentials"].lower()
-                        == "true"
-                    ), f"CORS credentials not allowed for {endpoint}"
+                    assert response.headers["access-control-allow-credentials"].lower() == "true", (
+                        f"CORS credentials not allowed for {endpoint}"
+                    )
 
     def test_auth_actual_request_cors_headers(self):
         """Test that actual Auth requests include proper CORS headers."""
         # Test metadata endpoint which doesn't require auth
-        metadata_url = (
-            f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
-        )
+        metadata_url = f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
 
         # If CORS is set to wildcard, use a test origin
         test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
@@ -115,14 +104,10 @@ class TestAuthCORS:
         with httpx.Client(verify=True, timeout=10.0) as client:
             response = client.get(metadata_url, headers={"Origin": test_origin})
 
-            assert response.status_code == HTTP_OK, (
-                f"Metadata request failed: {response.status_code}"
-            )
+            assert response.status_code == HTTP_OK, f"Metadata request failed: {response.status_code}"
 
             # Check CORS headers in response
-            assert "access-control-allow-origin" in response.headers, (
-                "Missing Access-Control-Allow-Origin in response"
-            )
+            assert "access-control-allow-origin" in response.headers, "Missing Access-Control-Allow-Origin in response"
 
             # When wildcard is configured, the response may be "*" instead of the specific origin
             allowed_origin = response.headers["access-control-allow-origin"]
@@ -137,20 +122,15 @@ class TestAuthCORS:
 
             # Check exposed headers
             if "access-control-expose-headers" in response.headers:
-                exposed_headers = response.headers[
-                    "access-control-expose-headers"
-                ].lower()
+                exposed_headers = response.headers["access-control-expose-headers"].lower()
                 # Auth service exposes these headers
-                assert any(
-                    h in exposed_headers
-                    for h in ["x-user-id", "x-user-name", "x-auth-token"]
-                ), "Auth headers not exposed in CORS"
+                assert any(h in exposed_headers for h in ["x-user-id", "x-user-name", "x-auth-token"]), (
+                    "Auth headers not exposed in CORS"
+                )
 
     def test_auth_health_endpoint_cors(self):
         """Test that OAuth discovery endpoint also has CORS headers."""
-        health_url = (
-            f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
-        )
+        health_url = f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
 
         # If CORS is set to wildcard, use a test origin
         test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
@@ -161,9 +141,7 @@ class TestAuthCORS:
             assert response.status_code == HTTP_OK, "OAuth discovery check failed"
 
             # OAuth discovery endpoint should also have CORS headers
-            assert "access-control-allow-origin" in response.headers, (
-                "OAuth discovery endpoint missing CORS headers"
-            )
+            assert "access-control-allow-origin" in response.headers, "OAuth discovery endpoint missing CORS headers"
 
             # When wildcard is configured, the response may be "*" instead of the specific origin
             allowed_origin = response.headers["access-control-allow-origin"]
@@ -174,17 +152,13 @@ class TestAuthCORS:
 
     def test_cors_headers_without_origin(self):
         """Test that requests without Origin header still work."""
-        metadata_url = (
-            f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
-        )
+        metadata_url = f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
 
         with httpx.Client(verify=True, timeout=10.0) as client:
             response = client.get(metadata_url)
 
             # Should still work without Origin header
-            assert response.status_code == HTTP_OK, (
-                f"Request failed without Origin header: {response.status_code}"
-            )
+            assert response.status_code == HTTP_OK, f"Request failed without Origin header: {response.status_code}"
 
     def test_cors_blocks_unauthorized_origins(self):
         """Test that CORS blocks requests from unauthorized origins."""
@@ -192,9 +166,7 @@ class TestAuthCORS:
         if "*" in self.cors_origins:
             pytest.skip("CORS wildcard (*) allows all origins")
 
-        metadata_url = (
-            f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
-        )
+        metadata_url = f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
 
         # Create an origin that is NOT in the configured list
         test_unauthorized_origin = "https://definitely-not-authorized-origin-12345.com"
@@ -217,6 +189,4 @@ class TestAuthCORS:
             # Should either not have CORS headers or have different origin
             if "access-control-allow-origin" in response.headers:
                 allowed_origin = response.headers["access-control-allow-origin"]
-                assert allowed_origin != test_unauthorized_origin, (
-                    "CORS allowed unauthorized origin!"
-                )
+                assert allowed_origin != test_unauthorized_origin, "CORS allowed unauthorized origin!"

@@ -31,9 +31,7 @@ class TestHealthCheckErrors:
     async def test_oauth_discovery_health_status(self, http_client, wait_for_services):
         """Test OAuth discovery endpoint as health indicator."""
         # OAuth discovery endpoint now serves as health check
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
 
         # Should be accessible when service is healthy
         assert response.status_code == HTTP_OK
@@ -47,13 +45,9 @@ class TestWellKnownMetadata:
     """Test .well-known endpoint - Line 172."""
 
     @pytest.mark.asyncio
-    async def test_oauth_authorization_server_metadata(
-        self, http_client, wait_for_services
-    ):
+    async def test_oauth_authorization_server_metadata(self, http_client, wait_for_services):
         """Test RFC 8414 server metadata endpoint."""
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
 
         assert response.status_code == HTTP_OK
         metadata = response.json()
@@ -79,9 +73,7 @@ class TestClientRegistrationErrors:
     async def test_registration_with_invalid_data(self, http_client, wait_for_services):
         """Test various registration error conditions."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
-            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
-        )
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
 
         # The auth service may be more permissive than expected
         # Let's test with actually invalid data that would cause errors
@@ -136,14 +128,10 @@ class TestAuthorizationErrors:
         except json.JSONDecodeError:
             # If response is not JSON, check if it's an HTML error page
             content = response.text
-            assert (
-                "invalid_client" in content or "Client authentication failed" in content
-            )
+            assert "invalid_client" in content or "Client authentication failed" in content
 
     @pytest.mark.asyncio
-    async def test_authorize_with_mismatched_redirect_uri(
-        self, http_client, wait_for_services, registered_client
-    ):
+    async def test_authorize_with_mismatched_redirect_uri(self, http_client, wait_for_services, registered_client):
         """Test authorization with non-matching redirect URI."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
@@ -167,9 +155,7 @@ class TestTokenEndpointErrors:
     """Test token endpoint error scenarios - Lines 447-506."""
 
     @pytest.mark.asyncio
-    async def test_token_endpoint_comprehensive_errors(
-        self, http_client, wait_for_services, registered_client
-    ):
+    async def test_token_endpoint_comprehensive_errors(self, http_client, wait_for_services, registered_client):
         """Test various token endpoint error conditions."""
         # Test with non-existent authorization code
         response = await http_client.post(
@@ -234,10 +220,7 @@ class TestVerifyEndpointErrors:
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
         # Check for any token format error message
-        assert (
-            "token" in error["error_description"].lower()
-            or "invalid" in error["error_description"].lower()
-        )
+        assert "token" in error["error_description"].lower() or "invalid" in error["error_description"].lower()
 
         # Test with JWT signed with wrong key
         wrong_token = jwt_encode(
@@ -253,10 +236,7 @@ class TestVerifyEndpointErrors:
 
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
-        assert (
-            "The access token is invalid or expired"
-            in error["error_description"]
-        )
+        assert "The access token is invalid or expired" in error["error_description"]
 
         # Test with expired token
         expired_token = jwt_encode(
@@ -283,9 +263,7 @@ class TestRevokeEndpointEdgeCases:
     """Test revoke endpoint scenarios - Lines 634-665."""
 
     @pytest.mark.asyncio
-    async def test_revoke_comprehensive_scenarios(
-        self, http_client, wait_for_services, registered_client
-    ):
+    async def test_revoke_comprehensive_scenarios(self, http_client, wait_for_services, registered_client):
         """Test various revocation scenarios."""
         # Test revoking non-existent token (should still return 200 per RFC)
         response = await http_client.post(
@@ -331,9 +309,7 @@ class TestIntrospectEdgeCases:
     """Test introspect endpoint edge cases - Lines 686, 698-711, 703-711."""
 
     @pytest.mark.asyncio
-    async def test_introspect_comprehensive_scenarios(
-        self, http_client, wait_for_services, registered_client
-    ):
+    async def test_introspect_comprehensive_scenarios(self, http_client, wait_for_services, registered_client):
         """Test various introspection scenarios."""
         # Test with malformed JWT
         response = await http_client.post(
@@ -434,9 +410,7 @@ class TestCallbackEdgeCases:
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
         # Test callback with missing parameters
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/callback", follow_redirects=False
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/callback", follow_redirects=False)
 
         # Should return 422 for missing required parameters
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
@@ -446,9 +420,7 @@ class TestComplexTokenScenarios:
     """Test complex token scenarios to cover remaining edge cases."""
 
     @pytest.mark.asyncio
-    async def test_token_with_redis_operations(
-        self, http_client, wait_for_services, registered_client
-    ):
+    async def test_token_with_redis_operations(self, http_client, wait_for_services, registered_client):
         """Test token operations that interact with Redis using a real valid token."""
         # Use the actual gateway token that we know is valid and in Redis
         test_token = GATEWAY_OAUTH_ACCESS_TOKEN
@@ -468,9 +440,7 @@ class TestComplexTokenScenarios:
             assert response.status_code == HTTP_OK
             # /verify endpoint returns empty response with headers, not JSON
             verify_username = response.headers.get("X-User-Name")
-            assert verify_username is not None, (
-                "Verify endpoint should return username in headers"
-            )
+            assert verify_username is not None, "Verify endpoint should return username in headers"
             # Check if username is allowed (handle '*' which means allow all)
             if "*" not in ALLOWED_GITHUB_USERS:
                 assert verify_username in ALLOWED_GITHUB_USERS, (

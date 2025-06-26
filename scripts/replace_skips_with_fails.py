@@ -30,9 +30,7 @@ def replace_skip_with_fail(file_path):
     ]
 
     for pattern, replacement in patterns:
-        content = re.sub(
-            pattern, replacement, content, flags=re.IGNORECASE | re.MULTILINE
-        )
+        content = re.sub(pattern, replacement, content, flags=re.IGNORECASE | re.MULTILINE)
 
     if content != original_content:
         with open(file_path, "w") as f:

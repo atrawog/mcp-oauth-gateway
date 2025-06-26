@@ -16,12 +16,12 @@ MCP_TESTING_URL = f"https://echo.{BASE_DOMAIN}/mcp"
 
 async def test_request(description: str, headers: dict, json_data: dict):
     """Test a request and show the response."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Testing: {description}")
     print(f"URL: {MCP_TESTING_URL}")
     print(f"Headers: {json.dumps(headers, indent=2)}")
     print(f"JSON: {json.dumps(json_data, indent=2)}")
-    print("="*60)
+    print("=" * 60)
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
@@ -66,7 +66,7 @@ async def main():
                 "clientInfo": {"name": "test-client", "version": "1.0.0"},
             },
             "id": 1,
-        }
+        },
     )
 
     # Test 2: With Accept header
@@ -87,7 +87,7 @@ async def main():
                 "clientInfo": {"name": "test-client", "version": "1.0.0"},
             },
             "id": 1,
-        }
+        },
     )
 
     # Test 3: Wrong protocol version (hardcoded)
@@ -108,7 +108,7 @@ async def main():
                 "clientInfo": {"name": "test-client", "version": "1.0.0"},
             },
             "id": 1,
-        }
+        },
     )
 
 

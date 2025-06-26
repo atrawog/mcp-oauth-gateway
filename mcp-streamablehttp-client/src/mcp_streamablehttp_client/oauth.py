@@ -72,13 +72,9 @@ class OAuthClient:
 
         # Calculate expiration time
         if "expires_at" in token:
-            self.settings.oauth_token_expires_at = datetime.fromtimestamp(
-                token["expires_at"], tz=UTC
-            )
+            self.settings.oauth_token_expires_at = datetime.fromtimestamp(token["expires_at"], tz=UTC)
         elif "expires_in" in token:
-            self.settings.oauth_token_expires_at = datetime.now(UTC) + timedelta(
-                seconds=token["expires_in"]
-            )
+            self.settings.oauth_token_expires_at = datetime.now(UTC) + timedelta(seconds=token["expires_in"])
 
         # Update settings to reflect new values
         self.settings.oauth_access_token = token["access_token"]
@@ -179,16 +175,12 @@ class OAuthClient:
 
             # Save RFC 7592 management credentials
             if "registration_access_token" in data:
-                self.settings.registration_access_token = data[
-                    "registration_access_token"
-                ]
+                self.settings.registration_access_token = data["registration_access_token"]
                 logger.info("Saved registration_access_token for client management")
 
             if "registration_client_uri" in data:
                 self.settings.registration_client_uri = data["registration_client_uri"]
-                logger.info(
-                    f"Saved registration_client_uri: {data['registration_client_uri']}"
-                )
+                logger.info(f"Saved registration_client_uri: {data['registration_client_uri']}")
 
             console.print(f"[green]✓[/green] Client registered: {data['client_id']}")
             logger.info(f"Registered OAuth client: {data['client_id']}")
@@ -273,9 +265,7 @@ class OAuthClient:
                             task,
                             description="[green]✓[/green] Authorization successful!",
                         )
-                        console.print(
-                            "\n[green]Authentication completed successfully![/green]"
-                        )
+                        console.print("\n[green]Authentication completed successfully![/green]")
                         return
 
                     error_data = response.json()
@@ -347,9 +337,7 @@ class OAuthClient:
         )
 
         if response.status_code != 200:
-            logger.error(
-                f"Token exchange failed: {response.status_code} - {response.text}"
-            )
+            logger.error(f"Token exchange failed: {response.status_code} - {response.text}")
             raise RuntimeError(f"Token exchange failed: {response.text}")
 
         token_data = response.json()
@@ -393,25 +381,17 @@ class OAuthClient:
             # Update settings with discovered endpoints
             self.settings.oauth_metadata_url = metadata_url
             self.settings.oauth_issuer = metadata.get("issuer")
-            self.settings.oauth_authorization_url = metadata.get(
-                "authorization_endpoint"
-            )
+            self.settings.oauth_authorization_url = metadata.get("authorization_endpoint")
             self.settings.oauth_token_url = metadata.get("token_endpoint")
-            self.settings.oauth_device_auth_url = metadata.get(
-                "device_authorization_endpoint"
-            )
+            self.settings.oauth_device_auth_url = metadata.get("device_authorization_endpoint")
             self.settings.oauth_registration_url = metadata.get("registration_endpoint")
 
             # Validate required endpoints
             if not self.settings.oauth_token_url:
                 raise ValueError("OAuth metadata missing required token_endpoint")
 
-            console.print(
-                f"[green]✓[/green] Discovered OAuth configuration from {metadata_url}"
-            )
-            logger.info(
-                f"OAuth endpoints discovered: issuer={self.settings.oauth_issuer}"
-            )
+            console.print(f"[green]✓[/green] Discovered OAuth configuration from {metadata_url}")
+            logger.info(f"OAuth endpoints discovered: issuer={self.settings.oauth_issuer}")
 
             # Endpoints are discovered and set in settings (not persisted)
 
@@ -465,27 +445,19 @@ class OAuthClient:
         Raises:
             RuntimeError: If operation fails or credentials missing
         """
-        if (
-            not self.settings.registration_access_token
-            or not self.settings.registration_client_uri
-        ):
+        if not self.settings.registration_access_token or not self.settings.registration_client_uri:
             raise RuntimeError(
-                "Missing registration management credentials. "
-                "Client must be registered with RFC 7592 support."
+                "Missing registration management credentials. Client must be registered with RFC 7592 support."
             )
 
         try:
             response = await self.http_client.get(
                 self.settings.registration_client_uri,
-                headers={
-                    "Authorization": f"Bearer {self.settings.registration_access_token}"
-                },
+                headers={"Authorization": f"Bearer {self.settings.registration_access_token}"},
             )
 
             if response.status_code == 404:
-                raise RuntimeError(
-                    "Client registration not found. Client may have expired."
-                )
+                raise RuntimeError("Client registration not found. Client may have expired.")
             if response.status_code == 401:
                 raise RuntimeError("Invalid registration access token")
             if response.status_code == 403:
@@ -498,9 +470,7 @@ class OAuthClient:
             logger.error(f"Failed to get client configuration: {e}")
             raise RuntimeError(f"Failed to get client configuration: {e}") from e
 
-    async def update_client_configuration(
-        self, updates: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def update_client_configuration(self, updates: dict[str, Any]) -> dict[str, Any]:
         """Update client configuration using RFC 7592 endpoint.
 
         Args:
@@ -512,13 +482,9 @@ class OAuthClient:
         Raises:
             RuntimeError: If operation fails or credentials missing
         """
-        if (
-            not self.settings.registration_access_token
-            or not self.settings.registration_client_uri
-        ):
+        if not self.settings.registration_access_token or not self.settings.registration_client_uri:
             raise RuntimeError(
-                "Missing registration management credentials. "
-                "Client must be registered with RFC 7592 support."
+                "Missing registration management credentials. Client must be registered with RFC 7592 support."
             )
 
         # Allowed update fields per RFC 7592
@@ -562,10 +528,7 @@ class OAuthClient:
 
             # Update local client_secret if returned
             data = response.json()
-            if (
-                "client_secret" in data
-                and data["client_secret"] != self.settings.oauth_client_secret
-            ):
+            if "client_secret" in data and data["client_secret"] != self.settings.oauth_client_secret:
                 self.settings.oauth_client_secret = data["client_secret"]
                 logger.info("Client secret was rotated by server")
 
@@ -584,21 +547,15 @@ class OAuthClient:
         Raises:
             RuntimeError: If operation fails or credentials missing
         """
-        if (
-            not self.settings.registration_access_token
-            or not self.settings.registration_client_uri
-        ):
+        if not self.settings.registration_access_token or not self.settings.registration_client_uri:
             raise RuntimeError(
-                "Missing registration management credentials. "
-                "Client must be registered with RFC 7592 support."
+                "Missing registration management credentials. Client must be registered with RFC 7592 support."
             )
 
         try:
             response = await self.http_client.delete(
                 self.settings.registration_client_uri,
-                headers={
-                    "Authorization": f"Bearer {self.settings.registration_access_token}"
-                },
+                headers={"Authorization": f"Bearer {self.settings.registration_access_token}"},
             )
 
             if response.status_code == 404:

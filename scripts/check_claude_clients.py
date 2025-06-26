@@ -14,9 +14,7 @@ load_dotenv()
 
 async def check():
     redis_password = os.getenv("REDIS_PASSWORD")
-    r = await redis.Redis(
-        host="localhost", port=6379, password=redis_password, decode_responses=True
-    )
+    r = await redis.Redis(host="localhost", port=6379, password=redis_password, decode_responses=True)
 
     # Check both client IDs
     old_id = "client_lZAJc-CiOsqwTZ2hAOls9A"

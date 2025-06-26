@@ -26,47 +26,34 @@ class TestAdditionalCoverage:
     """Test additional edge cases to improve coverage."""
 
     @pytest.mark.asyncio
-    async def test_missing_authorization_header_formats(
-        self,
-        http_client,
-        wait_for_services
-    ):
+    async def test_missing_authorization_header_formats(self, http_client, wait_for_services):
         """Test various missing/malformed authorization headers."""
         # Test with no Authorization header at all (already covered)
         response = await http_client.get(f"{AUTH_BASE_URL}/verify", timeout=30.0)
         assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test with empty Authorization header
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify", headers={"Authorization": ""}, timeout=30.0)
+        response = await http_client.get(f"{AUTH_BASE_URL}/verify", headers={"Authorization": ""}, timeout=30.0)
         assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test with Authorization but no Bearer
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": "InvalidScheme token123"},
-            timeout=30.0)
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": "InvalidScheme token123"}, timeout=30.0
+        )
         assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test with Bearer but no token
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer"}, timeout=30.0)
+        response = await http_client.get(f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer"}, timeout=30.0)
         assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test with Bearer and space but no token - Skip this as httpx doesn't allow it
         # httpx validates headers and won't send "Bearer " with trailing space
 
     @pytest.mark.asyncio
-    async def test_token_endpoint_missing_client_credentials(
-        self,
-        http_client,
-        wait_for_services
-    ):
+    async def test_token_endpoint_missing_client_credentials(self, http_client, wait_for_services):
         """Test token endpoint with missing client credentials."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
-            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
-        )
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
 
         client = None
         try:
@@ -80,7 +67,9 @@ class TestAdditionalCoverage:
             reg_response = await http_client.post(
                 f"{AUTH_BASE_URL}/register",
                 json=registration_data,
-                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
+                timeout=30.0,
+            )
 
             assert reg_response.status_code == HTTP_CREATED
             client = reg_response.json()
@@ -92,7 +81,9 @@ class TestAdditionalCoverage:
                     "grant_type": "authorization_code",
                     "code": "some_code",
                     "client_secret": client["client_secret"],
-                }, timeout=30.0)
+                },
+                timeout=30.0,
+            )
 
             # FastAPI returns 422 for missing required fields
             assert token_response.status_code == HTTP_UNPROCESSABLE_ENTITY
@@ -104,7 +95,9 @@ class TestAdditionalCoverage:
                     "grant_type": "authorization_code",
                     "code": "some_code",
                     "client_id": client["client_id"],
-                }, timeout=30.0)
+                },
+                timeout=30.0,
+            )
 
             # Returns 400 for missing client_secret
             assert token_response.status_code == HTTP_BAD_REQUEST
@@ -115,17 +108,15 @@ class TestAdditionalCoverage:
 
         finally:
             # Clean up the created client using RFC 7592 DELETE
-            if (
-                client
-                and "registration_access_token" in client
-                and "client_id" in client
-            ):
+            if client and "registration_access_token" in client and "client_id" in client:
                 try:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
                             "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
-                        }, timeout=30.0)
+                        },
+                        timeout=30.0,
+                    )
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
@@ -149,7 +140,9 @@ class TestAdditionalCoverage:
                 "token": "not_a_jwt_token",
                 "client_id": registered_client["client_id"],
                 "client_secret": registered_client["client_secret"],
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         assert response.status_code == HTTP_OK
         result = response.json()
@@ -162,7 +155,9 @@ class TestAdditionalCoverage:
                 "token": "eyJ.invalid.jwt",
                 "client_id": registered_client["client_id"],
                 "client_secret": registered_client["client_secret"],
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         assert response.status_code == HTTP_OK
         result = response.json()
@@ -172,9 +167,7 @@ class TestAdditionalCoverage:
     async def test_registration_with_minimal_data(self, http_client, wait_for_services):
         """Test client registration with only required fields."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
-            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
-        )
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
 
         client = None
         try:
@@ -187,7 +180,9 @@ class TestAdditionalCoverage:
             response = await http_client.post(
                 f"{AUTH_BASE_URL}/register",
                 json=registration_data,
-                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
+                timeout=30.0,
+            )
 
             assert response.status_code == HTTP_CREATED
             client = response.json()
@@ -207,17 +202,15 @@ class TestAdditionalCoverage:
 
         finally:
             # Clean up the created client using RFC 7592 DELETE
-            if (
-                client
-                and "registration_access_token" in client
-                and "client_id" in client
-            ):
+            if client and "registration_access_token" in client and "client_id" in client:
                 try:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
                             "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
-                        }, timeout=30.0)
+                        },
+                        timeout=30.0,
+                    )
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
@@ -251,8 +244,8 @@ class TestAdditionalCoverage:
 
         # Try to verify
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify",
-            headers={"Authorization": f"Bearer {invalid_token}"}, timeout=30.0)
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {invalid_token}"}, timeout=30.0
+        )
 
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
@@ -276,7 +269,9 @@ class TestAdditionalCoverage:
             params={
                 "client_id": registered_client["client_id"],
                 "redirect_uri": registered_client["redirect_uris"][0],
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         # FastAPI returns 422 for missing required query parameters
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
@@ -284,7 +279,9 @@ class TestAdditionalCoverage:
         # Missing client_id
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
-            params={"response_type": "code", "redirect_uri": TEST_OAUTH_CALLBACK_URL}, timeout=30.0)
+            params={"response_type": "code", "redirect_uri": TEST_OAUTH_CALLBACK_URL},
+            timeout=30.0,
+        )
 
         # FastAPI returns 422 for missing required query parameters
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY

@@ -15,9 +15,7 @@ import pytest
 
 
 # Add parent directory to path for imports
-sys.path.insert(
-    0, str(Path(__file__).parent.parent / "mcp-streamablehttp-client" / "src")
-)
+sys.path.insert(0, str(Path(__file__).parent.parent / "mcp-streamablehttp-client" / "src"))
 
 from mcp_streamablehttp_client.config import Settings
 from mcp_streamablehttp_client.oauth import OAuthClient
@@ -86,9 +84,7 @@ async def test_mcp_client_rfc7592_lifecycle():
 
         assert updated_config["client_name"] == "RFC7592 Updated Test Client"
         assert updated_config["scope"] == "read write admin"
-        assert updated_config["redirect_uris"] == [
-            "https://updated.example.com/callback"
-        ]
+        assert updated_config["redirect_uris"] == ["https://updated.example.com/callback"]
         assert updated_config["contacts"] == ["test@example.com", "admin@example.com"]
 
         print(f"   ✓ Updated client name: {updated_config['client_name']}")

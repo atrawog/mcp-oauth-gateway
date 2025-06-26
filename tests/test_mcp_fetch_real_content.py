@@ -14,9 +14,7 @@ class TestMCPFetchRealContent:
     """Test fetching real content through MCP with proper authentication."""
 
     @pytest.mark.asyncio
-    async def test_fetch_example_com_content(
-        self, http_client, wait_for_services, mcp_fetch_url
-    ):
+    async def test_fetch_example_com_content(self, http_client, wait_for_services, mcp_fetch_url):
         """Attempt to fetch https://example.com and check for 'Example Domain' text."""
         import os
 
@@ -51,9 +49,7 @@ class TestMCPFetchRealContent:
             print("⚠️  MCP service returned 404 - service configuration issue")
             print(f"Response: {response.text[:200]}")
             # For now, just verify auth is working
-            assert response.status_code != 401, (
-                "Should not get auth error with valid token"
-            )
+            assert response.status_code != 401, "Should not get auth error with valid token"
             return
 
         if response.status_code == HTTP_OK:
@@ -68,9 +64,7 @@ class TestMCPFetchRealContent:
             print(f"Response: {response.text[:200]}")
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_without_token(
-        self, http_client, wait_for_services, mcp_fetch_url
-    ):
+    async def test_mcp_fetch_without_token(self, http_client, wait_for_services, mcp_fetch_url):
         """Verify that mcp-fetch properly rejects unauthenticated requests."""
         mcp_request = {
             "jsonrpc": "2.0",

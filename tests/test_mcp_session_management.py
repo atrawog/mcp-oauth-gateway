@@ -27,9 +27,7 @@ class TestMCPSessionCreation:
     ):
         """Test that a session is created when client initializes."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
         # Send initialize request
         response = await http_client.post(
@@ -45,10 +43,12 @@ class TestMCPSessionCreation:
                 "id": 1,
             },
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         assert response.status_code == HTTP_OK
 
@@ -57,14 +57,10 @@ class TestMCPSessionCreation:
         # Session handling is internal to the proxy
 
     @pytest.mark.asyncio
-    async def test_multiple_sessions_isolated(
-        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
-    ):
+    async def test_multiple_sessions_isolated(self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url):
         """Test that multiple clients get isolated sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
         # Create two separate HTTP clients to simulate different MCP clients
         async with (
@@ -117,10 +113,7 @@ class TestMCPSessionCreation:
             data1 = response1.json()
             data2 = response2.json()
 
-            assert (
-                data1["result"]["serverInfo"]["name"]
-                == data2["result"]["serverInfo"]["name"]
-            )
+            assert data1["result"]["serverInfo"]["name"] == data2["result"]["serverInfo"]["name"]
             # Sessions are isolated even if server info is the same
 
 
@@ -133,9 +126,7 @@ class TestMCPSessionPersistence:
     ):
         """Test that session state persists between requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
         # Initialize session
         init_response = await http_client.post(
@@ -151,10 +142,12 @@ class TestMCPSessionPersistence:
                 "id": 1,
             },
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
         assert init_response.status_code == HTTP_OK
 
         # Send initialized notification
@@ -162,20 +155,24 @@ class TestMCPSessionPersistence:
             f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         # Now make another request - should use same session
         tools_response = await http_client.post(
             f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         assert tools_response.status_code == HTTP_OK
         # If session wasn't maintained, this would fail as uninitialized
@@ -186,9 +183,7 @@ class TestMCPSessionPersistence:
     ):
         """Test that operations fail without initialization."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
         # Try to list tools without initializing first
         # Use a fresh client to ensure no existing session
@@ -221,9 +216,7 @@ class TestMCPSessionTimeout:
     ):
         """Test that sessions respect timeout configuration."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
         # This test would need to wait for actual timeout
         # Since SESSION_TIMEOUT is typically 300 seconds (5 minutes),
@@ -243,10 +236,10 @@ class TestMCPSessionTimeout:
                 "id": 1,
             },
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                },
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
         )
         assert response.status_code == HTTP_OK
 
@@ -255,31 +248,31 @@ class TestMCPSessionTimeout:
             f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         # Session should still be active
         tools_response = await http_client.post(
             f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
         assert tools_response.status_code == HTTP_OK
 
     @pytest.mark.asyncio
-    async def test_session_activity_updates(
-        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
-    ):
+    async def test_session_activity_updates(self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url):
         """Test that session activity is updated on each request."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
         # Initialize session
         await http_client.post(
@@ -295,10 +288,12 @@ class TestMCPSessionTimeout:
                 "id": 1,
             },
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         # Make multiple requests with delays
         for i in range(3):
@@ -316,7 +311,9 @@ class TestMCPSessionTimeout:
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                     "Content-Type": "application/json",
                     "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                },
+                timeout=30.0,
+            )
             # Session should remain active
             assert response.status_code == HTTP_OK
 
@@ -330,9 +327,7 @@ class TestMCPSessionConcurrency:
     ):
         """Test that concurrent requests to same session are handled properly."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
         # Initialize session
         init_response = await http_client.post(
@@ -348,10 +343,12 @@ class TestMCPSessionConcurrency:
                 "id": 1,
             },
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
@@ -361,7 +358,9 @@ class TestMCPSessionConcurrency:
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Mcp-Session-Id": session_id,
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         # Send multiple concurrent requests
         async def make_request(request_id: int):
@@ -376,7 +375,9 @@ class TestMCPSessionConcurrency:
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                     "Mcp-Session-Id": session_id,
-                }, timeout=30.0)
+                },
+                timeout=30.0,
+            )
 
         # Launch concurrent requests
         tasks = [make_request(i + 10) for i in range(5)]
@@ -390,14 +391,10 @@ class TestMCPSessionConcurrency:
             assert "tools" in data["result"]
 
     @pytest.mark.asyncio
-    async def test_request_id_uniqueness(
-        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
-    ):
+    async def test_request_id_uniqueness(self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url):
         """Test that request IDs are properly tracked per session."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
         # Initialize session
         await http_client.post(
@@ -413,10 +410,12 @@ class TestMCPSessionConcurrency:
                 "id": "init-1",
             },
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         # Send requests with different ID types (string and number)
         response1 = await http_client.post(
@@ -428,19 +427,23 @@ class TestMCPSessionConcurrency:
                 "id": "string-id-1",
             },
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         response2 = await http_client.post(
             f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 12345},
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         # Both should succeed and echo back their IDs
         assert response1.status_code == HTTP_OK
@@ -459,9 +462,7 @@ class TestMCPSessionCleanup:
     ):
         """Test that sessions are cleaned up when client disconnects."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
         # Create a client that we'll close
         async with httpx.AsyncClient(timeout=TEST_HTTP_TIMEOUT) as temp_client:

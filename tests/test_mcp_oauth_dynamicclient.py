@@ -35,12 +35,9 @@ class TestMCPOAuthDynamicClientPackage:
     """Test the mcp-oauth-dynamicclient package functionality against real services."""
 
     @pytest.mark.asyncio
-    async def test_auth_service_is_running(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_auth_service_is_running(self, http_client: httpx.AsyncClient, wait_for_services):
         """Verify the auth service (using mcp-oauth-dynamicclient) is deployed and healthy."""
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
 
         assert response.status_code == HTTP_OK
         oauth_data = response.json()
@@ -53,12 +50,9 @@ class TestMCPOAuthDynamicClientPackage:
         print("✅ Auth service is running and healthy")
 
     @pytest.mark.asyncio
-    async def test_oauth_metadata_endpoint(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_oauth_metadata_endpoint(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test the OAuth 2.0 authorization server metadata endpoint (RFC 8414)."""
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
 
         assert response.status_code == HTTP_OK
         metadata = response.json()
@@ -81,14 +75,10 @@ class TestMCPOAuthDynamicClientPackage:
         print("✅ OAuth metadata endpoint working correctly")
 
     @pytest.mark.asyncio
-    async def test_dynamic_client_registration_rfc7591(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_dynamic_client_registration_rfc7591(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test RFC 7591 dynamic client registration functionality."""
         # MUST have OAuth access token for registration
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
-            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
-        )
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
 
         # Create unique client name for this test
         client_name = "TEST test_dynamic_client_registration_rfc7591"
@@ -106,10 +96,12 @@ class TestMCPOAuthDynamicClientPackage:
             f"{AUTH_BASE_URL}/register",
             json=registration_data,
             headers={
-                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         assert response.status_code == HTTP_CREATED  # Created
         client_data = response.json()
@@ -127,20 +119,14 @@ class TestMCPOAuthDynamicClientPackage:
             expected_expiry = created_at + client_lifetime
             assert abs(client_data["client_secret_expires_at"] - expected_expiry) <= 5
         assert client_data["client_name"] == client_name
-        assert set(client_data["redirect_uris"]) == set(
-            registration_data["redirect_uris"]
-        )
+        assert set(client_data["redirect_uris"]) == set(registration_data["redirect_uris"])
         assert client_data["scope"] == "openid profile email"
 
         # Verify the client is stored in Redis
-        redis_client = await redis.from_url(
-            REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
-        )
+        redis_client = await redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
 
         try:
-            stored_client = await redis_client.get(
-                f"oauth:client:{client_data['client_id']}"
-            )
+            stored_client = await redis_client.get(f"oauth:client:{client_data['client_id']}")
             assert stored_client is not None
 
             stored_data = json.loads(stored_client)
@@ -160,7 +146,9 @@ class TestMCPOAuthDynamicClientPackage:
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
-                    }, timeout=30.0)
+                    },
+                    timeout=30.0,
+                )
                 assert delete_response.status_code in (204, 404)
         except Exception as e:
             print(f"Warning: Error during client cleanup: {e}")
@@ -168,9 +156,7 @@ class TestMCPOAuthDynamicClientPackage:
         return client_data  # Return for use in other tests
 
     @pytest.mark.asyncio
-    async def test_client_registration_validation(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_client_registration_validation(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test client registration validation rules."""
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available"
 
@@ -179,10 +165,12 @@ class TestMCPOAuthDynamicClientPackage:
             f"{AUTH_BASE_URL}/register",
             json={"client_name": "TEST test_client_registration_validation"},
             headers={
-                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         assert response.status_code == HTTP_BAD_REQUEST  # RFC 7591 compliant
         error = response.json()
@@ -196,10 +184,12 @@ class TestMCPOAuthDynamicClientPackage:
                 "client_name": "TEST test_client_registration_validation_invalid_uri",
             },
             headers={
-                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         # Service might be more permissive and accept any string
         if response.status_code == HTTP_CREATED:
@@ -217,10 +207,12 @@ class TestMCPOAuthDynamicClientPackage:
                 "client_name": "TEST test_client_registration_validation_empty_uris",
             },
             headers={
-                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         # Service may return 400 or 422 for validation errors
         assert response.status_code in [400, 422]
@@ -243,10 +235,12 @@ class TestMCPOAuthDynamicClientPackage:
                 "scope": TEST_CLIENT_SCOPE,
             },
             headers={
-                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -261,7 +255,8 @@ class TestMCPOAuthDynamicClientPackage:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0)
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0
+        )
 
         # Should redirect to GitHub for authentication
         assert response.status_code == 307
@@ -276,18 +271,18 @@ class TestMCPOAuthDynamicClientPackage:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                    "Authorization": f"Bearer {client['registration_access_token']}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                        "Authorization": f"Bearer {client['registration_access_token']}",
+                        "Content-Type": "application/json",
+                        "Accept": "application/json, text/event-stream",
+                    },
+                    timeout=30.0,
+                )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_token_endpoint_error_handling(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_token_endpoint_error_handling(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test token endpoint error handling per OAuth 2.0 spec."""
         # Test with invalid client credentials
         response = await http_client.post(
@@ -298,7 +293,9 @@ class TestMCPOAuthDynamicClientPackage:
                 "client_id": "invalid_client",
                 "client_secret": "invalid_secret",
                 "redirect_uri": TEST_OAUTH_CALLBACK_URL,
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
@@ -311,9 +308,7 @@ class TestMCPOAuthDynamicClientPackage:
         print("✅ Token endpoint error handling working correctly")
 
     @pytest.mark.asyncio
-    async def test_redis_integration(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_redis_integration(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test that mcp-oauth-dynamicclient correctly integrates with Redis."""
         # Register a client
         client_name = "TEST test_redis_integration"
@@ -322,18 +317,18 @@ class TestMCPOAuthDynamicClientPackage:
             f"{AUTH_BASE_URL}/register",
             json={"redirect_uris": [TEST_OAUTH_CALLBACK_URL], "client_name": client_name},
             headers={
-                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
 
         # Connect to Redis directly
-        redis_client = await redis.from_url(
-            REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
-        )
+        redis_client = await redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
 
         try:
             # Check client is stored
@@ -352,9 +347,7 @@ class TestMCPOAuthDynamicClientPackage:
                 assert ttl == -1  # No expiration for eternal clients
             else:
                 # Should have TTL around CLIENT_LIFETIME (allow for test execution time)
-                assert 7770000 <= ttl <= 7776000, (
-                    f"Expected TTL around {client_lifetime}, got {ttl}"
-                )
+                assert 7770000 <= ttl <= 7776000, f"Expected TTL around {client_lifetime}, got {ttl}"
 
             print("✅ Redis integration working correctly")
 
@@ -367,18 +360,18 @@ class TestMCPOAuthDynamicClientPackage:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                    "Authorization": f"Bearer {client['registration_access_token']}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                        "Authorization": f"Bearer {client['registration_access_token']}",
+                        "Content-Type": "application/json",
+                        "Accept": "application/json, text/event-stream",
+                    },
+                    timeout=30.0,
+                )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_pkce_support(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_pkce_support(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test PKCE (RFC 7636) support in the auth service."""
         # Register a client
         registration_response = await http_client.post(
@@ -388,10 +381,12 @@ class TestMCPOAuthDynamicClientPackage:
                 "client_name": "TEST test_pkce_support",
             },
             headers={
-                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -411,15 +406,14 @@ class TestMCPOAuthDynamicClientPackage:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0)
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0
+        )
 
         # Should redirect to GitHub
         assert response.status_code == 307
 
         # The PKCE parameters should be stored in Redis with the state
-        redis_client = await redis.from_url(
-            REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
-        )
+        redis_client = await redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
 
         try:
             state_key = f"oauth:state:{auth_params['state']}"
@@ -441,18 +435,18 @@ class TestMCPOAuthDynamicClientPackage:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                    "Authorization": f"Bearer {client['registration_access_token']}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                        "Authorization": f"Bearer {client['registration_access_token']}",
+                        "Content-Type": "application/json",
+                        "Accept": "application/json, text/event-stream",
+                    },
+                    timeout=30.0,
+                )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_concurrent_client_registrations(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_concurrent_client_registrations(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test that multiple clients can register concurrently."""
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available"
 
@@ -471,7 +465,9 @@ class TestMCPOAuthDynamicClientPackage:
                     "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
                     "Content-Type": "application/json",
                     "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                },
+                timeout=30.0,
+            )
             assert response.status_code == HTTP_CREATED
             return response.json()
 
@@ -484,9 +480,7 @@ class TestMCPOAuthDynamicClientPackage:
         assert len(client_ids) == len(set(client_ids))  # All unique
 
         # Verify all are stored in Redis
-        redis_client = await redis.from_url(
-            REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
-        )
+        redis_client = await redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
 
         try:
             for client in clients:
@@ -507,15 +501,15 @@ class TestMCPOAuthDynamicClientPackage:
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
                             "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
-                        }, timeout=30.0)
+                        },
+                        timeout=30.0,
+                    )
                     assert delete_response.status_code in (204, 404)
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_invalid_grant_types(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_invalid_grant_types(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test handling of unsupported grant types."""
         # First register a client
         registration_response = await http_client.post(
@@ -525,10 +519,12 @@ class TestMCPOAuthDynamicClientPackage:
                 "client_name": "TEST test_invalid_grant_types",
             },
             headers={
-                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -543,7 +539,9 @@ class TestMCPOAuthDynamicClientPackage:
                     "grant_type": grant_type,
                     "client_id": client["client_id"],
                     "client_secret": client["client_secret"],
-                }, timeout=30.0)
+                },
+                timeout=30.0,
+            )
 
             assert response.status_code == HTTP_BAD_REQUEST
             error = response.json()
@@ -557,10 +555,12 @@ class TestMCPOAuthDynamicClientPackage:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                    "Authorization": f"Bearer {client['registration_access_token']}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                        "Authorization": f"Bearer {client['registration_access_token']}",
+                        "Content-Type": "application/json",
+                        "Accept": "application/json, text/event-stream",
+                    },
+                    timeout=30.0,
+                )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -570,9 +570,7 @@ class TestMCPOAuthDynamicClientIntegration:
     """Integration tests for mcp-oauth-dynamicclient with the full system."""
 
     @pytest.mark.asyncio
-    async def test_full_oauth_flow_with_mcp_client(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_full_oauth_flow_with_mcp_client(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test complete OAuth flow using MCP client tokens."""
         # Use MCP_CLIENT_ACCESS_TOKEN for registration
         assert MCP_CLIENT_ACCESS_TOKEN, "MCP_CLIENT_ACCESS_TOKEN not available"
@@ -588,10 +586,12 @@ class TestMCPOAuthDynamicClientIntegration:
                 "scope": "read write",
             },
             headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -605,18 +605,18 @@ class TestMCPOAuthDynamicClientIntegration:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                    "Authorization": f"Bearer {client['registration_access_token']}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                        "Authorization": f"Bearer {client['registration_access_token']}",
+                        "Content-Type": "application/json",
+                        "Accept": "application/json, text/event-stream",
+                    },
+                    timeout=30.0,
+                )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_auth_service_handles_invalid_tokens(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_auth_service_handles_invalid_tokens(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test auth service properly rejects invalid tokens."""
         # The /register endpoint may be public (no auth required) per RFC 7591
         # Try registration with invalid token
@@ -626,7 +626,9 @@ class TestMCPOAuthDynamicClientIntegration:
                 "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": "TEST test_auth_service_handles_invalid_tokens",
             },
-            headers={"Authorization": "Bearer invalid_token_12345"}, timeout=30.0)
+            headers={"Authorization": "Bearer invalid_token_12345"},
+            timeout=30.0,
+        )
 
         client_data = None
         if response.status_code == HTTP_CREATED:
@@ -634,8 +636,8 @@ class TestMCPOAuthDynamicClientIntegration:
             client_data = response.json()  # Save for cleanup
             # Try a protected endpoint instead
             response = await http_client.get(
-                f"{AUTH_BASE_URL}/verify",
-                headers={"Authorization": "Bearer invalid_token_12345"}, timeout=30.0)
+                f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer invalid_token_12345"}, timeout=30.0
+            )
             assert response.status_code == HTTP_UNAUTHORIZED
             print("✅ Auth service properly validates tokens on protected endpoints")
         else:
@@ -645,17 +647,15 @@ class TestMCPOAuthDynamicClientIntegration:
             print("✅ Auth service properly validates tokens")
 
         # Cleanup: Delete the client registration using RFC 7592 if it was created
-        if (
-            client_data
-            and "registration_access_token" in client_data
-            and "client_id" in client_data
-        ):
+        if client_data and "registration_access_token" in client_data and "client_id" in client_data:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
-                    }, timeout=30.0)
+                    },
+                    timeout=30.0,
+                )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(

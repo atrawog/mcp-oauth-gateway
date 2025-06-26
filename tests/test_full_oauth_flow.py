@@ -29,12 +29,8 @@ class TestFullOAuthFlow:
         """Test accessing MCP endpoint with valid OAuth token."""
         # First, verify we have the required credentials
         assert GATEWAY_OAUTH_CLIENT_ID, "GATEWAY_OAUTH_CLIENT_ID not found in .env"
-        assert GATEWAY_OAUTH_CLIENT_SECRET, (
-            "GATEWAY_OAUTH_CLIENT_SECRET not found in .env"
-        )
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
-            "GATEWAY_OAUTH_ACCESS_TOKEN not found in .env"
-        )
+        assert GATEWAY_OAUTH_CLIENT_SECRET, "GATEWAY_OAUTH_CLIENT_SECRET not found in .env"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not found in .env"
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Step 1: Try to access MCP endpoint without auth
@@ -56,9 +52,7 @@ class TestFullOAuthFlow:
             assert "WWW-Authenticate" in response.headers
 
             # Step 2: Check OAuth metadata endpoint
-            metadata_response = await client.get(
-                f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-            )
+            metadata_response = await client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
 
             assert metadata_response.status_code == HTTP_OK
             metadata = metadata_response.json()
@@ -78,17 +72,9 @@ class TestFullOAuthFlow:
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Test that client exists by attempting to start auth flow
             # Generate PKCE challenge
-            code_verifier = (
-                base64.urlsafe_b64encode(secrets.token_bytes(32))
-                .decode("utf-8")
-                .rstrip("=")
-            )
+            code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("utf-8").rstrip("=")
             code_challenge = (
-                base64.urlsafe_b64encode(
-                    hashlib.sha256(code_verifier.encode()).digest()
-                )
-                .decode("utf-8")
-                .rstrip("=")
+                base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest()).decode("utf-8").rstrip("=")
             )
 
             response = await client.get(

@@ -80,25 +80,15 @@ class PydanticDeprecationHunter(ast.NodeVisitor):
                     )
 
             # Check if model_config is present when Config class is absent
-            has_config_class = any(
-                isinstance(item, ast.ClassDef) and item.name == "Config"
-                for item in node.body
-            )
+            has_config_class = any(isinstance(item, ast.ClassDef) and item.name == "Config" for item in node.body)
 
             has_model_config = any(
                 isinstance(item, ast.Assign)
-                and any(
-                    isinstance(target, ast.Name) and target.id == "model_config"
-                    for target in item.targets
-                )
+                and any(isinstance(target, ast.Name) and target.id == "model_config" for target in item.targets)
                 for item in node.body
             )
 
-            if (
-                not has_config_class
-                and not has_model_config
-                and self.has_pydantic_import
-            ):
+            if not has_config_class and not has_model_config and self.has_pydantic_import:
                 # This might be okay, but let's check if ConfigDict is imported
                 if not self.has_config_dict_import:
                     self.violations.append(
@@ -208,9 +198,7 @@ def hunt_deprecation_warnings() -> list[str]:
             try:
                 __import__(module_name)
             except DeprecationWarning as e:
-                warning_messages.append(
-                    f"🔥 RUNTIME DEPRECATION in {module_name}: {e} ⚡"
-                )
+                warning_messages.append(f"🔥 RUNTIME DEPRECATION in {module_name}: {e} ⚡")
             except ImportError:
                 # Module doesn't exist, skip
                 pass
@@ -259,10 +247,7 @@ def main() -> int:
         ]
 
         # Skip third-party directories
-        if any(
-            skip_path in root
-            for skip_path in [".pixi", "site-packages", ".venv", "venv"]
-        ):
+        if any(skip_path in root for skip_path in [".pixi", "site-packages", ".venv", "venv"]):
             continue
 
         for file in files:
@@ -315,13 +300,9 @@ def main() -> int:
         print("🔥 Fix these errors immediately to prevent production issues! ⚡")
         return 1
     if warning_count > 0:
-        print(
-            "⚠️  HUNT PASSED with warnings: Consider fixing warnings for future-proofing!"
-        )
+        print("⚠️  HUNT PASSED with warnings: Consider fixing warnings for future-proofing!")
         return 0
-    print(
-        "✅ HUNT PASSED: No deprecated patterns found! Divine compliance achieved! ⚡"
-    )
+    print("✅ HUNT PASSED: No deprecated patterns found! Divine compliance achieved! ⚡")
     return 0
 
 

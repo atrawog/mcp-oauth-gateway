@@ -21,9 +21,7 @@ SERVICE_PROTOCOL_VERSIONS = {
 
 def update_docker_compose(service_name, protocol_version):
     """Update docker-compose.yml to use specific protocol version."""
-    compose_file = Path(
-        f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml"
-    )
+    compose_file = Path(f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml")
 
     if not compose_file.exists():
         print(f"❌ {compose_file} not found")
@@ -40,9 +38,7 @@ def update_docker_compose(service_name, protocol_version):
 
     # Also update the healthcheck to use the specific version
     # First in the request
-    pattern = (
-        r'(\\"protocolVersion\\":\\\\")(\${MCP_PROTOCOL_VERSION:-2025-06-18})(\\\\\")'
-    )
+    pattern = r'(\\"protocolVersion\\":\\\\")(\${MCP_PROTOCOL_VERSION:-2025-06-18})(\\\\\")'
     replacement = f"\\1{protocol_version}\\3"
     content = re.sub(pattern, replacement, content)
 

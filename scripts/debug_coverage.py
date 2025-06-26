@@ -15,6 +15,7 @@ print(f"COVERAGE_FILE: {os.environ.get('COVERAGE_FILE', 'Not set')}")
 # Check if sitecustomize can be imported
 try:
     import sitecustomize
+
     print("✓ sitecustomize module found and imported")
     print(f"  Module path: {sitecustomize.__file__ if hasattr(sitecustomize, '__file__') else 'No __file__ attribute'}")
 except ImportError as e:

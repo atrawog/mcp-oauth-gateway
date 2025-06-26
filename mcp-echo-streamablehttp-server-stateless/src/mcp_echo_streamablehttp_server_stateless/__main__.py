@@ -30,16 +30,13 @@ def main():
         help="Host to bind to (default: 127.0.0.1)",
     )
     parser.add_argument(
-        "--port",
-        type=int,
-        default=int(os.getenv("MCP_ECHO_PORT", "3000")),
-        help="Port to bind to (default: 3000)"
+        "--port", type=int, default=int(os.getenv("MCP_ECHO_PORT", "3000")), help="Port to bind to (default: 3000)"
     )
     parser.add_argument(
         "--debug",
         action="store_true",
         default=os.getenv("MCP_ECHO_DEBUG", "").lower() in ("true", "1", "yes"),
-        help="Enable debug logging for message tracing"
+        help="Enable debug logging for message tracing",
     )
 
     args = parser.parse_args()
@@ -51,7 +48,7 @@ def main():
     # Configure logging
     logging.basicConfig(
         level=logging.DEBUG if args.debug else logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     if args.debug:

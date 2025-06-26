@@ -12,9 +12,7 @@ from pydantic_settings import SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings with .env file support."""
 
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore")
 
     # MCP Server Configuration
     mcp_server_url: str = Field(..., description="URL of the MCP server to connect to")
@@ -39,30 +37,18 @@ class Settings(BaseSettings):
         description="OAuth refresh token for token renewal",
         alias="MCP_CLIENT_REFRESH_TOKEN",
     )
-    oauth_token_expires_at: datetime | None = Field(
-        None, description="Token expiration timestamp"
-    )
+    oauth_token_expires_at: datetime | None = Field(None, description="Token expiration timestamp")
 
     # OAuth Server URLs (discovered automatically)
     # OAuth endpoints - discovered automatically, not stored
-    oauth_issuer: str | None = Field(
-        None, description="OAuth issuer URL (discovered from server)"
-    )
-    oauth_authorization_url: str | None = Field(
-        None, description="OAuth authorization endpoint (discovered)"
-    )
-    oauth_token_url: str | None = Field(
-        None, description="OAuth token endpoint (discovered)"
-    )
-    oauth_device_auth_url: str | None = Field(
-        None, description="OAuth device authorization endpoint (discovered)"
-    )
+    oauth_issuer: str | None = Field(None, description="OAuth issuer URL (discovered from server)")
+    oauth_authorization_url: str | None = Field(None, description="OAuth authorization endpoint (discovered)")
+    oauth_token_url: str | None = Field(None, description="OAuth token endpoint (discovered)")
+    oauth_device_auth_url: str | None = Field(None, description="OAuth device authorization endpoint (discovered)")
     oauth_registration_url: str | None = Field(
         None, description="OAuth dynamic client registration endpoint (discovered)"
     )
-    oauth_metadata_url: str | None = Field(
-        None, description="OAuth server metadata discovery URL (discovered)"
-    )
+    oauth_metadata_url: str | None = Field(None, description="OAuth server metadata discovery URL (discovered)")
 
     # RFC 7592 Management Fields
     registration_access_token: str | None = Field(
@@ -77,18 +63,12 @@ class Settings(BaseSettings):
     )
 
     # Client Configuration
-    client_name: str = Field(
-        "mcp-http-stdio", description="Client name for OAuth registration"
-    )
+    client_name: str = Field("mcp-http-stdio", description="Client name for OAuth registration")
     client_version: str = Field("0.1.0", description="Client version")
 
     # Session Configuration
-    session_timeout: int = Field(
-        300, description="Session timeout in seconds", ge=60, le=3600
-    )
-    request_timeout: int = Field(
-        30, description="Request timeout in seconds", ge=5, le=300
-    )
+    session_timeout: int = Field(300, description="Session timeout in seconds", ge=60, le=3600)
+    request_timeout: int = Field(30, description="Request timeout in seconds", ge=5, le=300)
 
     # Logging
     log_level: str = Field(

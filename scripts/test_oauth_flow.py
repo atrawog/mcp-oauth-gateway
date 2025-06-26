@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Test OAuth flow with proper redirect URIs."""
+
 import asyncio
 import os
 
@@ -39,6 +40,7 @@ async def test_oauth_registration():
             print(f"   Redirect URIs: {client_data['redirect_uris']}")
         else:
             print(f"❌ Registration failed: {response.text}")
+
 
 if __name__ == "__main__":
     asyncio.run(test_oauth_registration())

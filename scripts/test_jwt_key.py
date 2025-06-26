@@ -18,9 +18,7 @@ try:
         print(f"Decoded length: {len(decoded)}")
         # Check if it starts with PEM header
         print(f"First 50 chars: {decoded[:50]}")
-        key = serialization.load_pem_private_key(
-            decoded, password=None, backend=default_backend()
-        )
+        key = serialization.load_pem_private_key(decoded, password=None, backend=default_backend())
         print("Key loaded successfully")
         print(f"Key type: {type(key)}")
 except Exception as e:

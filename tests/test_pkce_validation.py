@@ -18,9 +18,7 @@ class TestPKCEValidation:
     """Test PKCE S256 enforcement per CLAUDE.md requirements."""
 
     @pytest.mark.asyncio
-    async def test_pkce_plain_method_rejected(
-        self, http_client, wait_for_services, registered_client
-    ):
+    async def test_pkce_plain_method_rejected(self, http_client, wait_for_services, registered_client):
         """Verify that plain code_challenge_method is rejected as per CLAUDE.md."""
         # Generate a simple verifier and use it as plain challenge
         code_verifier = secrets.token_urlsafe(43)
@@ -38,15 +36,11 @@ class TestPKCEValidation:
         }
 
         # Start authorization flow with plain method
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False)
 
         # The authorize endpoint currently accepts it (redirects to GitHub)
         # But let's check the metadata to see what's advertised
-        metadata_response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-        )
+        metadata_response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         metadata = metadata_response.json()
 
         # After fix: Only S256 is supported per CLAUDE.md
@@ -58,20 +52,12 @@ class TestPKCEValidation:
         assert response.status_code == HTTP_BAD_REQUEST
 
     @pytest.mark.asyncio
-    async def test_pkce_s256_verification_fixed(
-        self, http_client, wait_for_services, registered_client
-    ):
+    async def test_pkce_s256_verification_fixed(self, http_client, wait_for_services, registered_client):
         """Test that S256 verification now works correctly (fixed from always returning True)."""
         # Generate proper PKCE values
-        code_verifier = (
-            base64.urlsafe_b64encode(secrets.token_bytes(32))
-            .decode("utf-8")
-            .rstrip("=")
-        )
+        code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("utf-8").rstrip("=")
         code_challenge = (
-            base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest())
-            .decode("utf-8")
-            .rstrip("=")
+            base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest()).decode("utf-8").rstrip("=")
         )
 
         # Start auth flow with PKCE
@@ -86,9 +72,7 @@ class TestPKCEValidation:
         }
 
         # This will redirect to GitHub
-        auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        )
+        auth_response = await http_client.get(f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False)
 
         # Check that it redirects to GitHub (authorization accepted)
         assert auth_response.status_code in [302, 307]
@@ -118,9 +102,7 @@ class TestPKCEValidation:
         # 2. Plain method is NOW rejected per CLAUDE.md requirements
 
     @pytest.mark.asyncio
-    async def test_pkce_verifier_wrong_value(
-        self, http_client, wait_for_services, registered_client
-    ):
+    async def test_pkce_verifier_wrong_value(self, http_client, wait_for_services, registered_client):
         """Test that wrong PKCE verifier is accepted due to broken verification."""
         # This test would require going through the full OAuth flow
         # Since we can't easily simulate the GitHub callback in tests,

@@ -21,9 +21,7 @@ SERVICE_RESPONSE_VERSIONS = {
 
 def fix_healthcheck(service_name, response_version):
     """Fix healthcheck to expect the correct response version."""
-    compose_file = Path(
-        f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml"
-    )
+    compose_file = Path(f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml")
 
     if not compose_file.exists():
         print(f"❌ {compose_file} not found")
@@ -54,9 +52,7 @@ def fix_healthcheck(service_name, response_version):
 
     print(f"✅ Fixed {service_name}:")
     print("   - Requests with ${MCP_PROTOCOL_VERSION} (client's choice)")
-    print(
-        f"   - Expects '{response_version}' in response (what server actually supports)"
-    )
+    print(f"   - Expects '{response_version}' in response (what server actually supports)")
     return True
 
 

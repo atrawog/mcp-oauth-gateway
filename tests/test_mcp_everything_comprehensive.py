@@ -21,9 +21,7 @@ def base_domain():
 def everything_url():
     """Full URL for everything service."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
-        pytest.skip(
-            "MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable."
-        )
+        pytest.skip("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
     if not MCP_EVERYTHING_URLS:
         pytest.skip("MCP_EVERYTHING_URLS environment variable not set")
     return MCP_EVERYTHING_URLS[0]
@@ -45,9 +43,7 @@ async def wait_for_services():
 class TestMCPEverythingComprehensive:
     """Comprehensive test of mcp-everything features."""
 
-    def run_client_command(
-        self, url: str, token: str, command: str
-    ) -> tuple[int, str, str]:
+    def run_client_command(self, url: str, token: str, command: str) -> tuple[int, str, str]:
         """Run mcp-streamablehttp-client with a command and return result."""
         # Set environment variables
         env = os.environ.copy()
@@ -66,17 +62,13 @@ class TestMCPEverythingComprehensive:
         ]
 
         # Run the command
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, timeout=30, env=env
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=30, env=env)
 
         return result.returncode, result.stdout, result.stderr
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled"
-    )
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_echo_tool(self, everything_url, client_token, wait_for_services):
         """Test the echo tool with a message."""
         returncode, stdout, stderr = self.run_client_command(
@@ -94,9 +86,7 @@ class TestMCPEverythingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled"
-    )
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_add_tool(self, everything_url, client_token, wait_for_services):
         """Test the add tool with two numbers."""
         # Test with JSON format
@@ -113,12 +103,8 @@ class TestMCPEverythingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled"
-    )
-    async def test_add_tool_key_value(
-        self, everything_url, client_token, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
+    async def test_add_tool_key_value(self, everything_url, client_token, wait_for_services):
         """Test the add tool with key=value format."""
         returncode, stdout, stderr = self.run_client_command(
             url=everything_url, token=client_token, command="add a=10 b=15"
@@ -133,14 +119,10 @@ class TestMCPEverythingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled"
-    )
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_printenv_tool(self, everything_url, client_token, wait_for_services):
         """Test the printEnv tool."""
-        returncode, stdout, stderr = self.run_client_command(
-            url=everything_url, token=client_token, command="printEnv"
-        )
+        returncode, stdout, stderr = self.run_client_command(url=everything_url, token=client_token, command="printEnv")
 
         print(f"Return code: {returncode}")
         print(f"Stdout (first 500 chars): {stdout[:500]}...")
@@ -152,12 +134,8 @@ class TestMCPEverythingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled"
-    )
-    async def test_annotated_message_tool(
-        self, everything_url, client_token, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
+    async def test_annotated_message_tool(self, everything_url, client_token, wait_for_services):
         """Test the annotatedMessage tool with different message types."""
         # Test error message
         returncode, stdout, stderr = self.run_client_command(
@@ -189,12 +167,8 @@ class TestMCPEverythingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled"
-    )
-    async def test_get_resource_reference(
-        self, everything_url, client_token, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
+    async def test_get_resource_reference(self, everything_url, client_token, wait_for_services):
         """Test the getResourceReference tool."""
         returncode, stdout, stderr = self.run_client_command(
             url=everything_url,
@@ -212,17 +186,11 @@ class TestMCPEverythingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled"
-    )
-    async def test_invalid_tool_parameters(
-        self, everything_url, client_token, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
+    async def test_invalid_tool_parameters(self, everything_url, client_token, wait_for_services):
         """Test error handling for invalid tool parameters."""
         # Try echo without required message
-        returncode, stdout, stderr = self.run_client_command(
-            url=everything_url, token=client_token, command="echo"
-        )
+        returncode, stdout, stderr = self.run_client_command(url=everything_url, token=client_token, command="echo")
 
         print(f"Return code: {returncode}")
         print(f"Stdout: {stdout}")
@@ -234,12 +202,8 @@ class TestMCPEverythingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(
-        not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled"
-    )
-    async def test_multiple_tools_sequence(
-        self, everything_url, client_token, wait_for_services
-    ):
+    @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
+    async def test_multiple_tools_sequence(self, everything_url, client_token, wait_for_services):
         """Test running multiple tools in sequence."""
         print("\n=== Testing Multiple Tools in Sequence ===")
 

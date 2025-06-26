@@ -26,9 +26,7 @@ class DeprecationHunter:
         # Install our custom warning handler
         warnings.showwarning = self.capture_warning
 
-    def capture_warning(
-        self, message, category, filename, lineno, file=None, line=None
-    ):
+    def capture_warning(self, message, category, filename, lineno, file=None, line=None):
         """Capture deprecation warnings for analysis."""
         if issubclass(category, DeprecationWarning | PendingDeprecationWarning):
             # Check if this is a Pydantic deprecation
@@ -56,9 +54,7 @@ class DeprecationHunter:
 
             # Still show the warning using original handler
             if self.original_showwarning:
-                self.original_showwarning(
-                    message, category, filename, lineno, file, line
-                )
+                self.original_showwarning(message, category, filename, lineno, file, line)
         # Non-deprecation warnings use original handler
         elif self.original_showwarning:
             self.original_showwarning(message, category, filename, lineno, file, line)
@@ -135,9 +131,7 @@ def pytest_sessionfinish(session, exitstatus):
             print("\n🚨 CRITICAL PYDANTIC WARNINGS:")
             print("-" * 40)
             for warning in pydantic_warnings:
-                print(
-                    f"  {warning['filename']}:{warning['lineno']} - {warning['message']}"
-                )
+                print(f"  {warning['filename']}:{warning['lineno']} - {warning['message']}")
             print("\n⚡ Fix these Pydantic warnings immediately! ⚡")
 
         other_warnings = [w for w in all_warnings if not w["is_pydantic"]]
@@ -145,9 +139,7 @@ def pytest_sessionfinish(session, exitstatus):
             print("\n⚠️  OTHER DEPRECATION WARNINGS:")
             print("-" * 40)
             for warning in other_warnings:
-                print(
-                    f"  {warning['filename']}:{warning['lineno']} - {warning['message']}"
-                )
+                print(f"  {warning['filename']}:{warning['lineno']} - {warning['message']}")
     else:
         print("\n✅ NO DEPRECATION WARNINGS FOUND! Divine compliance achieved! ⚡")
 

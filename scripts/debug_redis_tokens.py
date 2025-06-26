@@ -32,9 +32,7 @@ async def debug_tokens():
     except:
         pass
 
-    client = await redis.from_url(
-        REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
-    )
+    client = await redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
 
     try:
         # Get all token keys

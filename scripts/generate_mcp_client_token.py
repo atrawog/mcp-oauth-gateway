@@ -63,11 +63,7 @@ def extract_oauth_vars_from_output(output: str) -> dict[str, str]:
             key = match.group(1)
             value = match.group(2).strip()
             oauth_vars[key] = value
-            print(
-                f"   Found: {key}={value[:20]}..."
-                if len(value) > 20
-                else f"   Found: {key}={value}"
-            )
+            print(f"   Found: {key}={value[:20]}..." if len(value) > 20 else f"   Found: {key}={value}")
 
     return oauth_vars
 
@@ -78,16 +74,12 @@ def ensure_mcp_client_installed() -> bool:
 
     # Check if module is available
     check_cmd = ["pixi", "run", "python", "-c", "import mcp_streamablehttp_client"]
-    check_result = subprocess.run(
-        check_cmd, check=False, capture_output=True, cwd=Path(__file__).parent.parent
-    )
+    check_result = subprocess.run(check_cmd, check=False, capture_output=True, cwd=Path(__file__).parent.parent)
 
     if check_result.returncode != 0:
         print("📦 Installing mcp-streamablehttp-client...")
         install_cmd = ["pixi", "run", "install-mcp-client"]
-        install_result = subprocess.run(
-            install_cmd, check=False, cwd=Path(__file__).parent.parent
-        )
+        install_result = subprocess.run(install_cmd, check=False, cwd=Path(__file__).parent.parent)
 
         if install_result.returncode != 0:
             print("❌ Failed to install mcp-streamablehttp-client")
@@ -105,9 +97,7 @@ def main():
     """Main MCP client token generation flow."""
     print("🚀 MCP Client Token Generator")
     print("=============================")
-    print(
-        "This uses mcp-streamablehttp-client --token to generate and save OAuth tokens"
-    )
+    print("This uses mcp-streamablehttp-client --token to generate and save OAuth tokens")
     print()
 
     # Load environment

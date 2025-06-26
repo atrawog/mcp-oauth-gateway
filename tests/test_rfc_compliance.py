@@ -39,15 +39,11 @@ class TestRFCCompliance:
         try:
             error = response.json()
             assert error["error"] == "invalid_client"
-            assert (
-                error["error_description"] == "Client authentication failed"
-            )
+            assert error["error_description"] == "Client authentication failed"
         except json.JSONDecodeError:
             # If response is not JSON, check if it's an HTML error page
             content = response.text
-            assert (
-                "invalid_client" in content or "Client authentication failed" in content
-            )
+            assert "invalid_client" in content or "Client authentication failed" in content
         # RFC 6749 compliant - only error and error_description fields
 
     @pytest.mark.asyncio
@@ -74,9 +70,7 @@ class TestRFCCompliance:
     @pytest.mark.asyncio
     async def test_oauth_discovery_includes_registration_endpoint(self, http_client):
         """Test that OAuth discovery metadata includes registration endpoint."""
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
 
         assert response.status_code == HTTP_OK
         metadata = response.json()
@@ -133,24 +127,18 @@ class TestRFCCompliance:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
-                    headers={
-                        "Authorization": f"Bearer {client['registration_access_token']}"
-                    },
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"},
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
-                    logger.warning(
-                        f"Failed to delete client {client['client_id']}: {delete_response.status_code}"
-                    )
+                    logger.warning(f"Failed to delete client {client['client_id']}: {delete_response.status_code}")
             except Exception as e:
                 logger.warning(f"Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
     async def test_registration_missing_redirect_uris_rfc7591(self, http_client):
         """Test RFC 7591 compliance for missing redirect_uris."""
-        response = await http_client.post(
-            f"{AUTH_BASE_URL}/register", json={"client_name": "TEST Test Client"}
-        )
+        response = await http_client.post(f"{AUTH_BASE_URL}/register", json={"client_name": "TEST Test Client"})
 
         # RFC 7591 - Returns 400 with proper error format
         assert response.status_code == HTTP_BAD_REQUEST

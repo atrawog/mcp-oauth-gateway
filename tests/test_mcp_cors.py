@@ -26,16 +26,12 @@ class TestMCPCORS:
             pytest.fail("BASE_DOMAIN environment variable not set")
 
         self.cors_origins = os.getenv("MCP_CORS_ORIGINS", "").split(",")
-        self.cors_origins = [
-            origin.strip() for origin in self.cors_origins if origin.strip()
-        ]
+        self.cors_origins = [origin.strip() for origin in self.cors_origins if origin.strip()]
 
     def test_cors_origins_configured(self):
         """Test that MCP_CORS_ORIGINS is configured."""
         assert os.getenv("MCP_CORS_ORIGINS"), "MCP_CORS_ORIGINS MUST be configured!"
-        assert len(self.cors_origins) > 0, (
-            "MCP_CORS_ORIGINS must contain at least one origin"
-        )
+        assert len(self.cors_origins) > 0, "MCP_CORS_ORIGINS must contain at least one origin"
 
     def test_mcp_preflight_cors_headers(self):
         """Test that MCP endpoints respond correctly to CORS preflight requests."""
@@ -58,9 +54,7 @@ class TestMCPCORS:
                 )
 
                 # CORS preflight should return 200 OK
-                assert response.status_code == HTTP_OK, (
-                    f"CORS preflight failed for origin {test_origin}"
-                )
+                assert response.status_code == HTTP_OK, f"CORS preflight failed for origin {test_origin}"
 
                 # Check CORS headers
                 assert "access-control-allow-origin" in response.headers, (
@@ -69,28 +63,20 @@ class TestMCPCORS:
 
                 # When wildcard is configured, server returns "*" - this is correct CORS behavior
                 if self.cors_origins == ["*"]:
-                    assert (
-                        response.headers["access-control-allow-origin"] == "*"
-                    ), f"CORS wildcard should return '*', got: {response.headers.get('access-control-allow-origin')}"
+                    assert response.headers["access-control-allow-origin"] == "*", (
+                        f"CORS wildcard should return '*', got: {response.headers.get('access-control-allow-origin')}"
+                    )
                 else:
-                    assert (
-                        response.headers["access-control-allow-origin"] == test_origin
-                    ), f"CORS origin mismatch for {test_origin}"
+                    assert response.headers["access-control-allow-origin"] == test_origin, (
+                        f"CORS origin mismatch for {test_origin}"
+                    )
 
-                assert "access-control-allow-methods" in response.headers, (
-                    "Missing Access-Control-Allow-Methods header"
-                )
-                allowed_methods = response.headers[
-                    "access-control-allow-methods"
-                ].upper()
+                assert "access-control-allow-methods" in response.headers, "Missing Access-Control-Allow-Methods header"
+                allowed_methods = response.headers["access-control-allow-methods"].upper()
                 assert "POST" in allowed_methods, "POST method not allowed in CORS"
-                assert "OPTIONS" in allowed_methods, (
-                    "OPTIONS method not allowed in CORS"
-                )
+                assert "OPTIONS" in allowed_methods, "OPTIONS method not allowed in CORS"
 
-                assert "access-control-allow-headers" in response.headers, (
-                    "Missing Access-Control-Allow-Headers header"
-                )
+                assert "access-control-allow-headers" in response.headers, "Missing Access-Control-Allow-Headers header"
                 # When wildcard origin (*) is used, credentials are typically not allowed for security
                 if self.cors_origins == ["*"]:
                     # With wildcard origin, credentials header may be omitted or false
@@ -103,10 +89,9 @@ class TestMCPCORS:
                     assert "access-control-allow-credentials" in response.headers, (
                         "Missing Access-Control-Allow-Credentials header"
                     )
-                    assert (
-                        response.headers["access-control-allow-credentials"].lower()
-                        == "true"
-                    ), "CORS credentials not allowed"
+                    assert response.headers["access-control-allow-credentials"].lower() == "true", (
+                        "CORS credentials not allowed"
+                    )
 
     async def test_mcp_actual_request_cors_headers(self):
         """Test that actual MCP requests include proper CORS headers."""
@@ -120,20 +105,14 @@ class TestMCPCORS:
         test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
 
         # Get OAuth token from environment
-        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
-            "OAUTH_JWT_TOKEN"
-        )
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.fail(
-                "No OAuth token available for CORS testing - TESTS MUST NOT BE SKIPPED!"
-            )
+            pytest.fail("No OAuth token available for CORS testing - TESTS MUST NOT BE SKIPPED!")
 
         async with httpx.AsyncClient(verify=True, timeout=30.0) as client:
             # Properly initialize MCP session first
             try:
-                session_id, init_result = await initialize_mcp_session(
-                    client, mcp_url, oauth_token
-                )
+                session_id, init_result = await initialize_mcp_session(client, mcp_url, oauth_token)
 
                 # Test the initialization response had CORS headers
                 init_response = await client.post(
@@ -152,9 +131,7 @@ class TestMCPCORS:
                 )
 
                 # Should get a successful response
-                assert init_response.status_code == HTTP_OK, (
-                    f"Request failed: {init_response.status_code}"
-                )
+                assert init_response.status_code == HTTP_OK, f"Request failed: {init_response.status_code}"
 
                 # Check CORS headers in response
                 assert "access-control-allow-origin" in init_response.headers, (
@@ -174,20 +151,14 @@ class TestMCPCORS:
 
                 # Check exposed headers
                 if "access-control-expose-headers" in init_response.headers:
-                    exposed_headers = init_response.headers[
-                        "access-control-expose-headers"
-                    ].lower()
-                    assert "mcp-session-id" in exposed_headers, (
-                        "Mcp-Session-Id not exposed in CORS"
-                    )
+                    exposed_headers = init_response.headers["access-control-expose-headers"].lower()
+                    assert "mcp-session-id" in exposed_headers, "Mcp-Session-Id not exposed in CORS"
 
             except Exception as e:
                 # If proper initialization fails, try fallback version
                 if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
                     alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
-                    session_id, init_result = await initialize_mcp_session(
-                        client, mcp_url, oauth_token, alt_version
-                    )
+                    session_id, init_result = await initialize_mcp_session(client, mcp_url, oauth_token, alt_version)
                     # Test with alternative version passed
                 else:
                     raise e
@@ -212,9 +183,7 @@ class TestMCPCORS:
             )
 
             # Even 401 responses should have CORS headers
-            assert "access-control-allow-origin" in response.headers, (
-                "401 response should still have CORS headers"
-            )
+            assert "access-control-allow-origin" in response.headers, "401 response should still have CORS headers"
 
             # When wildcard is configured, the response may be "*" instead of the specific origin
             allowed_origin = response.headers["access-control-allow-origin"]
@@ -228,20 +197,14 @@ class TestMCPCORS:
         mcp_url = MCP_TESTING_URL
 
         # Use OAuth token from environment if available
-        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
-            "OAUTH_JWT_TOKEN"
-        )
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.fail(
-                "No OAuth token available for testing - TESTS MUST NOT BE SKIPPED!"
-            )
+            pytest.fail("No OAuth token available for testing - TESTS MUST NOT BE SKIPPED!")
 
         async with httpx.AsyncClient(verify=True, timeout=30.0) as client:
             # Properly initialize MCP session first (without Origin header)
             try:
-                session_id, init_result = await initialize_mcp_session(
-                    client, mcp_url, oauth_token
-                )
+                session_id, init_result = await initialize_mcp_session(client, mcp_url, oauth_token)
 
                 # Test a tools/list request without Origin header
                 response = await client.post(
@@ -260,17 +223,13 @@ class TestMCPCORS:
                 )
 
                 # Should still work without Origin header
-                assert response.status_code == HTTP_OK, (
-                    f"Request failed without Origin header: {response.status_code}"
-                )
+                assert response.status_code == HTTP_OK, f"Request failed without Origin header: {response.status_code}"
 
             except Exception as e:
                 # If proper initialization fails, try fallback version
                 if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
                     alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
-                    session_id, init_result = await initialize_mcp_session(
-                        client, mcp_url, oauth_token, alt_version
-                    )
+                    session_id, init_result = await initialize_mcp_session(client, mcp_url, oauth_token, alt_version)
                     # Test with alternative version passed
                 else:
                     raise e
@@ -306,9 +265,7 @@ class TestMCPCORS:
             if "access-control-allow-origin" in response.headers:
                 # When wildcard is used, the header will be the actual origin or "*"
                 allowed_origin = response.headers["access-control-allow-origin"]
-                assert allowed_origin != test_unauthorized_origin, (
-                    "CORS allowed unauthorized origin!"
-                )
+                assert allowed_origin != test_unauthorized_origin, "CORS allowed unauthorized origin!"
 
     def test_all_mcp_services_have_cors(self):
         """Test that all MCP services have CORS configured."""

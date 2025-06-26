@@ -47,9 +47,7 @@ def main():
         auth_base = get_auth_domain_from_mcp_url(server_url)
         # Set hint for OAuth discovery
         env["OAUTH_ISSUER"] = auth_base
-        env["OAUTH_METADATA_URL"] = (
-            f"{auth_base}/.well-known/oauth-authorization-server"
-        )
+        env["OAUTH_METADATA_URL"] = f"{auth_base}/.well-known/oauth-authorization-server"
 
     # Run the actual mcp-streamablehttp-client
     cmd = ["python", "-m", "mcp_streamablehttp_client.cli", *args]

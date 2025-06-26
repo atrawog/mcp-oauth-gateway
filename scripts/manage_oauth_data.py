@@ -53,9 +53,7 @@ except:
 
 async def get_redis_client():
     """Get async Redis client."""
-    return await redis.from_url(
-        REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
-    )
+    return await redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
 
 
 def decode_jwt_payload(token: str) -> dict | None:
@@ -112,18 +110,14 @@ async def list_registrations():
                         redirect_uris = [redirect_uris]
 
                 # Handle timestamp - could be client_id_issued_at or created_at
-                created_at = client_data.get(
-                    "client_id_issued_at", client_data.get("created_at", 0)
-                )
+                created_at = client_data.get("client_id_issued_at", client_data.get("created_at", 0))
 
                 registrations.append(
                     [
                         client_id,
                         client_data.get("client_name", "N/A"),
                         client_data.get("scope", "N/A"),
-                        ", ".join(redirect_uris)
-                        if isinstance(redirect_uris, list)
-                        else str(redirect_uris),
+                        ", ".join(redirect_uris) if isinstance(redirect_uris, list) else str(redirect_uris),
                         format_timestamp(created_at),
                     ]
                 )
@@ -391,13 +385,7 @@ async def delete_all_tokens():
         code_keys = await client.keys("oauth:code:*")
         user_token_keys = await client.keys("oauth:user_tokens:*")
 
-        total_keys = (
-            len(access_keys)
-            + len(refresh_keys)
-            + len(state_keys)
-            + len(code_keys)
-            + len(user_token_keys)
-        )
+        total_keys = len(access_keys) + len(refresh_keys) + len(state_keys) + len(code_keys) + len(user_token_keys)
 
         if total_keys == 0:
             print("No OAuth data to delete.")

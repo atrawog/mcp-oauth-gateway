@@ -51,9 +51,7 @@ def check_docker_service(service_name: str) -> bool:
     # Check if service is disabled
     disabled, env_var = is_service_disabled(service_name)
     if disabled:
-        print(
-            f"{YELLOW}⊝ Service {service_name} is disabled via {env_var}{RESET}"
-        )
+        print(f"{YELLOW}⊝ Service {service_name} is disabled via {env_var}{RESET}")
         return True  # Consider it "passing" since it's intentionally disabled
 
     # Check if service is running
@@ -79,6 +77,7 @@ def check_docker_service(service_name: str) -> bool:
 
     # Parse and check service state
     import json
+
     try:
         service_info = json.loads(stdout.strip())
         state = service_info.get("State", "unknown")

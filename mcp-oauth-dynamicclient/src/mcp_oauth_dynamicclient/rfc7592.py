@@ -118,7 +118,9 @@ class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
             )
         else:
             # CLIENT_LIFETIME=0 means never expire
-            await self.redis_client.set(f"oauth:client:{client_id}", json.dumps(existing_data))  # TODO: Break long line
+            await self.redis_client.set(
+                f"oauth:client:{client_id}", json.dumps(existing_data)
+            )  # TODO: Break long line
 
         return OAuth2Client(existing_data)
 

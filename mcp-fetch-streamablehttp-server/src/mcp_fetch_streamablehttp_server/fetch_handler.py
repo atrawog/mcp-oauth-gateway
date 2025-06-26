@@ -32,17 +32,13 @@ class FetchArguments(BaseModel):
     headers: dict[str, str] | None = Field(default=None, description="HTTP headers")
     body: str | None = Field(default=None, description="Request body for POST")
     max_length: int = Field(default=100000, description="Maximum response length")
-    user_agent: str = Field(
-        default="ModelContextProtocol/1.0", description="User agent string"
-    )
+    user_agent: str = Field(default="ModelContextProtocol/1.0", description="User agent string")
 
 
 class FetchHandler:
     """Handler for fetch tool operations."""
 
-    def __init__(
-        self, allowed_schemes: list[str] | None = None, max_redirects: int = 5
-    ):
+    def __init__(self, allowed_schemes: list[str] | None = None, max_redirects: int = 5):
         self.allowed_schemes = allowed_schemes or ["http", "https"]
         self.max_redirects = max_redirects
         self._robots_cache: dict[str, Robots] = {}
@@ -88,9 +84,7 @@ class FetchHandler:
             )
         ]
 
-    async def handle_fetch(
-        self, arguments: dict[str, Any]
-    ) -> list[TextContent | ImageContent]:
+    async def handle_fetch(self, arguments: dict[str, Any]) -> list[TextContent | ImageContent]:
         """Handle fetch tool call."""
         # Parse arguments
         args = FetchArguments(**arguments)
@@ -145,14 +139,10 @@ class FetchHandler:
         headers = args.headers or {}
         headers["User-Agent"] = args.user_agent
 
-        async with httpx.AsyncClient(
-            follow_redirects=True, max_redirects=self.max_redirects
-        ) as client:
+        async with httpx.AsyncClient(follow_redirects=True, max_redirects=self.max_redirects) as client:
             try:
                 if args.method == "POST":
-                    response = await client.post(
-                        args.url, headers=headers, content=args.body, timeout=30.0
-                    )
+                    response = await client.post(args.url, headers=headers, content=args.body, timeout=30.0)
                 else:
                     response = await client.get(args.url, headers=headers, timeout=30.0)
 
@@ -160,9 +150,7 @@ class FetchHandler:
                 return response
 
             except httpx.HTTPStatusError as e:
-                raise ValueError(
-                    f"HTTP {e.response.status_code}: {e.response.text}"
-                ) from e
+                raise ValueError(f"HTTP {e.response.status_code}: {e.response.text}") from e
             except httpx.RequestError as e:
                 raise ValueError(f"Request failed: {e!s}") from e
 
@@ -180,9 +168,7 @@ class FetchHandler:
 
         return [ImageContent(type="image", data=base64_data, mimeType=mime_type)]
 
-    def _process_text_response(
-        self, response: httpx.Response, content_type: str, max_length: int
-    ) -> list[TextContent]:
+    def _process_text_response(self, response: httpx.Response, content_type: str, max_length: int) -> list[TextContent]:
         """Process text response."""
         # Get text content
         try:
@@ -227,9 +213,7 @@ class FetchHandler:
                 async with httpx.AsyncClient(timeout=30.0) as client:
                     response = await client.get(robots_url, timeout=5.0)
                     if response.status_code == 200:
-                        self._robots_cache[cache_key] = Robots.parse(
-                            robots_url, response.text
-                        )
+                        self._robots_cache[cache_key] = Robots.parse(robots_url, response.text)
                     else:
                         # No robots.txt means everything is allowed
                         self._robots_cache[cache_key] = None

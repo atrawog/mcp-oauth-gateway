@@ -29,9 +29,7 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_json_rpc_compliance(
-        self, mcp_fetchs_url, valid_token, wait_for_services
-    ):
+    async def test_fetchs_json_rpc_compliance(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test JSON-RPC 2.0 compliance."""
         test_cases = [
             # Valid requests
@@ -101,9 +99,7 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_method_routing(
-        self, mcp_fetchs_url, valid_token, wait_for_services
-    ):
+    async def test_fetchs_method_routing(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test correct routing of different MCP methods."""
         methods = [
             ("initialize", True),
@@ -150,9 +146,7 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_session_handling(
-        self, mcp_fetchs_url, valid_token, wait_for_services
-    ):
+    async def test_fetchs_session_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test MCP session management."""
         async with httpx.AsyncClient(verify=True) as client:
             # Initialize without session
@@ -205,9 +199,7 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_protocol_headers(
-        self, mcp_fetchs_url, valid_token, wait_for_services
-    ):
+    async def test_fetchs_protocol_headers(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test MCP protocol headers."""
         async with httpx.AsyncClient(verify=True) as client:
             # Test with protocol version header
@@ -235,9 +227,7 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_error_response_format(
-        self, mcp_fetchs_url, valid_token, wait_for_services
-    ):
+    async def test_fetchs_error_response_format(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test error response format compliance."""
         error_scenarios = [
             # Parse error
@@ -254,9 +244,7 @@ class TestMCPFetchsProtocol:
             },
             # Method not found
             {
-                "body": json.dumps(
-                    {"jsonrpc": "2.0", "method": "nonexistent", "id": 1}
-                ),
+                "body": json.dumps({"jsonrpc": "2.0", "method": "nonexistent", "id": 1}),
                 "expected_code": -32601,
                 "expected_message_contains": "Method not found",
             },
@@ -299,9 +287,7 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_content_type_handling(
-        self, mcp_fetchs_url, valid_token, wait_for_services
-    ):
+    async def test_fetchs_content_type_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test Content-Type header handling."""
         # The service accepts various content types more leniently
         content_types = [
@@ -335,9 +321,7 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_request_id_handling(
-        self, mcp_fetchs_url, valid_token, wait_for_services
-    ):
+    async def test_fetchs_request_id_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
         """Test proper handling of request IDs."""
         id_values = [
             1,

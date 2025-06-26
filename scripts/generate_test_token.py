@@ -21,8 +21,8 @@ def load_env():
                 if line and not line.startswith("#") and "=" in line:
                     key, value = line.split("=", 1)
                     # Remove inline comments
-                    if '#' in value and not (value.startswith('"') and value.endswith('"')):
-                        value = value.split('#', 1)[0]
+                    if "#" in value and not (value.startswith('"') and value.endswith('"')):
+                        value = value.split("#", 1)[0]
                     # Strip quotes if present
                     value = value.strip()
                     if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
@@ -48,7 +48,7 @@ def main():
             sys.exit(1)
 
         # Decode base64 private key
-        private_key = base64.b64decode(private_key_b64).decode('utf-8')
+        private_key = base64.b64decode(private_key_b64).decode("utf-8")
         secret = private_key
     else:
         # Get JWT secret for HS256
@@ -69,7 +69,7 @@ def main():
         "exp": now + 86400,  # 24 hours
         "scope": "openid profile email",
         "client_id": os.getenv("GATEWAY_OAUTH_CLIENT_ID", "test-client"),
-        "jti": f"test-{now}"
+        "jti": f"test-{now}",
     }
 
     # Create header

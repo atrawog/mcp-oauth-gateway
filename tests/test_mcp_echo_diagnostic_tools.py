@@ -25,10 +25,7 @@ class TestMCPEchoDiagnosticTools:
     def call_mcp_tool(self, tool_name: str, arguments: dict | None = None, bearer_token: str | None = None) -> dict:
         """Call an MCP tool directly via HTTP."""
         # Prepare request
-        headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/event-stream"
-        }
+        headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
 
         # Add bearer token if provided
         if bearer_token:
@@ -40,11 +37,8 @@ class TestMCPEchoDiagnosticTools:
         payload = {
             "jsonrpc": "2.0",
             "method": "tools/call",
-            "params": {
-                "name": tool_name,
-                "arguments": arguments or {}
-            },
-            "id": 1
+            "params": {"name": tool_name, "arguments": arguments or {}},
+            "id": 1,
         }
 
         # Make request
@@ -52,18 +46,18 @@ class TestMCPEchoDiagnosticTools:
             MCP_ECHO_URL,
             headers=headers,
             json=payload,
-            verify=True  # Always verify SSL certificates for security
+            verify=True,  # Always verify SSL certificates for security
         )
 
         # Parse SSE response
         if response.status_code == 200:
             # Extract JSON from SSE format
-            for line in response.text.split('\n'):
-                if line.startswith('data: '):
+            for line in response.text.split("\n"):
+                if line.startswith("data: "):
                     data = json.loads(line[6:])
-                    if 'result' in data:
-                        return data['result']
-                    if 'error' in data:
+                    if "result" in data:
+                        return data["result"]
+                    if "error" in data:
                         pytest.fail(f"MCP error: {data['error']}")
             # If no result found, fail
             pytest.fail("No result found in SSE response")
@@ -75,34 +69,21 @@ class TestMCPEchoDiagnosticTools:
 
     def get_tools_list(self) -> list:
         """Get list of available tools."""
-        headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json, text/event-stream"
-        }
+        headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
 
         if ACCESS_TOKEN:
             headers["Authorization"] = f"Bearer {ACCESS_TOKEN}"
 
-        payload = {
-            "jsonrpc": "2.0",
-            "method": "tools/list",
-            "params": {},
-            "id": 1
-        }
+        payload = {"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1}
 
-        response = requests.post(
-            MCP_ECHO_URL,
-            headers=headers,
-            json=payload,
-            verify=True
-        )
+        response = requests.post(MCP_ECHO_URL, headers=headers, json=payload, verify=True)
 
         if response.status_code == 200:
-            for line in response.text.split('\n'):
-                if line.startswith('data: '):
+            for line in response.text.split("\n"):
+                if line.startswith("data: "):
                     data = json.loads(line[6:])
-                    if 'result' in data:
-                        return data['result']['tools']
+                    if "result" in data:
+                        return data["result"]["tools"]
 
         return []
 
@@ -124,27 +105,19 @@ class TestMCPEchoDiagnosticTools:
         # We need to make a request without any Authorization header
         headers = {
             "Content-Type": "application/json",
-            "Accept": "application/json, text/event-stream"
+            "Accept": "application/json, text/event-stream",
             # No Authorization header
         }
 
         payload = {
             "jsonrpc": "2.0",
             "method": "tools/call",
-            "params": {
-                "name": "bearerDecode",
-                "arguments": {}
-            },
-            "id": 1
+            "params": {"name": "bearerDecode", "arguments": {}},
+            "id": 1,
         }
 
         # Make request without auth
-        response = requests.post(
-            MCP_ECHO_URL,
-            headers=headers,
-            json=payload,
-            verify=True
-        )
+        response = requests.post(MCP_ECHO_URL, headers=headers, json=payload, verify=True)
 
         # This should get 401 since no auth provided
         assert response.status_code == 401
@@ -269,7 +242,7 @@ class TestMCPEchoDiagnosticTools:
             "corsAnalysis",
             "environmentDump",
             "healthProbe",
-            "whoIStheGOAT"
+            "whoIStheGOAT",
         ]
 
         tool_names = [tool["name"] for tool in tools]

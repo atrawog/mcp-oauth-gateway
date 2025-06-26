@@ -20,9 +20,7 @@ SERVICE_PROTOCOL_VERSIONS = {
 
 def fix_docker_compose(service_name, protocol_version):
     """Fix docker-compose.yml for a service."""
-    compose_file = Path(
-        f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml"
-    )
+    compose_file = Path(f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml")
 
     if not compose_file.exists():
         print(f"❌ {compose_file} not found")
@@ -39,11 +37,7 @@ def fix_docker_compose(service_name, protocol_version):
 
     for line in lines:
         # Skip duplicate MCP_PROTOCOL_VERSION lines
-        if (
-            "- MCP_PROTOCOL_VERSION=" in line
-            or line.strip().startswith("P25-")
-            or line.strip().startswith("P24-")
-        ):
+        if "- MCP_PROTOCOL_VERSION=" in line or line.strip().startswith("P25-") or line.strip().startswith("P24-"):
             if not seen_mcp_protocol:
                 fixed_lines.append(f"      - MCP_PROTOCOL_VERSION={protocol_version}")
                 seen_mcp_protocol = True
@@ -69,9 +63,7 @@ def fix_docker_compose(service_name, protocol_version):
     import re
 
     healthcheck_pattern = r"healthcheck:.*?(?=\n(?:networks:|$))"
-    content = re.sub(
-        healthcheck_pattern, healthcheck_template.strip(), content, flags=re.DOTALL
-    )
+    content = re.sub(healthcheck_pattern, healthcheck_template.strip(), content, flags=re.DOTALL)
 
     # Ensure environment section exists and has MCP_PROTOCOL_VERSION
     if not seen_mcp_protocol and "environment:" in content:

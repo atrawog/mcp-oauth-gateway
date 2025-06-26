@@ -26,9 +26,7 @@ class CallbackHandler(BaseHTTPRequestHandler):
                 CallbackHandler.auth_code = query_params["code"][0]
                 response = f"✅ Authorization code received!\n\nCode: {CallbackHandler.auth_code[:10]}...\n\nYou can close this window."
             else:
-                response = (
-                    "❌ No authorization code received\n\nYou can close this window."
-                )
+                response = "❌ No authorization code received\n\nYou can close this window."
         else:
             response = "❌ Invalid callback path\n\nYou can close this window."
 

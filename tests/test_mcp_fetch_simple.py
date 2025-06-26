@@ -23,9 +23,7 @@ class TestMCPFetchSimple:
     """Simple test to verify MCP fetch authentication."""
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_auth_works(
-        self, http_client, wait_for_services, registered_client, mcp_fetch_url
-    ):
+    async def test_mcp_fetch_auth_works(self, http_client, wait_for_services, registered_client, mcp_fetch_url):
         """Test that we can authenticate to mcp-fetch service."""
         # Connect to Redis
         redis_client = await redis.from_url(REDIS_URL, decode_responses=True)
@@ -49,9 +47,7 @@ class TestMCPFetchSimple:
             }
 
             # Create JWT
-            access_token = jwt_encode(
-                token_claims, GATEWAY_JWT_SECRET, algorithm="HS256"
-            )
+            access_token = jwt_encode(token_claims, GATEWAY_JWT_SECRET, algorithm="HS256")
 
             # Store in Redis (simulating successful OAuth)
             await redis_client.setex(
@@ -120,9 +116,7 @@ class TestMCPFetchSimple:
                     if "result" in fetch_result:
                         content = str(fetch_result.get("result", {}))
                         if "Example Domain" in content:
-                            print(
-                                "✓ Successfully found 'Example Domain' in fetched content!"
-                            )
+                            print("✓ Successfully found 'Example Domain' in fetched content!")
                         else:
                             print("Content fetched but 'Example Domain' not found")
                             print(f"Content preview: {content[:200]}...")
@@ -135,9 +129,7 @@ class TestMCPFetchSimple:
                 if response.status_code == HTTP_UNAUTHORIZED:
                     print("Authentication failed - token not accepted")
                 elif response.status_code == HTTP_NOT_FOUND:
-                    print(
-                        "Endpoint not found - service may not be configured correctly"
-                    )
+                    print("Endpoint not found - service may not be configured correctly")
                 elif response.status_code == 307:
                     print(f"Redirect to: {response.headers.get('Location')}")
 

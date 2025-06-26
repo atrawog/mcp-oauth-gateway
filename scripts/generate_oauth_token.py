@@ -34,9 +34,9 @@ def load_env():
                 if line and not line.startswith("#") and "=" in line:
                     key, value = line.split("=", 1)
                     # Remove inline comments
-                    if '#' in value and not (value.startswith('"') and value.endswith('"')):
+                    if "#" in value and not (value.startswith('"') and value.endswith('"')):
                         # Only remove comments if the value is not quoted
-                        value = value.split('#', 1)[0]
+                        value = value.split("#", 1)[0]
                     # Strip quotes if present
                     value = value.strip()
                     if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
@@ -85,9 +85,7 @@ async def check_existing_token(token: str) -> bool:
             return False
 
 
-async def register_oauth_client_with_user_token(
-    base_url: str, user_jwt_token: str
-) -> dict[str, str]:
+async def register_oauth_client_with_user_token(base_url: str, user_jwt_token: str) -> dict[str, str]:
     """Register OAuth client using a valid user JWT token."""
     # Get OAuth callback URL from environment - MUST be set properly!
     oauth_callback_url = os.getenv("TEST_OAUTH_CALLBACK_URL")
@@ -181,21 +179,13 @@ async def github_device_flow() -> str:
                 raise Exception(f"Device flow failed: {poll_data}")
 
 
-async def complete_real_oauth_flow(
-    auth_base_url: str, client_id: str, client_secret: str
-) -> tuple[str, str]:
+async def complete_real_oauth_flow(auth_base_url: str, client_id: str, client_secret: str) -> tuple[str, str]:
     """Complete REAL OAuth flow using the actual authorization endpoint."""
     print("\n🔐 Starting REAL OAuth Flow...")
 
     # Step 1: Generate REAL PKCE challenge
-    code_verifier = (
-        base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=")
-    )
-    code_challenge = (
-        base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest())
-        .decode()
-        .rstrip("=")
-    )
+    code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=")
+    code_challenge = base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest()).decode().rstrip("=")
 
     state = secrets.token_urlsafe(16)
 
@@ -263,9 +253,7 @@ async def complete_real_oauth_flow(
         )
 
         if token_response.status_code != 200:
-            raise Exception(
-                f"Token exchange failed ({token_response.status_code}): {token_response.text}"
-            )
+            raise Exception(f"Token exchange failed ({token_response.status_code}): {token_response.text}")
 
         tokens = token_response.json()
 
@@ -336,9 +324,7 @@ async def main():
                     data={
                         "grant_type": "authorization_code",
                         "code": "dummy_code",  # This will fail, but we'll get different errors
-                        "redirect_uri": os.getenv(
-                            "TEST_OAUTH_CALLBACK_URL", "https://example.com/callback"
-                        ),
+                        "redirect_uri": os.getenv("TEST_OAUTH_CALLBACK_URL", "https://example.com/callback"),
                         "client_id": client_id,
                         "client_secret": client_secret,
                         "code_verifier": "dummy_verifier",
@@ -360,9 +346,7 @@ async def main():
                         print("✅ OAuth client credentials are valid!")
                     # If we get "invalid_client", the client doesn't exist or secret is wrong
                     elif error_code == "invalid_client":
-                        print(
-                            "❌ OAuth client credentials are invalid or not registered!"
-                        )
+                        print("❌ OAuth client credentials are invalid or not registered!")
                         print("   The client was likely cleared from Redis.")
                         client_id = None
                         client_secret = None
@@ -378,9 +362,7 @@ async def main():
                     client_id = None
                     client_secret = None
                 else:
-                    print(
-                        f"❌ Unexpected response validating client: {response.status_code}"
-                    )
+                    print(f"❌ Unexpected response validating client: {response.status_code}")
                     print(f"   Response: {response.text}")
                     client_id = None
                     client_secret = None
@@ -465,9 +447,7 @@ async def main():
         print(f"🔄 Need fresh OAuth token for client: {client_id}")
 
         # Complete OAuth flow to get user JWT token
-        access_token, refresh_token = await complete_real_oauth_flow(
-            auth_base_url, client_id, client_secret
-        )
+        access_token, refresh_token = await complete_real_oauth_flow(auth_base_url, client_id, client_secret)
 
         # Save the tokens
         save_env_var("GATEWAY_OAUTH_ACCESS_TOKEN", access_token)

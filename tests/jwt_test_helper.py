@@ -6,9 +6,7 @@ from typing import Any
 from authlib.jose import jwt
 
 
-def create_test_jwt(
-    payload: dict[str, Any], secret: str, algorithm: str = "HS256"
-) -> str:
+def create_test_jwt(payload: dict[str, Any], secret: str, algorithm: str = "HS256") -> str:
     """Create a test JWT token using Authlib."""
     # Add standard claims if not present
     if "iat" not in payload:

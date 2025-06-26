@@ -24,9 +24,7 @@ class TestGitHubCredentialsValid:
         github_pat = os.getenv("GITHUB_PAT")
 
         if not github_pat:
-            pytest.fail(
-                "GITHUB_PAT not set - TESTS MUST NOT BE SKIPPED! GitHub PAT is REQUIRED!"
-            )
+            pytest.fail("GITHUB_PAT not set - TESTS MUST NOT BE SKIPPED! GitHub PAT is REQUIRED!")
 
         # Test the PAT by making a simple API call
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -56,9 +54,7 @@ class TestGitHubCredentialsValid:
                     f"✅ GITHUB_PAT is valid for user: {user_data.get('login', 'unknown')}"  # TODO: Break long line
                 )
             else:
-                pytest.fail(
-                    f"Unexpected response: {response.status_code} - {response.text}"
-                )
+                pytest.fail(f"Unexpected response: {response.status_code} - {response.text}")
 
     @pytest.mark.asyncio
     async def test_oauth_client_credentials_valid(self):
@@ -130,8 +126,7 @@ class TestGitHubCredentialsValid:
                     error = params.get("error", ["unknown"])[0]
                     error_desc = params.get("error_description", [""])[0]
                     pytest.fail(
-                        f"GitHub OAuth error: {error} - {error_desc}. "
-                        "Check your GitHub OAuth app configuration."
+                        f"GitHub OAuth error: {error} - {error_desc}. Check your GitHub OAuth app configuration."
                     )
                 else:
                     # Should redirect to login or back to our callback
@@ -140,9 +135,7 @@ class TestGitHubCredentialsValid:
             elif response.status_code == HTTP_OK:
                 # GitHub might show the authorize page directly
                 if "oauth/authorize" in str(response.url):
-                    print(
-                        "✅ GitHub OAuth app credentials are valid (showed authorize page)"
-                    )
+                    print("✅ GitHub OAuth app credentials are valid (showed authorize page)")
                 else:
                     print(f"⚠️  Unexpected response but not an error: {response.url}")
             else:

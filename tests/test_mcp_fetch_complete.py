@@ -23,16 +23,13 @@ from .test_constants import TEST_OAUTH_CALLBACK_URL
 
 
 @pytest.mark.skipif(
-    not MCP_FETCH_TESTS_ENABLED,
-    reason="MCP Fetch tests are disabled. Set MCP_FETCH_TESTS_ENABLED=true to enable."
+    not MCP_FETCH_TESTS_ENABLED, reason="MCP Fetch tests are disabled. Set MCP_FETCH_TESTS_ENABLED=true to enable."
 )
 class TestMCPFetchComplete:
     """Test actual MCP fetch functionality - no shortcuts allowed!"""
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_actually_fetches_content(
-        self, http_client, wait_for_services, mcp_test_url
-    ):
+    async def test_mcp_fetch_actually_fetches_content(self, http_client, wait_for_services, mcp_test_url):
         """This test MUST:
 
         1. Complete the FULL OAuth flow (no fake tokens!)
@@ -41,9 +38,7 @@ class TestMCPFetchComplete:
         4. FAIL if any step doesn't work 100%.
         """
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
-            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
-        )
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
 
         # Step 1: Register an OAuth client
         registration_data = {
@@ -59,9 +54,7 @@ class TestMCPFetchComplete:
         )
 
         # MUST succeed or test fails
-        assert reg_response.status_code == HTTP_CREATED, (
-            f"Client registration FAILED: {reg_response.text}"
-        )
+        assert reg_response.status_code == HTTP_CREATED, f"Client registration FAILED: {reg_response.text}"
         client = reg_response.json()
         assert "client_id" in client, "No client_id in registration response!"
         assert "client_secret" in client, "No client_secret in registration response!"
@@ -72,9 +65,7 @@ class TestMCPFetchComplete:
             # a pre-authorized token from the environment
 
             # Check if we have a valid OAuth token in the environment
-            oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
-                "OAUTH_JWT_TOKEN"
-            )
+            oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
 
             if not oauth_token:
                 pytest.fail(
@@ -85,9 +76,7 @@ class TestMCPFetchComplete:
 
             # Step 3: Initialize MCP session properly
             try:
-                session_id, init_result = await initialize_mcp_session(
-                    http_client, mcp_test_url, oauth_token
-                )
+                session_id, init_result = await initialize_mcp_session(http_client, mcp_test_url, oauth_token)
             except RuntimeError:
                 # Try with alternative supported version if available
                 if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
@@ -163,9 +152,7 @@ class TestMCPFetchComplete:
 
                 # Step 7: Verify it's a successful JSON-RPC response
                 assert "jsonrpc" in result, "Missing jsonrpc field in response!"
-                assert result["jsonrpc"] == "2.0", (
-                    f"Wrong JSON-RPC version: {result['jsonrpc']}"
-                )
+                assert result["jsonrpc"] == "2.0", f"Wrong JSON-RPC version: {result['jsonrpc']}"
 
                 # Check for errors - ALL errors should cause test failure per CLAUDE.md Commandment 1
                 if "error" in result:
@@ -180,11 +167,7 @@ class TestMCPFetchComplete:
                     # Handle different possible response structures
                     content = None
                     if isinstance(fetch_result, dict):
-                        content = (
-                            fetch_result.get("content")
-                            or fetch_result.get("body")
-                            or fetch_result.get("text")
-                        )
+                        content = fetch_result.get("content") or fetch_result.get("body") or fetch_result.get("text")
                     elif isinstance(fetch_result, str):
                         content = fetch_result
 
@@ -219,23 +202,15 @@ class TestMCPFetchComplete:
                     print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_validates_url_parameter(
-        self, http_client, wait_for_services, mcp_test_url
-    ):
+    async def test_mcp_fetch_validates_url_parameter(self, http_client, wait_for_services, mcp_test_url):
         """Test that MCP fetch properly validates the URL parameter."""
-        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
-            "OAUTH_JWT_TOKEN"
-        )
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.fail(
-                "Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!"
-            )
+            pytest.fail("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
 
         # Initialize MCP session properly first
         try:
-            session_id, init_result = await initialize_mcp_session(
-                http_client, mcp_test_url, oauth_token
-            )
+            session_id, init_result = await initialize_mcp_session(http_client, mcp_test_url, oauth_token)
         except RuntimeError:
             # Try with alternative supported version if available
             if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
@@ -278,23 +253,15 @@ class TestMCPFetchComplete:
             return
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_handles_invalid_urls(
-        self, http_client, wait_for_services, mcp_test_url
-    ):
+    async def test_mcp_fetch_handles_invalid_urls(self, http_client, wait_for_services, mcp_test_url):
         """Test that MCP fetch properly handles invalid URLs."""
-        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
-            "OAUTH_JWT_TOKEN"
-        )
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.fail(
-                "Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!"
-            )
+            pytest.fail("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
 
         # Initialize MCP session properly first
         try:
-            session_id, init_result = await initialize_mcp_session(
-                http_client, mcp_test_url, oauth_token
-            )
+            session_id, init_result = await initialize_mcp_session(http_client, mcp_test_url, oauth_token)
         except RuntimeError:
             # Try with alternative supported version if available
             if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
@@ -326,9 +293,7 @@ class TestMCPFetchComplete:
                 )
 
                 # Check if we got an error result
-                if "result" in response_data and isinstance(
-                    response_data["result"], dict
-                ):
+                if "result" in response_data and isinstance(response_data["result"], dict):
                     mcp_result = response_data["result"]
                     if mcp_result.get("isError"):
                         print(f"✓ Got expected error for '{invalid_url}': {mcp_result}")
@@ -347,23 +312,15 @@ class TestMCPFetchComplete:
                 continue
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_respects_max_size(
-        self, http_client, wait_for_services, mcp_test_url
-    ):
+    async def test_mcp_fetch_respects_max_size(self, http_client, wait_for_services, mcp_test_url):
         """Test that MCP fetch respects max_size parameter."""
-        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
-            "OAUTH_JWT_TOKEN"
-        )
+        oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
-            pytest.fail(
-                "Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!"
-            )
+            pytest.fail("Skipping - no GATEWAY_OAUTH_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
 
         # Initialize MCP session properly first
         try:
-            session_id, init_result = await initialize_mcp_session(
-                http_client, mcp_test_url, oauth_token
-            )
+            session_id, init_result = await initialize_mcp_session(http_client, mcp_test_url, oauth_token)
         except RuntimeError:
             # Try with alternative supported version if available
             if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
@@ -389,17 +346,13 @@ class TestMCPFetchComplete:
             # Check if we got a result
             if "result" in response_data:
                 fetch_result = response_data["result"]
-                if "content" in fetch_result and isinstance(
-                    fetch_result["content"], list
-                ):
+                if "content" in fetch_result and isinstance(fetch_result["content"], list):
                     for item in fetch_result["content"]:
                         if item.get("type") == "text" and "text" in item:
                             content = item["text"]
                             print(f"Fetched content size: {len(content)} bytes")
                             # The content should be reasonably small (respecting max_length)
-                            if (
-                                len(content) <= 500
-                            ):  # Reasonable limit considering formatting
+                            if len(content) <= 500:  # Reasonable limit considering formatting
                                 print("✓ Content size appears to respect max_length")
                             break
                 else:
@@ -410,9 +363,7 @@ class TestMCPFetchComplete:
             print(f"✓ Server handled small max_length appropriately: {e}")
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_without_auth_must_fail(
-        self, http_client, wait_for_services, mcp_test_url
-    ):
+    async def test_mcp_fetch_without_auth_must_fail(self, http_client, wait_for_services, mcp_test_url):
         """Test that MCP fetch ALWAYS requires authentication - no exceptions!"""
         mcp_request = {
             "jsonrpc": "2.0",
@@ -425,12 +376,9 @@ class TestMCPFetchComplete:
         response = await http_client.post(f"{mcp_test_url}", json=mcp_request)
 
         assert response.status_code == HTTP_UNAUTHORIZED, (
-            f"SECURITY VIOLATION! Got {response.status_code} without auth! "
-            "MCP fetch MUST require authentication!"
+            f"SECURITY VIOLATION! Got {response.status_code} without auth! MCP fetch MUST require authentication!"
         )
-        assert "WWW-Authenticate" in response.headers, (
-            "Missing WWW-Authenticate header!"
-        )
+        assert "WWW-Authenticate" in response.headers, "Missing WWW-Authenticate header!"
         assert response.headers["WWW-Authenticate"] == "Bearer", "Wrong auth challenge!"
 
         # Test 2: Verify error response format
@@ -447,8 +395,7 @@ class TestMCPFetchComplete:
         )
 
         assert response.status_code == HTTP_UNAUTHORIZED, (
-            f"SECURITY VIOLATION! Got {response.status_code} with invalid token! "
-            "MCP fetch MUST validate tokens!"
+            f"SECURITY VIOLATION! Got {response.status_code} with invalid token! MCP fetch MUST validate tokens!"
         )
 
         # Test 4: Wrong auth scheme
@@ -459,19 +406,15 @@ class TestMCPFetchComplete:
         )
 
         assert response.status_code == HTTP_UNAUTHORIZED, (
-            f"SECURITY VIOLATION! Got {response.status_code} with Basic auth! "
-            "MCP fetch MUST only accept Bearer tokens!"
+            f"SECURITY VIOLATION! Got {response.status_code} with Basic auth! MCP fetch MUST only accept Bearer tokens!"
         )
 
 
 @pytest.mark.skipif(
-    not MCP_FETCH_TESTS_ENABLED,
-    reason="MCP Fetch tests are disabled. Set MCP_FETCH_TESTS_ENABLED=true to enable."
+    not MCP_FETCH_TESTS_ENABLED, reason="MCP Fetch tests are disabled. Set MCP_FETCH_TESTS_ENABLED=true to enable."
 )
 @pytest.mark.asyncio
-async def test_complete_oauth_flow_integration(
-    http_client, wait_for_services, mcp_test_url
-):
+async def test_complete_oauth_flow_integration(http_client, wait_for_services, mcp_test_url):
     """The ultimate test - complete OAuth flow with actual functionality verification.
 
     This test MUST FAIL if ANY part doesn't work 100%!
@@ -479,9 +422,7 @@ async def test_complete_oauth_flow_integration(
     # This test demonstrates what a REAL integration test should look like
     # It MUST use real OAuth tokens and verify actual functionality
 
-    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv(
-        "OAUTH_JWT_TOKEN"
-    )
+    oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
 
     if not oauth_token:
         pytest.fail(
@@ -502,29 +443,21 @@ async def test_complete_oauth_flow_integration(
     print("Testing complete OAuth + MCP integration...")
 
     # 1. Verify auth endpoint via OAuth discovery
-    auth_response = await http_client.get(
-        f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-    )
+    auth_response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
     assert auth_response.status_code == HTTP_OK, "Auth service not healthy!"
 
     # 2. Verify MCP endpoint requires auth
-    mcp_response = await http_client.post(
-        f"{mcp_test_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}
-    )
+    mcp_response = await http_client.post(f"{mcp_test_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1})
     assert mcp_response.status_code == HTTP_UNAUTHORIZED, "MCP not enforcing auth!"
 
     # 3. Initialize MCP session properly first
     try:
-        session_id, init_result = await initialize_mcp_session(
-            http_client, mcp_test_url, oauth_token
-        )
+        session_id, init_result = await initialize_mcp_session(http_client, mcp_test_url, oauth_token)
     except RuntimeError:
         # Try with alternative supported version if available
         if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
             alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
-            session_id, init_result = await initialize_mcp_session(
-                http_client, mcp_test_url, oauth_token, alt_version
-            )
+            session_id, init_result = await initialize_mcp_session(http_client, mcp_test_url, oauth_token, alt_version)
         else:
             raise
 

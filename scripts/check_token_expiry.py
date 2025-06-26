@@ -34,9 +34,7 @@ def check_jwt_expiry(token_name: str, token: str) -> bool:
 
         if exp < now:
             expired_for = now - exp
-            print(
-                f"   ❌ EXPIRED {expired_for} seconds ago ({expired_for / 3600:.1f} hours)"
-            )
+            print(f"   ❌ EXPIRED {expired_for} seconds ago ({expired_for / 3600:.1f} hours)")
             return False
         remaining = exp - now
         hours_left = remaining / 3600

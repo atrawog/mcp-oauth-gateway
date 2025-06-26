@@ -29,9 +29,7 @@ def extract_coverage_data():
     for path, lines_covered, covered_lines in cursor.fetchall():
         coverage_data[path] = {
             "lines_covered": lines_covered,
-            "covered_lines": set(map(int, covered_lines.split(",")))
-            if covered_lines
-            else set(),
+            "covered_lines": set(map(int, covered_lines.split(","))) if covered_lines else set(),
         }
 
     # Get arc data if available
@@ -83,16 +81,12 @@ def map_and_analyze_coverage():
             except:
                 pass
 
-        coverage_pct = (
-            (data["lines_covered"] / total_lines * 100) if total_lines > 0 else 0
-        )
+        coverage_pct = (data["lines_covered"] / total_lines * 100) if total_lines > 0 else 0
         total_lines_covered += data["lines_covered"]
 
         results.append(
             {
-                "file": local_path.replace(
-                    "mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/", ""
-                ),
+                "file": local_path.replace("mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/", ""),
                 "lines_covered": data["lines_covered"],
                 "total_lines": total_lines,
                 "coverage_pct": coverage_pct,
@@ -131,9 +125,7 @@ def generate_detailed_report():
             file_name = "..." + file_name[-36:]
 
         lines_info = f"{result['lines_covered']}/{result['total_lines']}"
-        coverage = (
-            f"{result['coverage_pct']:.1f}%" if result["total_lines"] > 0 else "N/A"
-        )
+        coverage = f"{result['coverage_pct']:.1f}%" if result["total_lines"] > 0 else "N/A"
         branches = result["branches_covered"]
 
         print(f"{file_name:<40} {lines_info:<15} {coverage:<10} {branches}")

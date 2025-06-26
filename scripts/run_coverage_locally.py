@@ -37,15 +37,11 @@ result = subprocess.run(
 
 if result.returncode == 0:
     print("\nGenerating coverage report...")
-    subprocess.run(
-        [sys.executable, "-m", "coverage", "report", "-m"], check=False, env=env
-    )
+    subprocess.run([sys.executable, "-m", "coverage", "report", "-m"], check=False, env=env)
     subprocess.run([sys.executable, "-m", "coverage", "html"], check=False, env=env)
 
     print("\nGenerating detailed coverage JSON...")
     subprocess.run([sys.executable, "-m", "coverage", "json"], check=False, env=env)
 else:
     print("\nTests failed, but still generating coverage report...")
-    subprocess.run(
-        [sys.executable, "-m", "coverage", "report", "-m"], check=False, env=env
-    )
+    subprocess.run([sys.executable, "-m", "coverage", "report", "-m"], check=False, env=env)

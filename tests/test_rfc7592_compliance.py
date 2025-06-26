@@ -28,7 +28,7 @@ import os
 import pytest
 
 
-base_domain = os.environ.get('BASE_DOMAIN')
+base_domain = os.environ.get("BASE_DOMAIN")
 if not base_domain:
     raise Exception("BASE_DOMAIN must be set in environment")
 AUTH_BASE_URL = f"https://auth.{base_domain}"
@@ -51,9 +51,7 @@ async def test_rfc7592_get_client_configuration(http_client):
         "response_types": ["code"],
     }
 
-    response = await http_client.post(
-        f"{AUTH_BASE_URL}/register", json=registration_data
-    )
+    response = await http_client.post(f"{AUTH_BASE_URL}/register", json=registration_data)
     assert response.status_code == HTTP_CREATED
     client = response.json()
 
@@ -62,13 +60,9 @@ async def test_rfc7592_get_client_configuration(http_client):
 
     # Test 1: Valid GET with proper authentication
     registration_token = client.get("registration_access_token")
-    assert registration_token, (
-        "registration_access_token missing from registration response"
-    )
+    assert registration_token, "registration_access_token missing from registration response"
     auth_header = create_bearer_auth_header(registration_token)
-    response = await http_client.get(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
 
     assert response.status_code == HTTP_OK
     config = response.json()
@@ -89,9 +83,7 @@ async def test_rfc7592_get_client_configuration(http_client):
 
     # Test 3: GET with wrong token - MUST return 403
     wrong_auth = create_bearer_auth_header("reg-wrong-token")
-    response = await http_client.get(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": wrong_auth}
-    )
+    response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": wrong_auth})
     assert response.status_code == HTTP_FORBIDDEN
 
     # Test 4: GET with wrong client_id in URL - MUST return 404 (client not found)
@@ -103,15 +95,11 @@ async def test_rfc7592_get_client_configuration(http_client):
 
     # Test 5: GET non-existent client - MUST return 404
     fake_auth = create_bearer_auth_header("reg-fake-token")
-    response = await http_client.get(
-        f"{AUTH_BASE_URL}/register/client_fake", headers={"Authorization": fake_auth}
-    )
+    response = await http_client.get(f"{AUTH_BASE_URL}/register/client_fake", headers={"Authorization": fake_auth})
     assert response.status_code == HTTP_NOT_FOUND
 
     # Clean up
-    await http_client.delete(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
 
 
 @pytest.mark.asyncio
@@ -132,9 +120,7 @@ async def test_rfc7592_put_update_client(http_client):
     client_id = client["client_id"]
     client_secret = client["client_secret"]
     registration_token = client.get("registration_access_token")
-    assert registration_token, (
-        "registration_access_token missing from registration response"
-    )
+    assert registration_token, "registration_access_token missing from registration response"
     auth_header = create_bearer_auth_header(registration_token)
 
     # Test 1: Valid update with authentication
@@ -206,17 +192,13 @@ async def test_rfc7592_put_update_client(http_client):
     assert response.status_code == HTTP_BAD_REQUEST
 
     # Test 6: Verify updates persist
-    response = await http_client.get(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
     assert response.status_code == HTTP_OK
     persisted = response.json()
     assert persisted["client_name"] == "TEST Updated Name via RFC 7592"
 
     # Clean up
-    await http_client.delete(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
 
 
 @pytest.mark.asyncio
@@ -236,9 +218,7 @@ async def test_rfc7592_delete_client(http_client):
     client_id = client["client_id"]
     client["client_secret"]
     registration_token = client.get("registration_access_token")
-    assert registration_token, (
-        "registration_access_token missing from registration response"
-    )
+    assert registration_token, "registration_access_token missing from registration response"
     auth_header = create_bearer_auth_header(registration_token)
 
     # Test 1: DELETE without authentication - MUST return 401
@@ -249,28 +229,20 @@ async def test_rfc7592_delete_client(http_client):
     # Test 2: DELETE with wrong token - MUST return 403
     wrong_token = "reg-wrong-token-delete"
     wrong_auth = create_bearer_auth_header(wrong_token)
-    response = await http_client.delete(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": wrong_auth}
-    )
+    response = await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": wrong_auth})
     assert response.status_code == HTTP_FORBIDDEN
 
     # Test 3: Valid DELETE with authentication
-    response = await http_client.delete(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    response = await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
     assert response.status_code == HTTP_NO_CONTENT
     assert not response.content  # No content on 204
 
     # Test 4: Verify client is deleted - GET should return 404
-    response = await http_client.get(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
     assert response.status_code == HTTP_NOT_FOUND
 
     # Test 5: DELETE already deleted client - MUST return 404
-    response = await http_client.delete(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    response = await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
     assert response.status_code == HTTP_NOT_FOUND
 
     # Test 6: DELETE non-existent client - MUST return 404
@@ -332,9 +304,7 @@ async def test_rfc7592_requires_correct_bearer_token(http_client):
                 headers={"Authorization": f"Bearer {wrong_bearer_token}"},
             )
 
-        assert response.status_code == HTTP_FORBIDDEN, (
-            f"{method} {path} should reject wrong Bearer tokens"
-        )
+        assert response.status_code == HTTP_FORBIDDEN, f"{method} {path} should reject wrong Bearer tokens"
 
     # Test with NO auth header - should return 401
     response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}")
@@ -344,20 +314,14 @@ async def test_rfc7592_requires_correct_bearer_token(http_client):
     # Test with Basic auth - should return 401 (wrong auth method)
     import base64
 
-    basic_auth = (
-        f"Basic {base64.b64encode(f'{client_id}:{client_secret}'.encode()).decode()}"
-    )
-    response = await http_client.get(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": basic_auth}
-    )
+    basic_auth = f"Basic {base64.b64encode(f'{client_id}:{client_secret}'.encode()).decode()}"
+    response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": basic_auth})
     assert response.status_code == HTTP_UNAUTHORIZED
     assert response.headers.get("WWW-Authenticate") == 'Bearer realm="auth"'
 
     # Clean up with correct token
     auth_header = create_bearer_auth_header(registration_token)
-    await http_client.delete(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
 
 
 @pytest.mark.asyncio
@@ -450,9 +414,7 @@ async def test_rfc7592_malformed_requests(http_client):
     client_id = client["client_id"]
     client_secret = client["client_secret"]
     registration_token = client.get("registration_access_token")
-    assert registration_token, (
-        "registration_access_token missing from registration response"
-    )
+    assert registration_token, "registration_access_token missing from registration response"
     auth_header = create_bearer_auth_header(registration_token)
 
     # Test 1: Malformed Bearer auth headers
@@ -460,17 +422,13 @@ async def test_rfc7592_malformed_requests(http_client):
         "Bearer",  # No token
         "Bearer x",  # Single character token (invalid format)
         "Basic "
-        + base64.b64encode(
-            f"{client_id}:{client_secret}".encode()
-        ).decode(),  # Wrong scheme (Basic instead of Bearer)
+        + base64.b64encode(f"{client_id}:{client_secret}".encode()).decode(),  # Wrong scheme (Basic instead of Bearer)
         "Bearer  double-space",  # Extra space
         "BEARER " + registration_token,  # Wrong case (should still work per spec)
     ]
 
     for bad_auth in malformed_auth_tests:
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": bad_auth}
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": bad_auth})
         # Different malformed headers can return either 401 or 403
         # 401 = malformed/missing auth, 403 = valid format but wrong token
         if bad_auth in [
@@ -501,15 +459,11 @@ async def test_rfc7592_malformed_requests(http_client):
     ]
 
     for bad_id in invalid_client_ids:
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/register/{bad_id}", headers={"Authorization": auth_header}
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/register/{bad_id}", headers={"Authorization": auth_header})
         assert response.status_code in [400, 403, 404]
 
     # Clean up
-    await http_client.delete(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
 
 
 @pytest.mark.asyncio
@@ -530,9 +484,7 @@ async def test_rfc7592_concurrent_updates(http_client):
     client_id = client["client_id"]
     client["client_secret"]
     registration_token = client.get("registration_access_token")
-    assert registration_token, (
-        "registration_access_token missing from registration response"
-    )
+    assert registration_token, "registration_access_token missing from registration response"
     auth_header = create_bearer_auth_header(registration_token)
 
     # Make multiple concurrent update requests
@@ -554,15 +506,11 @@ async def test_rfc7592_concurrent_updates(http_client):
     responses = await asyncio.gather(*tasks, return_exceptions=True)
 
     # All requests should succeed (last write wins)
-    success_count = sum(
-        1 for r in responses if not isinstance(r, Exception) and r.status_code == HTTP_OK
-    )
+    success_count = sum(1 for r in responses if not isinstance(r, Exception) and r.status_code == HTTP_OK)
     assert success_count == 5
 
     # Verify final state is consistent
-    response = await http_client.get(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
     assert response.status_code == HTTP_OK
     final_state = response.json()
     assert final_state["client_id"] == client_id
@@ -570,9 +518,7 @@ async def test_rfc7592_concurrent_updates(http_client):
     assert "Concurrent Update" in final_state["client_name"]
 
     # Clean up
-    await http_client.delete(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
 
 
 @pytest.mark.asyncio
@@ -594,9 +540,7 @@ async def test_rfc7592_client_lifetime_handling(http_client):
     client_id = client["client_id"]
     client["client_secret"]
     registration_token = client.get("registration_access_token")
-    assert registration_token, (
-        "registration_access_token missing from registration response"
-    )
+    assert registration_token, "registration_access_token missing from registration response"
     auth_header = create_bearer_auth_header(registration_token)
 
     # Check expiration handling
@@ -625,6 +569,4 @@ async def test_rfc7592_client_lifetime_handling(http_client):
     assert updated["client_id_issued_at"] == client["client_id_issued_at"]
 
     # Clean up
-    await http_client.delete(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})

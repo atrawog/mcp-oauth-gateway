@@ -96,9 +96,7 @@ Generated: {datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")}
         report += "| Error Type | Count |\n"
         report += "|------------|-------|\n"
 
-        for error, count in sorted(
-            stats["errors"].items(), key=lambda x: x[1], reverse=True
-        ):
+        for error, count in sorted(stats["errors"].items(), key=lambda x: x[1], reverse=True):
             report += f"| {error} | {count} |\n"
 
     # Add recommendations

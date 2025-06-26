@@ -27,16 +27,16 @@ class TestMCPEchoProtocolCompliance:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {"name": "compliance-test", "version": "1.0.0"}
+                    "clientInfo": {"name": "compliance-test", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
@@ -59,14 +59,14 @@ class TestMCPEchoProtocolCompliance:
                 "jsonrpc": "1.0",  # Invalid version
                 "method": "initialize",
                 "params": {},
-                "id": 2
+                "id": 2,
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         # Should handle gracefully, possibly with error
@@ -83,14 +83,14 @@ class TestMCPEchoProtocolCompliance:
                 # Missing "jsonrpc" field
                 "method": "initialize",
                 "params": {},
-                "id": 3
+                "id": 3,
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         # Should return error
@@ -105,23 +105,15 @@ class TestMCPEchoProtocolCompliance:
         response = await http_client.post(
             mcp_echo_url,
             json=[
-                {
-                    "jsonrpc": "2.0",
-                    "method": "tools/list",
-                    "id": 1
-                },
-                {
-                    "jsonrpc": "2.0",
-                    "method": "tools/list",
-                    "id": 2
-                }
+                {"jsonrpc": "2.0", "method": "tools/list", "id": 1},
+                {"jsonrpc": "2.0", "method": "tools/list", "id": 2},
             ],
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         # Stateless server might not support batches
@@ -141,16 +133,16 @@ class TestMCPEchoProtocolCompliance:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {"name": "version-test", "version": "1.0.0"}
+                    "clientInfo": {"name": "version-test", "version": "1.0.0"},
                 },
-                "id": 4
+                "id": 4,
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
@@ -170,16 +162,16 @@ class TestMCPEchoProtocolCompliance:
                 "params": {
                     "protocolVersion": "9999-12-31",  # Future version
                     "capabilities": {},
-                    "clientInfo": {"name": "future-test", "version": "1.0.0"}
+                    "clientInfo": {"name": "future-test", "version": "1.0.0"},
                 },
-                "id": 5
+                "id": 5,
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         # Should either negotiate down or error
@@ -203,16 +195,16 @@ class TestMCPEchoProtocolCompliance:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {"name": "header-test", "version": "1.0.0"}
+                    "clientInfo": {"name": "header-test", "version": "1.0.0"},
                 },
-                "id": 6
+                "id": 6,
             },
             headers={
                 **gateway_auth_headers,
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
-                "MCP-Protocol-Version": "2025-06-18"  # Required per spec
-            }
+                "MCP-Protocol-Version": "2025-06-18",  # Required per spec
+            },
         )
 
         assert response.status_code == 200
@@ -229,8 +221,8 @@ class TestMCPEchoProtocolCompliance:
             headers={
                 **gateway_auth_headers,
                 "Content-Type": "text/plain",  # Wrong content type
-                "Accept": "application/json, text/event-stream"
-            }
+                "Accept": "application/json, text/event-stream",
+            },
         )
 
         # Should reject non-JSON content
@@ -243,26 +235,21 @@ class TestMCPEchoProtocolCompliance:
         """Test that Echo service returns proper SSE format."""
         response = await http_client.post(
             mcp_echo_url,
-            json={
-                "jsonrpc": "2.0",
-                "method": "tools/list",
-                "params": {},
-                "id": 7
-            },
+            json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 7},
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
         assert response.headers.get("content-type", "").startswith("text/event-stream")
 
         # Verify SSE format
-        lines = response.text.strip().split('\n')
-        assert any(line.startswith(('event:', 'data:')) for line in lines)
+        lines = response.text.strip().split("\n")
+        assert any(line.startswith(("event:", "data:")) for line in lines)
 
     @pytest.mark.asyncio
     async def test_echo_error_response_format(
@@ -274,18 +261,15 @@ class TestMCPEchoProtocolCompliance:
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
-                "params": {
-                    "name": "nonexistent_tool",
-                    "arguments": {}
-                },
-                "id": 8
+                "params": {"name": "nonexistent_tool", "arguments": {}},
+                "id": 8,
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
@@ -313,15 +297,15 @@ class TestMCPEchoProtocolCompliance:
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/list",
-                "params": {}
+                "params": {},
                 # No "id" field - this is a notification
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         # Server should accept notifications with 202 Accepted per MCP 2025-06-18 spec
@@ -338,7 +322,7 @@ class TestMCPEchoProtocolCompliance:
             "tools/list",
             "tools/call",
             "resources/list",  # Even if not implemented
-            "prompts/list"     # Even if not implemented
+            "prompts/list",  # Even if not implemented
         ]
 
         for method in valid_methods[:3]:  # Test first 3 that echo supports
@@ -347,17 +331,14 @@ class TestMCPEchoProtocolCompliance:
                 json={
                     "jsonrpc": "2.0",
                     "method": method,
-                    "params": {} if method != "tools/call" else {
-                        "name": "echo",
-                        "arguments": {"message": "test"}
-                    },
-                    "id": f"method-{method}"
+                    "params": {} if method != "tools/call" else {"name": "echo", "arguments": {"message": "test"}},
+                    "id": f"method-{method}",
                 },
                 headers={
                     **gateway_auth_headers,
                     "Accept": "application/json, text/event-stream",
-                    "Content-Type": "application/json"
-                }
+                    "Content-Type": "application/json",
+                },
             )
 
             assert response.status_code == 200
@@ -365,7 +346,7 @@ class TestMCPEchoProtocolCompliance:
     # Helper methods
     def _parse_sse_response(self, sse_text: str) -> dict[str, Any]:
         """Parse SSE response to extract JSON data."""
-        for line in sse_text.strip().split('\n'):
-            if line.startswith('data: '):
+        for line in sse_text.strip().split("\n"):
+            if line.startswith("data: "):
                 return json.loads(line[6:])
         raise ValueError("No data found in SSE response")

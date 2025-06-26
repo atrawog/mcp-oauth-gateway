@@ -26,9 +26,7 @@ def valid_oauth_token():
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_health_check(
-    mcp_fetchs_url, wait_for_services, valid_oauth_token
-):
+async def test_fetch_native_health_check(mcp_fetchs_url, wait_for_services, valid_oauth_token):
     """Test health check via MCP protocol initialization."""
     async with httpx.AsyncClient(verify=True) as client:
         response = await client.post(
@@ -96,9 +94,7 @@ async def test_fetch_native_cors_preflight(mcp_fetchs_url, wait_for_services):
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_initialize(
-    mcp_fetchs_url, valid_oauth_token, wait_for_services
-):
+async def test_fetch_native_initialize(mcp_fetchs_url, valid_oauth_token, wait_for_services):
     """Test MCP initialization."""
     async with httpx.AsyncClient(verify=True) as client:
         response = await client.post(
@@ -135,9 +131,7 @@ async def test_fetch_native_initialize(
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_list_tools(
-    mcp_fetchs_url, valid_oauth_token, wait_for_services
-):
+async def test_fetch_native_list_tools(mcp_fetchs_url, valid_oauth_token, wait_for_services):
     """Test listing available tools."""
     async with httpx.AsyncClient(verify=True) as client:
         response = await client.post(
@@ -168,9 +162,7 @@ async def test_fetch_native_list_tools(
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_call_tool_fetch(
-    mcp_fetchs_url, base_domain, valid_oauth_token, wait_for_services
-):
+async def test_fetch_native_call_tool_fetch(mcp_fetchs_url, base_domain, valid_oauth_token, wait_for_services):
     """Test calling the fetch tool."""
     # Fetch from our own auth service's health endpoint
     async with httpx.AsyncClient(verify=True) as client:
@@ -211,9 +203,7 @@ async def test_fetch_native_call_tool_fetch(
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_invalid_json_rpc(
-    mcp_fetchs_url, valid_oauth_token, wait_for_services
-):
+async def test_fetch_native_invalid_json_rpc(mcp_fetchs_url, valid_oauth_token, wait_for_services):
     """Test handling of invalid JSON-RPC requests."""
     async with httpx.AsyncClient(verify=True) as client:
         # Missing jsonrpc version
@@ -236,9 +226,7 @@ async def test_fetch_native_invalid_json_rpc(
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_unknown_method(
-    mcp_fetchs_url, valid_oauth_token, wait_for_services
-):
+async def test_fetch_native_unknown_method(mcp_fetchs_url, valid_oauth_token, wait_for_services):
     """Test handling of unknown methods."""
     async with httpx.AsyncClient(verify=True) as client:
         response = await client.post(
@@ -268,9 +256,7 @@ async def test_fetch_native_oauth_discovery(wait_for_services):
         pytest.skip("MCP Fetch tests are disabled. Set MCP_FETCH_TESTS_ENABLED=true to enable.")
 
     # Use base domain for OAuth discovery, not the /mcp endpoint
-    oauth_discovery_url = (
-        f"https://fetch.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
-    )
+    oauth_discovery_url = f"https://fetch.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
 
     async with httpx.AsyncClient(verify=True) as client:
         response = await client.get(oauth_discovery_url)

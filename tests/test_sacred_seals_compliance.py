@@ -27,9 +27,7 @@ class TestSacredSealsCompliance:
     async def test_redis_key_patterns_and_ttls(self, http_client, wait_for_services):
         """Test SEAL OF REDIS PATTERNS - Sacred key hierarchies preserve all state."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
-            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
-        )
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
 
         # Connect to Redis
         redis_client = await redis.from_url(REDIS_URL)
@@ -96,9 +94,7 @@ class TestSacredSealsCompliance:
                     # Clean it up to prevent test pollution
                     await redis_client.delete(state_key)
                     continue  # Skip this key as it's likely from a previous test
-                assert 1 <= state_ttl <= 300, (
-                    f"State key TTL {state_ttl} not in expected range"
-                )
+                assert 1 <= state_ttl <= 300, f"State key TTL {state_ttl} not in expected range"
 
             # Verify sacred key hierarchy patterns
             expected_patterns = [
@@ -126,10 +122,7 @@ class TestSacredSealsCompliance:
                 if pattern in ["oauth:client:", "oauth:state:"]:
                     # Redis returns bytes, need to decode
                     assert any(
-                        (key.decode() if isinstance(key, bytes) else key).startswith(
-                            pattern
-                        )
-                        for key in all_keys
+                        (key.decode() if isinstance(key, bytes) else key).startswith(pattern) for key in all_keys
                     ), f"Pattern {pattern} not found in Redis keys!"
 
         finally:
@@ -152,9 +145,7 @@ class TestSacredSealsCompliance:
     async def test_dual_realms_architecture(self, http_client, wait_for_services):
         """Test SEAL OF DUAL REALMS - Client auth and user auth never intermingle."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
-            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
-        )
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
 
         # Test 1: MCP Gateway Client Realm - External systems authenticate
         client_register = await http_client.post(
@@ -192,9 +183,7 @@ class TestSacredSealsCompliance:
             "state": "test-dual-realms",
         }
 
-        auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
-        )
+        auth_response = await http_client.get(f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False)
 
         # Should redirect to GitHub for USER authentication
         assert auth_response.status_code == 307
@@ -286,9 +275,7 @@ class TestSacredSealsCompliance:
         ]
 
         for compose_file in service_compose_files:
-            assert Path(compose_file).exists(), (
-                f"Service isolation violated! {compose_file} missing!"
-            )
+            assert Path(compose_file).exists(), f"Service isolation violated! {compose_file} missing!"
 
         # Check .gitignore properly ignores sacred directories
         gitignore_content = Path(".gitignore").read_text()
@@ -331,9 +318,7 @@ class TestSacredSealsCompliance:
         coverage_compose = Path("./docker-compose.coverage.yml").read_text()
 
         # Verify PYTHONPATH injection
-        assert "PYTHONPATH=/coverage-spy" in coverage_compose, (
-            "Coverage must be injected via PYTHONPATH!"
-        )
+        assert "PYTHONPATH=/coverage-spy" in coverage_compose, "Coverage must be injected via PYTHONPATH!"
 
         # Verify COVERAGE_PROCESS_START
         assert "COVERAGE_PROCESS_START=" in coverage_compose, (
@@ -341,9 +326,7 @@ class TestSacredSealsCompliance:
         )
 
         # Verify read-only mounts
-        assert ":ro" in coverage_compose, (
-            "Source mounts must be read-only - observer pattern!"
-        )
+        assert ":ro" in coverage_compose, "Source mounts must be read-only - observer pattern!"
 
         # Check .coveragerc configuration
         coveragerc_content = Path("./coverage-spy/.coveragerc").read_text()
@@ -356,9 +339,7 @@ class TestSacredSealsCompliance:
 
         for setting in required_settings:
             # Check case-insensitive since parallel = True vs parallel = true
-            assert setting.lower() in coveragerc_content.lower(), (
-                f"Coverage config missing required setting: {setting}"
-            )
+            assert setting.lower() in coveragerc_content.lower(), f"Coverage config missing required setting: {setting}"
 
         # Verify path mapping for coverage
         assert "[paths]" in coveragerc_content, "Coverage must have path mapping!"
@@ -385,22 +366,16 @@ class TestSacredSealsCompliance:
 
         # Verify _toc.yml has proper structure
         toc_content = Path("./docs/_toc.yml").read_text()
-        assert "root:" in toc_content or "format:" in toc_content, (
-            "Table of contents must define root or format!"
-        )
+        assert "root:" in toc_content or "format:" in toc_content, "Table of contents must define root or format!"
 
         # Check that just command exists for building docs
         justfile_content = Path("./justfile").read_text()
-        assert "docs-build" in justfile_content, (
-            "justfile must have docs-build command!"
-        )
+        assert "docs-build" in justfile_content, "justfile must have docs-build command!"
 
         # Verify the docs use MyST markdown
         index_content = Path("./docs/index.md").read_text()
         # MyST uses standard markdown, check for markdown syntax
-        assert "#" in index_content or "```" in index_content, (
-            "Documentation must use MyST markdown format!"
-        )
+        assert "#" in index_content or "```" in index_content, "Documentation must use MyST markdown format!"
 
     async def _get_all_keys(self, redis_client):
         """Helper to get all Redis keys."""

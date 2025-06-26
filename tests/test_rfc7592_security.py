@@ -24,7 +24,7 @@ import pytest
 logger = logging.getLogger(__name__)
 
 
-base_domain = os.environ.get('BASE_DOMAIN')
+base_domain = os.environ.get("BASE_DOMAIN")
 if not base_domain:
     raise Exception("BASE_DOMAIN must be set in environment")
 AUTH_BASE_URL = f"https://auth.{base_domain}"
@@ -154,9 +154,7 @@ async def test_rfc7592_authentication_edge_cases(http_client):
 
     for auth_header, expected_status, description in test_cases:
         headers = {"Authorization": auth_header} if auth_header is not None else {}
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/register/{client_id}", headers=headers
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}", headers=headers)
         assert response.status_code == expected_status, f"Failed: {description}"
         if expected_status == 401:
             assert response.headers.get("WWW-Authenticate") == 'Bearer realm="auth"'
@@ -169,9 +167,7 @@ async def test_rfc7592_authentication_edge_cases(http_client):
         )
         # 204 No Content is success, 404 is okay if already deleted
         if delete_response.status_code not in (204, 404):
-            logger.warning(
-                f"Failed to delete client {client_id}: {delete_response.status_code}"
-            )
+            logger.warning(f"Failed to delete client {client_id}: {delete_response.status_code}")
     except Exception as e:
         logger.warning(f"Error during client cleanup: {e}")
 
@@ -379,9 +375,7 @@ async def test_rfc7592_rate_limiting(http_client):
         valid_responses.append(response.status_code)
 
     # Most should succeed
-    success_rate = sum(1 for status in valid_responses if status == 200) / len(
-        valid_responses
-    )
+    success_rate = sum(1 for status in valid_responses if status == 200) / len(valid_responses)
     assert success_rate > 0.8, "Valid requests being rate limited too aggressively"
 
     # Clean up
@@ -441,13 +435,9 @@ async def test_rfc7592_sql_injection_attempts(http_client):
         assert response.status_code in [403, 404]  # Wrong token = 403
 
     # Verify original client still exists and works
-    response = await http_client.get(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
     assert response.status_code == HTTP_OK
     assert response.json()["client_name"] == "TEST SQL Test Client"
 
     # Clean up
-    await http_client.delete(
-        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
-    )
+    await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})

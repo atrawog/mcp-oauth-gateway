@@ -21,9 +21,7 @@ SERVICES = [
 
 def fix_healthcheck(service_name):
     """Fix healthcheck syntax for a service."""
-    compose_file = Path(
-        f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml"
-    )
+    compose_file = Path(f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml")
 
     if not compose_file.exists():
         print(f"❌ {compose_file} not found")

@@ -99,9 +99,7 @@ def main():
             continue
 
         analysis = analyze_test_file(test_file)
-        if analysis[
-            "has_registrations"
-        ]:  # Only include files that create registrations
+        if analysis["has_registrations"]:  # Only include files that create registrations
             results[test_file.name] = analysis
 
     # Categorize files
@@ -162,9 +160,7 @@ def main():
 
     if fixture_without_cleanup:
         print("\n🔧 RECOMMENDATION 1: Fix the registered_client fixture")
-        print(
-            "The registered_client fixture in conftest.py should be updated to include"
-        )
+        print("The registered_client fixture in conftest.py should be updated to include")
         print("automatic cleanup using pytest's fixture finalization:")
         print("\n@pytest.fixture")
         print("async def registered_client(http_client, wait_for_services):")
@@ -174,9 +170,7 @@ def main():
         print("    if 'registration_access_token' in client_data:")
         print("        await http_client.delete(")
         print("            f\"{AUTH_BASE_URL}/register/{client_data['client_id']}\",")
-        print(
-            "            headers={'Authorization': f\"Bearer {client_data['registration_access_token']}\"}"
-        )
+        print("            headers={'Authorization': f\"Bearer {client_data['registration_access_token']}\"}")
         print("        )")
 
     if direct_without_cleanup:

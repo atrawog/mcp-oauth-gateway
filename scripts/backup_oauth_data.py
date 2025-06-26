@@ -122,9 +122,7 @@ class OAuthBackup:
             count = 0
 
             while True:
-                cursor, keys = await self.redis_client.scan(
-                    cursor, match=pattern, count=100
-                )
+                cursor, keys = await self.redis_client.scan(cursor, match=pattern, count=100)
 
                 for key in keys:
                     try:
@@ -138,9 +136,7 @@ class OAuthBackup:
                         elif key_type == "list":
                             # For user_tokens, it's a list
                             value = await self.redis_client.lrange(key, 0, -1)
-                            value = json.dumps(
-                                value
-                            )  # Convert to JSON string for storage
+                            value = json.dumps(value)  # Convert to JSON string for storage
                         elif key_type == "set":
                             value = list(await self.redis_client.smembers(key))
                             value = json.dumps(value)
@@ -166,9 +162,7 @@ class OAuthBackup:
 
                                 # Extract useful info for display
                                 if category == "registrations":
-                                    client_name = parsed_value.get(
-                                        "client_name", "Unknown"
-                                    )
+                                    client_name = parsed_value.get("client_name", "Unknown")
                                     print(f"  📦 {key} → {client_name}")
                                 elif category == "tokens":
                                     client_id = parsed_value.get("client_id", "Unknown")
@@ -232,9 +226,7 @@ class OAuthBackup:
         """List all available backups."""
         backups = []
 
-        for filepath in sorted(
-            self.backup_dir.glob("oauth-backup-*.json"), reverse=True
-        ):
+        for filepath in sorted(self.backup_dir.glob("oauth-backup-*.json"), reverse=True):
             stat = filepath.stat()
 
             # Load metadata

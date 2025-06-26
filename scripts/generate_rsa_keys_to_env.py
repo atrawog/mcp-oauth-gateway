@@ -52,9 +52,7 @@ def validate_existing_jwt_key(env_content):
 
     # Validate RSA private key format
     try:
-        private_key = serialization.load_pem_private_key(
-            decoded_key, password=None, backend=default_backend()
-        )
+        private_key = serialization.load_pem_private_key(decoded_key, password=None, backend=default_backend())
 
         # Verify it's actually an RSA key
         if not isinstance(private_key, rsa.RSAPrivateKey):
@@ -106,9 +104,7 @@ def generate_rsa_key_to_env(force=False):
 
     # Generate new RSA key
     print("\n🔑 Generating new RSA key for RS256 JWT signing...")
-    private_key = rsa.generate_private_key(
-        public_exponent=65537, key_size=2048, backend=default_backend()
-    )
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
 
     # Serialize private key
     private_key_pem = private_key.private_bytes(
@@ -141,9 +137,7 @@ def generate_rsa_key_to_env(force=False):
         f.write(env_content)
 
     print("✅ RSA private key successfully added to .env file!")
-    print(
-        "🔐 The private key is base64 encoded for safe storage in environment variables."
-    )
+    print("🔐 The private key is base64 encoded for safe storage in environment variables.")
 
     # Also show the public key for verification
     public_key = private_key.public_key()
@@ -165,7 +159,5 @@ if __name__ == "__main__":
     # Check for --force flag
     force = "--force" in sys.argv
     if force:
-        print(
-            "🚨 Force mode enabled - will overwrite existing RSA key without confirmation!"
-        )
+        print("🚨 Force mode enabled - will overwrite existing RSA key without confirmation!")
     generate_rsa_key_to_env(force=force)

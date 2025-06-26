@@ -20,9 +20,7 @@ SERVICES = [
 
 def fix_dollar_signs(service_name):
     """Fix double dollar signs in healthcheck."""
-    compose_file = Path(
-        f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml"
-    )
+    compose_file = Path(f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml")
 
     if not compose_file.exists():
         print(f"❌ {compose_file} not found")

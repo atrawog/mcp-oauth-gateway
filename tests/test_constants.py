@@ -83,9 +83,7 @@ MCP_FETCHS_URL = _get_mcp_service_urls("fetchs", "fetchs")[0]
 MCP_FILESYSTEM_URL = _get_mcp_service_urls("filesystem", "filesystem")[0]
 MCP_MEMORY_URL = _get_mcp_service_urls("memory", "memory")[0]
 MCP_PLAYWRIGHT_URL = _get_mcp_service_urls("playwright", "playwright")[0]
-MCP_SEQUENTIALTHINKING_URL = _get_mcp_service_urls(
-    "sequentialthinking", "sequentialthinking"
-)[0]
+MCP_SEQUENTIALTHINKING_URL = _get_mcp_service_urls("sequentialthinking", "sequentialthinking")[0]
 MCP_TIME_URL = _get_mcp_service_urls("time", "time")[0]
 MCP_TMUX_URL = _get_mcp_service_urls("tmux", "tmux")[0]
 
@@ -111,31 +109,19 @@ SESSION_TIMEOUT = _get_env_int_or_fail("SESSION_TIMEOUT")
 
 # MCP Protocol Configuration - From main .env
 MCP_PROTOCOL_VERSION = _get_env_or_fail("MCP_PROTOCOL_VERSION")
-MCP_PROTOCOL_VERSIONS_SUPPORTED = _get_env_or_fail(
-    "MCP_PROTOCOL_VERSIONS_SUPPORTED"
-).split(",")
+MCP_PROTOCOL_VERSIONS_SUPPORTED = _get_env_or_fail("MCP_PROTOCOL_VERSIONS_SUPPORTED").split(",")
 
 # GitHub Personal Access Token (if needed for tests) - From main .env
 GITHUB_PAT = os.getenv("GITHUB_PAT")  # REQUIRED - GitHub PAT is NOT optional!
 
 # Gateway OAuth Client Credentials (from successful registration) - From main .env
-GATEWAY_OAUTH_CLIENT_ID = os.getenv(
-    "GATEWAY_OAUTH_CLIENT_ID"
-)  # Optional, set after registration
-GATEWAY_OAUTH_CLIENT_SECRET = os.getenv(
-    "GATEWAY_OAUTH_CLIENT_SECRET"
-)  # Optional, set after registration
-GATEWAY_OAUTH_ACCESS_TOKEN = os.getenv(
-    "GATEWAY_OAUTH_ACCESS_TOKEN"
-)  # Optional, set after OAuth flow
-GATEWAY_OAUTH_REFRESH_TOKEN = os.getenv(
-    "GATEWAY_OAUTH_REFRESH_TOKEN"
-)  # Optional, set after OAuth flow
+GATEWAY_OAUTH_CLIENT_ID = os.getenv("GATEWAY_OAUTH_CLIENT_ID")  # Optional, set after registration
+GATEWAY_OAUTH_CLIENT_SECRET = os.getenv("GATEWAY_OAUTH_CLIENT_SECRET")  # Optional, set after registration
+GATEWAY_OAUTH_ACCESS_TOKEN = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")  # Optional, set after OAuth flow
+GATEWAY_OAUTH_REFRESH_TOKEN = os.getenv("GATEWAY_OAUTH_REFRESH_TOKEN")  # Optional, set after OAuth flow
 
 # MCP Client tokens for testing MCP endpoints
-MCP_CLIENT_ACCESS_TOKEN = os.getenv(
-    "MCP_CLIENT_ACCESS_TOKEN"
-)  # Optional, set after MCP client setup
+MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")  # Optional, set after MCP client setup
 MCP_CLIENT_REFRESH_TOKEN = os.getenv("MCP_CLIENT_REFRESH_TOKEN")  # Optional
 # Backwards compatibility aliases
 OAUTH_CLIENT_ID = GATEWAY_OAUTH_CLIENT_ID
@@ -159,65 +145,45 @@ HEALTH_CHECK_INTERVAL = _get_env_int_or_fail("HEALTH_CHECK_INTERVAL")
 ALLOWED_GITHUB_USERS = _get_env_or_fail("ALLOWED_GITHUB_USERS").split(",")
 
 # MCP Everything Configuration - From main .env
-MCP_EVERYTHING_TESTS_ENABLED = (
-    _get_env_optional("MCP_EVERYTHING_TESTS_ENABLED") or "false"
-).lower() == "true"
+MCP_EVERYTHING_TESTS_ENABLED = (_get_env_optional("MCP_EVERYTHING_TESTS_ENABLED") or "false").lower() == "true"
 MCP_EVERYTHING_URLS = _get_mcp_service_urls("everything", "everything")
 
 # MCP Echo Configuration - From main .env
-MCP_ECHO_TESTS_ENABLED = (
-    _get_env_optional("MCP_ECHO_TESTS_ENABLED") or "false"
-).lower() == "true"
+MCP_ECHO_TESTS_ENABLED = (_get_env_optional("MCP_ECHO_TESTS_ENABLED") or "false").lower() == "true"
 MCP_ECHO_URLS = _get_mcp_service_urls("echo", "echo")
 
 # MCP Fetch Configuration - From main .env
-MCP_FETCH_TESTS_ENABLED = (
-    _get_env_optional("MCP_FETCH_TESTS_ENABLED") or "false"
-).lower() == "true"
+MCP_FETCH_TESTS_ENABLED = (_get_env_optional("MCP_FETCH_TESTS_ENABLED") or "false").lower() == "true"
 MCP_FETCH_URLS = _get_mcp_service_urls("fetch", "fetch")
 
 # MCP Fetchs Configuration - From main .env
-MCP_FETCHS_TESTS_ENABLED = (
-    _get_env_optional("MCP_FETCHS_TESTS_ENABLED") or "false"
-).lower() == "true"
+MCP_FETCHS_TESTS_ENABLED = (_get_env_optional("MCP_FETCHS_TESTS_ENABLED") or "false").lower() == "true"
 MCP_FETCHS_URLS = _get_mcp_service_urls("fetchs", "fetchs")
 
 # MCP Filesystem Configuration - From main .env
-MCP_FILESYSTEM_TESTS_ENABLED = (
-    _get_env_optional("MCP_FILESYSTEM_TESTS_ENABLED") or "false"
-).lower() == "true"
+MCP_FILESYSTEM_TESTS_ENABLED = (_get_env_optional("MCP_FILESYSTEM_TESTS_ENABLED") or "false").lower() == "true"
 MCP_FILESYSTEM_URLS = _get_mcp_service_urls("filesystem", "filesystem")
 
 # MCP Memory Configuration - From main .env
-MCP_MEMORY_TESTS_ENABLED = (
-    _get_env_optional("MCP_MEMORY_TESTS_ENABLED") or "false"
-).lower() == "true"
+MCP_MEMORY_TESTS_ENABLED = (_get_env_optional("MCP_MEMORY_TESTS_ENABLED") or "false").lower() == "true"
 MCP_MEMORY_URLS = _get_mcp_service_urls("memory", "memory")
 
 # MCP Playwright Configuration - From main .env
-MCP_PLAYWRIGHT_TESTS_ENABLED = (
-    _get_env_optional("MCP_PLAYWRIGHT_TESTS_ENABLED") or "false"
-).lower() == "true"
+MCP_PLAYWRIGHT_TESTS_ENABLED = (_get_env_optional("MCP_PLAYWRIGHT_TESTS_ENABLED") or "false").lower() == "true"
 MCP_PLAYWRIGHT_URLS = _get_mcp_service_urls("playwright", "playwright")
 
 # MCP Sequential Thinking Configuration - From main .env
 MCP_SEQUENTIALTHINKING_TESTS_ENABLED = (
     _get_env_optional("MCP_SEQUENTIALTHINKING_TESTS_ENABLED") or "false"
 ).lower() == "true"
-MCP_SEQUENTIALTHINKING_URLS = _get_mcp_service_urls(
-    "sequentialthinking", "sequentialthinking"
-)
+MCP_SEQUENTIALTHINKING_URLS = _get_mcp_service_urls("sequentialthinking", "sequentialthinking")
 
 # MCP Time Configuration - From main .env
-MCP_TIME_TESTS_ENABLED = (
-    _get_env_optional("MCP_TIME_TESTS_ENABLED") or "false"
-).lower() == "true"
+MCP_TIME_TESTS_ENABLED = (_get_env_optional("MCP_TIME_TESTS_ENABLED") or "false").lower() == "true"
 MCP_TIME_URLS = _get_mcp_service_urls("time", "time")
 
 # MCP Tmux Configuration - From main .env
-MCP_TMUX_TESTS_ENABLED = (
-    _get_env_optional("MCP_TMUX_TESTS_ENABLED") or "false"
-).lower() == "true"
+MCP_TMUX_TESTS_ENABLED = (_get_env_optional("MCP_TMUX_TESTS_ENABLED") or "false").lower() == "true"
 MCP_TMUX_URLS = _get_mcp_service_urls("tmux", "tmux")
 
 # HTTP Status Code Constants - Addresses PLR2004 magic number issues

@@ -48,9 +48,7 @@ def fix_healthcheck_env_expansion(service_dir):
 def main():
     # Find all MCP service directories
     base_dir = Path("/home/atrawog/AI/atrawog/mcp-oauth-gateway")
-    service_dirs = [
-        d for d in base_dir.iterdir() if d.is_dir() and d.name.startswith("mcp-")
-    ]
+    service_dirs = [d for d in base_dir.iterdir() if d.is_dir() and d.name.startswith("mcp-")]
 
     fixed_count = 0
     for service_dir in sorted(service_dirs):

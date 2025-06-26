@@ -13,9 +13,7 @@ class TestMCPEchoIntegration:
     """Test MCP Echo service functionality with proper OAuth authentication."""
 
     @pytest.mark.asyncio
-    async def test_echo_requires_authentication(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str
-    ):
+    async def test_echo_requires_authentication(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
         """Test that Echo service REQUIRES OAuth authentication - no unauthorized access!"""
         # Test with no authentication
         response = await http_client.post(
@@ -26,10 +24,10 @@ class TestMCPEchoIntegration:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {"name": "test-client", "version": "1.0.0"}
+                    "clientInfo": {"name": "test-client", "version": "1.0.0"},
                 },
-                "id": 1
-            }
+                "id": 1,
+            },
         )
 
         assert response.status_code == 401, "Echo service must reject unauthenticated requests"
@@ -49,16 +47,16 @@ class TestMCPEchoIntegration:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {"name": "test-client", "version": "1.0.0"}
+                    "clientInfo": {"name": "test-client", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
@@ -72,9 +70,7 @@ class TestMCPEchoIntegration:
         assert data["result"]["serverInfo"]["name"] == "mcp-echo-streamablehttp-server-stateless"
 
     @pytest.mark.asyncio
-    async def test_echo_list_tools(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
-    ):
+    async def test_echo_list_tools(self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict):
         """Test listing available tools from Echo service."""
         # Initialize first
         await self._initialize_session(http_client, mcp_echo_url, gateway_auth_headers)
@@ -82,18 +78,13 @@ class TestMCPEchoIntegration:
         # List tools
         response = await http_client.post(
             mcp_echo_url,
-            json={
-                "jsonrpc": "2.0",
-                "method": "tools/list",
-                "params": {},
-                "id": 2
-            },
+            json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
@@ -119,9 +110,14 @@ class TestMCPEchoIntegration:
         # Verify diagnostic tools exist
         tool_names = [t["name"] for t in tools]
         diagnostic_tools = [
-            "bearerDecode", "authContext", "requestTiming",
-            "protocolNegotiation", "corsAnalysis", "environmentDump",
-            "healthProbe", "whoIStheGOAT"
+            "bearerDecode",
+            "authContext",
+            "requestTiming",
+            "protocolNegotiation",
+            "corsAnalysis",
+            "environmentDump",
+            "healthProbe",
+            "whoIStheGOAT",
         ]
         for tool in diagnostic_tools:
             assert tool in tool_names
@@ -141,20 +137,15 @@ class TestMCPEchoIntegration:
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
-                "params": {
-                    "name": "echo",
-                    "arguments": {
-                        "message": test_message
-                    }
-                },
-                "id": 3
+                "params": {"name": "echo", "arguments": {"message": test_message}},
+                "id": 3,
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
@@ -181,7 +172,7 @@ class TestMCPEchoIntegration:
             "Accept": "application/json, text/event-stream",
             "Content-Type": "application/json",
             "X-Test-Header": "test-value-123",
-            "X-Custom-Header": "custom-value-456"
+            "X-Custom-Header": "custom-value-456",
         }
 
         response = await http_client.post(
@@ -189,13 +180,10 @@ class TestMCPEchoIntegration:
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
-                "params": {
-                    "name": "printHeader",
-                    "arguments": {}
-                },
-                "id": 4
+                "params": {"name": "printHeader", "arguments": {}},
+                "id": 4,
             },
-            headers=custom_headers
+            headers=custom_headers,
         )
 
         assert response.status_code == 200
@@ -225,18 +213,15 @@ class TestMCPEchoIntegration:
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
-                "params": {
-                    "name": "invalid_tool",
-                    "arguments": {}
-                },
-                "id": 5
+                "params": {"name": "invalid_tool", "arguments": {}},
+                "id": 5,
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
@@ -263,16 +248,16 @@ class TestMCPEchoIntegration:
                 "method": "tools/call",
                 "params": {
                     "name": "echo",
-                    "arguments": {}  # Missing required 'message'
+                    "arguments": {},  # Missing required 'message'
                 },
-                "id": 6
+                "id": 6,
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
@@ -284,17 +269,15 @@ class TestMCPEchoIntegration:
         assert "message must be a string" in str(data["error"])
 
     @pytest.mark.asyncio
-    async def test_echo_cors_headers(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str
-    ):
+    async def test_echo_cors_headers(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
         """Test CORS preflight handling for Echo service."""
         response = await http_client.options(
             mcp_echo_url,
             headers={
                 "Origin": "https://claude.ai",
                 "Access-Control-Request-Method": "POST",
-                "Access-Control-Request-Headers": "content-type,authorization"
-            }
+                "Access-Control-Request-Headers": "content-type,authorization",
+            },
         )
 
         # CORS preflight should work without auth
@@ -316,18 +299,15 @@ class TestMCPEchoIntegration:
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
-                "params": {
-                    "name": "printHeader",
-                    "arguments": {}
-                },
-                "id": 7
+                "params": {"name": "printHeader", "arguments": {}},
+                "id": 7,
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
@@ -352,19 +332,14 @@ class TestMCPEchoIntegration:
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
-                    "params": {
-                        "name": "echo",
-                        "arguments": {
-                            "message": f"Stateless test {i}"
-                        }
-                    },
-                    "id": i + 10
+                    "params": {"name": "echo", "arguments": {"message": f"Stateless test {i}"}},
+                    "id": i + 10,
                 },
                 headers={
                     **gateway_auth_headers,
                     "Accept": "application/json, text/event-stream",
-                    "Content-Type": "application/json"
-                }
+                    "Content-Type": "application/json",
+                },
             )
 
             assert response.status_code == 200
@@ -374,14 +349,12 @@ class TestMCPEchoIntegration:
     # Helper methods
     def _parse_sse_response(self, sse_text: str) -> dict:
         """Parse SSE response to extract JSON data."""
-        for line in sse_text.strip().split('\n'):
-            if line.startswith('data: '):
+        for line in sse_text.strip().split("\n"):
+            if line.startswith("data: "):
                 return json.loads(line[6:])
         raise ValueError("No data found in SSE response")
 
-    async def _initialize_session(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str, auth_headers: dict
-    ):
+    async def _initialize_session(self, http_client: httpx.AsyncClient, mcp_echo_url: str, auth_headers: dict):
         """Initialize MCP session with Echo service."""
         response = await http_client.post(
             mcp_echo_url,
@@ -391,15 +364,15 @@ class TestMCPEchoIntegration:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {"name": "test-client", "version": "1.0.0"}
+                    "clientInfo": {"name": "test-client", "version": "1.0.0"},
                 },
-                "id": "init"
+                "id": "init",
             },
             headers={
                 **auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
         assert response.status_code == 200

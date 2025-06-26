@@ -33,9 +33,7 @@ async def debug_structure():
     except:
         pass
 
-    client = await redis.from_url(
-        REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
-    )
+    client = await redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
 
     try:
         # Get sample token

@@ -14,14 +14,10 @@ MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
 
 
 @pytest.mark.asyncio
-async def test_simple_initialize(
-    http_client: httpx.AsyncClient, wait_for_services, capfd, mcp_fetch_url
-):
+async def test_simple_initialize(http_client: httpx.AsyncClient, wait_for_services, capfd, mcp_fetch_url):
     """Simple test to debug initialize issue."""
     if not MCP_CLIENT_ACCESS_TOKEN:
-        pytest.fail(
-            "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
-        )
+        pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
 
     print(f"\nMCP_FETCH_URL: {mcp_fetch_url}")
     print(f"MCP_PROTOCOL_VERSION: {MCP_PROTOCOL_VERSION}")
@@ -44,10 +40,12 @@ async def test_simple_initialize(
         f"{mcp_fetch_url}",
         json=request_data,
         headers={
-                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+            "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        },
+        timeout=30.0,
+    )
 
     print(f"\nResponse status: {response.status_code}")
     print(f"Response headers: {dict(response.headers)}")
@@ -72,6 +70,8 @@ async def test_simple_initialize(
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                     "Mcp-Session-Id": session_id,
-                }, timeout=30.0)
+                },
+                timeout=30.0,
+            )
             print(f"\nTools response status: {tools_response.status_code}")
             print(f"Tools response: {tools_response.text}")

@@ -7,9 +7,7 @@ from pathlib import Path
 
 def fix_mcp_fetchs_healthcheck():
     """Restore the divine MCP protocol health check pattern!"""
-    compose_file = Path(
-        "/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-fetchs/docker-compose.yml"
-    )
+    compose_file = Path("/home/atrawog/AI/atrawog/mcp-oauth-gateway/mcp-fetchs/docker-compose.yml")
 
     with open(compose_file) as f:
         content = f.read()
@@ -35,9 +33,7 @@ def fix_mcp_fetchs_healthcheck():
         f.write(content)
 
     print("✅ Restored the SACRED MCP protocol health check pattern for mcp-fetchs!")
-    print(
-        "⚡ This follows the divine StreamableHTTP Protocol Health Check Prophecy from CLAUDE.md!"
-    )
+    print("⚡ This follows the divine StreamableHTTP Protocol Health Check Prophecy from CLAUDE.md!")
 
 
 if __name__ == "__main__":

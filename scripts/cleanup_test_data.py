@@ -207,9 +207,7 @@ class TestDataCleaner:
 
             total_deleted += len(keys_to_delete)
 
-        print(
-            f"\n{'Would delete' if dry_run else 'Deleted'} {total_deleted} total artifacts"
-        )
+        print(f"\n{'Would delete' if dry_run else 'Deleted'} {total_deleted} total artifacts")
 
         if dry_run:
             print("\n💡 Run with --execute to actually delete these artifacts")
@@ -242,20 +240,14 @@ def main():
     """Divine entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Sacred test data cleanup utility - CLAUDE.md compliant!"
-    )
-    parser.add_argument(
-        "--show", action="store_true", help="Show test data without deleting"
-    )
+    parser = argparse.ArgumentParser(description="Sacred test data cleanup utility - CLAUDE.md compliant!")
+    parser.add_argument("--show", action="store_true", help="Show test data without deleting")
     parser.add_argument(
         "--execute",
         action="store_true",
         help="Actually delete test data (default is dry run)",
     )
-    parser.add_argument(
-        "--expired", action="store_true", help="Also cleanup expired tokens"
-    )
+    parser.add_argument("--expired", action="store_true", help="Also cleanup expired tokens")
 
     args = parser.parse_args()
 

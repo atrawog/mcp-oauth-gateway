@@ -13,9 +13,7 @@ class TestMCPAuthWorking:
     """Verify MCP OAuth authentication is properly enforced."""
 
     @pytest.mark.asyncio
-    async def test_mcp_requires_authentication(
-        self, http_client, wait_for_services, mcp_fetch_url
-    ):
+    async def test_mcp_requires_authentication(self, http_client, wait_for_services, mcp_fetch_url):
         """Test that MCP endpoints properly require authentication."""
         # Test 1: Request without auth should fail
         response = await http_client.post(
@@ -85,9 +83,7 @@ class TestMCPAuthWorking:
         cors_origins = os.getenv("MCP_CORS_ORIGINS", "").split(",")
         cors_origins = [origin.strip() for origin in cors_origins if origin.strip()]
 
-        assert cors_origins, (
-            "❌ MCP_CORS_ORIGINS environment variable MUST be configured!"
-        )
+        assert cors_origins, "❌ MCP_CORS_ORIGINS environment variable MUST be configured!"
 
         # Test with the first configured origin
         test_origin = cors_origins[0]
@@ -107,21 +103,13 @@ class TestMCPAuthWorking:
         )
 
         # CORS MUST be configured for web clients
-        assert response.status_code == HTTP_OK, (
-            "❌ MCP MUST support CORS preflight requests!"
-        )
-        assert "access-control-allow-origin" in response.headers, (
-            "❌ Missing CORS headers!"
-        )
+        assert response.status_code == HTTP_OK, "❌ MCP MUST support CORS preflight requests!"
+        assert "access-control-allow-origin" in response.headers, "❌ Missing CORS headers!"
         assert response.headers["access-control-allow-origin"] == test_origin, (
             f"❌ CORS origin mismatch! Expected {test_origin}"
         )
-        assert "access-control-allow-methods" in response.headers, (
-            "❌ Missing allowed methods!"
-        )
-        assert "access-control-allow-credentials" in response.headers, (
-            "❌ Missing credentials header!"
-        )
+        assert "access-control-allow-methods" in response.headers, "❌ Missing allowed methods!"
+        assert "access-control-allow-credentials" in response.headers, "❌ Missing credentials header!"
 
         print(f"✅ MCP CORS is properly configured for {test_origin}")
 

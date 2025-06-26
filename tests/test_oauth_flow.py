@@ -27,9 +27,7 @@ class TestOAuthFlow:
     @pytest.mark.asyncio
     async def test_server_metadata(self, http_client, wait_for_services):
         """Test .well-known/oauth-authorization-server endpoint."""
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
 
         assert response.status_code == HTTP_OK
         metadata = response.json()
@@ -49,9 +47,7 @@ class TestOAuthFlow:
     async def test_client_registration_rfc7591(self, http_client, wait_for_services):
         """Test dynamic client registration per RFC 7591."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
-            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
-        )
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
 
         # Track created clients for cleanup
         created_clients = []
@@ -95,9 +91,7 @@ class TestOAuthFlow:
             assert client["client_uri"] == registration_data["client_uri"]
 
             # Test missing redirect_uris (with proper authentication)
-            invalid_data = {
-                "client_name": "TEST test_client_registration_rfc7591_invalid"
-            }
+            invalid_data = {"client_name": "TEST test_client_registration_rfc7591_invalid"}
             response = await http_client.post(
                 f"{AUTH_BASE_URL}/register",
                 json=invalid_data,
@@ -129,9 +123,7 @@ class TestOAuthFlow:
                         print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_authorization_endpoint_validation(
-        self, http_client, registered_client
-    ):
+    async def test_authorization_endpoint_validation(self, http_client, registered_client):
         """Test authorization endpoint with invalid client handling."""
         # Test with invalid client_id - MUST NOT redirect
         response = await http_client.get(
@@ -152,9 +144,7 @@ class TestOAuthFlow:
         except json.JSONDecodeError:
             # If response is not JSON, check if it's an HTML error page
             content = response.text
-            assert (
-                "invalid_client" in content or "Client authentication failed" in content
-            )
+            assert "invalid_client" in content or "Client authentication failed" in content
 
         # Test with valid client but invalid redirect_uri - MUST NOT redirect
         response = await http_client.get(
@@ -176,15 +166,9 @@ class TestOAuthFlow:
     async def test_pkce_flow(self, http_client, registered_client):
         """Test PKCE (RFC 7636) with S256 challenge method."""
         # Generate PKCE challenge
-        code_verifier = (
-            base64.urlsafe_b64encode(secrets.token_bytes(32))
-            .decode("utf-8")
-            .rstrip("=")
-        )
+        code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("utf-8").rstrip("=")
         code_challenge = (
-            base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest())
-            .decode("utf-8")
-            .rstrip("=")
+            base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest()).decode("utf-8").rstrip("=")
         )
 
         # Start authorization flow with PKCE
@@ -289,9 +273,7 @@ class TestOAuthFlow:
         assert response.headers.get("WWW-Authenticate") == "Bearer"
 
         # Test with invalid token
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer invalid_token"}
-        )
+        response = await http_client.get(f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer invalid_token"})
 
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()

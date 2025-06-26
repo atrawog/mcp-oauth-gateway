@@ -50,17 +50,11 @@ def view_backup(filepath: str):
                 print(f"\n  Client ID: {client_id}")
                 print(f"  Name: {reg_info.get('client_name', 'Unknown')}")
                 print(f"  Created: {reg_info.get('client_id_issued_at', 'Unknown')}")
-                print(
-                    f"  Redirect URIs: {', '.join(reg_info.get('redirect_uris', []))}"
-                )
+                print(f"  Redirect URIs: {', '.join(reg_info.get('redirect_uris', []))}")
                 print(f"  TTL: {ttl} seconds" if ttl > 0 else "  TTL: No expiry")
             except:
                 print(f"\n  Client ID: {client_id}")
-                print(
-                    f"  Data: {value[:100]}..."
-                    if len(value) > 100
-                    else f"  Data: {value}"
-                )
+                print(f"  Data: {value[:100]}..." if len(value) > 100 else f"  Data: {value}")
 
     # Display tokens
     if data.get("tokens"):
@@ -77,18 +71,10 @@ def view_backup(filepath: str):
                 print(f"  Client ID: {token_info.get('client_id', 'Unknown')}")
                 print(f"  Scope: {token_info.get('scope', 'Unknown')}")
                 print(f"  Issued: {token_info.get('iat', 'Unknown')}")
-                print(
-                    f"  TTL: {ttl} seconds ({ttl / 3600:.1f} hours)"
-                    if ttl > 0
-                    else "  TTL: No expiry"
-                )
+                print(f"  TTL: {ttl} seconds ({ttl / 3600:.1f} hours)" if ttl > 0 else "  TTL: No expiry")
             except:
                 print(f"\n  JTI: {jti}")
-                print(
-                    f"  Data: {value[:100]}..."
-                    if len(value) > 100
-                    else f"  Data: {value}"
-                )
+                print(f"  Data: {value[:100]}..." if len(value) > 100 else f"  Data: {value}")
 
     # Display user tokens
     if data.get("user_tokens"):
@@ -109,11 +95,7 @@ def view_backup(filepath: str):
                         print(f"    ... and {len(tokens) - 3} more")
                 else:
                     print(f"\n  User: {username}")
-                    print(
-                        f"  Data: {value[:100]}..."
-                        if len(value) > 100
-                        else f"  Data: {value}"
-                    )
+                    print(f"  Data: {value[:100]}..." if len(value) > 100 else f"  Data: {value}")
             except:
                 print(f"\n  User: {username}")
                 print("  Error parsing data")
@@ -124,9 +106,7 @@ def view_backup(filepath: str):
         print("-" * 80)
         print(f"  Total: {len(data['refresh_tokens'])} tokens")
         # Show first few
-        for _i, (token_id, _token_data) in enumerate(
-            list(data["refresh_tokens"].items())[:3]
-        ):
+        for _i, (token_id, _token_data) in enumerate(list(data["refresh_tokens"].items())[:3]):
             print(f"  • {token_id[:20]}...")
         if len(data["refresh_tokens"]) > 3:
             print(f"  ... and {len(data['refresh_tokens']) - 3} more")

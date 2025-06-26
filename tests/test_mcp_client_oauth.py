@@ -33,17 +33,13 @@ class TestMCPClientOAuthRegistration:
     """Test OAuth client registration flows used by MCP clients."""
 
     @pytest.mark.asyncio
-    async def test_dynamic_client_registration(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_dynamic_client_registration(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test that MCP clients can register dynamically per RFC 7591."""
         # Create unique client for this test
         client_name = "TEST test_dynamic_client_registration"
 
         registration_data = {
-            "redirect_uris": [
-                "http://localhost:8080/callback"
-            ],  # Local callback for CLI tools
+            "redirect_uris": ["http://localhost:8080/callback"],  # Local callback for CLI tools
             "client_name": client_name,
             "scope": "read write",
             "grant_types": ["authorization_code", "refresh_token"],
@@ -51,8 +47,7 @@ class TestMCPClientOAuthRegistration:
         }
 
         # Register without authentication (public endpoint)
-        response = await http_client.post(
-            f"{AUTH_BASE_URL}/register", json=registration_data, timeout=30.0)
+        response = await http_client.post(f"{AUTH_BASE_URL}/register", json=registration_data, timeout=30.0)
 
         assert response.status_code == HTTP_CREATED
         client_data = response.json()
@@ -81,7 +76,9 @@ class TestMCPClientOAuthRegistration:
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
-                    }, timeout=30.0)
+                    },
+                    timeout=30.0,
+                )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -93,13 +90,9 @@ class TestMCPClientOAuthRegistration:
         return client_data
 
     @pytest.mark.asyncio
-    async def test_client_registration_with_auth_token(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_client_registration_with_auth_token(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test client registration with bearer token (authenticated registration)."""
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
-            "Need OAuth token for authenticated registration"
-        )
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, "Need OAuth token for authenticated registration"
 
         client_name = "TEST test_client_registration_with_auth_token"
 
@@ -114,10 +107,12 @@ class TestMCPClientOAuthRegistration:
             f"{AUTH_BASE_URL}/register",
             json=registration_data,
             headers={
-                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30.0,
+        )
 
         assert response.status_code == HTTP_CREATED
         client_data = response.json()
@@ -132,7 +127,9 @@ class TestMCPClientOAuthRegistration:
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
                         "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
-                    }, timeout=30.0)
+                    },
+                    timeout=30.0,
+                )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -148,9 +145,7 @@ class TestMCPClientOAuthFlows:
     """Test OAuth flows that MCP clients use."""
 
     @pytest.mark.asyncio
-    async def test_authorization_code_flow_initiation(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_authorization_code_flow_initiation(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test starting the authorization code flow."""
         # First register a client
         client_name = "TEST test_authorization_code_flow_initiation"
@@ -160,7 +155,9 @@ class TestMCPClientOAuthFlows:
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": client_name,
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -175,7 +172,8 @@ class TestMCPClientOAuthFlows:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0)
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0
+        )
 
         # Should redirect to GitHub for authentication
         assert response.status_code == 307
@@ -191,10 +189,12 @@ class TestMCPClientOAuthFlows:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                    "Authorization": f"Bearer {client['registration_access_token']}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                        "Authorization": f"Bearer {client['registration_access_token']}",
+                        "Content-Type": "application/json",
+                        "Accept": "application/json, text/event-stream",
+                    },
+                    timeout=30.0,
+                )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -204,9 +204,7 @@ class TestMCPClientOAuthFlows:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_pkce_flow_for_cli_clients(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_pkce_flow_for_cli_clients(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test PKCE flow commonly used by CLI MCP clients."""
         # Register a public client (no secret needed for PKCE)
         registration_response = await http_client.post(
@@ -215,7 +213,9 @@ class TestMCPClientOAuthFlows:
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": "TEST test_pkce_flow_for_cli_clients",
                 "token_endpoint_auth_method": "none",  # Public client
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -224,15 +224,9 @@ class TestMCPClientOAuthFlows:
         import base64
         import hashlib
 
-        verifier = (
-            base64.urlsafe_b64encode(secrets.token_bytes(32))
-            .decode("utf-8")
-            .rstrip("=")
-        )
+        verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("utf-8").rstrip("=")
         challenge_bytes = hashlib.sha256(verifier.encode("ascii")).digest()
-        challenge = (
-            base64.urlsafe_b64encode(challenge_bytes).decode("utf-8").rstrip("=")
-        )
+        challenge = base64.urlsafe_b64encode(challenge_bytes).decode("utf-8").rstrip("=")
 
         # Start PKCE flow
         auth_params = {
@@ -245,7 +239,8 @@ class TestMCPClientOAuthFlows:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0)
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0
+        )
 
         assert response.status_code == 307
         print("✅ PKCE flow initiated successfully")
@@ -256,10 +251,12 @@ class TestMCPClientOAuthFlows:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                    "Authorization": f"Bearer {client['registration_access_token']}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                        "Authorization": f"Bearer {client['registration_access_token']}",
+                        "Content-Type": "application/json",
+                        "Accept": "application/json, text/event-stream",
+                    },
+                    timeout=30.0,
+                )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -269,9 +266,7 @@ class TestMCPClientOAuthFlows:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_token_refresh_flow(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_token_refresh_flow(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test token refresh flow used by long-running MCP clients."""
         # This test would need a valid refresh token from a completed OAuth flow
         # For now, test the endpoint exists and returns proper errors
@@ -282,7 +277,9 @@ class TestMCPClientOAuthFlows:
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": "TEST test_token_refresh_flow",
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -295,7 +292,9 @@ class TestMCPClientOAuthFlows:
                 "refresh_token": "invalid_refresh_token",
                 "client_id": client["client_id"],
                 "client_secret": client["client_secret"],
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         assert response.status_code == HTTP_BAD_REQUEST
         error = response.json()
@@ -309,10 +308,12 @@ class TestMCPClientOAuthFlows:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                    "Authorization": f"Bearer {client['registration_access_token']}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                        "Authorization": f"Bearer {client['registration_access_token']}",
+                        "Content-Type": "application/json",
+                        "Accept": "application/json, text/event-stream",
+                    },
+                    timeout=30.0,
+                )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -326,14 +327,10 @@ class TestMCPClientTokenValidation:
     """Test token validation scenarios for MCP clients."""
 
     @pytest.mark.asyncio
-    async def test_access_token_validation(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_access_token_validation(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test validating access tokens before making MCP requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
 
         # Test token against MCP endpoint
         response = await http_client.post(
@@ -353,30 +350,30 @@ class TestMCPClientTokenValidation:
                 "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 "Accept": "application/json, text/event-stream",
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         assert response.status_code == HTTP_OK
         print("✅ MCP client token is valid and working")
 
     @pytest.mark.asyncio
-    async def test_expired_token_handling(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_expired_token_handling(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test handling of expired tokens."""
         # Use an obviously invalid token
         response = await http_client.post(
             f"{MCP_TESTING_URL}",
             json={"jsonrpc": "2.0", "method": "initialize", "params": {}, "id": 1},
-            headers={"Authorization": "Bearer expired_token_12345"}, timeout=30.0)
+            headers={"Authorization": "Bearer expired_token_12345"},
+            timeout=30.0,
+        )
 
         assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers
         print("✅ Expired token correctly rejected with 401")
 
     @pytest.mark.asyncio
-    async def test_token_introspection(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_token_introspection(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test token introspection for validity checking."""
         # First register a client
         registration_response = await http_client.post(
@@ -384,7 +381,9 @@ class TestMCPClientTokenValidation:
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": "TEST test_token_introspection",
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -397,7 +396,9 @@ class TestMCPClientTokenValidation:
                     "token": MCP_CLIENT_ACCESS_TOKEN,
                     "client_id": client["client_id"],
                     "client_secret": client["client_secret"],
-                }, timeout=30.0)
+                },
+                timeout=30.0,
+            )
 
             assert response.status_code == HTTP_OK
             result = response.json()
@@ -415,10 +416,12 @@ class TestMCPClientTokenValidation:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                    "Authorization": f"Bearer {client['registration_access_token']}",
-                    "Content-Type": "application/json",
-                    "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                        "Authorization": f"Bearer {client['registration_access_token']}",
+                        "Content-Type": "application/json",
+                        "Accept": "application/json, text/event-stream",
+                    },
+                    timeout=30.0,
+                )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -432,9 +435,7 @@ class TestMCPClientCredentialStorage:
     """Test credential storage patterns used by MCP clients."""
 
     @pytest.mark.asyncio
-    async def test_credential_format(
-        self, http_client: httpx.AsyncClient, wait_for_services, tmp_path
-    ):
+    async def test_credential_format(self, http_client: httpx.AsyncClient, wait_for_services, tmp_path):
         """Test the credential storage format expected by MCP clients."""
         # Register a client
         registration_response = await http_client.post(
@@ -442,7 +443,9 @@ class TestMCPClientCredentialStorage:
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": "TEST test_credential_format",
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -506,12 +509,9 @@ class TestMCPClientErrorScenarios:
         print("✅ Network errors properly raised")
 
     @pytest.mark.asyncio
-    async def test_oauth_discovery_endpoint(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_oauth_discovery_endpoint(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test OAuth discovery endpoint that clients use to find auth URLs."""
-        response = await http_client.get(
-            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
 
         assert response.status_code == HTTP_OK
         metadata = response.json()
@@ -531,14 +531,10 @@ class TestMCPClientRealWorldScenarios:
     """Test real-world scenarios that MCP clients encounter."""
 
     @pytest.mark.asyncio
-    async def test_multiple_concurrent_requests(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_multiple_concurrent_requests(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test handling multiple concurrent MCP requests with same token."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail(
-                "No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!"
-            )
+            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
 
         import asyncio
 
@@ -563,7 +559,9 @@ class TestMCPClientRealWorldScenarios:
                     "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                     "Accept": "application/json, text/event-stream",
-                }, timeout=30.0)
+                },
+                timeout=30.0,
+            )
             return response
 
         # Make 5 concurrent requests
@@ -577,9 +575,7 @@ class TestMCPClientRealWorldScenarios:
         print(f"✅ Handled {len(responses)} concurrent requests successfully")
 
     @pytest.mark.asyncio
-    async def test_client_reregistration(
-        self, http_client: httpx.AsyncClient, wait_for_services
-    ):
+    async def test_client_reregistration(self, http_client: httpx.AsyncClient, wait_for_services):
         """Test re-registering a client (common when credentials are lost)."""
         client_name = "TEST test_client_reregistration"
 
@@ -589,7 +585,9 @@ class TestMCPClientRealWorldScenarios:
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": client_name,
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         assert response1.status_code == HTTP_CREATED
         client1 = response1.json()
@@ -600,7 +598,9 @@ class TestMCPClientRealWorldScenarios:
             json={
                 "redirect_uris": ["http://localhost:8080/callback"],
                 "client_name": client_name,
-            }, timeout=30.0)
+            },
+            timeout=30.0,
+        )
 
         assert response2.status_code == HTTP_CREATED
         client2 = response2.json()
@@ -620,7 +620,9 @@ class TestMCPClientRealWorldScenarios:
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
                             "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
-                        }, timeout=30.0)
+                        },
+                        timeout=30.0,
+                    )
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(

@@ -68,20 +68,14 @@ async def test_env_vars():
     print("\nCreating OAuth client...")
     async with OAuthClient(settings):
         if settings.has_valid_credentials():
-            print(
-                "✅ OAuth client initialized with valid credentials from MCP_CLIENT_* env vars!"
-            )
+            print("✅ OAuth client initialized with valid credentials from MCP_CLIENT_* env vars!")
         else:
             print("⚠️  No valid credentials found in MCP_CLIENT_* env vars")
             print("   The client would perform OAuth flow on first use")
 
     print("\n" + "=" * 50)
-    print(
-        "CONCLUSION: mcp-streamablehttp-client automatically uses MCP_CLIENT_* environment variables!"
-    )
-    print(
-        "No credential files needed - everything flows through .env as commanded by CLAUDE.md!"
-    )
+    print("CONCLUSION: mcp-streamablehttp-client automatically uses MCP_CLIENT_* environment variables!")
+    print("No credential files needed - everything flows through .env as commanded by CLAUDE.md!")
 
 
 if __name__ == "__main__":

@@ -119,14 +119,10 @@ def main():
 
     if files_without_cleanup:
         print("\n⚠️  ACTION REQUIRED:")
-        print(
-            "The following files create client registrations but don't clean them up:"
-        )
+        print("The following files create client registrations but don't clean them up:")
         for filename, _ in files_without_cleanup:
             print(f"  - {filename}")
-        print(
-            "\nThese files should use the RFC 7592 DELETE endpoint to clean up registrations!"
-        )
+        print("\nThese files should use the RFC 7592 DELETE endpoint to clean up registrations!")
 
 
 if __name__ == "__main__":

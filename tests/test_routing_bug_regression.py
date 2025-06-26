@@ -17,9 +17,7 @@ class TestRoutingBugRegression:
     """Regression test for the routing configuration bug."""
 
     @pytest.mark.asyncio
-    async def test_mcp_path_without_host_only_routing_returns_401_not_404(
-        self, http_client, wait_for_services
-    ):
+    async def test_mcp_path_without_host_only_routing_returns_401_not_404(self, http_client, wait_for_services):
         """REGRESSION TEST: Ensure /mcp path returns 401 (auth required), not 404.
 
         Bug: When Traefik routing only had Host rule without PathPrefix,
@@ -37,8 +35,7 @@ class TestRoutingBugRegression:
 
         # CRITICAL: Must be 401 (requires auth), not 404 (not found)
         assert response.status_code == HTTP_UNAUTHORIZED, (
-            f"REGRESSION: Got {response.status_code} instead of 401. "
-            f"The PathPrefix routing rule may be missing!"
+            f"REGRESSION: Got {response.status_code} instead of 401. The PathPrefix routing rule may be missing!"
         )
 
         # Verify it's an auth error, not a routing error
@@ -57,24 +54,19 @@ class TestRoutingBugRegression:
         # Read the fetch docker-compose.yml
         import os
 
-        compose_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "mcp-fetch/docker-compose.yml"
-        )
+        compose_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mcp-fetch/docker-compose.yml")
 
         with open(compose_path) as f:
             content = f.read()
 
         # Check that MCP path routing is present
         # Accept both the old PathPrefix style and new Path||PathPrefix style
-        assert (
-            "PathPrefix(`/mcp`)" in content
-            or "(Path(`/mcp`) || PathPrefix(`/mcp/`))" in content
-        ), "REGRESSION: MCP path routing missing from routing rules!"
+        assert "PathPrefix(`/mcp`)" in content or "(Path(`/mcp`) || PathPrefix(`/mcp/`))" in content, (
+            "REGRESSION: MCP path routing missing from routing rules!"
+        )
 
         # Verify the host rule is present
-        assert "Host(`fetch.${BASE_DOMAIN}`)" in content, (
-            "REGRESSION: Host rule not found!"
-        )
+        assert "Host(`fetch.${BASE_DOMAIN}`)" in content, "REGRESSION: Host rule not found!"
 
     @pytest.mark.asyncio
     async def test_all_required_routes_configured(self, http_client, wait_for_services):
@@ -88,9 +80,7 @@ class TestRoutingBugRegression:
         ]
 
         for path, expected_status, description in routes_to_test:
-            response = await http_client.get(
-                f"{MCP_FETCH_URL}{path}", follow_redirects=False
-            )
+            response = await http_client.get(f"{MCP_FETCH_URL}{path}", follow_redirects=False)
             assert response.status_code == expected_status, (
                 f"{description}: Expected {expected_status}, got {response.status_code}"
             )

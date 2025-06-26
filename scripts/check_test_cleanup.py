@@ -32,9 +32,7 @@ def find_cleanups(content):
 
     cleanups = []
     for pattern in cleanup_patterns:
-        matches = list(
-            re.finditer(pattern, content, re.MULTILINE | re.DOTALL | re.IGNORECASE)
-        )
+        matches = list(re.finditer(pattern, content, re.MULTILINE | re.DOTALL | re.IGNORECASE))
         cleanups.extend([(m.start(), pattern) for m in matches])
 
     return cleanups
@@ -77,9 +75,7 @@ def analyze_test_file(filepath):
             "cleanups": len(cleanups),
             "uses_fixture": uses_fixture,
             "non_test_names": non_test_names,
-            "missing_cleanup": len(register_posts) > 0
-            and len(cleanups) == 0
-            and not uses_fixture,
+            "missing_cleanup": len(register_posts) > 0 and len(cleanups) == 0 and not uses_fixture,
         }
 
     return None

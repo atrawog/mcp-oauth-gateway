@@ -49,9 +49,7 @@ LOG_LEVEL=INFO
 def mcp_client_env():
     """Setup MCP_CLIENT environment variables from .env."""
     if not all([MCP_CLIENT_ACCESS_TOKEN, MCP_CLIENT_ID, MCP_CLIENT_SECRET]):
-        pytest.fail(
-            "Missing MCP_CLIENT credentials in .env - run: just mcp-client-token"
-        )
+        pytest.fail("Missing MCP_CLIENT credentials in .env - run: just mcp-client-token")
 
     print("Using MCP_CLIENT tokens from .env:")
     print(f"  Client ID: {MCP_CLIENT_ID}")
@@ -70,9 +68,7 @@ class TestMCPStreamableHTTPClientCommand:
     """Test the mcp-streamablehttp-client command line tool."""
 
     @pytest.mark.asyncio
-    async def test_fetch_example_com(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    async def test_fetch_example_com(self, temp_env_file, mcp_client_env, wait_for_services):
         """Test fetching https://example.com using mcp-streamablehttp-client command."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -89,9 +85,7 @@ class TestMCPStreamableHTTPClientCommand:
             "fetch https://example.com",
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # Check command executed successfully
         assert result.returncode == 0, f"Command failed with: {result.stderr}"
@@ -100,9 +94,7 @@ class TestMCPStreamableHTTPClientCommand:
         output = result.stdout
 
         # Check for "Example Domain" in the output
-        assert "Example Domain" in output, (
-            f"'Example Domain' not found in output: {output[:500]}..."
-        )
+        assert "Example Domain" in output, f"'Example Domain' not found in output: {output[:500]}..."
 
         # Also verify it fetched from the correct URL
         assert "https://example.com" in output
@@ -114,9 +106,7 @@ class TestMCPStreamableHTTPClientCommand:
         print("   Found 'Example Domain' in response")
 
     @pytest.mark.asyncio
-    async def test_command_with_invalid_token(
-        self, temp_env_file, tmp_path, wait_for_services
-    ):
+    async def test_command_with_invalid_token(self, temp_env_file, tmp_path, wait_for_services):
         """Test that command fails properly with invalid token."""
         env = os.environ.copy()
         # CRITICAL: Clear ALL MCP_CLIENT_* variables that the client reads from environment
@@ -141,9 +131,7 @@ class TestMCPStreamableHTTPClientCommand:
             "fetch https://example.com",
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # Debug output
         print(f"Exit code: {result.returncode}")
@@ -168,8 +156,7 @@ class TestMCPStreamableHTTPClientCommand:
         # Check for success indicators that should NOT be present
         success_indicators = [
             "Example Domain" in output_combined,
-            "successfully" in output_combined.lower()
-            and "completed" in output_combined.lower(),
+            "successfully" in output_combined.lower() and "completed" in output_combined.lower(),
         ]
 
         # Either authentication should fail OR it should NOT successfully fetch the content
@@ -180,9 +167,7 @@ class TestMCPStreamableHTTPClientCommand:
         print("✅ Command properly rejected invalid token")
 
     @pytest.mark.asyncio
-    async def test_test_auth_command(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    async def test_test_auth_command(self, temp_env_file, mcp_client_env, wait_for_services):
         """Test the --test-auth option."""
         env = os.environ.copy()
         env.update(mcp_client_env)
@@ -197,23 +182,16 @@ class TestMCPStreamableHTTPClientCommand:
             "--test-auth",
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # Should succeed with valid credentials
         assert result.returncode == 0
-        assert (
-            "success" in result.stdout.lower()
-            or "authenticated" in result.stdout.lower()
-        )
+        assert "success" in result.stdout.lower() or "authenticated" in result.stdout.lower()
 
         print("✅ Authentication test passed")
 
     @pytest.mark.asyncio
-    async def test_token_status_command(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    async def test_token_status_command(self, temp_env_file, mcp_client_env, wait_for_services):
         """Test the --token option to check token status."""
         env = os.environ.copy()
         env.update(mcp_client_env)
@@ -228,9 +206,7 @@ class TestMCPStreamableHTTPClientCommand:
             "--token",
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # Should show token status
         assert result.returncode == 0
@@ -241,9 +217,7 @@ class TestMCPStreamableHTTPClientCommand:
         print("✅ Token status check working")
 
     @pytest.mark.asyncio
-    async def test_command_with_complex_parameters(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    async def test_command_with_complex_parameters(self, temp_env_file, mcp_client_env, wait_for_services):
         """Test command with more complex parameters."""
         env = os.environ.copy()
         env.update(mcp_client_env)
@@ -261,9 +235,7 @@ class TestMCPStreamableHTTPClientCommand:
             "list_tools",
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # The exact behavior depends on the MCP server
         # But we should get some response
@@ -272,18 +244,14 @@ class TestMCPStreamableHTTPClientCommand:
             print(f"   Output length: {len(result.stdout)} bytes")
         else:
             # Some servers might not support list_tools
-            print(
-                f"⚠️  Command returned error (might be expected): {result.stderr[:200]}"
-            )
+            print(f"⚠️  Command returned error (might be expected): {result.stderr[:200]}")
 
 
 class TestMCPClientRealWorldUsage:
     """Test real-world usage patterns of the MCP client."""
 
     @pytest.mark.asyncio
-    async def test_consecutive_commands(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    async def test_consecutive_commands(self, temp_env_file, mcp_client_env, wait_for_services):
         """Test running multiple commands in sequence (simulating real usage)."""
         env = os.environ.copy()
         env.update(mcp_client_env)
@@ -305,22 +273,16 @@ class TestMCPClientRealWorldUsage:
                 f"fetch {url}",
             ]
 
-            result = subprocess.run(
-                cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-            )
+            result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
             if result.returncode == 0:
                 success_count += 1
 
-        assert success_count == len(urls), (
-            f"Only {success_count}/{len(urls)} commands succeeded"
-        )
+        assert success_count == len(urls), f"Only {success_count}/{len(urls)} commands succeeded"
         print(f"✅ All {len(urls)} consecutive commands executed successfully")
 
     @pytest.mark.asyncio
-    async def test_command_error_handling(
-        self, temp_env_file, mcp_client_env, wait_for_services
-    ):
+    async def test_command_error_handling(self, temp_env_file, mcp_client_env, wait_for_services):
         """Test how the client handles various error conditions."""
         env = os.environ.copy()
         env.update(mcp_client_env)
@@ -336,14 +298,8 @@ class TestMCPClientRealWorldUsage:
             "invalid_command_that_does_not_exist",
         ]
 
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=30
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, env=env, timeout=30)
 
         # Should handle the error gracefully
-        assert (
-            result.returncode != 0
-            or "error" in result.stdout.lower()
-            or "error" in result.stderr.lower()
-        )
+        assert result.returncode != 0 or "error" in result.stdout.lower() or "error" in result.stderr.lower()
         print("✅ Invalid command handled gracefully")

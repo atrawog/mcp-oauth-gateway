@@ -16,21 +16,19 @@ class TestMCPEchoSecurity:
     """Test MCP Echo service security and authentication enforcement."""
 
     @pytest.mark.asyncio
-    async def test_echo_rejects_all_unauthenticated_methods(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str
-    ):
+    async def test_echo_rejects_all_unauthenticated_methods(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
         """Test that ALL MCP methods require authentication - no exceptions!"""
         methods = [
-            ("initialize", {
-                "protocolVersion": "2025-06-18",
-                "capabilities": {},
-                "clientInfo": {"name": "security-test", "version": "1.0.0"}
-            }),
+            (
+                "initialize",
+                {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "security-test", "version": "1.0.0"},
+                },
+            ),
             ("tools/list", {}),
-            ("tools/call", {
-                "name": "echo",
-                "arguments": {"message": "test"}
-            }),
+            ("tools/call", {"name": "echo", "arguments": {"message": "test"}}),
             ("resources/list", {}),
             ("prompts/list", {}),
         ]
@@ -38,25 +36,15 @@ class TestMCPEchoSecurity:
         for method, params in methods:
             response = await http_client.post(
                 mcp_echo_url,
-                json={
-                    "jsonrpc": "2.0",
-                    "method": method,
-                    "params": params,
-                    "id": f"unauth-{method}"
-                },
-                headers={
-                    "Accept": "application/json, text/event-stream",
-                    "Content-Type": "application/json"
-                }
+                json={"jsonrpc": "2.0", "method": method, "params": params, "id": f"unauth-{method}"},
+                headers={"Accept": "application/json, text/event-stream", "Content-Type": "application/json"},
             )
 
             assert response.status_code == 401, f"Method {method} must require authentication"
             assert response.headers.get("WWW-Authenticate") == "Bearer"
 
     @pytest.mark.asyncio
-    async def test_echo_rejects_invalid_bearer_tokens(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str
-    ):
+    async def test_echo_rejects_invalid_bearer_tokens(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
         """Test that Echo service rejects various invalid token formats."""
         invalid_tokens = [
             "invalid_token",
@@ -72,25 +60,18 @@ class TestMCPEchoSecurity:
 
             response = await http_client.post(
                 mcp_echo_url,
-                json={
-                    "jsonrpc": "2.0",
-                    "method": "tools/list",
-                    "params": {},
-                    "id": "invalid-token-test"
-                },
+                json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "invalid-token-test"},
                 headers={
                     "Authorization": auth_header,
                     "Accept": "application/json, text/event-stream",
-                    "Content-Type": "application/json"
-                }
+                    "Content-Type": "application/json",
+                },
             )
 
             assert response.status_code == 401, f"Should reject invalid token: {token[:20]}..."
 
     @pytest.mark.asyncio
-    async def test_echo_rejects_expired_tokens(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str
-    ):
+    async def test_echo_rejects_expired_tokens(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
         """Test that Echo service rejects expired JWT tokens."""
         # Create an expired JWT (this is just for testing rejection)
         expired_payload = {
@@ -104,18 +85,13 @@ class TestMCPEchoSecurity:
 
         response = await http_client.post(
             mcp_echo_url,
-            json={
-                "jsonrpc": "2.0",
-                "method": "tools/list",
-                "params": {},
-                "id": "expired-token-test"
-            },
+            json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "expired-token-test"},
             headers={
                 "Authorization": f"Bearer {expired_token}",
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 401
@@ -128,26 +104,19 @@ class TestMCPEchoSecurity:
         # Valid token should work
         response = await http_client.post(
             mcp_echo_url,
-            json={
-                "jsonrpc": "2.0",
-                "method": "tools/list",
-                "params": {},
-                "id": "valid-token-test"
-            },
+            json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "valid-token-test"},
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
 
     @pytest.mark.asyncio
-    async def test_echo_cors_security(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str
-    ):
+    async def test_echo_cors_security(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
         """Test CORS security - preflight should work but actual requests need auth."""
         origin = "https://malicious-site.com"
 
@@ -157,8 +126,8 @@ class TestMCPEchoSecurity:
             headers={
                 "Origin": origin,
                 "Access-Control-Request-Method": "POST",
-                "Access-Control-Request-Headers": "content-type,authorization"
-            }
+                "Access-Control-Request-Headers": "content-type,authorization",
+            },
         )
 
         assert preflight_response.status_code == 200
@@ -166,17 +135,12 @@ class TestMCPEchoSecurity:
         # But actual POST should require auth even with CORS headers
         post_response = await http_client.post(
             mcp_echo_url,
-            json={
-                "jsonrpc": "2.0",
-                "method": "tools/list",
-                "params": {},
-                "id": "cors-test"
-            },
+            json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "cors-test"},
             headers={
                 "Origin": origin,
                 "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"
-            }
+                "Accept": "application/json, text/event-stream",
+            },
         )
 
         assert post_response.status_code == 401
@@ -198,8 +162,8 @@ class TestMCPEchoSecurity:
                     **gateway_auth_headers,
                     "X-Injected-Value": "malicious\r\nX-Evil: injected",  # Should be rejected
                     "Accept": "application/json, text/event-stream",
-                    "Content-Type": "application/json"
-                }
+                    "Content-Type": "application/json",
+                },
             )
 
         # Test 2: Verify safe headers work normally
@@ -208,19 +172,16 @@ class TestMCPEchoSecurity:
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
-                "params": {
-                    "name": "printHeader",
-                    "arguments": {}
-                },
-                "id": "safe-test"
+                "params": {"name": "printHeader", "arguments": {}},
+                "id": "safe-test",
             },
             headers={
                 **gateway_auth_headers,
                 "X-Safe-Header": "safe_value_no_injection",
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         # Safe headers should work fine
@@ -234,18 +195,13 @@ class TestMCPEchoSecurity:
         # This test assumes the gateway token has proper scopes
         response = await http_client.post(
             mcp_echo_url,
-            json={
-                "jsonrpc": "2.0",
-                "method": "tools/list",
-                "params": {},
-                "id": "scope-test"
-            },
+            json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "scope-test"},
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
@@ -263,17 +219,14 @@ class TestMCPEchoSecurity:
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
-                    "params": {
-                        "name": "echo",
-                        "arguments": {"message": f"rapid-{i}"}
-                    },
-                    "id": f"rate-{i}"
+                    "params": {"name": "echo", "arguments": {"message": f"rapid-{i}"}},
+                    "id": f"rate-{i}",
                 },
                 headers={
                     **gateway_auth_headers,
                     "Accept": "application/json, text/event-stream",
-                    "Content-Type": "application/json"
-                }
+                    "Content-Type": "application/json",
+                },
             )
             responses.append(response.status_code)
 
@@ -293,19 +246,16 @@ class TestMCPEchoSecurity:
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
-                "params": {
-                    "name": "echo",
-                    "arguments": {"message": large_message}
-                },
-                "id": "large-payload"
+                "params": {"name": "echo", "arguments": {"message": large_message}},
+                "id": "large-payload",
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
+                "MCP-Protocol-Version": "2025-06-18",
             },
-            timeout=30.0  # Longer timeout for large payload
+            timeout=30.0,  # Longer timeout for large payload
         )
 
         # Should either handle it or reject with appropriate error
@@ -331,17 +281,14 @@ class TestMCPEchoSecurity:
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
-                    "params": {
-                        "name": "echo",
-                        "arguments": {"message": attempt}
-                    },
-                    "id": f"injection-{injection_attempts.index(attempt)}"
+                    "params": {"name": "echo", "arguments": {"message": attempt}},
+                    "id": f"injection-{injection_attempts.index(attempt)}",
                 },
                 headers={
                     **gateway_auth_headers,
                     "Accept": "application/json, text/event-stream",
-                    "Content-Type": "application/json"
-                }
+                    "Content-Type": "application/json",
+                },
             )
 
             assert response.status_code == 200
@@ -360,18 +307,15 @@ class TestMCPEchoSecurity:
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
-                "params": {
-                    "name": "printHeader",
-                    "arguments": {}
-                },
-                "id": "forwardauth-test"
+                "params": {"name": "printHeader", "arguments": {}},
+                "id": "forwardauth-test",
             },
             headers={
                 **gateway_auth_headers,
                 "Accept": "application/json, text/event-stream",
                 "Content-Type": "application/json",
-                "MCP-Protocol-Version": "2025-06-18"
-            }
+                "MCP-Protocol-Version": "2025-06-18",
+            },
         )
 
         assert response.status_code == 200
@@ -386,7 +330,7 @@ class TestMCPEchoSecurity:
     # Helper methods
     def _parse_sse_response(self, sse_text: str) -> dict[str, Any]:
         """Parse SSE response to extract JSON data."""
-        for line in sse_text.strip().split('\n'):
-            if line.startswith('data: '):
+        for line in sse_text.strip().split("\n"):
+            if line.startswith("data: "):
                 return json.loads(line[6:])
         raise ValueError("No data found in SSE response")

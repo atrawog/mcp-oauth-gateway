@@ -22,9 +22,7 @@ async def test_wildcard_functionality():
     auth_url = f"https://auth.{base_domain}"
 
     async with httpx.AsyncClient(verify=False) as client:
-        print(
-            "1. Testing client registration (should work regardless of ALLOWED_GITHUB_USERS)..."
-        )
+        print("1. Testing client registration (should work regardless of ALLOWED_GITHUB_USERS)...")
 
         # Register a test client
         reg_response = await client.post(
@@ -53,9 +51,7 @@ async def test_wildcard_functionality():
             "code_challenge_method": "S256",
         }
 
-        auth_response = await client.get(
-            f"{auth_url}/authorize", params=auth_params, follow_redirects=False
-        )
+        auth_response = await client.get(f"{auth_url}/authorize", params=auth_params, follow_redirects=False)
 
         if auth_response.status_code != 302:
             print(f"❌ Authorization failed: {auth_response.status_code}")
@@ -79,9 +75,7 @@ async def test_wildcard_functionality():
             print("   ✅ Any authenticated GitHub user will be allowed!")
         else:
             print(f"   ALLOWED_GITHUB_USERS is restricted to: '{allowed_users}'")
-            print(
-                "   ⚠️  Only these specific users will be allowed through GitHub OAuth"
-            )
+            print("   ⚠️  Only these specific users will be allowed through GitHub OAuth")
 
         return True
 

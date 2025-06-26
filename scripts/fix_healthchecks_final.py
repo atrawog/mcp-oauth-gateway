@@ -21,9 +21,7 @@ SERVICE_PROTOCOL_VERSIONS = {
 
 def update_healthcheck(service_name, protocol_version):
     """Update healthcheck to use the correct hardcoded protocol version."""
-    compose_file = Path(
-        f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml"
-    )
+    compose_file = Path(f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml")
 
     if not compose_file.exists():
         print(f"❌ {compose_file} not found")
@@ -39,9 +37,7 @@ def update_healthcheck(service_name, protocol_version):
     with open(compose_file, "w") as f:
         f.write(content)
 
-    print(
-        f"✅ Updated {service_name} healthcheck to use protocol version {protocol_version}"
-    )
+    print(f"✅ Updated {service_name} healthcheck to use protocol version {protocol_version}")
     return True
 
 

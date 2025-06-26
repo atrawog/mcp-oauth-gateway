@@ -40,9 +40,7 @@ async def initialize_mcp_session(
     )
 
     if init_response.status_code != 200:
-        raise RuntimeError(
-            f"Failed to initialize MCP session: {init_response.status_code} - {init_response.text}"
-        )
+        raise RuntimeError(f"Failed to initialize MCP session: {init_response.status_code} - {init_response.text}")
 
     # Get session ID from response headers (optional for stateless servers)
     session_id = init_response.headers.get("Mcp-Session-Id")
@@ -120,9 +118,7 @@ async def call_mcp_tool(
     )
 
     if response.status_code != 200:
-        raise RuntimeError(
-            f"Tool call failed: {response.status_code} - {response.text}"
-        )
+        raise RuntimeError(f"Tool call failed: {response.status_code} - {response.text}")
 
     # Parse response based on content type
     content_type = response.headers.get("content-type", "")
@@ -160,9 +156,7 @@ async def list_mcp_tools(
     )
 
     if response.status_code != 200:
-        raise RuntimeError(
-            f"Tool listing failed: {response.status_code} - {response.text}"
-        )
+        raise RuntimeError(f"Tool listing failed: {response.status_code} - {response.text}")
 
     # Parse response based on content type
     content_type = response.headers.get("content-type", "")

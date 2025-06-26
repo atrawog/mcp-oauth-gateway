@@ -21,9 +21,7 @@ SERVICE_PROTOCOL_VERSIONS = {
 
 def fix_docker_compose(service_name, protocol_version):
     """Update docker-compose.yml to properly set and use MCP_PROTOCOL_VERSION."""
-    compose_file = Path(
-        f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml"
-    )
+    compose_file = Path(f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml")
 
     if not compose_file.exists():
         print(f"❌ {compose_file} not found")
@@ -75,16 +73,12 @@ def fix_docker_compose(service_name, protocol_version):
 
     # Replace hardcoded protocol versions in healthcheck with ${MCP_PROTOCOL_VERSION}
     # Match patterns like "2025-06-18", "2025-03-26", "2024-11-05"
-    healthcheck_pattern = r'(test:.*?"protocolVersion":")(\d{4}-\d{2}-\d{2})(".*?grep.*?"protocolVersion":")(\d{4}-\d{2}-\d{2})(")'
+    healthcheck_pattern = (
+        r'(test:.*?"protocolVersion":")(\d{4}-\d{2}-\d{2})(".*?grep.*?"protocolVersion":")(\d{4}-\d{2}-\d{2})(")'
+    )
 
     def update_healthcheck(match):
-        return (
-            match.group(1)
-            + "${MCP_PROTOCOL_VERSION}"
-            + match.group(3)
-            + "${MCP_PROTOCOL_VERSION}"
-            + match.group(5)
-        )
+        return match.group(1) + "${MCP_PROTOCOL_VERSION}" + match.group(3) + "${MCP_PROTOCOL_VERSION}" + match.group(5)
 
     content = re.sub(healthcheck_pattern, update_healthcheck, content, flags=re.DOTALL)
 

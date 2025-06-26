@@ -38,34 +38,20 @@ def update_env_file(token_data: dict):
         for line in lines:
             line = line.strip()
             if line.startswith("GATEWAY_OAUTH_ACCESS_TOKEN="):
-                updated_lines.append(
-                    f"GATEWAY_OAUTH_ACCESS_TOKEN={token_data['access_token']}\n"
-                )
+                updated_lines.append(f"GATEWAY_OAUTH_ACCESS_TOKEN={token_data['access_token']}\n")
                 updated_vars.add("GATEWAY_OAUTH_ACCESS_TOKEN")
-            elif (
-                line.startswith("GATEWAY_OAUTH_REFRESH_TOKEN=")
-                and "refresh_token" in token_data
-            ):
-                updated_lines.append(
-                    f"GATEWAY_OAUTH_REFRESH_TOKEN={token_data['refresh_token']}\n"
-                )
+            elif line.startswith("GATEWAY_OAUTH_REFRESH_TOKEN=") and "refresh_token" in token_data:
+                updated_lines.append(f"GATEWAY_OAUTH_REFRESH_TOKEN={token_data['refresh_token']}\n")
                 updated_vars.add("GATEWAY_OAUTH_REFRESH_TOKEN")
             else:
                 updated_lines.append(line + "\n" if line else "\n")
 
         # Add any missing variables
         if "GATEWAY_OAUTH_ACCESS_TOKEN" not in updated_vars:
-            updated_lines.append(
-                f"GATEWAY_OAUTH_ACCESS_TOKEN={token_data['access_token']}\n"
-            )
+            updated_lines.append(f"GATEWAY_OAUTH_ACCESS_TOKEN={token_data['access_token']}\n")
 
-        if (
-            "refresh_token" in token_data
-            and "GATEWAY_OAUTH_REFRESH_TOKEN" not in updated_vars
-        ):
-            updated_lines.append(
-                f"GATEWAY_OAUTH_REFRESH_TOKEN={token_data['refresh_token']}\n"
-            )
+        if "refresh_token" in token_data and "GATEWAY_OAUTH_REFRESH_TOKEN" not in updated_vars:
+            updated_lines.append(f"GATEWAY_OAUTH_REFRESH_TOKEN={token_data['refresh_token']}\n")
 
         # Write back to file
         with open(env_file, "w") as f:
@@ -147,9 +133,7 @@ async def refresh_token() -> bool:
             try:
                 error_data = response.json()
                 print(f"   Error: {error_data.get('error', 'Unknown error')}")
-                print(
-                    f"   Description: {error_data.get('error_description', 'No description')}"
-                )
+                print(f"   Description: {error_data.get('error_description', 'No description')}")
             except:
                 print(f"   Response: {response.text}")
             return False
@@ -184,9 +168,7 @@ async def main():
 
             if exp > now:
                 remaining = exp - now
-                print(
-                    f"ℹ️  Current token is still valid for {remaining / 3600:.1f} hours"
-                )
+                print(f"ℹ️  Current token is still valid for {remaining / 3600:.1f} hours")
                 print("   Refresh not needed, but proceeding anyway...")
         except:
             print("⚠️  Cannot decode current token, proceeding with refresh...")

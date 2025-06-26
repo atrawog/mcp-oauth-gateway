@@ -31,9 +31,7 @@ class TestCompletenessChecker(ast.NodeVisitor):
             self.generic_visit(node)
 
             # Check for violations after visiting the function
-            if self.has_status_check and not (
-                self.has_content_check or self.has_functionality_check
-            ):
+            if self.has_status_check and not (self.has_content_check or self.has_functionality_check):
                 self.violations.append(
                     {
                         "function": self.current_function,
@@ -80,8 +78,7 @@ class TestCompletenessChecker(ast.NodeVisitor):
 
     def visit_Call(self, node):
         """Check for JSON parsing and result validation."""
-        if (self.current_function and isinstance(node.func, ast.Attribute) and
-            node.func.attr == "json"):
+        if self.current_function and isinstance(node.func, ast.Attribute) and node.func.attr == "json":
             # Check for response.json() calls
             self.has_functionality_check = True
 

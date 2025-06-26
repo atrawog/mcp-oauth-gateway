@@ -39,9 +39,7 @@ async def main():
             redis_port = 6379
 
     # Connect to Redis
-    redis_client = await redis.Redis(
-        host=redis_host, port=redis_port, password=redis_password, decode_responses=True
-    )
+    redis_client = await redis.Redis(host=redis_host, port=redis_port, password=redis_password, decode_responses=True)
 
     try:
         await redis_client.ping()
@@ -69,9 +67,7 @@ async def main():
         claude_clients = []
 
         while True:
-            cursor, keys = await redis_client.scan(
-                cursor, match="oauth:client:*", count=100
-            )
+            cursor, keys = await redis_client.scan(cursor, match="oauth:client:*", count=100)
 
             for key in keys:
                 client_data = await redis_client.get(key)
@@ -79,9 +75,7 @@ async def main():
                     try:
                         client = json.loads(client_data)
                         # Check if it's Claude-related
-                        if "claude" in client.get(
-                            "client_name", ""
-                        ).lower() or "claude.ai" in str(
+                        if "claude" in client.get("client_name", "").lower() or "claude.ai" in str(
                             client.get("redirect_uris", [])
                         ):
                             client_id = key.split(":")[-1]
@@ -105,9 +99,7 @@ async def main():
             print(f"Name: {client['name']}")
             print(f"Redirect URIs: {client['redirect_uris']}")
             if client["created"]:
-                print(
-                    f"Created: {datetime.fromtimestamp(client['created'], tz=UTC).isoformat()}"
-                )
+                print(f"Created: {datetime.fromtimestamp(client['created'], tz=UTC).isoformat()}")
 
         if not claude_clients:
             print("No Claude.ai registrations found")
@@ -120,9 +112,7 @@ async def main():
         states = []
 
         while True:
-            cursor, keys = await redis_client.scan(
-                cursor, match="oauth:state:*", count=100
-            )
+            cursor, keys = await redis_client.scan(cursor, match="oauth:state:*", count=100)
 
             for key in keys:
                 state_data = await redis_client.get(key)

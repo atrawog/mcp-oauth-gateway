@@ -37,18 +37,14 @@ class StreamableHTTPTransport:
                 {
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-                    "Access-Control-Allow-Headers": (
-                        "Content-Type, Mcp-Session-Id, MCP-Protocol-Version"
-                    ),
+                    "Access-Control-Allow-Headers": ("Content-Type, Mcp-Session-Id, MCP-Protocol-Version"),
                     "Access-Control-Max-Age": "86400",
                 },
                 b"",
             )
 
         # Extract session ID from headers
-        request_session_id = headers.get(
-            "mcp-session-id", headers.get("Mcp-Session-Id")
-        )
+        request_session_id = headers.get("mcp-session-id", headers.get("Mcp-Session-Id"))
 
         if method == "POST" and path == "/mcp":
             return await self._handle_post_request(headers, body, request_session_id)
@@ -186,16 +182,12 @@ class StreamableHTTPTransport:
             json.dumps(
                 {
                     "error": "SSE not implemented",
-                    "message": (
-                        "This transport currently only supports stateless POST requests"
-                    ),
+                    "message": ("This transport currently only supports stateless POST requests"),
                 }
             ).encode(),
         )
 
-    async def _handle_delete_request(
-        self, session_id: str | None
-    ) -> tuple[int, dict[str, str], bytes]:
+    async def _handle_delete_request(self, session_id: str | None) -> tuple[int, dict[str, str], bytes]:
         """Handle DELETE /mcp request."""
         if not session_id:
             return (
@@ -237,12 +229,8 @@ class StreamableHTTPTransport:
     ]:
         """Create memory streams for MCP server communication."""
         # Create bidirectional memory streams
-        read_stream_writer, read_stream = anyio.create_memory_object_stream[
-            SessionMessage | Exception
-        ](0)
-        write_stream, write_stream_reader = anyio.create_memory_object_stream[
-            SessionMessage
-        ](0)
+        read_stream_writer, read_stream = anyio.create_memory_object_stream[SessionMessage | Exception](0)
+        write_stream, write_stream_reader = anyio.create_memory_object_stream[SessionMessage](0)
 
         try:
             self._running = True

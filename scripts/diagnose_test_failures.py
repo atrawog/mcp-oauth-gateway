@@ -264,9 +264,7 @@ def analyze_token_issues():
 
         if exp and exp < now:
             print(f"❌ Token expired {now - exp} seconds ago")
-            print(
-                "   Solution: Run 'just refresh-tokens' or 'just generate-github-token'"
-            )
+            print("   Solution: Run 'just refresh-tokens' or 'just generate-github-token'")
             return False
 
         # Check claims

@@ -12,9 +12,7 @@ class TestMCPFetchIntegration:
     """Test real MCP fetch functionality with proper OAuth authentication."""
 
     @pytest.mark.asyncio
-    async def test_fetch_requires_real_oauth_token(
-        self, http_client, wait_for_services, mcp_fetch_url
-    ):
+    async def test_fetch_requires_real_oauth_token(self, http_client, wait_for_services, mcp_fetch_url):
         """Test that MCP fetch REQUIRES real OAuth tokens - no fakes allowed!"""
         import os
 
@@ -26,9 +24,7 @@ class TestMCPFetchIntegration:
             )
 
         # Test 1: Verify unauthenticated requests are rejected
-        response = await http_client.post(
-            f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}
-        )
+        response = await http_client.post(f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1})
 
         assert response.status_code == HTTP_UNAUTHORIZED, "MCP should reject unauthenticated requests"
         assert "WWW-Authenticate" in response.headers
@@ -101,9 +97,7 @@ class TestMCPFetchIntegration:
         assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_endpoint_validation(
-        self, http_client, wait_for_services, mcp_fetch_url
-    ):
+    async def test_mcp_fetch_endpoint_validation(self, http_client, wait_for_services, mcp_fetch_url):
         """Test MCP fetch endpoint validation and error handling."""
         # Test with invalid JSON-RPC format
         invalid_requests = [
@@ -155,9 +149,7 @@ class TestMCPFetchIntegration:
             assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_http_methods(
-        self, http_client, wait_for_services, mcp_fetch_url
-    ):
+    async def test_mcp_fetch_http_methods(self, http_client, wait_for_services, mcp_fetch_url):
         """Test that MCP fetch endpoint supports required HTTP methods."""
         # Test GET method (required by MCP Streamable HTTP transport)
         response = await http_client.get(f"{mcp_fetch_url}")
@@ -165,9 +157,7 @@ class TestMCPFetchIntegration:
         assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test POST method
-        response = await http_client.post(
-            f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "test", "id": 1}
-        )
+        response = await http_client.post(f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "test", "id": 1})
         assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test unsupported methods

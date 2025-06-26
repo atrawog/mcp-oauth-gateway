@@ -67,11 +67,15 @@ class MCPSession:
                     response = json.loads(line)
                     await self._handle_response(response)
                 except json.JSONDecodeError:
-                    logger.warning(f"Session {self.session_id}: Invalid JSON from server: {line}")  # TODO: Break long line
+                    logger.warning(
+                        f"Session {self.session_id}: Invalid JSON from server: {line}"
+                    )  # TODO: Break long line
                     continue
 
             except Exception as e:
-                logger.error(f"Session {self.session_id}: Error reading from server: {e}")  # TODO: Break long line
+                logger.error(
+                    f"Session {self.session_id}: Error reading from server: {e}"
+                )  # TODO: Break long line
                 break
 
     async def _handle_response(self, response: Dict[str, Any]):
@@ -85,12 +89,16 @@ class MCPSession:
                 future.set_result(response)
         else:
             # This might be a notification or unsolicited message
-            logger.debug(f"Session {self.session_id}: Received unsolicited message: {response}")  # TODO: Break long line
+            logger.debug(
+                f"Session {self.session_id}: Received unsolicited message: {response}"
+            )  # TODO: Break long line
 
     async def _send_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Send a request to the server and wait for response."""
         if not self.process or not self.process.stdin:
-            raise RuntimeError(f"Session {self.session_id}: Server process not available")  # TODO: Break long line
+            raise RuntimeError(
+                f"Session {self.session_id}: Server process not available"
+            )  # TODO: Break long line
 
         # Update activity timestamp
         self.last_activity = time.time()
@@ -132,7 +140,9 @@ class MCPSession:
         response = await self._send_request(request)
 
         if "error" in response:
-            logger.error(f"Session {self.session_id}: Failed to list tools: {response['error']}")  # TODO: Break long line
+            logger.error(
+                f"Session {self.session_id}: Failed to list tools: {response['error']}"
+            )  # TODO: Break long line
             return
 
         result = response.get("result", {})
@@ -274,7 +284,9 @@ class MCPSessionManager:
         await session.start_server()
         self.sessions[session_id] = session
 
-        logger.info(f"Created new session {session_id}. Total sessions: {len(self.sessions)}")  # TODO: Break long line
+        logger.info(
+            f"Created new session {session_id}. Total sessions: {len(self.sessions)}"
+        )  # TODO: Break long line
         return session
 
     async def handle_request(

@@ -29,9 +29,7 @@ async def register_persistent_client():
             "scope": TEST_CLIENT_SCOPE,
         }
 
-        response = await client.post(
-            f"{AUTH_BASE_URL}/register", json=registration_data
-        )
+        response = await client.post(f"{AUTH_BASE_URL}/register", json=registration_data)
 
         if response.status_code == 201:
             client_data = response.json()
@@ -91,18 +89,14 @@ async def verify_persistence():
 
         if test_client_id:
             # Check Redis directly
-            redis_client = await redis.from_url(
-                f"redis://:{REDIS_PASSWORD}@localhost:6379/0", decode_responses=True
-            )
+            redis_client = await redis.from_url(f"redis://:{REDIS_PASSWORD}@localhost:6379/0", decode_responses=True)
 
             try:
                 client_key = f"oauth:client:{test_client_id}"
                 exists = await redis_client.exists(client_key)
 
                 if exists:
-                    print(
-                        f"\n✅ Previous client {test_client_id} still exists in Redis!"
-                    )
+                    print(f"\n✅ Previous client {test_client_id} still exists in Redis!")
                     data = await redis_client.hgetall(client_key)
                     print(f"   Created at: {data.get('created_at', 'unknown')}")
                 else:

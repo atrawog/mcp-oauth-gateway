@@ -15,11 +15,12 @@ class TestMCPEchoAllUrls:
 
     def _parse_sse_response(self, sse_text: str) -> dict:
         """Parse SSE response to extract JSON data."""
-        for line in sse_text.strip().split('\n'):
-            if line.startswith('data: '):
+        for line in sse_text.strip().split("\n"):
+            if line.startswith("data: "):
                 data_str = line[6:]  # Remove 'data: ' prefix
-                if data_str and data_str != '[DONE]':
+                if data_str and data_str != "[DONE]":
                     import json
+
                     return json.loads(data_str)
         raise ValueError("No valid data found in SSE response")
 
@@ -40,10 +41,10 @@ class TestMCPEchoAllUrls:
                     "params": {
                         "protocolVersion": "2025-06-18",
                         "capabilities": {},
-                        "clientInfo": {"name": "test-all-urls", "version": "1.0.0"}
+                        "clientInfo": {"name": "test-all-urls", "version": "1.0.0"},
                     },
-                    "id": 1
-                }
+                    "id": 1,
+                },
             )
 
             # Should require authentication
@@ -58,16 +59,16 @@ class TestMCPEchoAllUrls:
                     "params": {
                         "protocolVersion": "2025-06-18",
                         "capabilities": {},
-                        "clientInfo": {"name": "test-all-urls", "version": "1.0.0"}
+                        "clientInfo": {"name": "test-all-urls", "version": "1.0.0"},
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     **gateway_auth_headers,
                     "Accept": "application/json, text/event-stream",
                     "Content-Type": "application/json",
-                    "MCP-Protocol-Version": "2025-06-18"
-                }
+                    "MCP-Protocol-Version": "2025-06-18",
+                },
             )
 
             assert response.status_code == 200, f"{url} should accept authenticated requests"
@@ -84,21 +85,25 @@ class TestMCPEchoAllUrls:
             results[hostname] = "✅ Working"
 
         # Print summary
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("MCP Echo URL Test Results:")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         for hostname, status in sorted(results.items()):
             print(f"{hostname}: {status}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"Total URLs tested: {len(results)}")
         print(f"All URLs working: {'✅ Yes' if all('✅' in s for s in results.values()) else '❌ No'}")
 
         # Verify we tested all expected URLs
-        assert len(results) == len(mcp_echo_urls), f"Expected to test {len(mcp_echo_urls)} URLs, but tested {len(results)}"
+        assert len(results) == len(mcp_echo_urls), (
+            f"Expected to test {len(mcp_echo_urls)} URLs, but tested {len(results)}"
+        )
 
         # Verify we have echo plus echo-a through echo-z (27 total)
         expected_count = 27  # echo + 26 letters
-        assert len(results) == expected_count, f"Expected {expected_count} URLs (echo + echo-a through echo-z), but found {len(results)}"
+        assert len(results) == expected_count, (
+            f"Expected {expected_count} URLs (echo + echo-a through echo-z), but found {len(results)}"
+        )
 
     @pytest.mark.asyncio
     async def test_echo_tool_on_random_urls(
@@ -120,16 +125,16 @@ class TestMCPEchoAllUrls:
                     "params": {
                         "protocolVersion": "2025-06-18",
                         "capabilities": {},
-                        "clientInfo": {"name": "test-echo-tool", "version": "1.0.0"}
+                        "clientInfo": {"name": "test-echo-tool", "version": "1.0.0"},
                     },
-                    "id": 1
+                    "id": 1,
                 },
                 headers={
                     **gateway_auth_headers,
                     "Accept": "application/json, text/event-stream",
                     "Content-Type": "application/json",
-                    "MCP-Protocol-Version": "2025-06-18"
-                }
+                    "MCP-Protocol-Version": "2025-06-18",
+                },
             )
 
             assert init_response.status_code == 200
@@ -140,20 +145,15 @@ class TestMCPEchoAllUrls:
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
-                    "params": {
-                        "name": "echo",
-                        "arguments": {
-                            "message": f"Testing {url}"
-                        }
-                    },
-                    "id": 2
+                    "params": {"name": "echo", "arguments": {"message": f"Testing {url}"}},
+                    "id": 2,
                 },
                 headers={
                     **gateway_auth_headers,
                     "Accept": "application/json, text/event-stream",
                     "Content-Type": "application/json",
-                    "MCP-Protocol-Version": "2025-06-18"
-                }
+                    "MCP-Protocol-Version": "2025-06-18",
+                },
             )
 
             assert echo_response.status_code == 200

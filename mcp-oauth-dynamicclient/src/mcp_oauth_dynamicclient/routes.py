@@ -140,7 +140,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             # RFC 7591 - Must be HTTPS (except localhost)
             if uri.startswith("http://"):
                 if not any(
-                    uri.startswith(f"http://{host}") for host in ["localhost", "127.0.0.1", "[::1]"]  # TODO: Break long line
+                    uri.startswith(f"http://{host}")
+                    for host in ["localhost", "127.0.0.1", "[::1]"]  # TODO: Break long line
                 ):
                     raise HTTPException(
                         status_code=400,
@@ -188,7 +189,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # Store with expiration matching client lifetime
         if settings.client_lifetime > 0:
             await redis_client.setex(
-                f"oauth:client:{client_id}", settings.client_lifetime, json.dumps(client_data)  # TODO: Break long line
+                f"oauth:client:{client_id}",
+                settings.client_lifetime,
+                json.dumps(client_data),  # TODO: Break long line
             )
         else:
             await redis_client.set(f"oauth:client:{client_id}", json.dumps(client_data))
@@ -287,7 +290,6 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 </body>
                 </html>
                 """,
-
             )
 
         # Validate redirect_uri
@@ -327,8 +329,12 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "code_challenge_method": code_challenge_method,
         }
 
-        await redis_client.setex(f"oauth:state:{auth_state}", 300, json.dumps(auth_data))  # TODO: Break long line
-        logger.info(f"Created OAuth state: {auth_state} for client: {client_id}, original state: {state}")
+        await redis_client.setex(
+            f"oauth:state:{auth_state}", 300, json.dumps(auth_data)
+        )  # TODO: Break long line
+        logger.info(
+            f"Created OAuth state: {auth_state} for client: {client_id}, original state: {state}"
+        )
 
         # Redirect to GitHub OAuth
         github_params = {
@@ -344,8 +350,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             headers={
                 "Cache-Control": "no-cache, no-store, must-revalidate",
                 "Pragma": "no-cache",
-                "Expires": "0"
-            }
+                "Expires": "0",
+            },
         )
 
     # Callback endpoint
@@ -358,7 +364,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         """The blessed return path - handles GitHub OAuth callback"""
 
         # Retrieve authorization state
-        logger.info(f"Callback received with state: {state}, code: {code[:8]}..." if code else "no code")
+        logger.info(
+            f"Callback received with state: {state}, code: {code[:8]}..." if code else "no code"
+        )
         auth_data_str = await redis_client.get(f"oauth:state:{state}")
         if not auth_data_str:
             logger.warning(f"State not found in Redis: {state}")
@@ -373,12 +381,14 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 headers={
                     "Cache-Control": "no-cache, no-store, must-revalidate",
                     "Pragma": "no-cache",
-                    "Expires": "0"
-                }
+                    "Expires": "0",
+                },
             )
 
         auth_data = json.loads(auth_data_str)
-        logger.info(f"State validated successfully: {state}, client_id: {auth_data.get('client_id')}")
+        logger.info(
+            f"State validated successfully: {state}, client_id: {auth_data.get('client_id')}"
+        )
 
         # Exchange GitHub code
         user_info = await auth_manager.exchange_github_code(code)
@@ -410,7 +420,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             "name": user_info.get("name", ""),
         }
 
-        await redis_client.setex(f"oauth:code:{auth_code}", 31536000, json.dumps(code_data))  # TODO: Break long line
+        await redis_client.setex(
+            f"oauth:code:{auth_code}", 31536000, json.dumps(code_data)
+        )  # TODO: Break long line
 
         # Clean up state
         await redis_client.delete(f"oauth:state:{state}")
@@ -423,8 +435,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 headers={
                     "Cache-Control": "no-cache, no-store, must-revalidate",
                     "Pragma": "no-cache",
-                    "Expires": "0"
-                }
+                    "Expires": "0",
+                },
             )
 
         # Normal redirect
@@ -435,8 +447,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             headers={
                 "Cache-Control": "no-cache, no-store, must-revalidate",
                 "Pragma": "no-cache",
-                "Expires": "0"
-            }
+                "Expires": "0",
+            },
         )
 
     # Token endpoint
@@ -734,8 +746,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
             headers={
                 "Cache-Control": "no-cache, no-store, must-revalidate",
                 "Pragma": "no-cache",
-                "Expires": "0"
-            }
+                "Expires": "0",
+            },
         )
 
     # OAuth success page

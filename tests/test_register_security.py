@@ -25,9 +25,7 @@ class TestRegisterEndpointSecurity:
         }
 
         # Test without Authorization header - should succeed per RFC 7591
-        response = await http_client.post(
-            f"{AUTH_BASE_URL}/register", json=registration_data
-        )
+        response = await http_client.post(f"{AUTH_BASE_URL}/register", json=registration_data)
 
         # Registration should succeed without authentication
         assert response.status_code == HTTP_CREATED
@@ -52,9 +50,7 @@ class TestRegisterEndpointSecurity:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_register_ignores_authorization_headers(
-        self, http_client, wait_for_services
-    ):
+    async def test_register_ignores_authorization_headers(self, http_client, wait_for_services):
         """Test that /register endpoint ignores auth headers per RFC 7591."""
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
@@ -74,10 +70,7 @@ class TestRegisterEndpointSecurity:
         assert response.status_code == HTTP_CREATED
         client_data = response.json()
         assert "client_id" in client_data
-        assert (
-            client_data["client_name"]
-            == "TEST test_register_ignores_authorization_headers"
-        )
+        assert client_data["client_name"] == "TEST test_register_ignores_authorization_headers"
 
         # Cleanup: Delete the client registration using RFC 7592
         if "registration_access_token" in client_data:
@@ -93,9 +86,7 @@ class TestRegisterEndpointSecurity:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_security_enforced_at_authorization_stage(
-        self, http_client, wait_for_services
-    ):
+    async def test_security_enforced_at_authorization_stage(self, http_client, wait_for_services):
         """Test that security is enforced at authorization, not registration."""
         # First, register a client publicly (no auth required)
         registration_data = {
@@ -104,9 +95,7 @@ class TestRegisterEndpointSecurity:
             "scope": "openid profile email",
         }
 
-        response = await http_client.post(
-            f"{AUTH_BASE_URL}/register", json=registration_data
-        )
+        response = await http_client.post(f"{AUTH_BASE_URL}/register", json=registration_data)
 
         assert response.status_code == HTTP_CREATED
         client_data = response.json()
@@ -143,9 +132,7 @@ class TestRegisterEndpointSecurity:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_register_with_valid_token_still_succeeds(
-        self, http_client, wait_for_services
-    ):
+    async def test_register_with_valid_token_still_succeeds(self, http_client, wait_for_services):
         """Test that /register endpoint succeeds even with valid token (public endpoint)."""
         # Even if we have a valid token, registration should still work
         # because it's a public endpoint per RFC 7591
@@ -160,19 +147,14 @@ class TestRegisterEndpointSecurity:
         if GATEWAY_OAUTH_ACCESS_TOKEN:
             headers["Authorization"] = f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"
 
-        response = await http_client.post(
-            f"{AUTH_BASE_URL}/register", json=registration_data, headers=headers
-        )
+        response = await http_client.post(f"{AUTH_BASE_URL}/register", json=registration_data, headers=headers)
 
         # Should succeed regardless of token presence
         assert response.status_code == HTTP_CREATED
         client_data = response.json()
         assert "client_id" in client_data
         assert "client_secret" in client_data
-        assert (
-            client_data["client_name"]
-            == "TEST test_register_with_valid_token_still_succeeds"
-        )
+        assert client_data["client_name"] == "TEST test_register_with_valid_token_still_succeeds"
 
         # Cleanup: Delete the client registration using RFC 7592
         if "registration_access_token" in client_data:
@@ -188,9 +170,7 @@ class TestRegisterEndpointSecurity:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_token_endpoint_requires_authentication(
-        self, http_client, wait_for_services
-    ):
+    async def test_token_endpoint_requires_authentication(self, http_client, wait_for_services):
         """Test that token endpoint requires proper client authentication."""
         # First register a client (public, no auth)
         reg_response = await http_client.post(
@@ -226,18 +206,14 @@ class TestRegisterEndpointSecurity:
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
-                    headers={
-                        "Authorization": f"Bearer {client['registration_access_token']}"
-                    },
+                    headers={"Authorization": f"Bearer {client['registration_access_token']}"},
                 )
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_multiple_clients_can_register_publicly(
-        self, http_client, wait_for_services
-    ):
+    async def test_multiple_clients_can_register_publicly(self, http_client, wait_for_services):
         """Test that multiple clients can register without authentication."""
         # Register multiple clients to verify public registration works
         clients = []
@@ -249,19 +225,14 @@ class TestRegisterEndpointSecurity:
                 "scope": "openid profile email",
             }
 
-            response = await http_client.post(
-                f"{AUTH_BASE_URL}/register", json=registration_data
-            )
+            response = await http_client.post(f"{AUTH_BASE_URL}/register", json=registration_data)
 
             # All registrations should succeed
             assert response.status_code == HTTP_CREATED
             client_data = response.json()
             assert "client_id" in client_data
             assert "client_secret" in client_data
-            assert (
-                client_data["client_name"]
-                == f"TEST test_multiple_clients_can_register_publicly_{i}"
-            )
+            assert client_data["client_name"] == f"TEST test_multiple_clients_can_register_publicly_{i}"
             clients.append(client_data)
 
         # Ensure all clients have unique IDs
@@ -287,9 +258,7 @@ class TestRegisterEndpointBootstrap:
     """Test bootstrap scenarios for OAuth client registration."""
 
     @pytest.mark.asyncio
-    async def test_anyone_can_register_multiple_clients(
-        self, http_client, wait_for_services
-    ):
+    async def test_anyone_can_register_multiple_clients(self, http_client, wait_for_services):
         """Test that anyone can register multiple OAuth clients (public endpoint)."""
         # RFC 7591: Dynamic client registration is a public endpoint
         # No authentication required for registration

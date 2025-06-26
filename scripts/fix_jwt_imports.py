@@ -31,18 +31,11 @@ for filepath, content in files_to_fix:
         for i, line in enumerate(lines):
             if line.startswith(("import ", "from ")):
                 import_section_end = i + 1
-            elif (
-                import_section_end > 0
-                and line
-                and not line.startswith(" ")
-                and not line.startswith("#")
-            ):
+            elif import_section_end > 0 and line and not line.startswith(" ") and not line.startswith("#"):
                 break
 
         # Add the import
-        lines.insert(
-            import_section_end, "from .jwt_test_helper import encode as jwt_encode"
-        )
+        lines.insert(import_section_end, "from .jwt_test_helper import encode as jwt_encode")
         content = "\n".join(lines)
 
         # Replace jwt.encode with jwt_encode

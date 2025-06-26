@@ -22,7 +22,7 @@ def analyze_error_patterns():
         'error_data["detail"]': r'error_data\["detail"\]',
         '"detail" in error': r'["\'"]detail["\'"] in error',
         '"error" in error': r'["\'"]error["\'"] in error',
-        'response.json()': r'response\.json\(\)',
+        "response.json()": r"response\.json\(\)",
         'error["code"]': r'error\["code"\]',
         'error["message"]': r'error\["message"\]',
         'error["loc"]': r'error\["loc"\]',
@@ -34,17 +34,14 @@ def analyze_error_patterns():
         for pattern_name, regex in error_patterns.items():
             matches = re.findall(regex, content)
             if matches:
-                patterns[pattern_name].append({
-                    'file': test_file.name,
-                    'count': len(matches)
-                })
+                patterns[pattern_name].append({"file": test_file.name, "count": len(matches)})
 
     # Print results
     print("Error checking patterns found in test files:\n")
     for pattern_name, files in sorted(patterns.items()):
-        total = sum(f['count'] for f in files)
+        total = sum(f["count"] for f in files)
         print(f"{pattern_name}: {total} occurrences in {len(files)} files")
-        for file_info in sorted(files, key=lambda x: x['count'], reverse=True)[:5]:
+        for file_info in sorted(files, key=lambda x: x["count"], reverse=True)[:5]:
             print(f"  - {file_info['file']}: {file_info['count']}")
         print()
 
@@ -70,6 +67,7 @@ def analyze_error_patterns():
     print("\nUnique patterns found:")
     for pattern in sorted(unique_patterns):
         print(f"  - {pattern}")
+
 
 if __name__ == "__main__":
     analyze_error_patterns()

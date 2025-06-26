@@ -16,20 +16,14 @@ class TestMCPFetchExampleCom:
     """Test fetching example.com content with proper MCP protocol."""
 
     @pytest.mark.asyncio
-    async def test_fetch_example_com_with_mcp_protocol(
-        self, http_client, wait_for_services, mcp_fetch_url
-    ):
+    async def test_fetch_example_com_with_mcp_protocol(self, http_client, wait_for_services, mcp_fetch_url):
         """Test fetching https://example.com and verify 'Example Domain' is in content."""
         # MUST have MCP client access token - test FAILS if not available
-        assert MCP_CLIENT_ACCESS_TOKEN, (
-            "MCP_CLIENT_ACCESS_TOKEN not available - run: just mcp-client-token"
-        )
+        assert MCP_CLIENT_ACCESS_TOKEN, "MCP_CLIENT_ACCESS_TOKEN not available - run: just mcp-client-token"
 
         # Step 2: Initialize MCP session properly
         try:
-            session_id, init_result = await initialize_mcp_session(
-                http_client, mcp_fetch_url, MCP_CLIENT_ACCESS_TOKEN
-            )
+            session_id, init_result = await initialize_mcp_session(http_client, mcp_fetch_url, MCP_CLIENT_ACCESS_TOKEN)
             print(f"✓ MCP session initialized: {session_id}")
 
         except RuntimeError:

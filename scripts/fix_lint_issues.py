@@ -14,11 +14,10 @@ def fix_arg002_in_tests(content: str) -> str:
     # Pattern to find test method parameters that commonly cause ARG002
     patterns = [
         # wait_for_services fixture
-        (r'(\s+)(wait_for_services)(,?)(\s*)$', r'\1\2,  # noqa: ARG002\3\4'),
-        (r'(\s+)(wait_for_services)(\):)', r'\1\2,  # noqa: ARG002\3'),
+        (r"(\s+)(wait_for_services)(,?)(\s*)$", r"\1\2,  # noqa: ARG002\3\4"),
+        (r"(\s+)(wait_for_services)(\):)", r"\1\2,  # noqa: ARG002\3"),
         # Other common fixture parameters that might not be used
-        (r'(\s+)(capsys|caplog|tmp_path|monkeypatch)(,?)(\s*)$',
-         r'\1\2,  # noqa: ARG002\3\4'),
+        (r"(\s+)(capsys|caplog|tmp_path|monkeypatch)(,?)(\s*)$", r"\1\2,  # noqa: ARG002\3\4"),
     ]
 
     for pattern, replacement in patterns:
@@ -35,7 +34,7 @@ def fix_http_status_codes(content: str) -> str:
     # Add import if not present
     if "from .test_constants import" in content and "HTTP_" not in content:
         # Find the last test_constants import line
-        import_pattern = r'(from \.test_constants import .*?)(\n)'
+        import_pattern = r"(from \.test_constants import .*?)(\n)"
         match = re.search(import_pattern, content)
         if match:
             imports = match.group(1)
@@ -50,15 +49,15 @@ def fix_http_status_codes(content: str) -> str:
 
     # Replace common status codes
     replacements = [
-        (r'status_code == 200\b', 'status_code == HTTP_OK'),
-        (r'status_code == 201\b', 'status_code == HTTP_CREATED'),
-        (r'status_code == 204\b', 'status_code == HTTP_NO_CONTENT'),
-        (r'status_code == 400\b', 'status_code == HTTP_BAD_REQUEST'),
-        (r'status_code == 401\b', 'status_code == HTTP_UNAUTHORIZED'),
-        (r'status_code == 403\b', 'status_code == HTTP_FORBIDDEN'),
-        (r'status_code == 404\b', 'status_code == HTTP_NOT_FOUND'),
-        (r'status_code == 422\b', 'status_code == HTTP_UNPROCESSABLE_ENTITY'),
-        (r'status_code == 500\b', 'status_code == HTTP_INTERNAL_SERVER_ERROR'),
+        (r"status_code == 200\b", "status_code == HTTP_OK"),
+        (r"status_code == 201\b", "status_code == HTTP_CREATED"),
+        (r"status_code == 204\b", "status_code == HTTP_NO_CONTENT"),
+        (r"status_code == 400\b", "status_code == HTTP_BAD_REQUEST"),
+        (r"status_code == 401\b", "status_code == HTTP_UNAUTHORIZED"),
+        (r"status_code == 403\b", "status_code == HTTP_FORBIDDEN"),
+        (r"status_code == 404\b", "status_code == HTTP_NOT_FOUND"),
+        (r"status_code == 422\b", "status_code == HTTP_UNPROCESSABLE_ENTITY"),
+        (r"status_code == 500\b", "status_code == HTTP_INTERNAL_SERVER_ERROR"),
     ]
 
     for pattern, replacement in replacements:
@@ -74,7 +73,7 @@ def fix_docstring_formatting(content: str) -> str:
     """
     # Pattern: """Summary line\nMore text without blank line
     pattern = r'("""[^"\n]+)\n(\s+)([^"\s])'
-    replacement = r'\1\n\n\2\3'
+    replacement = r"\1\n\n\2\3"
 
     return re.sub(pattern, replacement, content)
 
@@ -84,31 +83,31 @@ def fix_line_length(content: str) -> str:
 
     Root cause: Lines exceed 88 character limit.
     """
-    lines = content.split('\n')
+    lines = content.split("\n")
     fixed_lines = []
 
     for line in lines:
         if len(line) > 88:
             # Handle common patterns
-            if 'assert' in line and '==' in line:
+            if "assert" in line and "==" in line:
                 # Break assertions after operators
-                if ' == ' in line:
-                    parts = line.split(' == ', 1)
+                if " == " in line:
+                    parts = line.split(" == ", 1)
                     if len(parts) == 2:
                         indent = len(line) - len(line.lstrip())
-                        fixed_lines.append(parts[0] + ' ==')
-                        fixed_lines.append(' ' * (indent + 4) + parts[1])
+                        fixed_lines.append(parts[0] + " ==")
+                        fixed_lines.append(" " * (indent + 4) + parts[1])
                         continue
 
             elif 'f"' in line or "f'" in line:
                 # Break f-strings at logical points
                 # This is complex, so just mark for manual review
-                fixed_lines.append(line + '  # TODO: Break long line')
+                fixed_lines.append(line + "  # TODO: Break long line")
                 continue
 
         fixed_lines.append(line)
 
-    return '\n'.join(fixed_lines)
+    return "\n".join(fixed_lines)
 
 
 def fix_timeout_issues(content: str) -> str:
@@ -119,17 +118,15 @@ def fix_timeout_issues(content: str) -> str:
     # Pattern for httpx calls without timeout
     patterns = [
         # await http_client.get/post/put/delete without timeout
-        (r'(await http_client\.(get|post|put|delete|patch)\([^)]+)(\))',
-         r'\1, timeout=30.0\3'),
+        (r"(await http_client\.(get|post|put|delete|patch)\([^)]+)(\))", r"\1, timeout=30.0\3"),
         # httpx.AsyncClient() without timeout
-        (r'(httpx\.AsyncClient\(\s*)(\))',
-         r'\1timeout=30.0\2'),
+        (r"(httpx\.AsyncClient\(\s*)(\))", r"\1timeout=30.0\2"),
     ]
 
     for pattern, replacement in patterns:
         # Check if timeout not already present
         def replace_if_no_timeout(match):
-            if 'timeout' not in match.group(0):
+            if "timeout" not in match.group(0):
                 return re.sub(pattern, replacement, match.group(0))
             return match.group(0)
 
@@ -145,7 +142,7 @@ def process_file(file_path: Path) -> None:
         original_content = content
 
         # Apply fixes based on file type
-        if file_path.name.startswith('test_'):
+        if file_path.name.startswith("test_"):
             content = fix_arg002_in_tests(content)
             content = fix_http_status_codes(content)
 
@@ -153,7 +150,7 @@ def process_file(file_path: Path) -> None:
         content = fix_docstring_formatting(content)
         content = fix_line_length(content)
 
-        if 'httpx' in content:
+        if "httpx" in content:
             content = fix_timeout_issues(content)
 
         # Write back if changed

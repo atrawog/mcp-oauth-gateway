@@ -29,9 +29,7 @@ for url in urls:
         MCP_HOSTNAMES[name] = url
 
 # Get auth token - try MCP_CLIENT_ACCESS_TOKEN first, then GATEWAY_OAUTH_ACCESS_TOKEN
-MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN") or os.getenv(
-    "GATEWAY_OAUTH_ACCESS_TOKEN"
-)
+MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN") or os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
 
 
 async def test_mcp_hostname(name: str, url: str) -> tuple[str, bool, str]:
@@ -95,9 +93,7 @@ except Exception as e:
 
     try:
         # Run the test
-        result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, timeout=10
-        )
+        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=10)
 
         output = result.stdout.strip() or result.stderr.strip()
 

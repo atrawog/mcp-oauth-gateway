@@ -19,9 +19,7 @@ from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
 def base_url():
     """Base URL for tests."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
-        pytest.skip(
-            "MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable."
-        )
+        pytest.skip("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
     return f"https://everything.{BASE_DOMAIN}/"
 
 
@@ -41,7 +39,7 @@ class TestMCPEverythingSSESimple:
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"
+                "Accept": "application/json, text/event-stream",
             },
             json={
                 "jsonrpc": "2.0",
@@ -49,23 +47,17 @@ class TestMCPEverythingSSESimple:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {
-                        "name": "header-test",
-                        "version": "1.0.0"
-                    }
+                    "clientInfo": {"name": "header-test", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
-            verify=True
+            verify=True,
         )
 
         # These headers should be added by our middleware
-        assert response.headers.get("X-Accel-Buffering") == "no", \
-            "X-Accel-Buffering header should be 'no'"
-        assert response.headers.get("Cache-Control") == "no-cache", \
-            "Cache-Control should be 'no-cache'"
-        assert response.headers.get("Connection") == "keep-alive", \
-            "Connection should be 'keep-alive'"
+        assert response.headers.get("X-Accel-Buffering") == "no", "X-Accel-Buffering header should be 'no'"
+        assert response.headers.get("Cache-Control") == "no-cache", "Cache-Control should be 'no-cache'"
+        assert response.headers.get("Connection") == "keep-alive", "Connection should be 'keep-alive'"
 
         # Response should be successful
         assert response.status_code == 200
@@ -79,7 +71,7 @@ class TestMCPEverythingSSESimple:
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"
+                "Accept": "application/json, text/event-stream",
             },
             json={
                 "jsonrpc": "2.0",
@@ -87,24 +79,18 @@ class TestMCPEverythingSSESimple:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {
-                        "name": "format-test",
-                        "version": "1.0.0"
-                    }
+                    "clientInfo": {"name": "format-test", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
-            verify=True
+            verify=True,
         )
 
         # Verify SSE format
-        lines = response.text.strip().split('\n')
-        assert any(line.startswith("event: ") for line in lines), \
-            "Should have event: line"
-        assert any(line.startswith("id: ") for line in lines), \
-            "Should have id: line"
-        assert any(line.startswith("data: ") for line in lines), \
-            "Should have data: line"
+        lines = response.text.strip().split("\n")
+        assert any(line.startswith("event: ") for line in lines), "Should have event: line"
+        assert any(line.startswith("id: ") for line in lines), "Should have id: line"
+        assert any(line.startswith("data: ") for line in lines), "Should have data: line"
 
         # Parse the JSON from data line
         for line in lines:
@@ -123,7 +109,7 @@ class TestMCPEverythingSSESimple:
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"
+                "Accept": "application/json, text/event-stream",
             },
             json={
                 "jsonrpc": "2.0",
@@ -131,15 +117,12 @@ class TestMCPEverythingSSESimple:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {
-                        "name": "speed-test",
-                        "version": "1.0.0"
-                    }
+                    "clientInfo": {"name": "speed-test", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
             verify=True,
-            stream=True  # Stream the response
+            stream=True,  # Stream the response
         )
 
         # Read first chunk
@@ -163,15 +146,10 @@ class TestMCPEverythingSSESimple:
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream"
+                "Accept": "application/json, text/event-stream",
             },
-            json={
-                "jsonrpc": "2.0",
-                "method": "invalid-method",
-                "params": {},
-                "id": 1
-            },
-            verify=True
+            json={"jsonrpc": "2.0", "method": "invalid-method", "params": {}, "id": 1},
+            verify=True,
         )
 
         # Native streamableHttp might return JSON errors
@@ -183,7 +161,7 @@ class TestMCPEverythingSSESimple:
         else:
             # SSE error response
             assert "event: message" in response.text
-            data_match = re.search(r'data: (.+)', response.text)
+            data_match = re.search(r"data: (.+)", response.text)
             if data_match:
                 data = json.loads(data_match.group(1))
                 assert "error" in data
@@ -196,7 +174,7 @@ class TestMCPEverythingSSESimple:
                 **auth_headers,
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
-                "Origin": "https://claude.ai"
+                "Origin": "https://claude.ai",
             },
             json={
                 "jsonrpc": "2.0",
@@ -204,14 +182,11 @@ class TestMCPEverythingSSESimple:
                 "params": {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {},
-                    "clientInfo": {
-                        "name": "cors-test",
-                        "version": "1.0.0"
-                    }
+                    "clientInfo": {"name": "cors-test", "version": "1.0.0"},
                 },
-                "id": 1
+                "id": 1,
             },
-            verify=True
+            verify=True,
         )
 
         # Check CORS headers

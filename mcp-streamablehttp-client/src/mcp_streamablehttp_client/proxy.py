@@ -172,9 +172,7 @@ class StreamableHttpToStdioProxy:
             logger.info(f"Headers: {headers}")
             logger.info(f"Request: {request}")
 
-            response = await self.http_client.post(
-                self.settings.mcp_server_url, json=request, headers=headers
-            )
+            response = await self.http_client.post(self.settings.mcp_server_url, json=request, headers=headers)
 
             # Handle authentication errors
             if response.status_code == 401:
@@ -184,9 +182,7 @@ class StreamableHttpToStdioProxy:
 
                 # Retry request with new token
                 headers["Authorization"] = f"Bearer {self.access_token}"
-                response = await self.http_client.post(
-                    self.settings.mcp_server_url, json=request, headers=headers
-                )
+                response = await self.http_client.post(self.settings.mcp_server_url, json=request, headers=headers)
 
             response.raise_for_status()
 
@@ -212,11 +208,7 @@ class StreamableHttpToStdioProxy:
                 result = response.json()
 
             # Send initialized notification after successful initialize
-            if (
-                method == "initialize"
-                and "result" in result
-                and not result.get("error")
-            ):
+            if method == "initialize" and "result" in result and not result.get("error"):
                 logger.info("Sending notifications/initialized")
                 notification = {"jsonrpc": "2.0", "method": "notifications/initialized"}
                 # Update headers to include session ID if we have one
@@ -230,9 +222,7 @@ class StreamableHttpToStdioProxy:
                         json=notification,
                         headers=notif_headers,
                     )
-                    logger.info(
-                        f"Initialized notification response: {notif_resp.status_code}"
-                    )
+                    logger.info(f"Initialized notification response: {notif_resp.status_code}")
                     if notif_resp.status_code not in (200, 202, 204):
                         logger.warning(
                             f"Unexpected notification response: {notif_resp.status_code} - {notif_resp.text}"  # TODO: Break long line
