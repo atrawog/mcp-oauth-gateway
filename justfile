@@ -197,6 +197,10 @@ up-fresh: network-create volumes-create generate-includes
 down *args:
     docker compose -f docker-compose.includes.yml down {{args}}
 
+# Remove orphan containers
+remove-orphans:
+    docker compose -f docker-compose.includes.yml down --remove-orphans
+
 # Flexible rebuild command with optional services and no-cache by default
 rebuild *services: network-create volumes-create generate-includes
     #!/usr/bin/env bash
