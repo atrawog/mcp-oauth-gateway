@@ -15,7 +15,7 @@ from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
 
 
-@pytest.fixture()
+@pytest.fixture
 def base_url():
     """Base URL for tests."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
@@ -24,7 +24,7 @@ def base_url():
     return f"https://everything.{BASE_DOMAIN}/"
 
 
-@pytest.fixture()
+@pytest.fixture
 def auth_headers():
     """Auth headers for requests."""
     return {"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}

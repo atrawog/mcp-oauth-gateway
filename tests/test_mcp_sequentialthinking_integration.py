@@ -13,13 +13,13 @@ from tests.test_constants import MCP_PROTOCOL_VERSION
 from tests.test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 
 
-@pytest.fixture()
+@pytest.fixture
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 async def wait_for_services():
     """Ensure all services are ready."""
     return True
@@ -137,8 +137,8 @@ class TestMCPSequentialThinkingIntegration:
         )
         assert "result" in response, f"Initialize failed: {response}"
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_initialize(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
@@ -175,8 +175,8 @@ class TestMCPSequentialThinkingIntegration:
         )
         assert "capabilities" in result
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_list_tools(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test listing available tools."""
         sequentialthinking_url = f"{mcp_sequentialthinking_url}"
@@ -214,8 +214,8 @@ class TestMCPSequentialThinkingIntegration:
         ]
         assert len(thinking_tools) > 0, f"No thinking tools found in: {tool_names}"
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_list_resources(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test listing available resources."""
         sequentialthinking_url = f"{mcp_sequentialthinking_url}"
@@ -251,8 +251,8 @@ class TestMCPSequentialThinkingIntegration:
             resource_names = [res["name"] for res in resources]
             print(f"Available sequential thinking resources: {resource_names}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_basic_functionality(
         self, mcp_sequentialthinking_url, client_token, wait_for_services
     ):
@@ -317,8 +317,8 @@ class TestMCPSequentialThinkingIntegration:
                     f"Sequential thinking tool '{first_tool['name']}' returned error (may be expected): {response['error']}"  # TODO: Break long line
                 )
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_health_check(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test that the sequential thinking service health endpoint is accessible."""
         # This test verifies the service is running and accessible

@@ -16,7 +16,7 @@ from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, _wait_for_services, mcp_fetch_url):
     """Test the COMPLETE MCP fetch workflow:
 
@@ -108,7 +108,7 @@ async def test_full_mcp_fetch_workflow_with_real_oauth(http_client, _wait_for_se
     pytest.fail("Failed to find fetched content in response!")
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_mcp_fetch_unauthorized_fails(http_client, _wait_for_services, mcp_test_url):
     """Verify that MCP fetch REQUIRES proper authentication."""
     # Try to access without token
@@ -119,7 +119,7 @@ async def test_mcp_fetch_unauthorized_fails(http_client, _wait_for_services, mcp
     print("✅ MCP fetch correctly rejects unauthorized requests")
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_oauth_token_validation(http_client, _wait_for_services):
     """Verify the OAuth token is properly validated by the auth service."""
     oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")

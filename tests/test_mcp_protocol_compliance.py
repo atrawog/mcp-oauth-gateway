@@ -30,7 +30,7 @@ MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
 class TestMCPProtocolVersionNegotiation:
     """Test MCP protocol version negotiation per 2025-06-18 spec."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_protocol_version_negotiation(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test that server negotiates protocol version correctly."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -67,7 +67,7 @@ class TestMCPProtocolVersionNegotiation:
         # Server may negotiate a different protocol version
         assert "protocolVersion" in data["result"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_unsupported_protocol_version(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test server behavior with unsupported protocol version."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -113,7 +113,7 @@ class TestMCPProtocolVersionNegotiation:
 class TestMCPJSONRPCCompliance:
     """Test JSON-RPC 2.0 compliance as required by MCP spec."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_json_rpc_request_format(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test that server accepts proper JSON-RPC 2.0 requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -149,7 +149,7 @@ class TestMCPJSONRPCCompliance:
         assert "result" in data or "error" in data
         assert not ("result" in data and "error" in data)  # Can't have both
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_json_rpc_error_format(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test that errors follow JSON-RPC 2.0 error format."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -211,7 +211,7 @@ class TestMCPJSONRPCCompliance:
         # -32601 = Method not found, -32602 = Invalid params
         assert data["error"]["code"] in [-32601, -32602]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_json_rpc_notification(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test JSON-RPC notifications (no id field)."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -258,7 +258,7 @@ class TestMCPJSONRPCCompliance:
         # Server should accept notification
         assert response.status_code in [200, 202, 204]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_json_rpc_id_types(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test that both string and number IDs are supported."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -314,7 +314,7 @@ class TestMCPJSONRPCCompliance:
 class TestMCPLifecycleCompliance:
     """Test MCP lifecycle requirements per 2025-06-18 spec."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_initialization_required_fields(
         self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url
     ):
@@ -352,7 +352,7 @@ class TestMCPLifecycleCompliance:
         assert "name" in result["serverInfo"]
         assert "version" in result["serverInfo"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_operations_before_initialization(
         self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url
     ):
@@ -380,7 +380,7 @@ class TestMCPLifecycleCompliance:
                     # Should indicate not initialized
                     assert "initializ" in data["error"]["message"].lower()
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_capability_negotiation(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test that server reports capabilities correctly."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -420,7 +420,7 @@ class TestMCPLifecycleCompliance:
 class TestMCPTransportCompliance:
     """Test MCP Streamable HTTP transport compliance."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_content_type_header(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test that Content-Type header is required."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -451,7 +451,7 @@ class TestMCPTransportCompliance:
         # Should either work (defaulting to JSON) or fail
         assert response.status_code in [200, 400, 415]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_mcp_protocol_version_header(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test MCP-Protocol-Version header handling."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -482,7 +482,7 @@ class TestMCPTransportCompliance:
         assert response.status_code == HTTP_OK
         # Header should be accepted
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_authorization_header_required(
         self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url
     ):
@@ -511,7 +511,7 @@ class TestMCPTransportCompliance:
 class TestMCPSecurityCompliance:
     """Test MCP security requirements per 2025-06-18 spec."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_origin_header_validation(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test that Origin header is validated to prevent DNS rebinding."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -542,7 +542,7 @@ class TestMCPSecurityCompliance:
         # Should either accept (if CORS configured) or reject
         assert response.status_code in [200, 403]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_validation(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test that tokens are properly validated."""
         # Invalid token format
@@ -564,7 +564,7 @@ class TestMCPSecurityCompliance:
 
         assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_secure_session_ids(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test that session IDs are secure and non-deterministic."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -602,7 +602,7 @@ class TestMCPSecurityCompliance:
 class TestMCPErrorHandling:
     """Test MCP error handling per spec."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_standard_error_codes(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test that standard JSON-RPC error codes are used."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -642,7 +642,7 @@ class TestMCPErrorHandling:
                     # Allow some flexibility as servers may handle errors differently
                     assert isinstance(data["error"]["code"], int)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_graceful_error_recovery(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url):
         """Test that errors don't break the session."""
         if not MCP_CLIENT_ACCESS_TOKEN:

@@ -84,7 +84,7 @@ def _setup_deprecation_hunting():
     deprecation_hunter.teardown()
 
 
-@pytest.fixture()
+@pytest.fixture
 def deprecation_warnings():
     """Provide access to captured deprecation warnings in tests."""
     # Clear previous warnings for this test

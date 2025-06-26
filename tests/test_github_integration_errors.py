@@ -17,7 +17,7 @@ from .test_constants import HTTP_BAD_REQUEST
 class TestGitHubCallbackErrors:
     """Test GitHub OAuth callback error scenarios."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_callback_with_invalid_state(self, http_client):
         """Test callback with invalid state - covers error path."""
         # Use an invalid state that doesn't exist in Redis
@@ -36,7 +36,7 @@ class TestGitHubCallbackErrors:
 class TestRealOAuthFlowErrors:
     """Test real OAuth flow error scenarios."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_complete_flow_with_valid_client(self, http_client):
         """Test OAuth flow with valid client."""
         # Start authorization flow
@@ -65,7 +65,7 @@ class TestRealOAuthFlowErrors:
         # State should be stored in Redis
         assert github_state is not None
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_exchange_with_expired_code(self, http_client):
         """Test token exchange with expired authorization code."""
         # Try to exchange a non-existent code
@@ -89,7 +89,7 @@ class TestRealOAuthFlowErrors:
 class TestPKCEWithRealFlow:
     """Test PKCE verification with more realistic scenarios."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_pkce_missing_verifier(self, http_client):
         """Test PKCE flow without verifier - will fail at code validation."""
         # Try to exchange code without verifier (will fail because code doesn't exist)
@@ -113,7 +113,7 @@ class TestPKCEWithRealFlow:
 class TestRefreshTokenErrors:
     """Test refresh token error scenarios."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_refresh_token_invalid(self, http_client):
         """Test invalid refresh token."""
         response = await http_client.post(

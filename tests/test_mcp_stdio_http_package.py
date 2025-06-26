@@ -10,7 +10,7 @@ import pytest
 from tests.test_constants import MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_mcp_fetch_uses_package(mcp_fetch_url):
     """Verify mcp-fetch is running with the correct streamablehttp proxy."""
     if not MCP_CLIENT_ACCESS_TOKEN:

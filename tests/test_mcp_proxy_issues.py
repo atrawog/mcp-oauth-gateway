@@ -22,7 +22,7 @@ MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
 class TestMCPProxySessionIssues:
     """Document current session handling issues in mcp-streamablehttp-proxy."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_session_not_maintained_across_requests(
         self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
     ):
@@ -77,7 +77,7 @@ class TestMCPProxySessionIssues:
         assert data["error"]["code"] == -32002  # Session ID required
         assert "Session ID required" in data["error"]["message"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_session_id_header_missing(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
         """ISSUE: The proxy doesn't return Mcp-Session-Id header as expected by MCP spec.
 
@@ -118,7 +118,7 @@ class TestMCPProxySessionIssues:
 class TestMCPProxyWorkarounds:
     """Test workarounds for current proxy limitations."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_initialize_before_each_operation(self, _wait_for_services, mcp_fetch_url):
         """WORKAROUND: Initialize before each operation since sessions aren't maintained.
 

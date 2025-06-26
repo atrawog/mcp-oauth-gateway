@@ -15,7 +15,7 @@ from .test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 class TestMCPFetchExampleCom:
     """Test fetching example.com content with proper MCP protocol."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_fetch_example_com_with_mcp_protocol(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test fetching https://example.com and verify 'Example Domain' is in content."""
         # MUST have MCP client access token - test FAILS if not available

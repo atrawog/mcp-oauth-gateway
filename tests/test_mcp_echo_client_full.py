@@ -20,13 +20,13 @@ from tests.test_constants import MCP_ECHO_TESTS_ENABLED
 from tests.test_constants import MCP_ECHO_URLS
 
 
-@pytest.fixture()
+@pytest.fixture
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture()
+@pytest.fixture
 def echo_url():
     """Full URL for echo service."""
     if not MCP_ECHO_TESTS_ENABLED:
@@ -36,13 +36,13 @@ def echo_url():
     return MCP_ECHO_URLS[0]
 
 
-@pytest.fixture()
+@pytest.fixture
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 async def wait_for_services():
     """Ensure all services are ready."""
     # Services are already checked by conftest
@@ -139,8 +139,8 @@ class TestMCPEchoClientFull:
         except Exception as e:
             pytest.fail(f"Failed to parse JSON response: {e}\nOutput: {result.stdout}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
     async def test_echo_initialize(self, echo_url, client_token, wait_for_services):
         """Test initialize method to establish connection with mcp-echo."""
@@ -164,8 +164,8 @@ class TestMCPEchoClientFull:
         assert result["serverInfo"]["name"] == "mcp-echo-streamablehttp-server-stateless"
         assert "capabilities" in result
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
     async def test_echo_list_tools(self, echo_url, client_token, wait_for_services):
         """Test listing available tools from mcp-echo service."""
@@ -229,8 +229,8 @@ class TestMCPEchoClientFull:
         assert header_tool["inputSchema"]["properties"] == {}
         assert header_tool["inputSchema"].get("required", []) == []
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
     async def test_echo_tool_functionality(self, echo_url, client_token, wait_for_services):
         """Test the echo tool returns the exact message provided."""
@@ -271,8 +271,8 @@ class TestMCPEchoClientFull:
             assert result["content"][0]["text"] == test_message
             print(f"✅ Echo test {i + 1}/{len(test_messages)} passed: {test_message[:50]}...")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
     async def test_print_header_tool_functionality(self, echo_url, client_token, wait_for_services):
         """Test the printHeader tool shows HTTP headers including auth headers."""
@@ -322,8 +322,8 @@ class TestMCPEchoClientFull:
         assert "authorization: bearer" in headers_text.lower()
         print("✅ printHeader tool shows expected HTTP headers including auth")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
     async def test_echo_tool_error_handling(self, echo_url, client_token, wait_for_services):
         """Test error handling for invalid tool usage."""
@@ -370,8 +370,8 @@ class TestMCPEchoClientFull:
         assert "unknown tool" in error_text.lower() or "invalid_tool_name" in error_text.lower()
         print("✅ Echo service properly rejects invalid tool names")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
     async def test_print_header_tool_error_handling(self, echo_url, client_token, wait_for_services):
         """Test that printHeader tool handles extra arguments gracefully."""
@@ -406,8 +406,8 @@ class TestMCPEchoClientFull:
         assert "HTTP Headers:" in headers_text
         print("✅ printHeader tool handles extra arguments gracefully")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
     async def test_echo_stateless_behavior(self, echo_url, client_token, wait_for_services):
         """Test that mcp-echo service is truly stateless - each request is independent."""
@@ -456,8 +456,8 @@ class TestMCPEchoClientFull:
 
         print("✅ mcp-echo service demonstrates proper stateless behavior")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
     async def test_echo_protocol_compliance(self, echo_url, client_token, wait_for_services):
         """Test MCP protocol compliance with proper versioning."""

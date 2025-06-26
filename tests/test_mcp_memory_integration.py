@@ -13,7 +13,7 @@ from tests.test_constants import MCP_PROTOCOL_VERSION
 from tests.test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 
 
-@pytest.fixture()
+@pytest.fixture
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
@@ -22,13 +22,13 @@ def base_domain():
 # Using mcp_memory_url fixture from conftest.py which handles test skipping
 
 
-@pytest.fixture()
+@pytest.fixture
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 async def wait_for_services():
     """Ensure all services are ready."""
     # Services are already checked by conftest
@@ -126,8 +126,8 @@ class TestMCPMemoryIntegration:
         except Exception as e:
             pytest.fail(f"Failed to parse JSON response: {e}\\nOutput: {result.stdout}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_initialize(self, mcp_memory_url, client_token, wait_for_services):
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
@@ -158,8 +158,8 @@ class TestMCPMemoryIntegration:
         assert result["serverInfo"]["name"] in ["memory", "memory-server"]
         assert "capabilities" in result
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_list_tools(self, mcp_memory_url, client_token, wait_for_services):
         """Test listing available tools."""
         # First initialize
@@ -210,8 +210,8 @@ class TestMCPMemoryIntegration:
         ]
         assert len(knowledge_graph_tools) > 0, f"No knowledge graph tools found in: {tool_names}"
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_list_resources(self, mcp_memory_url, client_token, wait_for_services):
         """Test listing available resources."""
         # Initialize first
@@ -255,8 +255,8 @@ class TestMCPMemoryIntegration:
             resource_names = [res["name"] for res in resources]
             print(f"Available memory resources: {resource_names}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_basic_functionality(self, mcp_memory_url, client_token, wait_for_services):
         """Test basic memory functionality if tools are available."""
         # Initialize
@@ -313,8 +313,8 @@ class TestMCPMemoryIntegration:
                     f"Memory tool '{first_tool['name']}' returned error (expected for some tools): {response['error']}"  # TODO: Break long line
                 )
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_health_check(self, mcp_memory_url, client_token, wait_for_services):
         """Test that the memory service health endpoint is accessible."""
         # This test verifies the service is running and accessible

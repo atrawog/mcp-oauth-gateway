@@ -13,7 +13,7 @@ from tests.test_constants import MCP_CLIENT_ACCESS_TOKEN
 from tests.test_constants import MCP_PROTOCOL_VERSION
 
 
-@pytest.fixture()
+@pytest.fixture
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
@@ -22,13 +22,13 @@ def base_domain():
 # Using mcp_memory_url fixture from conftest.py which handles test skipping
 
 
-@pytest.fixture()
+@pytest.fixture
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 async def wait_for_services():
     """Ensure all services are ready."""
     return True
@@ -160,8 +160,8 @@ class TestMCPMemoryComprehensive:
             f"Tool '{tool_name}' not found in available tools: {[t['name'] for t in tools]}"  # TODO: Break long line
         )
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_create_entities(self, mcp_memory_url, client_token, wait_for_services):
         """Test creating entities in the memory graph."""
         # Get tool schema
@@ -212,8 +212,8 @@ class TestMCPMemoryComprehensive:
             assert "error" in response
             print(f"Expected error (validation): {response['error']}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_create_relations(self, mcp_memory_url, client_token, wait_for_services):
         """Test creating relations between entities."""
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "create_relations")
@@ -259,8 +259,8 @@ class TestMCPMemoryComprehensive:
             assert "error" in response
             print(f"Create relations error: {response['error']}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_add_observations(self, mcp_memory_url, client_token, wait_for_services):
         """Test adding observations to entities."""
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "add_observations")
@@ -308,8 +308,8 @@ class TestMCPMemoryComprehensive:
             assert "error" in response
             print(f"Add observations error: {response['error']}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_read_graph(self, mcp_memory_url, client_token, wait_for_services):
         """Test reading the entire memory graph."""
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "read_graph")
@@ -336,8 +336,8 @@ class TestMCPMemoryComprehensive:
             assert "error" in response
             print(f"Read graph error: {response['error']}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_search_nodes(self, mcp_memory_url, client_token, wait_for_services):
         """Test searching for nodes in the memory graph."""
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "search_nodes")
@@ -379,8 +379,8 @@ class TestMCPMemoryComprehensive:
             assert "error" in response
             print(f"Search nodes error: {response['error']}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_open_nodes(self, mcp_memory_url, client_token, wait_for_services):
         """Test opening specific nodes for detailed information."""
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "open_nodes")
@@ -414,8 +414,8 @@ class TestMCPMemoryComprehensive:
             assert "error" in response
             print(f"Open nodes error: {response['error']}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_delete_entities(self, mcp_memory_url, client_token, wait_for_services):
         """Test deleting entities from memory."""
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "delete_entities")
@@ -452,8 +452,8 @@ class TestMCPMemoryComprehensive:
             assert "error" in response
             print(f"Delete entities error: {response['error']}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_delete_relations(self, mcp_memory_url, client_token, wait_for_services):
         """Test deleting relations from memory."""
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "delete_relations")
@@ -515,8 +515,8 @@ class TestMCPMemoryComprehensive:
             assert "error" in response
             print(f"Delete relations error: {response['error']}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_delete_observations(self, mcp_memory_url, client_token, wait_for_services):
         """Test deleting observations from memory."""
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "delete_observations")
@@ -563,8 +563,8 @@ class TestMCPMemoryComprehensive:
             assert "error" in response
             print(f"Delete observations error: {response['error']}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_complete_workflow(self, mcp_memory_url, client_token, wait_for_services):
         """Test a complete memory workflow with all operations."""
         print("\\n=== Starting complete memory workflow test ===")
@@ -697,8 +697,8 @@ class TestMCPMemoryComprehensive:
         assert workflow_success, "Complete workflow failed - no operations succeeded"
         print("✅ Memory workflow completed successfully!")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_memory_error_handling(self, mcp_memory_url, client_token, wait_for_services):
         """Test error handling for invalid operations."""
         self.initialize_session(f"{mcp_memory_url}", client_token)

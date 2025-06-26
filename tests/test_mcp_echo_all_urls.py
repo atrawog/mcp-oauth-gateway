@@ -24,7 +24,7 @@ class TestMCPEchoAllUrls:
                     return json.loads(data_str)
         raise ValueError("No valid data found in SSE response")
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_all_echo_urls_accessible(
         self, http_client: httpx.AsyncClient, mcp_echo_urls: list, gateway_auth_headers: dict
     ):
@@ -105,7 +105,7 @@ class TestMCPEchoAllUrls:
             len(results) == expected_count
         ), f"Expected {expected_count} URLs (echo + echo-a through echo-z), but found {len(results)}"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_tool_on_random_urls(
         self, http_client: httpx.AsyncClient, mcp_echo_urls: list, gateway_auth_headers: dict
     ):

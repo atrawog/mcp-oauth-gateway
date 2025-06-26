@@ -13,19 +13,19 @@ from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from tests.test_constants import MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture()
+@pytest.fixture
 def gateway_token():
     """Gateway OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 def client_token():
     """MCP client access token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
@@ -34,8 +34,8 @@ def client_token():
 class TestMCPFetchsComplete:
     """Comprehensive tests for mcp-fetchs matching mcp-fetch test coverage."""
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_fetchs_complete_oauth_flow_integration(self, mcp_fetchs_url, gateway_token, _wait_for_services):
         """Test complete OAuth flow from authentication to content fetching."""
         # Step 1: Verify authentication is required
@@ -476,8 +476,8 @@ class TestMCPFetchsComplete:
             assert "1.0" in data["error"]["data"]  # Should mention the attempted version
             assert "2025-06-18" in data["error"]["data"]  # Should mention supported version
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_fetchs_session_management(self, mcp_fetchs_url, gateway_token, _wait_for_services):
         """Test session management behavior."""
         async with httpx.AsyncClient(verify=True) as client:

@@ -24,7 +24,7 @@ from .test_constants import TEST_OAUTH_CALLBACK_URL
 class TestFullOAuthFlow:
     """Test complete OAuth flow with real authentication."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_authenticated_mcp_access(self):
         """Test accessing MCP endpoint with valid OAuth token."""
         # First, verify we have the required credentials
@@ -60,7 +60,7 @@ class TestFullOAuthFlow:
             assert metadata["authorization_endpoint"] == f"{AUTH_BASE_URL}/authorize"
             assert metadata["token_endpoint"] == f"{AUTH_BASE_URL}/token"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_client_credentials_validity(self):
         """Test that our registered client credentials are valid."""
         # Fail with clear error if credentials not available
@@ -104,7 +104,7 @@ class TestFullOAuthFlow:
             location = response.headers["location"]
             assert "github.com/login/oauth/authorize" in location
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_endpoint_with_client_auth(self):
         """Test token endpoint accepts our client credentials."""
         # Fail with clear error if credentials not available
@@ -140,7 +140,7 @@ class TestFullOAuthFlow:
             error = response.json()
             assert error["error"] == "invalid_grant"  # Not invalid_client!
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_forwardauth_with_bearer_token(self):
         """Test ForwardAuth middleware with Bearer token."""
         async with httpx.AsyncClient(timeout=30.0) as client:

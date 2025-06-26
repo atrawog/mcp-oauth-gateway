@@ -15,7 +15,7 @@ import pytest
 class TestMCPEchoSecurity:
     """Test MCP Echo service security and authentication enforcement."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_rejects_all_unauthenticated_methods(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
         """Test that ALL MCP methods require authentication - no exceptions!"""
         methods = [
@@ -43,7 +43,7 @@ class TestMCPEchoSecurity:
             assert response.status_code == 401, f"Method {method} must require authentication"
             assert response.headers.get("WWW-Authenticate") == "Bearer"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_rejects_invalid_bearer_tokens(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
         """Test that Echo service rejects various invalid token formats."""
         invalid_tokens = [
@@ -70,7 +70,7 @@ class TestMCPEchoSecurity:
 
             assert response.status_code == 401, f"Should reject invalid token: {token[:20]}..."
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_rejects_expired_tokens(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
         """Test that Echo service rejects expired JWT tokens."""
         # Create an expired JWT (this is just for testing rejection)
@@ -96,7 +96,7 @@ class TestMCPEchoSecurity:
 
         assert response.status_code == 401
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_validates_token_with_auth_service(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -115,7 +115,7 @@ class TestMCPEchoSecurity:
 
         assert response.status_code == 200
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_cors_security(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
         """Test CORS security - preflight should work but actual requests need auth."""
         origin = "https://malicious-site.com"
@@ -145,7 +145,7 @@ class TestMCPEchoSecurity:
 
         assert post_response.status_code == 401
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_header_injection_protection(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -187,7 +187,7 @@ class TestMCPEchoSecurity:
         # Safe headers should work fine
         assert safe_response.status_code == 200
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_oauth_token_scopes(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -206,7 +206,7 @@ class TestMCPEchoSecurity:
 
         assert response.status_code == 200
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_rate_limiting_protection(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -233,7 +233,7 @@ class TestMCPEchoSecurity:
         # Should handle all requests (rate limiting might be at gateway level)
         assert all(status in [200, 429] for status in responses)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_large_payload_protection(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -261,7 +261,7 @@ class TestMCPEchoSecurity:
         # Should either handle it or reject with appropriate error
         assert response.status_code in [200, 413, 400]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_sql_injection_protection(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -297,7 +297,7 @@ class TestMCPEchoSecurity:
             data = self._parse_sse_response(response.text)
             assert data["result"]["content"][0]["text"] == attempt
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_forwardauth_header_validation(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):

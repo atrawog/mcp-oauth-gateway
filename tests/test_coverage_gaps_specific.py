@@ -27,7 +27,7 @@ from .test_constants import TEST_OAUTH_CALLBACK_URL
 class TestHealthCheckErrors:
     """Test health check error scenarios - Lines 131-132."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_oauth_discovery_health_status(self, http_client, _wait_for_services):
         """Test OAuth discovery endpoint as health indicator."""
         # OAuth discovery endpoint now serves as health check
@@ -44,7 +44,7 @@ class TestHealthCheckErrors:
 class TestWellKnownMetadata:
     """Test .well-known endpoint - Line 172."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_oauth_authorization_server_metadata(self, http_client, _wait_for_services):
         """Test RFC 8414 server metadata endpoint."""
         response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
@@ -69,7 +69,7 @@ class TestWellKnownMetadata:
 class TestClientRegistrationErrors:
     """Test client registration error scenarios - Line 327."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_registration_with_invalid_data(self, http_client, _wait_for_services):
         """Test various registration error conditions."""
         # MUST have OAuth access token - test FAILS if not available
@@ -106,7 +106,7 @@ class TestClientRegistrationErrors:
 class TestAuthorizationErrors:
     """Test authorization endpoint errors - Lines 342-384."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_authorize_with_invalid_client(self, http_client, _wait_for_services):
         """Test authorization with non-existent client."""
         response = await http_client.get(
@@ -130,7 +130,7 @@ class TestAuthorizationErrors:
             content = response.text
             assert "invalid_client" in content or "Client authentication failed" in content
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_authorize_with_mismatched_redirect_uri(self, http_client, _wait_for_services, registered_client):
         """Test authorization with non-matching redirect URI."""
         response = await http_client.get(
@@ -154,7 +154,7 @@ class TestAuthorizationErrors:
 class TestTokenEndpointErrors:
     """Test token endpoint error scenarios - Lines 447-506."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_endpoint_comprehensive_errors(self, http_client, _wait_for_services, registered_client):
         """Test various token endpoint error conditions."""
         # Test with non-existent authorization code
@@ -208,7 +208,7 @@ class TestTokenEndpointErrors:
 class TestVerifyEndpointErrors:
     """Test verify endpoint edge cases - Lines 534-547."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_verify_with_malformed_tokens(self, http_client, _wait_for_services):
         """Test various token verification error scenarios."""
         # Test with completely invalid JWT format
@@ -262,7 +262,7 @@ class TestVerifyEndpointErrors:
 class TestRevokeEndpointEdgeCases:
     """Test revoke endpoint scenarios - Lines 634-665."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_revoke_comprehensive_scenarios(self, http_client, _wait_for_services, registered_client):
         """Test various revocation scenarios."""
         # Test revoking non-existent token (should still return 200 per RFC)
@@ -308,7 +308,7 @@ class TestRevokeEndpointEdgeCases:
 class TestIntrospectEdgeCases:
     """Test introspect endpoint edge cases - Lines 686, 698-711, 703-711."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_introspect_comprehensive_scenarios(self, http_client, _wait_for_services, registered_client):
         """Test various introspection scenarios."""
         # Test with malformed JWT
@@ -373,7 +373,7 @@ class TestIntrospectEdgeCases:
 class TestCallbackEdgeCases:
     """Test callback endpoint edge cases - Lines 745, 760-761, 773-774."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_callback_error_scenarios(self, http_client, _wait_for_services):
         """Test various callback error scenarios."""
         # Test callback with invalid state
@@ -419,7 +419,7 @@ class TestCallbackEdgeCases:
 class TestComplexTokenScenarios:
     """Test complex token scenarios to cover remaining edge cases."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_with_redis_operations(self, http_client, _wait_for_services, registered_client):
         """Test token operations that interact with Redis using a real valid token."""
         # Use the actual gateway token that we know is valid and in Redis

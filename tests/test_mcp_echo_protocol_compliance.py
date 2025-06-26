@@ -13,7 +13,7 @@ import pytest
 class TestMCPEchoProtocolCompliance:
     """Test MCP Echo service for strict protocol compliance."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_jsonrpc_compliance(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -48,7 +48,7 @@ class TestMCPEchoProtocolCompliance:
         assert "result" in data
         assert "error" not in data  # Cannot have both result and error
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_invalid_jsonrpc_version(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -72,7 +72,7 @@ class TestMCPEchoProtocolCompliance:
         # Should handle gracefully, possibly with error
         assert response.status_code in [200, 400]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_missing_jsonrpc_field(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -96,7 +96,7 @@ class TestMCPEchoProtocolCompliance:
         # Should return error
         assert response.status_code in [200, 400]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_batch_requests_not_supported(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -119,7 +119,7 @@ class TestMCPEchoProtocolCompliance:
         # Stateless server might not support batches
         assert response.status_code in [200, 400]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_protocol_version_negotiation(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -149,7 +149,7 @@ class TestMCPEchoProtocolCompliance:
         data = self._parse_sse_response(response.text)
         assert data["result"]["protocolVersion"] == "2025-06-18"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_unknown_protocol_version(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -182,7 +182,7 @@ class TestMCPEchoProtocolCompliance:
             # If successful, should negotiate to supported version
             assert data["result"]["protocolVersion"] in ["2025-03-26"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_required_headers(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -209,7 +209,7 @@ class TestMCPEchoProtocolCompliance:
 
         assert response.status_code == 200
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_content_type_validation(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -228,7 +228,7 @@ class TestMCPEchoProtocolCompliance:
         # Should reject non-JSON content
         assert response.status_code in [400, 415]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_sse_response_format(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -251,7 +251,7 @@ class TestMCPEchoProtocolCompliance:
         lines = response.text.strip().split("\n")
         assert any(line.startswith(("event:", "data:")) for line in lines)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_error_response_format(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -286,7 +286,7 @@ class TestMCPEchoProtocolCompliance:
         assert "message" in error
         assert isinstance(error["code"], int)  # Error codes must be integers
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_notification_support(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
@@ -311,7 +311,7 @@ class TestMCPEchoProtocolCompliance:
         # Server should accept notifications with 202 Accepted per MCP 2025-06-18 spec
         assert response.status_code == 202
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_echo_method_namespace_compliance(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):

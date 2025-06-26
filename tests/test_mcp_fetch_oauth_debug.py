@@ -8,7 +8,7 @@ import os
 import pytest
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_debug_mcp_fetch_with_real_oauth(http_client, _wait_for_services, mcp_fetch_url):
     """Debug test to see what's happening with real OAuth token."""
     oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")

@@ -12,20 +12,20 @@ from tests.test_constants import BASE_DOMAIN
 from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture()
+@pytest.fixture
 def valid_oauth_token():
     """Valid OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
 
 
-@pytest.mark.integration()
-@pytest.mark.asyncio()
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_fetch_native_health_check(mcp_fetchs_url, _wait_for_services, valid_oauth_token):
     """Test health check via MCP protocol initialization."""
     async with httpx.AsyncClient(verify=True) as client:
@@ -55,8 +55,8 @@ async def test_fetch_native_health_check(mcp_fetchs_url, _wait_for_services, val
     assert data["result"]["serverInfo"]["name"] == "mcp-fetch-streamablehttp"
 
 
-@pytest.mark.integration()
-@pytest.mark.asyncio()
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_fetch_native_requires_auth(mcp_fetchs_url, _wait_for_services):
     """Test that MCP endpoint requires authentication."""
     async with httpx.AsyncClient(verify=True) as client:
@@ -70,8 +70,8 @@ async def test_fetch_native_requires_auth(mcp_fetchs_url, _wait_for_services):
     assert response.headers["WWW-Authenticate"] == "Bearer"
 
 
-@pytest.mark.integration()
-@pytest.mark.asyncio()
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_fetch_native_cors_preflight(mcp_fetchs_url, _wait_for_services):
     """Test CORS preflight handling."""
     async with httpx.AsyncClient(verify=True) as client:
@@ -92,8 +92,8 @@ async def test_fetch_native_cors_preflight(mcp_fetchs_url, _wait_for_services):
     assert "Content-Type" in allowed_headers
 
 
-@pytest.mark.integration()
-@pytest.mark.asyncio()
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_fetch_native_initialize(mcp_fetchs_url, valid_oauth_token, _wait_for_services):
     """Test MCP initialization."""
     async with httpx.AsyncClient(verify=True) as client:
@@ -129,8 +129,8 @@ async def test_fetch_native_initialize(mcp_fetchs_url, valid_oauth_token, _wait_
     assert "Mcp-Session-Id" in response.headers
 
 
-@pytest.mark.integration()
-@pytest.mark.asyncio()
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_fetch_native_list_tools(mcp_fetchs_url, valid_oauth_token, _wait_for_services):
     """Test listing available tools."""
     async with httpx.AsyncClient(verify=True) as client:
@@ -160,8 +160,8 @@ async def test_fetch_native_list_tools(mcp_fetchs_url, valid_oauth_token, _wait_
     assert "inputSchema" in fetch_tool
 
 
-@pytest.mark.integration()
-@pytest.mark.asyncio()
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_fetch_native_call_tool_fetch(mcp_fetchs_url, base_domain, valid_oauth_token, _wait_for_services):
     """Test calling the fetch tool."""
     # Fetch from our own auth service's health endpoint
@@ -201,8 +201,8 @@ async def test_fetch_native_call_tool_fetch(mcp_fetchs_url, base_domain, valid_o
     assert "issuer" in content["text"]  # OAuth metadata contains issuer field
 
 
-@pytest.mark.integration()
-@pytest.mark.asyncio()
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_fetch_native_invalid_json_rpc(mcp_fetchs_url, valid_oauth_token, _wait_for_services):
     """Test handling of invalid JSON-RPC requests."""
     async with httpx.AsyncClient(verify=True) as client:
@@ -224,8 +224,8 @@ async def test_fetch_native_invalid_json_rpc(mcp_fetchs_url, valid_oauth_token, 
     assert "Invalid Request" in data["error"]["message"]
 
 
-@pytest.mark.integration()
-@pytest.mark.asyncio()
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_fetch_native_unknown_method(mcp_fetchs_url, valid_oauth_token, _wait_for_services):
     """Test handling of unknown methods."""
     async with httpx.AsyncClient(verify=True) as client:
@@ -246,8 +246,8 @@ async def test_fetch_native_unknown_method(mcp_fetchs_url, valid_oauth_token, _w
     assert "Method not found" in data["error"]["message"]
 
 
-@pytest.mark.integration()
-@pytest.mark.asyncio()
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_fetch_native_oauth_discovery(_wait_for_services):
     """Test OAuth discovery endpoint routing."""
     from tests.test_constants import MCP_FETCH_TESTS_ENABLED

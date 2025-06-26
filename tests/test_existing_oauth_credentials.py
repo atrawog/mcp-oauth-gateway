@@ -28,7 +28,7 @@ GATEWAY_OAUTH_CLIENT_SECRET = os.getenv("GATEWAY_OAUTH_CLIENT_SECRET")
 class TestExistingOAuthCredentials:
     """Test using the pre-registered OAuth client from .env."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_endpoint_with_existing_client(self, http_client, _wait_for_services):
         """Test token endpoint using existing client credentials."""
         # Fail with clear error if credentials not available
@@ -81,7 +81,7 @@ class TestExistingOAuthCredentials:
         # Should still fail because code is invalid
         assert response.status_code == HTTP_BAD_REQUEST
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_introspect_with_existing_client(self, http_client, _wait_for_services):
         """Test introspection endpoint with existing client."""
         # Create a test JWT token
@@ -117,7 +117,7 @@ class TestExistingOAuthCredentials:
         data = response.json()
         assert data["active"] is False  # Not in Redis
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_revoke_with_existing_client(self, http_client, _wait_for_services):
         """Test revocation with existing client credentials."""
         # Create a test token
@@ -145,7 +145,7 @@ class TestExistingOAuthCredentials:
         # Always returns 200 per RFC
         assert response.status_code == HTTP_OK
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_github_pat_usage(self, http_client, _wait_for_services):
         """Test using GitHub PAT to verify user info."""
         if not GITHUB_PAT:
@@ -178,7 +178,7 @@ class TestExistingOAuthCredentials:
 class TestCompleteFlowWithExistingClient:
     """Test a more complete flow using existing credentials."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_authorization_to_token_flow(self, http_client, _wait_for_services):
         """Test the authorization flow with existing client."""
         # Fail with clear error if credentials not available
@@ -242,7 +242,7 @@ class TestCompleteFlowWithExistingClient:
 class TestJWTOperations:
     """Test JWT-specific operations to increase coverage."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_verify_various_jwt_errors(self, http_client, _wait_for_services):
         """Test different JWT error conditions."""
         # Test 1: Malformed JWT
@@ -279,7 +279,7 @@ class TestJWTOperations:
         # Should fail without jti (jti is marked as essential in auth service)
         assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_introspect_expired_token(self, http_client, _wait_for_services):
         """Test introspecting an expired token."""
         # Create an expired token

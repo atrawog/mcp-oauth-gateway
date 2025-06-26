@@ -11,13 +11,13 @@ from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
 from tests.test_constants import MCP_EVERYTHING_URLS
 
 
-@pytest.fixture()
+@pytest.fixture
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture()
+@pytest.fixture
 def everything_url():
     """Full URL for everything service."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
@@ -27,13 +27,13 @@ def everything_url():
     return MCP_EVERYTHING_URLS[0]
 
 
-@pytest.fixture()
+@pytest.fixture
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 async def wait_for_services():
     """Ensure all services are ready."""
     # Services are already checked by conftest
@@ -66,8 +66,8 @@ class TestMCPEverythingClientSimple:
 
         return result.returncode, result.stdout, result.stderr
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_test_connection(self, everything_url, client_token, wait_for_services):
         """Test basic connection to the everything server."""
@@ -84,8 +84,8 @@ class TestMCPEverythingClientSimple:
         # The command might not exist, but we should get a response
         assert returncode == 0 or "not found" in stdout.lower() or "error" in stdout.lower()
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_list_tools(self, everything_url, client_token, wait_for_services):
         """Test listing available tools."""
@@ -100,8 +100,8 @@ class TestMCPEverythingClientSimple:
         # Check if we got a response (even if it's an error about the command)
         assert stdout or stderr
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_help_command(self, everything_url, client_token, wait_for_services):
         """Test help command if available."""
@@ -114,8 +114,8 @@ class TestMCPEverythingClientSimple:
         # Check if we got a response
         assert stdout or stderr
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_unknown_command(self, everything_url, client_token, wait_for_services):
         """Test handling of unknown commands."""
@@ -132,8 +132,8 @@ class TestMCPEverythingClientSimple:
         # Should get an error response - the client exits with status 1 for unknown commands
         assert returncode == 1 or "not available" in stdout.lower() or "error" in stdout.lower() or stderr
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_available_features(self, everything_url, client_token, wait_for_services):
         """Try to discover available features."""

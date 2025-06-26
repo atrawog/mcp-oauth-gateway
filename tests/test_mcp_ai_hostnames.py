@@ -44,7 +44,7 @@ class TestMCPAIHostnames:
 
                 cls.HOSTNAMES.append((name, url, service_part))
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_hostname_connectivity(self, http_client: httpx.AsyncClient):
         """Test that each AI hostname is reachable and responds correctly."""
         if not self.HOSTNAMES:
@@ -116,7 +116,7 @@ class TestMCPAIHostnames:
         # At least some hostnames should work
         assert successful > 0, "No AI hostnames were accessible"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_health_endpoints(self, http_client: httpx.AsyncClient):
         """Test that MCP endpoints are accessible (health via MCP protocol per CLAUDE.md)."""
         if not self.HOSTNAMES:
@@ -136,7 +136,7 @@ class TestMCPAIHostnames:
                 # This is expected if Let's Encrypt hasn't issued certificates for new hostnames yet
                 continue
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_oauth_discovery_endpoints(self, http_client: httpx.AsyncClient):
         """Test OAuth discovery endpoints for all hostnames."""
         for name, url, _ in self.HOSTNAMES:
@@ -161,7 +161,7 @@ class TestMCPAIHostnames:
                 # This is expected if Let's Encrypt hasn't issued certificates for new hostnames yet
                 continue
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_fetch_through_ai_hostname(self, http_client: httpx.AsyncClient):
         """Test actual fetch capability through one of the AI hostnames."""
         # Use the first available hostname for this test
@@ -217,7 +217,7 @@ class TestMCPAIHostnames:
 
         print(f"✅ {name} hostname supports fetch tool: {fetch_tool['description']}")
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_all_hostnames_summary(self, http_client: httpx.AsyncClient):
         """Summary test that verifies all hostnames are configured."""
         if not self.HOSTNAMES:

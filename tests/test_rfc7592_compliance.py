@@ -39,7 +39,7 @@ def create_bearer_auth_header(token: str) -> str:
     return f"Bearer {token}"
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_rfc7592_get_client_configuration(http_client):
     """Test RFC 7592 GET /register/{client_id} endpoint."""
     # First register a client
@@ -102,7 +102,7 @@ async def test_rfc7592_get_client_configuration(http_client):
     await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_rfc7592_put_update_client(http_client):
     """Test RFC 7592 PUT /register/{client_id} endpoint."""
     # Register initial client
@@ -201,7 +201,7 @@ async def test_rfc7592_put_update_client(http_client):
     await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_rfc7592_delete_client(http_client):
     """Test RFC 7592 DELETE /register/{client_id} endpoint."""
     # Register a client to delete
@@ -255,7 +255,7 @@ async def test_rfc7592_delete_client(http_client):
     assert response.status_code == HTTP_NOT_FOUND
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_rfc7592_requires_correct_bearer_token(http_client):
     """Test that RFC 7592 endpoints require the correct registration_access_token."""
     # Register a client
@@ -324,7 +324,7 @@ async def test_rfc7592_requires_correct_bearer_token(http_client):
     await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_rfc7592_client_isolation(http_client):
     """Test that clients cannot access or modify other clients' registrations."""
     # Register two different clients
@@ -397,7 +397,7 @@ async def test_rfc7592_client_isolation(http_client):
     )
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_rfc7592_malformed_requests(http_client):
     """Test RFC 7592 endpoints handle malformed requests properly."""
     # Register a client
@@ -466,7 +466,7 @@ async def test_rfc7592_malformed_requests(http_client):
     await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_rfc7592_concurrent_updates(http_client):
     """Test RFC 7592 handles concurrent update requests properly."""
     # Register a client
@@ -521,7 +521,7 @@ async def test_rfc7592_concurrent_updates(http_client):
     await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_rfc7592_client_lifetime_handling(http_client):
     """Test RFC 7592 respects CLIENT_LIFETIME configuration."""
     client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))

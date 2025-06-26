@@ -16,7 +16,7 @@ from .test_constants import MCP_FETCH_URL
 class TestRoutingBugRegression:
     """Regression test for the routing configuration bug."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_mcp_path_without_host_only_routing_returns_401_not_404(self, http_client, _wait_for_services):
         """REGRESSION TEST: Ensure /mcp path returns 401 (auth required), not 404.
 
@@ -45,7 +45,7 @@ class TestRoutingBugRegression:
         assert "error" in error
         assert "Authorization header" in error.get("error_description", "")
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_traefik_labels_include_path_routing(self, _wait_for_services):
         """Verify the docker-compose.yml includes PathPrefix in routing rules.
 
@@ -68,7 +68,7 @@ class TestRoutingBugRegression:
         # Verify the host rule is present
         assert "Host(`fetch.${BASE_DOMAIN}`)" in content, "REGRESSION: Host rule not found!"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_all_required_routes_configured(self, http_client, _wait_for_services):
         """Test that all required routes are properly configured with correct priorities."""
         routes_to_test = [
@@ -85,7 +85,7 @@ class TestRoutingBugRegression:
                 response.status_code == expected_status
             ), f"{description}: Expected {expected_status}, got {response.status_code}"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_routing_priorities_correct(self, http_client, _wait_for_services):
         """Verify routing priorities are set correctly:
 

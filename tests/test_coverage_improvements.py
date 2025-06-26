@@ -46,7 +46,7 @@ class TestAuthAuthlibErrorHandling:
         private_key_pem = base64.b64decode(JWT_PRIVATE_KEY_B64)
         return serialization.load_pem_private_key(private_key_pem, password=None, backend=default_backend())
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_verify_jwt_token_invalid_signature(self, http_client, _wait_for_services):
         """Test JWT verification with invalid signature."""
         # Create a token with wrong key
@@ -69,7 +69,7 @@ class TestAuthAuthlibErrorHandling:
         )
         assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_verify_jwt_token_unexpected_error(self, http_client, _wait_for_services):
         """Test JWT verification with malformed token causing unexpected error."""
         # Send a completely malformed token
@@ -79,7 +79,7 @@ class TestAuthAuthlibErrorHandling:
         )
         assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_create_refresh_token(self, http_client, _wait_for_services):
         """Test refresh token creation via OAuth flow."""
         # This test requires full OAuth flow with GitHub which is complex
@@ -87,7 +87,7 @@ class TestAuthAuthlibErrorHandling:
         # Skip this specific unit test
         pytest.skip("Refresh token creation is tested via integration tests")
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_exchange_github_code_error_scenarios(self, http_client, _wait_for_services):
         """Test GitHub code exchange error scenarios."""
         # These have already been tested in TestRoutesErrorHandling
@@ -102,20 +102,20 @@ class TestResourceProtectorErrorHandling:
         private_key_pem = base64.b64decode(JWT_PRIVATE_KEY_B64)
         return serialization.load_pem_private_key(private_key_pem, password=None, backend=default_backend())
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_bearer_token_validator_missing_token(self, http_client, _wait_for_services):
         """Test bearer token validation with missing token."""
         response = await http_client.get(f"{AUTH_BASE_URL}/verify")
         assert response.status_code == HTTP_UNAUTHORIZED
         assert response.headers["WWW-Authenticate"] == "Bearer"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_bearer_token_validator_invalid_format(self, http_client, _wait_for_services):
         """Test bearer token validation with invalid format."""
         response = await http_client.get(f"{AUTH_BASE_URL}/verify", headers={"Authorization": "NotBearer token"})
         assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_bearer_token_validator_expired_token(self, http_client, _wait_for_services):
         """Test bearer token validation with expired token."""
         # Create an expired token
@@ -139,7 +139,7 @@ class TestResourceProtectorErrorHandling:
         )
         assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_bearer_token_validator_revoked_token(self, http_client, _wait_for_services):
         """Test bearer token validation with revoked token."""
         # Create a fresh test token that we can safely revoke
@@ -200,7 +200,7 @@ class TestRoutesErrorHandling:
         private_key_pem = base64.b64decode(JWT_PRIVATE_KEY_B64)
         return serialization.load_pem_private_key(private_key_pem, password=None, backend=default_backend())
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_callback_missing_state(self, http_client, _wait_for_services):
         """Test callback endpoint with missing state."""
         response = await http_client.get(f"{AUTH_BASE_URL}/callback?code=test_code")
@@ -210,7 +210,7 @@ class TestRoutesErrorHandling:
         assert "detail" in json_response
         assert any(error["loc"] == ["query", "state"] for error in json_response["detail"])
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_callback_invalid_state(self, http_client, _wait_for_services):
         """Test callback endpoint with invalid state."""
         response = await http_client.get(f"{AUTH_BASE_URL}/callback?code=test_code&state=invalid_state")
@@ -219,7 +219,7 @@ class TestRoutesErrorHandling:
         assert "/error" in response.headers.get("location", "")
         # Error details are now in the redirect URL parameters
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_callback_github_error(self, http_client, _wait_for_services):
         """Test callback endpoint with GitHub error."""
         # First create a valid state by registering a client and starting auth flow
@@ -251,7 +251,7 @@ class TestRoutesErrorHandling:
         # FastAPI returns 422 for missing required parameter
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_introspect_malformed_token(self, http_client, _wait_for_services):
         """Test introspect endpoint with malformed token."""
         response = await http_client.post(
@@ -266,7 +266,7 @@ class TestRoutesErrorHandling:
         data = response.json()
         assert data["active"] is False
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_introspect_token_not_in_redis(self, http_client, _wait_for_services):
         """Test introspect endpoint with token not in Redis."""
         # Create a valid JWT that's not in Redis
@@ -430,7 +430,7 @@ class TestKeysModuleCoverage:
 class TestRFC7592ErrorHandling:
     """Test RFC 7592 error handling."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_update_client_not_found(self, http_client, _wait_for_services):
         """Test updating non-existent client."""
         response = await http_client.put(
@@ -442,7 +442,7 @@ class TestRFC7592ErrorHandling:
         assert response.status_code == HTTP_NOT_FOUND
         assert "Client not found" in response.text
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_update_client_invalid_token(self, http_client, _wait_for_services):
         """Test updating client with invalid registration token."""
         # First register a client
@@ -465,7 +465,7 @@ class TestRFC7592ErrorHandling:
         assert response.status_code == HTTP_FORBIDDEN
         assert "Invalid or expired registration access token" in response.text
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_delete_client_not_found(self, http_client, _wait_for_services):
         """Test deleting non-existent client."""
         response = await http_client.delete(
@@ -476,7 +476,7 @@ class TestRFC7592ErrorHandling:
         assert response.status_code == HTTP_NOT_FOUND
         assert "Client not found" in response.text
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_get_client_with_expired_secret(self, http_client, _wait_for_services):
         """Test getting client with expired secret check."""
         # Register a client
@@ -533,7 +533,7 @@ class TestMainModuleIntegration:
 class TestEdgeCasesAndBranches:
     """Test remaining edge cases and branches."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_refresh_with_invalid_refresh_token(self, http_client, _wait_for_services):
         """Test token refresh with invalid refresh token."""
         response = await http_client.post(
@@ -551,7 +551,7 @@ class TestEdgeCasesAndBranches:
         # Handle both direct error and detail.error formats
         assert json_response["error"] == "invalid_grant"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_authorize_with_unsupported_response_type(self, http_client, _wait_for_services):
         """Test authorize with unsupported response type."""
         # Register a client first
@@ -575,7 +575,7 @@ class TestEdgeCasesAndBranches:
         # FastAPI returns 422 for invalid enum values
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_concurrent_token_operations(self, http_client, _wait_for_services):
         """Test concurrent token operations don't cause race conditions."""
         # Register a client
@@ -627,7 +627,7 @@ class TestEdgeCasesAndBranches:
         assert len(states) == 3
         assert len(set(states)) == 3  # All states should be unique
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_error_response_formats(self, http_client, _wait_for_services):
         """Test various error response formats."""
         # Test invalid client credentials format

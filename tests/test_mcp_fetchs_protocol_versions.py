@@ -13,13 +13,13 @@ from tests.test_constants import BASE_DOMAIN
 from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture()
+@pytest.fixture
 def valid_token():
     """Valid OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
@@ -36,8 +36,8 @@ class TestMCPProtocolVersions:
         versions_str = os.getenv("MCP_PROTOCOL_VERSIONS_SUPPORTED", "2025-06-18")
         self.MCP_PROTOCOL_VERSIONS_SUPPORTED = [v.strip() for v in versions_str.split(",")]
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_supported_version_in_params(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test server's protocol version works in initialize params."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -64,8 +64,8 @@ class TestMCPProtocolVersions:
             assert "result" in data
             assert data["result"]["protocolVersion"] == self.MCP_PROTOCOL_VERSION
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_supported_version_in_header(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test server's protocol version works in MCP-Protocol-Version header."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -84,8 +84,8 @@ class TestMCPProtocolVersions:
             data = response.json()
             assert "result" in data
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_unsupported_versions_rejected(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test unsupported versions are properly rejected."""
         unsupported_versions = [
@@ -140,8 +140,8 @@ class TestMCPProtocolVersions:
                     f"Error should mention supported version {self.MCP_PROTOCOL_VERSION}"  # TODO: Break long line
                 )
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_response_headers_include_version(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test that responses include MCP-Protocol-Version header."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -176,8 +176,8 @@ class TestMCPProtocolVersions:
                 assert "MCP-Protocol-Version" in response.headers
                 assert response.headers["MCP-Protocol-Version"] == self.MCP_PROTOCOL_VERSION
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_version_negotiation(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test protocol version negotiation behavior."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -204,8 +204,8 @@ class TestMCPProtocolVersions:
             # Server should respond with its supported version
             assert data["result"]["protocolVersion"] == self.MCP_PROTOCOL_VERSION
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_case_sensitivity(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test that version checking is case-sensitive."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -233,8 +233,8 @@ class TestMCPProtocolVersions:
             )
             assert response.status_code == HTTP_OK
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_version_in_error_responses(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test that error responses still include protocol version header."""
         async with httpx.AsyncClient(verify=True) as client:

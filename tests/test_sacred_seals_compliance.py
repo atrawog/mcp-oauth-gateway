@@ -23,7 +23,7 @@ from .test_constants import REDIS_URL
 class TestSacredSealsCompliance:
     """Test all 25 Sacred Seals for 100% divine compliance."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_redis_key_patterns_and_ttls(self, http_client, _wait_for_services):
         """Test SEAL OF REDIS PATTERNS - Sacred key hierarchies preserve all state."""
         # MUST have OAuth access token - test FAILS if not available
@@ -141,7 +141,7 @@ class TestSacredSealsCompliance:
             except Exception as e:
                 logger.warning(f"Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_dual_realms_architecture(self, http_client, _wait_for_services):
         """Test SEAL OF DUAL REALMS - Client auth and user auth never intermingle."""
         # MUST have OAuth access token - test FAILS if not available
@@ -229,7 +229,7 @@ class TestSacredSealsCompliance:
             except Exception as e:
                 logger.warning(f"Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_sacred_directory_structure(self):
         """Test SEAL OF SACRED STRUCTURE - Divine directory isolation."""
         # Verify all sacred directories exist per Commandment 3
@@ -295,7 +295,7 @@ class TestSacredSealsCompliance:
                 py_file.parent
             ), f"Test file {py_file} violates sacred structure - must be in ./tests/!"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_sidecar_coverage_collection(self):
         """Test SEAL OF SIDECAR COVERAGE - Production containers measured without contamination."""
         # Verify sidecar coverage setup exists
@@ -346,7 +346,7 @@ class TestSacredSealsCompliance:
         assert "/app" in coveragerc_content, "Must map container path /app!"
         assert "./auth" in coveragerc_content, "Must map local path ./auth!"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_documentation_build(self):
         """Test SEAL OF DOCUMENTATION - Jupyter Book with MyST preserves all wisdom."""
         # Check Jupyter Book configuration exists

@@ -11,13 +11,13 @@ from tests.test_constants import BASE_DOMAIN
 from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture()
+@pytest.fixture
 def valid_token():
     """Valid OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
@@ -26,8 +26,8 @@ def valid_token():
 class TestMCPFetchsSecurity:
     """Security validation tests for mcp-fetchs."""
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_fetchs_auth_schemes(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test various authentication schemes are properly rejected/accepted."""
         test_cases = [
@@ -65,8 +65,8 @@ class TestMCPFetchsSecurity:
                     www_auth = response.headers.get("WWW-Authenticate", "")
                     assert www_auth.startswith("Bearer"), f"WWW-Authenticate should start with Bearer, got: {www_auth}"
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_fetchs_token_validation(self, mcp_fetchs_url, _wait_for_services):
         """Test token validation with various invalid formats."""
         invalid_tokens = [
@@ -92,8 +92,8 @@ class TestMCPFetchsSecurity:
                 www_auth = response.headers.get("WWW-Authenticate", "")
                 assert www_auth.startswith("Bearer"), f"WWW-Authenticate should start with Bearer, got: {www_auth}"
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_fetchs_endpoint_auth_requirements(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test which endpoints require authentication."""
         endpoints_auth_required = [
@@ -121,8 +121,8 @@ class TestMCPFetchsSecurity:
                 else:
                     assert response.status_code != 401, f"{method} {path} should not require auth"
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_fetchs_prevents_ssrf(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test Server-Side Request Forgery prevention."""
         dangerous_urls = [
@@ -227,8 +227,8 @@ class TestMCPFetchsSecurity:
             # All should succeed (no built-in rate limiting)
             assert all(status == 200 for status in responses)
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_fetchs_oauth_discovery_security(self, base_domain, _wait_for_services):
         """Test OAuth discovery endpoint security."""
         from tests.test_constants import MCP_FETCHS_TESTS_ENABLED

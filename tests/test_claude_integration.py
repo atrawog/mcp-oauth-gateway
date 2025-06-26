@@ -24,7 +24,7 @@ from .test_constants import MCP_TESTING_URL
 class TestClaudeIntegration:
     """Test the complete Claude.ai integration flow."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_claude_nine_sacred_steps(self, http_client, _wait_for_services):
         """Test the Nine Sacred Steps of Claude.ai Connection."""
         # MUST have OAuth access token - test FAILS if not available
@@ -148,7 +148,7 @@ class TestClaudeIntegration:
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_claude_auth_discovery_flow(self, http_client, _wait_for_services):
         """Test Claude.ai's OAuth discovery process."""
         # Claude.ai discovers auth is required
@@ -179,7 +179,7 @@ class TestClaudeIntegration:
             assert endpoint in metadata
             assert metadata[endpoint]  # Not empty
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_claude_token_persistence(self, http_client, registered_client):
         """Test that tokens work for persistent Claude.ai connections."""
         # Simulate getting a token (would normally go through full OAuth)
@@ -205,7 +205,7 @@ class TestClaudeIntegration:
         error = token_response.json()
         assert error["error"] == "invalid_grant"  # Correct error for bad code
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_claude_mcp_streaming(self, http_client, _wait_for_services):
         """Test MCP streaming capabilities for Claude.ai."""
         # Test that MCP endpoint supports streaming headers
@@ -228,7 +228,7 @@ class TestClaudeIntegration:
         assert response.status_code == HTTP_UNAUTHORIZED
         assert "text/event-stream" in headers["Accept"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_claude_error_handling(self, http_client, registered_client):
         """Test Claude.ai error scenarios."""
         # Test various error conditions Claude.ai might encounter
@@ -263,7 +263,7 @@ class TestClaudeIntegration:
         # Should still proceed (PKCE recommended but not required)
         assert response.status_code in [302, 307]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_claude_session_management(self, http_client, _wait_for_services):
         """Test MCP session handling for Claude.ai."""
         # Test session creation and management

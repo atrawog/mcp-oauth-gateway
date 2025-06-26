@@ -24,7 +24,7 @@ from .test_constants import TEST_OAUTH_CALLBACK_URL
 class TestOAuthFlow:
     """Test the complete OAuth 2.1 flow."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_server_metadata(self, http_client, _wait_for_services):
         """Test .well-known/oauth-authorization-server endpoint."""
         response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
@@ -43,7 +43,7 @@ class TestOAuthFlow:
         assert "S256" in metadata["code_challenge_methods_supported"]
         assert "authorization_code" in metadata["grant_types_supported"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_client_registration_rfc7591(self, http_client, _wait_for_services):
         """Test dynamic client registration per RFC 7591."""
         # MUST have OAuth access token - test FAILS if not available
@@ -122,7 +122,7 @@ class TestOAuthFlow:
                     except Exception as e:
                         print(f"Warning: Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_authorization_endpoint_validation(self, http_client, registered_client):
         """Test authorization endpoint with invalid client handling."""
         # Test with invalid client_id - MUST NOT redirect
@@ -162,7 +162,7 @@ class TestOAuthFlow:
         error = response.json()
         assert error["error"] == "invalid_redirect_uri"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_pkce_flow(self, http_client, registered_client):
         """Test PKCE (RFC 7636) with S256 challenge method."""
         # Generate PKCE challenge
@@ -190,7 +190,7 @@ class TestOAuthFlow:
         location = response.headers["location"]
         assert "github.com/login/oauth/authorize" in location
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_endpoint_errors(self, http_client, registered_client):
         """Test token endpoint error handling."""
         # Test invalid client
@@ -225,7 +225,7 @@ class TestOAuthFlow:
         error = response.json()
         assert error["error"] == "invalid_grant"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_introspection(self, http_client, registered_client):
         """Test token introspection endpoint (RFC 7662)."""
         # Test with invalid token
@@ -245,7 +245,7 @@ class TestOAuthFlow:
         result = response.json()
         assert result["active"] is False
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_revocation(self, http_client, registered_client):
         """Test token revocation endpoint (RFC 7009)."""
         # Revocation always returns 200, even for invalid tokens
@@ -263,7 +263,7 @@ class TestOAuthFlow:
             pytest.skip("Revocation endpoint not implemented")
         assert response.status_code == HTTP_OK  # Always 200 per RFC 7009
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_forwardauth_verification(self, http_client):
         """Test ForwardAuth /verify endpoint."""
         # Test without token

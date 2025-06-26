@@ -11,13 +11,13 @@ from tests.test_constants import BASE_DOMAIN
 from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture()
+@pytest.fixture
 def valid_token():
     """Valid OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
@@ -26,8 +26,8 @@ def valid_token():
 class TestMCPFetchsCompliance:
     """Strict MCP 2025-06-18 compliance tests."""
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_initialize_protocol_negotiation(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test protocol version negotiation per MCP 2025-06-18."""
         # Test supported version
@@ -69,8 +69,8 @@ class TestMCPFetchsCompliance:
             assert "tools" in result["capabilities"]
             assert isinstance(result["capabilities"]["tools"], dict)
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_unsupported_protocol_version(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test rejection of unsupported protocol versions."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -98,8 +98,8 @@ class TestMCPFetchsCompliance:
             assert data["error"]["code"] == -32602  # Invalid params
             assert "Unsupported protocol version" in data["error"]["data"]
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_protocol_version_header(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test MCP-Protocol-Version header handling."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -119,8 +119,8 @@ class TestMCPFetchsCompliance:
             assert "2025-06-18" in data["message"]
             assert "2024-11-05" in data["message"]
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_tools_list_pagination(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test tools/list pagination support per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -157,8 +157,8 @@ class TestMCPFetchsCompliance:
 
             assert response.status_code == HTTP_OK
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_tool_definition_schema(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test tool definitions match MCP 2025-06-18 schema."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -191,8 +191,8 @@ class TestMCPFetchsCompliance:
                 if "title" in tool:
                     assert isinstance(tool["title"], str)
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_tools_call_validation(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test tools/call parameter validation per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -252,8 +252,8 @@ class TestMCPFetchsCompliance:
             assert "error" in data
             assert data["error"]["code"] == -32602
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_tool_execution_response_format(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test tool execution response format per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -296,8 +296,8 @@ class TestMCPFetchsCompliance:
                     assert "data" in content
                     assert "mimeType" in content
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_tool_execution_error_format(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test tool execution error format per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -336,8 +336,8 @@ class TestMCPFetchsCompliance:
             assert result["content"][0]["type"] == "text"
             assert "Tool execution failed" in result["content"][0]["text"]
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_session_id_handling(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test Mcp-Session-Id header handling per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -364,8 +364,8 @@ class TestMCPFetchsCompliance:
             assert session_id.isprintable()
             assert all(32 <= ord(c) <= 126 for c in session_id)
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_streamable_http_endpoints(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test Streamable HTTP transport endpoints per MCP 2025-06-18."""
         async with httpx.AsyncClient(verify=True) as client:

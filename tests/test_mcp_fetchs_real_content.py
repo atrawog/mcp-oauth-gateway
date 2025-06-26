@@ -11,19 +11,19 @@ from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from tests.test_constants import MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture()
+@pytest.fixture
 def gateway_token():
     """Gateway OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 def client_token():
     """MCP client access token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
@@ -32,8 +32,8 @@ def client_token():
 class TestMCPFetchsRealContent:
     """Test fetching real content from various sources."""
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_fetchs_example_com_content(self, mcp_fetchs_url, gateway_token, _wait_for_services):
         """Test fetching example.com and verifying content."""
         async with httpx.AsyncClient(verify=True) as client:
@@ -159,8 +159,8 @@ class TestMCPFetchsRealContent:
     #    #         content = data["result"]["content"][0]
     #    #         assert "MCP-Fetchs-Test/2.0" in content["text"]
     #    #
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_fetchs_auth_service_health(self, mcp_fetchs_url, base_domain, gateway_token, _wait_for_services):
         """Test fetching from our own auth service."""
         async with httpx.AsyncClient(verify=True) as client:

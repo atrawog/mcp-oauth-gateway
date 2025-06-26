@@ -18,7 +18,7 @@ AUTH_BASE_URL = f"https://auth.{base_domain}"
 CLIENT_LIFETIME = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_client_lifetime_from_env(http_client):
     """Test that CLIENT_LIFETIME from .env is respected."""
     # Register a client
@@ -79,7 +79,7 @@ async def test_client_lifetime_from_env(http_client):
     assert response.status_code == HTTP_NOT_FOUND
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_rfc7592_update_client(http_client):
     """Test RFC 7592 PUT endpoint to update client registration."""
     # First register a client

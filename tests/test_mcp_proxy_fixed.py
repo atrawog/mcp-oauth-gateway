@@ -20,7 +20,7 @@ MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
 class TestMCPProxyWithSessionHandling:
     """Test MCP proxy with proper session ID handling."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_initialize_returns_session_id(
         self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
     ):
@@ -59,7 +59,7 @@ class TestMCPProxyWithSessionHandling:
         # Server may negotiate a different protocol version
         assert "protocolVersion" in data["result"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_session_persists_with_header(
         self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
     ):
@@ -117,7 +117,7 @@ class TestMCPProxyWithSessionHandling:
         assert "result" in data
         assert "tools" in data["result"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_request_without_session_id_fails(
         self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
     ):
@@ -142,7 +142,7 @@ class TestMCPProxyWithSessionHandling:
         assert "error" in data
         assert "Session ID required" in data["error"]["message"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_invalid_session_id_rejected(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
         """Test that invalid session IDs are rejected."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -167,7 +167,7 @@ class TestMCPProxyWithSessionHandling:
 class TestMCPProtocolFlowWithSessions:
     """Test complete MCP protocol flow with proper session handling."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_complete_mcp_flow(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
         """Test complete MCP flow: initialize -> initialized -> tools/list -> tool/call."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -261,7 +261,7 @@ class TestMCPProtocolFlowWithSessions:
 class TestMCPSessionIsolation:
     """Test that sessions are properly isolated."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_sessions_are_isolated(self, _wait_for_services, mcp_fetch_url):
         """Test that different clients get different isolated sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -396,7 +396,7 @@ class MCPClientHelper:
 class TestMCPWithHelper:
     """Test MCP using the helper class."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_complete_flow_with_helper(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
         """Test complete MCP flow using helper class."""
         if not MCP_CLIENT_ACCESS_TOKEN:

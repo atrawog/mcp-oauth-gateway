@@ -22,7 +22,7 @@ from .test_constants import REDIS_URL
 class TestMCPFetchSimple:
     """Simple test to verify MCP fetch authentication."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_mcp_fetch_auth_works(self, http_client, _wait_for_services, registered_client, mcp_fetch_url):
         """Test that we can authenticate to mcp-fetch service."""
         # Connect to Redis

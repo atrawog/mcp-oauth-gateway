@@ -16,7 +16,7 @@ from .test_constants import MCP_TESTING_URL
 class TestClaudeAIRoutingScenario:
     """Test the exact scenario that Claude.ai uses for MCP connections."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_claude_ai_mcp_endpoint_discovery(self, http_client, _wait_for_services):
         """Test the exact flow Claude.ai uses:
 
@@ -59,7 +59,7 @@ class TestClaudeAIRoutingScenario:
         assert error["error"] == "invalid_request"
         assert "Authorization header" in error["error_description"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_mcp_path_accessible_with_and_without_trailing_slash(self, http_client, _wait_for_services):
         """Test that /mcp works with and without trailing slash."""
         paths = ["/mcp", "/mcp/"]
@@ -79,7 +79,7 @@ class TestClaudeAIRoutingScenario:
             # Should eventually get 401 (after any redirects)
             assert response.status_code == HTTP_UNAUTHORIZED, f"Path {path} returned {response.status_code}"
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_traefik_path_routing_exists(self, http_client, _wait_for_services):
         """Test that Traefik routing includes PathPrefix rule.
 
@@ -134,7 +134,7 @@ class TestClaudeAIRoutingScenario:
                 f"{test['description']} ({test['path']}) returned {response.status_code}, expected {test['expected']}"  # TODO: Break long line
             )
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_base_domain_without_path_requires_auth(self, http_client, _wait_for_services):
         """Test that accessing base domain without path requires auth."""
         # Just accessing the base domain should trigger auth
@@ -147,7 +147,7 @@ class TestClaudeAIRoutingScenario:
         )
         assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_exact_claude_ai_error_scenario(self, http_client, _wait_for_services):
         """Reproduce the EXACT error Claude.ai encountered.
 

@@ -12,7 +12,7 @@ import pytest
 class TestMCPAuthWorking:
     """Verify MCP OAuth authentication is properly enforced."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_mcp_requires_authentication(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test that MCP endpoints properly require authentication."""
         # Test 1: Request without auth should fail

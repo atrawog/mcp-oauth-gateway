@@ -13,13 +13,13 @@ from tests.test_constants import MCP_PROTOCOL_VERSION
 from tests.test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 
 
-@pytest.fixture()
+@pytest.fixture
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture()
+@pytest.fixture
 async def wait_for_services():
     """Ensure all services are ready."""
     return True
@@ -188,8 +188,8 @@ class TestMCPSequentialThinkingComprehensive:
         )
         assert "result" in response, f"Initialize failed: {response}"
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_tool_discovery(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test discovering available sequential thinking tools."""
         # Initialize session
@@ -234,8 +234,8 @@ class TestMCPSequentialThinkingComprehensive:
 
         print(f"Available parameters: {list(properties.keys())}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_simple_problem(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test solving a simple problem with sequential thinking."""
         # Initialize session
@@ -269,8 +269,8 @@ class TestMCPSequentialThinkingComprehensive:
             # Check if it's a parameter validation error
             print(f"Sequential thinking returned error: {response['error']}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_multi_step_process(
         self, mcp_sequentialthinking_url, client_token, wait_for_services
     ):
@@ -318,8 +318,8 @@ class TestMCPSequentialThinkingComprehensive:
         print(f"Step 2 response: {json.dumps(step2_response, indent=2)}")
         assert "result" in step2_response or "error" in step2_response
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_revision_process(
         self, mcp_sequentialthinking_url, client_token, wait_for_services
     ):
@@ -367,8 +367,8 @@ class TestMCPSequentialThinkingComprehensive:
         print(f"Revision response: {json.dumps(revision_response, indent=2)}")
         assert "result" in revision_response or "error" in revision_response
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_branching_logic(
         self, mcp_sequentialthinking_url, client_token, wait_for_services
     ):
@@ -417,8 +417,8 @@ class TestMCPSequentialThinkingComprehensive:
         print(f"Branch A response: {json.dumps(branch_a_response, indent=2)}")
         assert "result" in branch_a_response or "error" in branch_a_response
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_dynamic_scaling(
         self, mcp_sequentialthinking_url, client_token, wait_for_services
     ):
@@ -447,8 +447,8 @@ class TestMCPSequentialThinkingComprehensive:
         print(f"Dynamic scaling response: {json.dumps(initial_response, indent=2)}")
         assert "result" in initial_response or "error" in initial_response
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_hypothesis_testing(
         self, mcp_sequentialthinking_url, client_token, wait_for_services
     ):
@@ -495,8 +495,8 @@ class TestMCPSequentialThinkingComprehensive:
         print(f"Verification response: {json.dumps(verification_response, indent=2)}")
         assert "result" in verification_response or "error" in verification_response
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_error_handling(self, mcp_sequentialthinking_url, client_token, wait_for_services):
         """Test error handling with invalid parameters."""
         # Initialize session
@@ -533,8 +533,8 @@ class TestMCPSequentialThinkingComprehensive:
                 else:
                     print(f"Unexpected response content: {text_content}")
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_complete_workflow(
         self, mcp_sequentialthinking_url, client_token, wait_for_services
     ):
@@ -647,8 +647,8 @@ class TestMCPSequentialThinkingComprehensive:
         print(f"Successfully completed {successful_steps}/5 thinking steps")
         assert successful_steps >= 3, f"Expected at least 3 successful steps, got {successful_steps}"
 
-    @pytest.mark.integration()
-    @pytest.mark.asyncio()
+    @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_sequentialthinking_protocol_compliance(
         self, mcp_sequentialthinking_url, client_token, wait_for_services
     ):

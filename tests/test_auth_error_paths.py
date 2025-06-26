@@ -20,7 +20,7 @@ from .test_constants import JWT_SECRET
 class TestHealthCheckErrors:
     """Test health check error scenarios using OAuth discovery endpoint."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_oauth_discovery_health_check(self, http_client):
         """Test OAuth discovery endpoint used as health check."""
         # Verify OAuth discovery endpoint is accessible
@@ -38,7 +38,7 @@ class TestHealthCheckErrors:
 class TestSuccessEndpoint:
     """Test the /success endpoint - covers lines 773-834."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_success_endpoint_with_code(self, http_client):
         """Test success page with authorization code."""
         response = await http_client.get(
@@ -52,7 +52,7 @@ class TestSuccessEndpoint:
         assert "test_auth_code_123" in response.text
         assert "✅ OAuth Success!" in response.text
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_success_endpoint_with_error(self, http_client):
         """Test success page with error."""
         response = await http_client.get(
@@ -70,7 +70,7 @@ class TestSuccessEndpoint:
         assert "access_denied" in response.text
         assert "User denied access" in response.text
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_success_endpoint_no_params(self, http_client):
         """Test success page without parameters."""
         response = await http_client.get(f"{AUTH_BASE_URL}/success")
@@ -84,7 +84,7 @@ class TestSuccessEndpoint:
 class TestClientRegistrationErrors:
     """Test client registration error paths."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_registration_empty_redirect_uris(self, http_client):
         """Test registration with empty redirect_uris - covers line 172."""
         # RFC 7591: Registration is public, no auth required
@@ -106,7 +106,7 @@ class TestClientRegistrationErrors:
 class TestTokenEndpointEdgeCases:
     """Test token endpoint edge cases."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_refresh_grant_missing_token(self, http_client):
         """Test refresh token grant without token - covers lines 514-521."""
         response = await http_client.post(
@@ -124,7 +124,7 @@ class TestTokenEndpointEdgeCases:
         assert error["error"] == "invalid_request"
         assert "Missing refresh token" in error["error_description"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_refresh_grant_invalid_token(self, http_client):
         """Test refresh token grant with invalid token - covers lines 524-532."""
         response = await http_client.post(
@@ -142,7 +142,7 @@ class TestTokenEndpointEdgeCases:
         assert error["error"] == "invalid_grant"
         assert "Invalid or expired refresh token" in error["error_description"]
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_with_redirect_uri_mismatch(self, http_client):
         """Test token exchange with mismatched redirect_uri - covers lines 450-457."""
         # First create a fake authorization code in Redis
@@ -166,7 +166,7 @@ class TestTokenEndpointEdgeCases:
 class TestPKCEVerification:
     """Test PKCE verification logic."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_pkce_missing_verifier_error(self, http_client):
         """Test PKCE flow missing verifier - covers lines 460-468."""
         # We need to simulate a code that requires PKCE
@@ -192,7 +192,7 @@ class TestPKCEVerification:
 class TestTokenRevocationEdgeCases:
     """Test token revocation edge cases."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_revoke_with_wrong_client_secret(self, http_client):
         """Test revocation with wrong client secret - covers line 686."""
         # Create a valid JWT token
@@ -214,7 +214,7 @@ class TestTokenRevocationEdgeCases:
         # RFC 7009 says to return 200 even on auth failure
         assert response.status_code == HTTP_OK
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_revoke_refresh_token(self, http_client):
         """Test revoking a refresh token - covers line 708."""
         # Use a non-JWT token (refresh tokens are opaque)
@@ -234,7 +234,7 @@ class TestTokenRevocationEdgeCases:
 class TestTokenIntrospectionEdgeCases:
     """Test token introspection edge cases."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_introspect_token_not_in_redis(self, http_client):
         """Test introspection of valid JWT not in Redis - covers lines 740-743."""
         # Create a valid JWT but don't store it in Redis
@@ -263,7 +263,7 @@ class TestTokenIntrospectionEdgeCases:
         data = response.json()
         assert data["active"] is False  # Not in Redis
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_introspect_refresh_token_type(self, http_client):
         """Test introspection identifies refresh tokens - covers lines 760-767."""
         # Refresh tokens are opaque strings, not JWTs
@@ -284,7 +284,7 @@ class TestTokenIntrospectionEdgeCases:
 class TestJWTTokenCreation:
     """Test JWT token creation helper function."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_create_token_with_user_tracking(self, http_client):
         """Test that registration is public but tokens require authentication - covers lines 660-664."""
         # RFC 7591: Client registration is public (no auth required)
@@ -341,7 +341,7 @@ class TestJWTTokenCreation:
 class TestAuthorizationEndpointErrors:
     """Test authorization endpoint error handling."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_authorize_with_unknown_client(self, http_client):
         """Test authorization with unknown client - no redirect."""
         response = await http_client.get(
@@ -365,7 +365,7 @@ class TestAuthorizationEndpointErrors:
             content = response.text
             assert "invalid_client" in content or "Client authentication failed" in content
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_authorize_with_unregistered_redirect_uri(self, http_client):
         """Test authorization with unregistered redirect_uri."""
         # Use the existing registered client
@@ -389,7 +389,7 @@ class TestAuthorizationEndpointErrors:
 class TestShutdownHandler:
     """Test shutdown event handler."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_app_lifecycle(self, http_client):
         """Verify app can handle shutdown gracefully - relates to line 119."""
         # We can't actually trigger shutdown in deployed service

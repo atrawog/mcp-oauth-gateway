@@ -25,7 +25,7 @@ from .test_constants import TEST_OAUTH_CALLBACK_URL
 class TestAdditionalCoverage:
     """Test additional edge cases to improve coverage."""
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_missing_authorization_header_formats(self, http_client, _wait_for_services):
         """Test various missing/malformed authorization headers."""
         # Test with no Authorization header at all (already covered)
@@ -49,7 +49,7 @@ class TestAdditionalCoverage:
         # Test with Bearer and space but no token - Skip this as httpx doesn't allow it
         # httpx validates headers and won't send "Bearer " with trailing space
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_token_endpoint_missing_client_credentials(self, http_client, _wait_for_services):
         """Test token endpoint with missing client credentials."""
         # MUST have OAuth access token - test FAILS if not available
@@ -125,7 +125,7 @@ class TestAdditionalCoverage:
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_introspect_with_malformed_token(
         self,
         http_client,
@@ -163,7 +163,7 @@ class TestAdditionalCoverage:
         result = response.json()
         assert result["active"] is False
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_registration_with_minimal_data(self, http_client, _wait_for_services):
         """Test client registration with only required fields."""
         # MUST have OAuth access token - test FAILS if not available
@@ -219,7 +219,7 @@ class TestAdditionalCoverage:
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_jwt_with_invalid_signature(
         self,
         http_client,
@@ -255,7 +255,7 @@ class TestAdditionalCoverage:
         else:
             raise AssertionError(f"Unexpected error structure: {error}")
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_authorize_endpoint_missing_parameters(
         self,
         http_client,
