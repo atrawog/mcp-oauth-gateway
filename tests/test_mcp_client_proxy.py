@@ -56,7 +56,9 @@ class TestMCPClientProxyBasics:
                 json=request_data,
                 headers={
                     "Content-Type": "application/json",
+                    "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Accept": "application/json, text/event-stream",
                 }, timeout=30.0)
             assert response.status_code == HTTP_OK, (
                 "MCP health check should succeed with valid token"
@@ -128,7 +130,12 @@ class TestMCPProtocolHandling:
         response = await http_client.post(
             f"{MCP_TESTING_URL}",
             json=request_data,
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         result = response.json()
@@ -175,7 +182,12 @@ class TestMCPProtocolHandling:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                "Accept": "application/json, text/event-stream",
+            }, timeout=30.0)
 
         assert init_response.status_code == HTTP_OK
 
@@ -189,6 +201,8 @@ class TestMCPProtocolHandling:
                 f"{MCP_TESTING_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
                 headers={
+                    "Content-Type": "application/json",
+                    "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                     "Mcp-Session-Id": session_id,
                 }, timeout=30.0)
@@ -222,7 +236,11 @@ class TestMCPProtocolHandling:
                     },
                     "id": 1,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
             assert response.status_code == HTTP_OK
             result = response.json()
@@ -261,7 +279,11 @@ class TestProxyErrorHandling:
             response = await http_client.post(
                 f"{MCP_TESTING_URL}",
                 json=request,
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
             # Should return 200 with JSON-RPC error
             assert response.status_code == HTTP_OK
@@ -289,7 +311,11 @@ class TestProxyErrorHandling:
                 "params": {},
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         result = response.json()
@@ -382,7 +408,11 @@ class TestProxyRealWorldScenarios:
                     },
                     "id": session_num,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
             if response.status_code == HTTP_OK:
                 return response.headers.get("Mcp-Session-Id")
@@ -430,7 +460,11 @@ class TestProxyRealWorldScenarios:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             timeout=30.0,  # Longer timeout for large request
         )
 
@@ -451,7 +485,11 @@ class TestProxyRealWorldScenarios:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         if response.status_code == HTTP_OK:
             return response.headers.get("Mcp-Session-Id")
@@ -478,7 +516,7 @@ class TestProxyAuthenticationFlows:
                 "jsonrpc": "2.0",
                 "method": "initialize",
                 "params": {
-                    "protocolVersion": "2025-03-26",
+                    "protocolVersion": MCP_PROTOCOL_VERSION,
                     "capabilities": {},
                     "clientInfo": {"name": "auth-test", "version": "1.0.0"},
                 },
@@ -581,7 +619,11 @@ class TestProxyPerformance:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
         mcp_time = time.time() - start
 
         assert response.status_code == HTTP_OK

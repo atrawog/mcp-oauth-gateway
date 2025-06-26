@@ -59,7 +59,11 @@ class TestMCPProxyBasicFunctionality:
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"invalid": "request"},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
         # JSON-RPC errors return 200 with error in response body
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -94,7 +98,11 @@ class TestMCPProxyAuthentication:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
         assert response.status_code == HTTP_OK
         data = response.json()
         assert "result" in data
@@ -127,7 +135,11 @@ class TestMCPProxyAuthentication:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
         assert response.status_code == HTTP_OK
         data = response.json()
         assert "result" in data
@@ -172,7 +184,11 @@ class TestMCPProtocolInitialization:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -216,14 +232,22 @@ class TestMCPProtocolInitialization:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
         assert init_response.status_code == HTTP_OK
 
         # Send initialized notification (no id field for notifications)
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
         # Notifications don't get responses in JSON-RPC
         assert response.status_code in [200, 202]
 
@@ -254,7 +278,11 @@ class TestMCPFetchCapabilities:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()
@@ -284,7 +312,11 @@ class TestMCPFetchCapabilities:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
         assert session_id
@@ -347,7 +379,11 @@ class TestMCPProxyErrorHandling:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
@@ -396,7 +432,11 @@ class TestMCPProxyErrorHandling:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         data = response.json()

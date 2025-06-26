@@ -20,6 +20,7 @@ from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_TESTING_URL
+from .test_constants import MCP_PROTOCOL_VERSION
 
 
 # MCP Client tokens from environment
@@ -112,7 +113,11 @@ class TestMCPClientOAuthRegistration:
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json=registration_data,
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert response.status_code == HTTP_CREATED
         client_data = response.json()
@@ -186,8 +191,10 @@ class TestMCPClientOAuthFlows:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client['registration_access_token']}"
-                    }, timeout=30.0)
+                    "Authorization": f"Bearer {client['registration_access_token']}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -249,8 +256,10 @@ class TestMCPClientOAuthFlows:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client['registration_access_token']}"
-                    }, timeout=30.0)
+                    "Authorization": f"Bearer {client['registration_access_token']}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -300,8 +309,10 @@ class TestMCPClientOAuthFlows:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client['registration_access_token']}"
-                    }, timeout=30.0)
+                    "Authorization": f"Bearer {client['registration_access_token']}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -331,13 +342,17 @@ class TestMCPClientTokenValidation:
                 "jsonrpc": "2.0",
                 "method": "initialize",
                 "params": {
-                    "protocolVersion": "2025-06-18",
+                    "protocolVersion": MCP_PROTOCOL_VERSION,
                     "capabilities": {},
                     "clientInfo": {"name": "test-client", "version": "1.0.0"},
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                "Content-Type": "application/json",
+                "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"
+            }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         print("✅ MCP client token is valid and working")
@@ -399,8 +414,10 @@ class TestMCPClientTokenValidation:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client['registration_access_token']}"
-                    }, timeout=30.0)
+                    "Authorization": f"Bearer {client['registration_access_token']}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
@@ -531,7 +548,7 @@ class TestMCPClientRealWorldScenarios:
                     "jsonrpc": "2.0",
                     "method": "initialize",
                     "params": {
-                        "protocolVersion": "2025-06-18",
+                        "protocolVersion": MCP_PROTOCOL_VERSION,
                         "capabilities": {},
                         "clientInfo": {
                             "name": f"concurrent-client-{request_id}",
@@ -540,7 +557,11 @@ class TestMCPClientRealWorldScenarios:
                     },
                     "id": request_id,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+                headers={
+                    "Content-Type": "application/json",
+                    "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"
+                }, timeout=30.0)
             return response
 
         # Make 5 concurrent requests

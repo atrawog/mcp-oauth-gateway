@@ -373,7 +373,11 @@ class TestMCPLifecycleCompliance:
             response = await fresh_client.post(
                 f"{mcp_test_url}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
 
             # Should fail or return error
@@ -650,7 +654,11 @@ class TestMCPErrorHandling:
             response = await http_client.post(
                 f"{mcp_test_url}",
                 json=request,
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
                 timeout=60.0,  # Increase timeout for error handling tests
             )
 

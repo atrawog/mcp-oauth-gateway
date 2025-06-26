@@ -45,7 +45,11 @@ class TestMCPSessionCreation:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
 
@@ -81,7 +85,11 @@ class TestMCPSessionCreation:
                     },
                     "id": 1,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
             assert response1.status_code == HTTP_OK
 
@@ -98,7 +106,11 @@ class TestMCPSessionCreation:
                     },
                     "id": 1,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
             assert response2.status_code == HTTP_OK
 
@@ -139,20 +151,32 @@ class TestMCPSessionPersistence:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
         assert init_response.status_code == HTTP_OK
 
         # Send initialized notification
         await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         # Now make another request - should use same session
         tools_response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert tools_response.status_code == HTTP_OK
         # If session wasn't maintained, this would fail as uninitialized
@@ -173,7 +197,11 @@ class TestMCPSessionPersistence:
             response = await fresh_client.post(
                 f"{MCP_FETCH_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
 
             # Should either fail or return an error
@@ -215,7 +243,11 @@ class TestMCPSessionTimeout:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
         )
         assert response.status_code == HTTP_OK
 
@@ -223,13 +255,21 @@ class TestMCPSessionTimeout:
         await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         # Session should still be active
         tools_response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
         assert tools_response.status_code == HTTP_OK
 
     @pytest.mark.asyncio
@@ -255,7 +295,11 @@ class TestMCPSessionTimeout:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         # Make multiple requests with delays
         for i in range(3):
@@ -269,7 +313,11 @@ class TestMCPSessionTimeout:
                     "params": {},
                     "id": i + 2,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
             # Session should remain active
             assert response.status_code == HTTP_OK
 
@@ -300,7 +348,11 @@ class TestMCPSessionConcurrency:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers.get("Mcp-Session-Id")
 
@@ -361,7 +413,11 @@ class TestMCPSessionConcurrency:
                 },
                 "id": "init-1",
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         # Send requests with different ID types (string and number)
         response1 = await http_client.post(
@@ -372,12 +428,20 @@ class TestMCPSessionConcurrency:
                 "params": {},
                 "id": "string-id-1",
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         response2 = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 12345},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         # Both should succeed and echo back their IDs
         assert response1.status_code == HTTP_OK
@@ -415,7 +479,11 @@ class TestMCPSessionCleanup:
                     },
                     "id": 1,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
             assert response.status_code == HTTP_OK
 
@@ -426,7 +494,11 @@ class TestMCPSessionCleanup:
             response = await new_client.post(
                 f"{MCP_FETCH_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
 
             # Should need to initialize again

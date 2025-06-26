@@ -49,7 +49,11 @@ class TestMCPProxySessionIssues:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         # This should succeed
         assert init_response.status_code == HTTP_OK
@@ -58,7 +62,11 @@ class TestMCPProxySessionIssues:
         tools_response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         # The proxy now correctly returns an error for missing session ID
         assert tools_response.status_code == HTTP_OK  # JSON-RPC errors return 200
@@ -93,7 +101,11 @@ class TestMCPProxySessionIssues:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
 
@@ -132,7 +144,11 @@ class TestMCPProxyWorkarounds:
                     },
                     "id": 1,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
             assert init_response.status_code == HTTP_OK
 
@@ -150,7 +166,11 @@ class TestMCPProxyWorkarounds:
                     },
                     "id": 1,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
             assert init_response.status_code == HTTP_OK
 
@@ -158,7 +178,11 @@ class TestMCPProxyWorkarounds:
             tools_response = await client2.post(
                 f"{MCP_FETCH_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
             # This works because we used the same client that initialized
             assert tools_response.status_code == HTTP_OK

@@ -43,7 +43,11 @@ async def test_simple_initialize(
     response = await http_client.post(
         f"{mcp_fetch_url}",
         json=request_data,
-        headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+        headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
     print(f"\nResponse status: {response.status_code}")
     print(f"Response headers: {dict(response.headers)}")

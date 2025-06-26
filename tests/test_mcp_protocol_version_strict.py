@@ -119,7 +119,7 @@ class TestMCPProtocolVersionStrict:
             )
 
             # Test wrong version in header
-            wrong_header_versions = ["2025-03-26", "2024-01-01", "invalid", ""]
+            wrong_header_versions = [MCP_PROTOCOL_VERSION, "2024-01-01", "invalid", ""]
 
             for wrong_header in wrong_header_versions:
                 if wrong_header == MCP_PROTOCOL_VERSION:

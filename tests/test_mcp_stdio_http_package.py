@@ -1,4 +1,5 @@
 from .test_constants import HTTP_OK
+from .test_constants import MCP_PROTOCOL_VERSION
 
 
 """Test that mcp-fetch service is using the correct package."""
@@ -23,7 +24,7 @@ async def test_mcp_fetch_uses_package(mcp_fetch_url):
                 "jsonrpc": "2.0",
                 "method": "initialize",
                 "params": {
-                    "protocolVersion": "2025-03-26",
+                    "protocolVersion": MCP_PROTOCOL_VERSION,
                     "capabilities": {},
                     "clientInfo": {"name": "package-test", "version": "1.0.0"},
                 },

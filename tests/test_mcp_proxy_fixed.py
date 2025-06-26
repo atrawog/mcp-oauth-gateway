@@ -43,7 +43,11 @@ class TestMCPProxyWithSessionHandling:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert response.status_code == HTTP_OK
         assert "Mcp-Session-Id" in response.headers
@@ -79,7 +83,11 @@ class TestMCPProxyWithSessionHandling:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers["Mcp-Session-Id"]
@@ -121,7 +129,11 @@ class TestMCPProxyWithSessionHandling:
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert response.status_code == HTTP_OK  # JSON-RPC errors return 200
         data = response.json()
@@ -178,7 +190,11 @@ class TestMCPProtocolFlowWithSessions:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert init_response.status_code == HTTP_OK
         session_id = init_response.headers["Mcp-Session-Id"]
@@ -267,7 +283,11 @@ class TestMCPSessionIsolation:
                     },
                     "id": 1,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
             assert response1.status_code == HTTP_OK
             session_id1 = response1.headers["Mcp-Session-Id"]
@@ -285,7 +305,11 @@ class TestMCPSessionIsolation:
                     },
                     "id": 1,
                 },
-                headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"},
+                headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
             )
             assert response2.status_code == HTTP_OK
             session_id2 = response2.headers["Mcp-Session-Id"]
@@ -330,7 +354,11 @@ class MCPClientHelper:
                 },
                 "id": 1,
             },
-            headers={"Authorization": f"Bearer {self.auth_token}"},
+            headers={
+                    "Authorization": f"Bearer {self.auth_token}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
         )
 
         assert response.status_code == HTTP_OK
@@ -344,7 +372,11 @@ class MCPClientHelper:
         if not self.session_id and method != "initialize":
             raise RuntimeError("Not initialized. Call initialize() first.")
 
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        headers={
+                    "Authorization": f"Bearer {self.auth_token}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }
         if self.session_id:
             headers["Mcp-Session-Id"] = self.session_id
 

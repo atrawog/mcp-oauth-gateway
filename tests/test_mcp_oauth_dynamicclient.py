@@ -105,7 +105,11 @@ class TestMCPOAuthDynamicClientPackage:
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json=registration_data,
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert response.status_code == HTTP_CREATED  # Created
         client_data = response.json()
@@ -174,7 +178,11 @@ class TestMCPOAuthDynamicClientPackage:
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={"client_name": "TEST test_client_registration_validation"},
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert response.status_code == HTTP_BAD_REQUEST  # RFC 7591 compliant
         error = response.json()
@@ -187,7 +195,11 @@ class TestMCPOAuthDynamicClientPackage:
                 "redirect_uris": ["not-a-valid-uri"],
                 "client_name": "TEST test_client_registration_validation_invalid_uri",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         # Service might be more permissive and accept any string
         if response.status_code == HTTP_CREATED:
@@ -204,7 +216,11 @@ class TestMCPOAuthDynamicClientPackage:
                 "redirect_uris": [],
                 "client_name": "TEST test_client_registration_validation_empty_uris",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         # Service may return 400 or 422 for validation errors
         assert response.status_code in [400, 422]
@@ -226,7 +242,11 @@ class TestMCPOAuthDynamicClientPackage:
                 "client_name": client_name,
                 "scope": TEST_CLIENT_SCOPE,
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -256,8 +276,10 @@ class TestMCPOAuthDynamicClientPackage:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client['registration_access_token']}"
-                    }, timeout=30.0)
+                    "Authorization": f"Bearer {client['registration_access_token']}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -299,7 +321,11 @@ class TestMCPOAuthDynamicClientPackage:
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={"redirect_uris": [TEST_OAUTH_CALLBACK_URL], "client_name": client_name},
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -341,8 +367,10 @@ class TestMCPOAuthDynamicClientPackage:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client['registration_access_token']}"
-                    }, timeout=30.0)
+                    "Authorization": f"Bearer {client['registration_access_token']}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -359,7 +387,11 @@ class TestMCPOAuthDynamicClientPackage:
                 "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": "TEST test_pkce_support",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -409,8 +441,10 @@ class TestMCPOAuthDynamicClientPackage:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client['registration_access_token']}"
-                    }, timeout=30.0)
+                    "Authorization": f"Bearer {client['registration_access_token']}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -433,7 +467,11 @@ class TestMCPOAuthDynamicClientPackage:
                     "client_name": f"TEST test_concurrent_client_registrations_{index}",
                     "scope": "openid profile",
                 },
-                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+                headers={
+                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
             assert response.status_code == HTTP_CREATED
             return response.json()
 
@@ -486,7 +524,11 @@ class TestMCPOAuthDynamicClientPackage:
                 "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
                 "client_name": "TEST test_invalid_grant_types",
             },
-            headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -515,8 +557,10 @@ class TestMCPOAuthDynamicClientPackage:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client['registration_access_token']}"
-                    }, timeout=30.0)
+                    "Authorization": f"Bearer {client['registration_access_token']}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -543,7 +587,11 @@ class TestMCPOAuthDynamicClientIntegration:
                 "client_name": client_name,
                 "scope": "read write",
             },
-            headers={"Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"}, timeout=30.0)
+            headers={
+                    "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
 
         assert registration_response.status_code == HTTP_CREATED
         client = registration_response.json()
@@ -557,8 +605,10 @@ class TestMCPOAuthDynamicClientIntegration:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client['registration_access_token']}"
-                    }, timeout=30.0)
+                    "Authorization": f"Bearer {client['registration_access_token']}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                }, timeout=30.0)
                 assert delete_response.status_code in (204, 404)
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
