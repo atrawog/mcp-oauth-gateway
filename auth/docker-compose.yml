@@ -51,9 +51,18 @@ services:
       - "traefik.http.routers.auth-redirect.priority=1"
       - "traefik.http.routers.auth-redirect.service=auth"
       
-      # ForwardAuth middleware definition
+      # Shared middleware definitions (auth service stays running so these persist)
+      # ForwardAuth middleware for MCP services
       - "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"
       - "traefik.http.middlewares.mcp-auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name,X-Auth-Token"
+      
+      # CORS middleware for MCP services
+      - "traefik.http.middlewares.mcp-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE,PATCH"
+      - "traefik.http.middlewares.mcp-cors.headers.accesscontrolallowheaders=*"
+      - "traefik.http.middlewares.mcp-cors.headers.accesscontrolalloworiginlist=https://claude.ai,https://console.anthropic.com"
+      - "traefik.http.middlewares.mcp-cors.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.mcp-cors.headers.addvaryheader=true"
+      - "traefik.http.middlewares.mcp-cors.headers.accesscontrolallowcredentials=true"
     healthcheck:
       test: ["CMD", "curl", "-f", "-s", "http://localhost:8000/.well-known/oauth-authorization-server"]
       interval: 10s

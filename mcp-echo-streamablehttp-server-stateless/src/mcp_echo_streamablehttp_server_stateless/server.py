@@ -59,15 +59,29 @@ class MCPEchoServer:
     
     async def handle_mcp_request(self, request: Request):
         """Handle MCP requests according to 2025-06-18 specification."""
+        # Get CORS origins from environment
+        cors_origins = os.getenv("MCP_CORS_ORIGINS", "*").strip()
+        origin = request.headers.get("origin", "")
+        
+        # Determine allowed origin
+        allowed_origin = "*"
+        if cors_origins != "*" and origin:
+            allowed_origins = [o.strip() for o in cors_origins.split(",")]
+            if origin in allowed_origins:
+                allowed_origin = origin
+        
         # Handle CORS preflight
         if request.method == "OPTIONS":
+            headers = {
+                "Access-Control-Allow-Origin": allowed_origin,
+                "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, MCP-Protocol-Version, Mcp-Session-Id",
+            }
+            if allowed_origin != "*":
+                headers["Access-Control-Allow-Credentials"] = "true"
             return Response(
                 content="",
-                headers={
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, MCP-Protocol-Version, Mcp-Session-Id",
-                }
+                headers=headers
             )
         
         # Handle GET requests (for opening SSE streams)
