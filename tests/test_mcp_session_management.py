@@ -295,10 +295,8 @@ class TestMCPSessionTimeout:
             timeout=30.0,
         )
 
-        # Make multiple requests with delays
+        # Make multiple requests to test session consistency
         for i in range(3):
-            await asyncio.sleep(1)  # Small delay between requests
-
             response = await http_client.post(
                 f"{mcp_fetch_url}",
                 json={

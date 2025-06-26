@@ -1,6 +1,5 @@
 """Direct test of mcp-everything service capabilities."""
 
-import asyncio
 import json
 from typing import Any
 
@@ -127,8 +126,7 @@ class TestMCPEverythingDirect:
             if init_notif_response.status_code != 200:
                 print(f"Notification response: {init_notif_response.text}")
 
-            # Give server a moment to process the notification
-            await asyncio.sleep(0.1)
+            # Server should be ready immediately after notification acknowledgment
 
             # 3. List available tools
             print("\n2. Listing available tools...")

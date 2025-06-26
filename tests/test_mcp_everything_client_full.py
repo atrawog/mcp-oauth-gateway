@@ -349,6 +349,7 @@ class TestMCPEverythingClientFull:
                 token=client_token,
                 method="resources/read",
                 params={"uri": first_resource["uri"]},
+                timeout=30,  # Resource read operations can be intensive
             )
 
             assert "result" in response or "error" in response

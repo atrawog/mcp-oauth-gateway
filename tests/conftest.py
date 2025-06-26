@@ -4,7 +4,6 @@ NO HARDCODED VALUES - Everything from environment per Commandment 4!
 Environment variables are loaded by 'just test' - NO .env loading in tests!
 """
 
-import asyncio
 import base64
 import json
 import logging
@@ -27,9 +26,7 @@ from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import MCP_FETCH_URL
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_HTTP_TIMEOUT
-from .test_constants import TEST_MAX_RETRIES
 from .test_constants import TEST_OAUTH_CALLBACK_URL
-from .test_constants import TEST_RETRY_DELAY
 
 
 # MCP Client tokens for external client testing
@@ -116,17 +113,26 @@ def pytest_configure(config):
 
     import requests
 
-    # Try to verify token with retries (auth service might be starting up)
-    max_retries = 3
-    retry_delay = 2
+    # Try to verify token with constant polling (auth service might be starting up)
+    max_wait_time = 10  # 10 seconds total wait time
+    start_time = time.time()
+    last_attempt_time = 0
     token_valid = False
+    attempt_count = 0
 
-    for attempt in range(max_retries):
+    while time.time() - start_time < max_wait_time:
+        # Rate limit attempts to avoid overwhelming service (max 5 attempts per second)
+        current_time = time.time()
+        if current_time - last_attempt_time < 0.2:
+            continue
+        last_attempt_time = current_time
+        attempt_count += 1
+
         try:
             verify_response = requests.get(
                 f"{AUTH_BASE_URL}/verify",
                 headers={"Authorization": f"Bearer {gateway_token}"},
-                timeout=10,
+                timeout=5,  # Reduced timeout for faster detection
             )
 
             if verify_response.status_code == 401:
@@ -138,54 +144,36 @@ def pytest_configure(config):
                 print("   Run: just generate-github-token", file=sys.stderr)
                 print("=" * 60, file=sys.stderr)
                 pytest.exit("Token validation failed - invalid gateway token", returncode=1)
-            elif verify_response.status_code != 200:
-                print(
-                    f"❌ Failed to verify gateway token: {verify_response.status_code}",
-                    file=sys.stderr,
-                )
-                if attempt < max_retries - 1:
-                    time.sleep(retry_delay)
-                    continue
-                print("=" * 60, file=sys.stderr)
-                pytest.exit("Token validation failed", returncode=1)
-            else:
+            elif verify_response.status_code == 200:
                 print(
                     f"✅ Gateway token valid for {ttl / 3600:.1f} hours and recognized by auth service",
                     file=sys.stderr,
                 )
                 token_valid = True
                 break
-        except requests.exceptions.ConnectionError:
-            if attempt < max_retries - 1:
+            # Non-200 response - service might be starting, continue polling
+            elif current_time - start_time > max_wait_time - 1:  # Last second, show error
                 print(
-                    f"⚠️  Cannot connect to auth service (attempt {attempt + 1}/{max_retries})",
+                    f"❌ Failed to verify gateway token: {verify_response.status_code}",
                     file=sys.stderr,
                 )
-                time.sleep(retry_delay)
-                continue
-            print(f"❌ Cannot connect to auth service at {AUTH_BASE_URL}", file=sys.stderr)
-            print("   Make sure services are running: just up", file=sys.stderr)
-            print("=" * 60, file=sys.stderr)
-            pytest.exit("Cannot connect to auth service", returncode=1)
-        except requests.exceptions.Timeout:
-            if attempt < max_retries - 1:
+
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            # Service not ready yet - continue polling until timeout
+            if current_time - start_time > max_wait_time - 1:  # Last second, show error
                 print(
-                    f"⚠️  Auth service timeout (attempt {attempt + 1}/{max_retries})",
+                    f"⚠️  Cannot connect to auth service after {attempt_count} attempts",
                     file=sys.stderr,
                 )
-                time.sleep(retry_delay)
-                continue
-            print("❌ Auth service timeout - service may be overloaded", file=sys.stderr)
-            print("=" * 60, file=sys.stderr)
-            pytest.exit("Auth service timeout", returncode=1)
-        except SystemExit:
-            # Re-raise SystemExit from pytest.exit() calls
-            raise
-        except Exception as e:
-            # Other exceptions (JSON decode errors, etc)
-            print(f"❌ Unexpected error verifying token: {e}", file=sys.stderr)
-            print("=" * 60, file=sys.stderr)
-            pytest.exit(f"Token verification error: {e}", returncode=1)
+
+    # Final check - if we haven't validated successfully by now, exit
+    if not token_valid:
+        if attempt_count == 0:
+            print("❌ No successful connection attempts to auth service", file=sys.stderr)
+        print(f"❌ Cannot connect to auth service at {AUTH_BASE_URL}", file=sys.stderr)
+        print("   Make sure services are running: just up", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
+        pytest.exit("Cannot connect to auth service", returncode=1)
 
     # Check GitHub PAT
     github_pat = os.getenv("GITHUB_PAT")
@@ -402,10 +390,18 @@ async def _ensure_services_ready():
 
         print("✅ All required Docker services are running")
 
-        # Wait for health checks with faster polling
-        max_wait = 30  # Reduced from 60 seconds
+        # Wait for health checks with constant polling (no arbitrary delays)
+        max_wait = 30
         start_time = time.time()
+        last_status_check = 0
+
         while time.time() - start_time < max_wait:
+            # Rate limit to avoid overwhelming Docker API (max 10 checks per second)
+            current_time = time.time()
+            if current_time - last_status_check < 0.1:
+                continue
+            last_status_check = current_time
+
             result = subprocess.run(
                 ["docker", "compose", "ps", "--format", "json"],
                 check=False,
@@ -424,8 +420,6 @@ async def _ensure_services_ready():
             if all_healthy:
                 print("✅ All services are healthy")
                 break
-
-            await asyncio.sleep(0.5)  # Reduced from 2 seconds for faster detection
         else:
             pytest.fail(f"❌ Services did not become healthy within {max_wait} seconds")
 
@@ -621,16 +615,33 @@ async def _wait_for_services(http_client: httpx.AsyncClient):
 
     for base_url, health_path, expected_status in services_to_check:
         url = f"{base_url}{health_path}"
-        for attempt in range(TEST_MAX_RETRIES):
+
+        # Constant polling without arbitrary delays
+        max_wait_time = 15  # 15 seconds per service
+        start_time = time.time()
+        last_attempt_time = 0
+        service_ready = False
+
+        while time.time() - start_time < max_wait_time and not service_ready:
+            # Rate limit to avoid overwhelming service (max 5 attempts per second)
+            current_time = time.time()
+            if current_time - last_attempt_time < 0.2:
+                continue
+            last_attempt_time = current_time
+
             try:
                 response = await http_client.get(url, timeout=5.0)  # Short timeout for health checks
                 if response.status_code == expected_status:
                     print(f"✓ Service {base_url} is responding correctly (status: {expected_status})")
+                    service_ready = True
                     break
             except Exception as e:
-                if attempt == TEST_MAX_RETRIES - 1:
+                # Continue polling until timeout
+                if current_time - start_time > max_wait_time - 1:  # Last second
                     pytest.fail(f"Service {base_url} failed to become healthy: {e}")
-                await asyncio.sleep(TEST_RETRY_DELAY)
+
+        if not service_ready:
+            pytest.fail(f"Service {base_url} failed to become healthy within {max_wait_time} seconds")
 
 
 @pytest.fixture
