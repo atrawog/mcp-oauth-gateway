@@ -10,7 +10,6 @@ import httpx
 import pytest
 
 from .test_constants import HTTP_OK
-from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import TEST_HTTP_TIMEOUT
 
@@ -24,7 +23,7 @@ class TestMCPSessionCreation:
 
     @pytest.mark.asyncio
     async def test_session_created_on_initialize(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that a session is created when client initializes."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -34,7 +33,7 @@ class TestMCPSessionCreation:
 
         # Send initialize request
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -59,7 +58,7 @@ class TestMCPSessionCreation:
 
     @pytest.mark.asyncio
     async def test_multiple_sessions_isolated(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that multiple clients get isolated sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -74,7 +73,7 @@ class TestMCPSessionCreation:
         ):
             # Initialize first client
             response1 = await client1.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -95,7 +94,7 @@ class TestMCPSessionCreation:
 
             # Initialize second client
             response2 = await client2.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -130,7 +129,7 @@ class TestMCPSessionPersistence:
 
     @pytest.mark.asyncio
     async def test_session_persists_between_requests(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that session state persists between requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -140,7 +139,7 @@ class TestMCPSessionPersistence:
 
         # Initialize session
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -160,7 +159,7 @@ class TestMCPSessionPersistence:
 
         # Send initialized notification
         await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -170,7 +169,7 @@ class TestMCPSessionPersistence:
 
         # Now make another request - should use same session
         tools_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -183,7 +182,7 @@ class TestMCPSessionPersistence:
 
     @pytest.mark.asyncio
     async def test_session_requires_initialization(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that operations fail without initialization."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -195,7 +194,7 @@ class TestMCPSessionPersistence:
         # Use a fresh client to ensure no existing session
         async with httpx.AsyncClient(timeout=TEST_HTTP_TIMEOUT) as fresh_client:
             response = await fresh_client.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -218,7 +217,7 @@ class TestMCPSessionTimeout:
     @pytest.mark.asyncio
     @pytest.mark.slow
     async def test_session_timeout_configuration(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that sessions respect timeout configuration."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -232,7 +231,7 @@ class TestMCPSessionTimeout:
 
         # Initialize session
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -253,7 +252,7 @@ class TestMCPSessionTimeout:
 
         # Verify session is active
         await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -263,7 +262,7 @@ class TestMCPSessionTimeout:
 
         # Session should still be active
         tools_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -274,7 +273,7 @@ class TestMCPSessionTimeout:
 
     @pytest.mark.asyncio
     async def test_session_activity_updates(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that session activity is updated on each request."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -284,7 +283,7 @@ class TestMCPSessionTimeout:
 
         # Initialize session
         await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -306,7 +305,7 @@ class TestMCPSessionTimeout:
             await asyncio.sleep(1)  # Small delay between requests
 
             response = await http_client.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -327,7 +326,7 @@ class TestMCPSessionConcurrency:
 
     @pytest.mark.asyncio
     async def test_concurrent_requests_same_session(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that concurrent requests to same session are handled properly."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -337,7 +336,7 @@ class TestMCPSessionConcurrency:
 
         # Initialize session
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -357,7 +356,7 @@ class TestMCPSessionConcurrency:
         session_id = init_response.headers.get("Mcp-Session-Id")
 
         await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -367,7 +366,7 @@ class TestMCPSessionConcurrency:
         # Send multiple concurrent requests
         async def make_request(request_id: int):
             return await http_client.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",
@@ -392,7 +391,7 @@ class TestMCPSessionConcurrency:
 
     @pytest.mark.asyncio
     async def test_request_id_uniqueness(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that request IDs are properly tracked per session."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -402,7 +401,7 @@ class TestMCPSessionConcurrency:
 
         # Initialize session
         await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -421,7 +420,7 @@ class TestMCPSessionConcurrency:
 
         # Send requests with different ID types (string and number)
         response1 = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/list",
@@ -435,7 +434,7 @@ class TestMCPSessionConcurrency:
                 }, timeout=30.0)
 
         response2 = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 12345},
             headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -456,7 +455,7 @@ class TestMCPSessionCleanup:
 
     @pytest.mark.asyncio
     async def test_session_cleanup_on_client_disconnect(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that sessions are cleaned up when client disconnects."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -468,7 +467,7 @@ class TestMCPSessionCleanup:
         async with httpx.AsyncClient(timeout=TEST_HTTP_TIMEOUT) as temp_client:
             # Initialize session
             response = await temp_client.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -492,7 +491,7 @@ class TestMCPSessionCleanup:
         async with httpx.AsyncClient(timeout=TEST_HTTP_TIMEOUT) as new_client:
             # This should either fail or require re-initialization
             response = await new_client.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",

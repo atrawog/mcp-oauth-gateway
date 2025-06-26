@@ -11,7 +11,6 @@ import subprocess
 import pytest
 
 from .test_constants import AUTH_BASE_URL
-from .test_constants import MCP_FETCH_URL
 
 
 # MCP Client tokens from environment - NO .env loading in tests!
@@ -23,11 +22,11 @@ MCP_CLIENT_REFRESH_TOKEN = os.environ.get("MCP_CLIENT_REFRESH_TOKEN")
 
 
 @pytest.fixture
-def temp_env_file(tmp_path):
+def temp_env_file(tmp_path, mcp_fetch_url):
     """Create a temporary .env file for testing."""
     env_content = f"""
 # MCP Server Configuration
-MCP_SERVER_URL={MCP_FETCH_URL}
+MCP_SERVER_URL={mcp_fetch_url}
 
 # OAuth Configuration
 OAUTH_AUTHORIZATION_URL={AUTH_BASE_URL}/authorize
@@ -36,7 +35,7 @@ OAUTH_DEVICE_AUTH_URL={AUTH_BASE_URL}/device/code
 OAUTH_REGISTRATION_URL={AUTH_BASE_URL}/register
 
 # Discovery URL (optional but recommended)
-OAUTH_DISCOVERY_URL={MCP_FETCH_URL.replace("/mcp", "")}/.well-known/oauth-authorization-server
+OAUTH_DISCOVERY_URL={mcp_fetch_url.replace("/mcp", "")}/.well-known/oauth-authorization-server
 
 # Logging
 LOG_LEVEL=INFO

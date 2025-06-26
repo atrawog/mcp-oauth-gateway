@@ -12,7 +12,6 @@ import httpx
 import pytest
 
 from .test_constants import HTTP_OK
-from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 
 
@@ -25,7 +24,7 @@ class TestMCPProxySessionIssues:
 
     @pytest.mark.asyncio
     async def test_session_not_maintained_across_requests(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """ISSUE: The proxy creates a new session for each request.
 
@@ -39,7 +38,7 @@ class TestMCPProxySessionIssues:
 
         # Initialize session
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -60,7 +59,7 @@ class TestMCPProxySessionIssues:
 
         # Try to use the session - this SHOULD work but currently fails
         tools_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -78,7 +77,7 @@ class TestMCPProxySessionIssues:
 
     @pytest.mark.asyncio
     async def test_session_id_header_missing(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """ISSUE: The proxy doesn't return Mcp-Session-Id header as expected by MCP spec.
 
@@ -91,7 +90,7 @@ class TestMCPProxySessionIssues:
             )
 
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -120,7 +119,7 @@ class TestMCPProxyWorkarounds:
     """Test workarounds for current proxy limitations."""
 
     @pytest.mark.asyncio
-    async def test_initialize_before_each_operation(self, wait_for_services):
+    async def test_initialize_before_each_operation(self, wait_for_services, mcp_fetch_url):
         """WORKAROUND: Initialize before each operation since sessions aren't maintained.
 
         This is not ideal but works with current proxy implementation.
@@ -134,7 +133,7 @@ class TestMCPProxyWorkarounds:
         async with httpx.AsyncClient(timeout=30.0) as client1:
             # Initialize and list tools in one go
             init_response = await client1.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -156,7 +155,7 @@ class TestMCPProxyWorkarounds:
         async with httpx.AsyncClient(timeout=30.0) as client2:
             # Must initialize this new session first
             init_response = await client2.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -176,7 +175,7 @@ class TestMCPProxyWorkarounds:
 
             # Now we can list tools
             tools_response = await client2.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",

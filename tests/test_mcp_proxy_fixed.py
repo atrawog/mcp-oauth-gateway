@@ -9,7 +9,6 @@ import httpx
 import pytest
 
 from .test_constants import HTTP_OK
-from .test_constants import MCP_FETCH_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import TEST_HTTP_TIMEOUT
 
@@ -23,24 +22,16 @@ class TestMCPProxyWithSessionHandling:
 
     @pytest.mark.asyncio
     async def test_initialize_returns_session_id(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that initialize returns a session ID in headers."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
                 "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
             )
-        
-        # Check if fetch service is available first
-        try:
-            health_response = await http_client.get(f"{MCP_FETCH_URL.replace('/mcp', '')}", timeout=5.0)
-            if health_response.status_code == 404:
-                pytest.skip("MCP fetch service is not running/enabled - skipping session ID test")
-        except Exception:
-            pytest.skip("MCP fetch service is not accessible - skipping session ID test")
 
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -70,25 +61,16 @@ class TestMCPProxyWithSessionHandling:
 
     @pytest.mark.asyncio
     async def test_session_persists_with_header(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that session persists when using Mcp-Session-Id header."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
                 "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
             )
-        
-        # Check if fetch service is available first
-        try:
-            health_response = await http_client.get(f"{MCP_FETCH_URL.replace('/mcp', '')}", timeout=5.0)
-            if health_response.status_code == 404:
-                pytest.skip("MCP fetch service is not running/enabled - skipping session persistence test")
-        except Exception:
-            pytest.skip("MCP fetch service is not accessible - skipping session persistence test")
-
         # Initialize and get session ID
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -110,7 +92,7 @@ class TestMCPProxyWithSessionHandling:
 
         # Send initialized notification with session ID
         await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -119,7 +101,7 @@ class TestMCPProxyWithSessionHandling:
 
         # List tools using same session ID
         tools_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -133,7 +115,7 @@ class TestMCPProxyWithSessionHandling:
 
     @pytest.mark.asyncio
     async def test_request_without_session_id_fails(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that non-initialize requests without session ID fail appropriately."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -141,17 +123,9 @@ class TestMCPProxyWithSessionHandling:
                 "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
             )
         
-        # Check if fetch service is available first
-        try:
-            health_response = await http_client.get(f"{MCP_FETCH_URL.replace('/mcp', '')}", timeout=5.0)
-            if health_response.status_code == 404:
-                pytest.skip("MCP fetch service is not running/enabled - skipping session requirement test")
-        except Exception:
-            pytest.skip("MCP fetch service is not accessible - skipping session requirement test")
-
         # Try to list tools without session ID
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
             headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -166,7 +140,7 @@ class TestMCPProxyWithSessionHandling:
 
     @pytest.mark.asyncio
     async def test_invalid_session_id_rejected(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test that invalid session IDs are rejected."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -175,7 +149,7 @@ class TestMCPProxyWithSessionHandling:
             )
 
         response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -193,7 +167,7 @@ class TestMCPProtocolFlowWithSessions:
 
     @pytest.mark.asyncio
     async def test_complete_mcp_flow(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test complete MCP flow: initialize -> initialized -> tools/list -> tool/call."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -203,7 +177,7 @@ class TestMCPProtocolFlowWithSessions:
 
         # Step 1: Initialize
         init_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -228,7 +202,7 @@ class TestMCPProtocolFlowWithSessions:
 
         # Step 2: Send initialized notification
         initialized_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "initialized", "params": {}},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -238,7 +212,7 @@ class TestMCPProtocolFlowWithSessions:
 
         # Step 3: List available tools
         tools_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
             headers={
                 "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -257,7 +231,7 @@ class TestMCPProtocolFlowWithSessions:
 
         # Step 4: Call the fetch tool
         tool_response = await http_client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -282,7 +256,7 @@ class TestMCPSessionIsolation:
     """Test that sessions are properly isolated."""
 
     @pytest.mark.asyncio
-    async def test_sessions_are_isolated(self, wait_for_services):
+    async def test_sessions_are_isolated(self, wait_for_services, mcp_fetch_url):
         """Test that different clients get different isolated sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail(
@@ -296,7 +270,7 @@ class TestMCPSessionIsolation:
         ):
             # Initialize first client
             response1 = await client1.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -318,7 +292,7 @@ class TestMCPSessionIsolation:
 
             # Initialize second client
             response2 = await client2.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -343,7 +317,7 @@ class TestMCPSessionIsolation:
 
             # Client 1 cannot use Client 2's session
             cross_response = await client1.post(
-                f"{MCP_FETCH_URL}",
+                f"{mcp_fetch_url}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -367,7 +341,7 @@ class MCPClientHelper:
     async def initialize(self, client_name: str = "test-client") -> dict:
         """Initialize MCP session and store session ID."""
         response = await self.client.post(
-            f"{MCP_FETCH_URL}",
+            f"{mcp_fetch_url}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -409,7 +383,7 @@ class MCPClientHelper:
             request["id"] = request_id
 
         response = await self.client.post(
-            f"{MCP_FETCH_URL}", json=request, headers=headers
+            f"{mcp_fetch_url}", json=request, headers=headers
         )
 
         if response.status_code != 200:
@@ -423,7 +397,7 @@ class TestMCPWithHelper:
 
     @pytest.mark.asyncio
     async def test_complete_flow_with_helper(
-        self, http_client: httpx.AsyncClient, wait_for_services
+        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
     ):
         """Test complete MCP flow using helper class."""
         if not MCP_CLIENT_ACCESS_TOKEN:
