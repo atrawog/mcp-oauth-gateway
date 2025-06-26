@@ -262,7 +262,7 @@ class TestMCPEchoProtocolCompliance:
 
         # Verify SSE format
         lines = response.text.strip().split('\n')
-        assert any(line.startswith('event:') or line.startswith('data:') for line in lines)
+        assert any(line.startswith(('event:', 'data:')) for line in lines)
 
     @pytest.mark.asyncio
     async def test_echo_error_response_format(

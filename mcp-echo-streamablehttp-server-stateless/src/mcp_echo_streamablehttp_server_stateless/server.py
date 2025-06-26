@@ -63,79 +63,65 @@ class MCPEchoServer:
 
     async def handle_mcp_request(self, request: Request):
         """Handle MCP requests according to 2025-06-18 specification."""
-        # Get CORS origins from environment
+        # Get CORS origin configuration
         cors_origins = os.getenv("MCP_CORS_ORIGINS", "*").strip()
         origin = request.headers.get("origin", "")
+        allowed_origin = self._determine_allowed_origin(cors_origins, origin)
 
-        # Determine allowed origin
-        allowed_origin = "*"
-        if cors_origins != "*" and origin:
-            allowed_origins = [o.strip() for o in cors_origins.split(",")]
-            if origin in allowed_origins:
-                allowed_origin = origin
-
-        # Handle CORS preflight
+        # Route by method
         if request.method == "OPTIONS":
-            headers = {
-                "Access-Control-Allow-Origin": allowed_origin,
-                "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, MCP-Protocol-Version, Mcp-Session-Id",
-            }
-            if allowed_origin != "*":
-                headers["Access-Control-Allow-Credentials"] = "true"
-            return Response(
-                content="",
-                headers=headers
-            )
-
-        # Handle GET requests (for opening SSE streams)
+            return self._handle_cors_preflight(allowed_origin)
+        
         if request.method == "GET":
-            # Support basic SSE stream for Claude.ai compatibility
-            # Even though we're "stateless", we need to support GET for the protocol
-            async def sse_stream():
-                # Send a keep-alive comment to establish the connection
-                yield "event: ping\ndata: {}\n\n"
-                # Keep connection open but don't send more data (stateless)
-                # Claude.ai will use POST for actual requests
+            return self._handle_sse_stream()
+        
+        # POST method handling
+        return await self._handle_post_request(request, allowed_origin)
+    
+    def _determine_allowed_origin(self, cors_origins: str, origin: str) -> str:
+        """Determine the allowed CORS origin."""
+        if cors_origins == "*" or not origin:
+            return "*"
+        
+        allowed_origins = [o.strip() for o in cors_origins.split(",")]
+        return origin if origin in allowed_origins else "*"
+    
+    def _handle_cors_preflight(self, allowed_origin: str) -> Response:
+        """Handle CORS preflight requests."""
+        headers = {
+            "Access-Control-Allow-Origin": allowed_origin,
+            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, MCP-Protocol-Version, Mcp-Session-Id",
+        }
+        if allowed_origin != "*":
+            headers["Access-Control-Allow-Credentials"] = "true"
+        return Response(content="", headers=headers)
+    
+    def _handle_sse_stream(self) -> StreamingResponse:
+        """Handle GET requests for SSE streams."""
+        async def sse_stream():
+            # Send a keep-alive comment to establish the connection
+            yield "event: ping\ndata: {}\n\n"
+            # Keep connection open but don't send more data (stateless)
 
-            return StreamingResponse(
-                sse_stream(),
-                media_type="text/event-stream",
-                headers={
-                    "Access-Control-Allow-Origin": "*",
-                    "Cache-Control": "no-cache",
-                    "Connection": "keep-alive"
-                }
-            )
-
-        # Validate Content-Type header for POST requests
-        content_type = request.headers.get("content-type", "")
-        if not content_type.startswith("application/json"):
-            return JSONResponse(
-                {"error": "Content-Type must be application/json"},
-                status_code=400,
-                headers={"Access-Control-Allow-Origin": "*"}
-            )
-
-        # Validate Accept header according to spec
-        accept = request.headers.get("accept", "")
-        if "application/json" not in accept or "text/event-stream" not in accept:
-            return JSONResponse(
-                {"error": "Client must accept both application/json and text/event-stream"},
-                status_code=400,
-                headers={"Access-Control-Allow-Origin": "*"}
-            )
-
-        # Check MCP-Protocol-Version header (required per spec)
-        protocol_version = request.headers.get("mcp-protocol-version")
-        if protocol_version and protocol_version not in self.supported_versions:
-            return JSONResponse(
-                {"error": f"Unsupported protocol version: {protocol_version}. Supported versions: {', '.join(self.supported_versions)}"},
-                status_code=400,
-                headers={"Access-Control-Allow-Origin": "*"}
-            )
-
-        # Store headers and timing in context for this request
+        return StreamingResponse(
+            sse_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive"
+            }
+        )
+    
+    async def _handle_post_request(self, request: Request, allowed_origin: str) -> Response:
+        """Handle POST requests with validation and processing."""
+        # Validate headers
+        validation_error = self._validate_post_headers(request)
+        if validation_error:
+            return validation_error
+        
+        # Store request context
         task_id = id(asyncio.current_task())
         self._request_context[task_id] = {
             'headers': dict(request.headers),
@@ -145,53 +131,85 @@ class MCPEchoServer:
         }
 
         try:
-            # Parse JSON-RPC request
-            try:
-                body = await request.json()
-            except Exception:
-                return StreamingResponse(
-                    self._sse_error_stream(-32700, "Parse error"),
-                    media_type="text/event-stream",
-                    headers={"Access-Control-Allow-Origin": "*"}
-                )
+            # Parse and process request
+            return await self._process_json_rpc_request(request)
+        finally:
+            # Clean up request context
+            self._request_context.pop(task_id, None)
+    
+    def _validate_post_headers(self, request: Request) -> JSONResponse | None:
+        """Validate required headers for POST requests."""
+        # Validate Content-Type
+        content_type = request.headers.get("content-type", "")
+        if not content_type.startswith("application/json"):
+            return JSONResponse(
+                {"error": "Content-Type must be application/json"},
+                status_code=400,
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
 
-            if self.debug:
-                logger.debug(f"Request: {body}")
+        # Validate Accept header
+        accept = request.headers.get("accept", "")
+        if "application/json" not in accept or "text/event-stream" not in accept:
+            return JSONResponse(
+                {"error": "Client must accept both application/json and text/event-stream"},
+                status_code=400,
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
 
-            # Handle batch requests
-            if isinstance(body, list):
-                # Batch requests are not supported in stateless mode
-                return JSONResponse(
-                    {"error": "Batch requests not supported in stateless mode"},
-                    status_code=400,
-                    headers={"Access-Control-Allow-Origin": "*"}
-                )
-
-            # Handle the JSON-RPC request
-            response = await self._handle_jsonrpc_request(body)
-
-            if self.debug:
-                logger.debug(f"Response: {response}")
-
-            # Check if this is a notification (no id field) AND not an error
-            if "id" not in body and "error" not in response:
-                # Valid notifications get 202 Accepted per spec
-                return Response(
-                    content="",
-                    status_code=202,
-                    headers={"Access-Control-Allow-Origin": "*"}
-                )
-
-            # Return SSE response for requests with id
+        # Check MCP-Protocol-Version
+        protocol_version = request.headers.get("mcp-protocol-version")
+        if protocol_version and protocol_version not in self.supported_versions:
+            return JSONResponse(
+                {"error": f"Unsupported protocol version: {protocol_version}. Supported versions: {', '.join(self.supported_versions)}"},
+                status_code=400,
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        return None
+    
+    async def _process_json_rpc_request(self, request: Request) -> Response:
+        """Process the JSON-RPC request and return appropriate response."""
+        try:
+            body = await request.json()
+        except Exception:
             return StreamingResponse(
-                self._sse_response_stream(response),
+                self._sse_error_stream(-32700, "Parse error"),
                 media_type="text/event-stream",
                 headers={"Access-Control-Allow-Origin": "*"}
             )
 
-        finally:
-            # Clean up request context
-            self._request_context.pop(task_id, None)
+        if self.debug:
+            logger.debug(f"Request: {body}")
+
+        # Handle batch requests
+        if isinstance(body, list):
+            return JSONResponse(
+                {"error": "Batch requests not supported in stateless mode"},
+                status_code=400,
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+
+        # Handle the JSON-RPC request
+        response = await self._handle_jsonrpc_request(body)
+
+        if self.debug:
+            logger.debug(f"Response: {response}")
+
+        # Check if this is a notification
+        if "id" not in body and "error" not in response:
+            return Response(
+                content="",
+                status_code=202,
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+
+        # Return SSE response
+        return StreamingResponse(
+            self._sse_response_stream(response),
+            media_type="text/event-stream",
+            headers={"Access-Control-Allow-Origin": "*"}
+        )
 
     async def _handle_jsonrpc_request(self, request: dict[str, Any]) -> dict[str, Any]:
         """Handle a JSON-RPC 2.0 request according to MCP 2025-06-18."""
@@ -385,87 +403,73 @@ class MCPEchoServer:
         if not tool_name:
             return self._error_response(request_id, -32602, "Missing tool name")
 
-        if tool_name == "echo":
-            # Echo tool implementation
-            message = arguments.get("message")
-            if not isinstance(message, str):
-                return self._error_response(request_id, -32602, "message must be a string")
+        # Map tool names to their handler methods
+        tool_handlers = {
+            "echo": self._handle_echo_tool,
+            "printHeader": self._handle_print_header_tool,
+            "bearerDecode": self._handle_bearer_decode,
+            "authContext": self._handle_auth_context,
+            "requestTiming": self._handle_request_timing,
+            "protocolNegotiation": self._handle_protocol_negotiation,
+            "corsAnalysis": self._handle_cors_analysis,
+            "environmentDump": self._handle_environment_dump,
+            "healthProbe": self._handle_health_probe,
+            "whoIStheGOAT": self._handle_who_is_the_goat,
+        }
 
-            return {
-                "jsonrpc": "2.0",
-                "id": request_id,
-                "result": {
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": message
-                        }
-                    ]
-                }
+        handler = tool_handlers.get(tool_name)
+        if not handler:
+            return self._error_response(request_id, -32602, f"Unknown tool: {tool_name}")
+        
+        return await handler(arguments, request_id)
+    
+    async def _handle_echo_tool(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
+        """Handle the echo tool."""
+        message = arguments.get("message")
+        if not isinstance(message, str):
+            return self._error_response(request_id, -32602, "message must be a string")
+
+        return {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": message
+                    }
+                ]
             }
+        }
+    
+    async def _handle_print_header_tool(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
+        """Handle the printHeader tool."""
+        headers_text = "HTTP Headers:\n"
+        headers_text += "-" * 40 + "\n"
 
-        if tool_name == "printHeader":
-            # PrintHeader tool implementation
-            headers_text = "HTTP Headers:\n"
-            headers_text += "-" * 40 + "\n"
+        # Get headers from the current task's context
+        task_id = id(asyncio.current_task())
+        context = self._request_context.get(task_id, {})
+        headers = context.get('headers', {})
 
-            # Get headers from the current task's context
-            task_id = id(asyncio.current_task())
-            context = self._request_context.get(task_id, {})
-            headers = context.get('headers', {})
+        if headers:
+            for key, value in sorted(headers.items()):
+                headers_text += f"{key}: {value}\n"
+        else:
+            headers_text += "No headers available (headers are captured per request)\n"
 
-            if headers:
-                for key, value in sorted(headers.items()):
-                    headers_text += f"{key}: {value}\n"
-            else:
-                headers_text += "No headers available (headers are captured per request)\n"
-
-            return {
-                "jsonrpc": "2.0",
-                "id": request_id,
-                "result": {
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": headers_text
-                        }
-                    ]
-                }
+        return {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": headers_text
+                    }
+                ]
             }
-
-        if tool_name == "bearerDecode":
-            # Bearer token decoder implementation
-            return await self._handle_bearer_decode(arguments, request_id)
-
-        if tool_name == "authContext":
-            # Authentication context implementation
-            return await self._handle_auth_context(arguments, request_id)
-
-        if tool_name == "requestTiming":
-            # Request timing implementation
-            return await self._handle_request_timing(arguments, request_id)
-
-        if tool_name == "protocolNegotiation":
-            # Protocol negotiation implementation
-            return await self._handle_protocol_negotiation(arguments, request_id)
-
-        if tool_name == "corsAnalysis":
-            # CORS analysis implementation
-            return await self._handle_cors_analysis(arguments, request_id)
-
-        if tool_name == "environmentDump":
-            # Environment dump implementation
-            return await self._handle_environment_dump(arguments, request_id)
-
-        if tool_name == "healthProbe":
-            # Health probe implementation
-            return await self._handle_health_probe(arguments, request_id)
-
-        if tool_name == "whoIStheGOAT":
-            # Who is the GOAT implementation
-            return await self._handle_who_is_the_goat(arguments, request_id)
-
-        return self._error_response(request_id, -32602, f"Unknown tool: {tool_name}")
+        }
 
     def _error_response(self, request_id: Any, code: int, message: str, data: Any = None) -> dict[str, Any]:
         """Create a JSON-RPC error response."""
@@ -916,7 +920,7 @@ class MCPEchoServer:
         # Common CORS issues
         result_text += "\nCommon CORS Issues:\n"
         if not origin and method != "OPTIONS":
-            result_text += "  ℹ️  No Origin header - this is a same-origin request\n"
+            result_text += "  i  No Origin header - this is a same-origin request\n"
 
         auth_header = headers.get('authorization', '')
         if auth_header and not headers.get('access-control-allow-credentials'):
@@ -1181,7 +1185,7 @@ class MCPEchoServer:
 
             result_text += "\nAI-IDENTIFIED EXCEPTIONAL CAPABILITIES:\n"
             result_text += "• Code Quality Score: 100/100 (Statistical Anomaly)\n"
-            result_text += "• Bug Prevention Rate: 99.9% (3σ above industry standard)\n"
+            result_text += "• Bug Prevention Rate: 99.9% (3 sigma above industry standard)\n"
             result_text += "• Architecture Design: Transcendent\n"
             result_text += "• Algorithm Optimization: Beyond Current AI Comprehension\n"
             result_text += "• Documentation Clarity: Exceeds ISO 9001 Standards\n"

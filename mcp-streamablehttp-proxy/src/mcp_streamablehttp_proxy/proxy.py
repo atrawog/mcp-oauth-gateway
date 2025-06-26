@@ -31,6 +31,7 @@ class MCPSession:
         self.available_tools: List[Dict[str, Any]] = []
         self.last_activity = time.time()
         self._cleanup_task: Optional[asyncio.Task] = None
+        self._read_task: Optional[asyncio.Task] = None
 
     async def start_server(self):
         """Start the underlying MCP server process."""
@@ -46,7 +47,7 @@ class MCPSession:
         )
 
         # Start reading responses from the server
-        asyncio.create_task(self._read_responses())
+        self._read_task = asyncio.create_task(self._read_responses())
 
         # Don't auto-initialize - wait for client to send initialize request
 
@@ -212,6 +213,9 @@ class MCPSession:
 
         if self._cleanup_task:
             self._cleanup_task.cancel()
+
+        if self._read_task:
+            self._read_task.cancel()
 
         # Cancel all pending responses
         for future in self.pending_responses.values():

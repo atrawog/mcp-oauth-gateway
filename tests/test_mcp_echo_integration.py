@@ -168,7 +168,7 @@ class TestMCPEchoIntegration:
         assert data["result"]["content"][0]["text"] == test_message
 
     @pytest.mark.asyncio
-    async def test_printHeader_tool_functionality(
+    async def test_print_header_tool_functionality(
         self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
     ):
         """Test the printHeader tool shows HTTP headers including auth headers."""

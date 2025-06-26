@@ -22,8 +22,8 @@ MCP_CLIENT_ID = os.getenv("MCP_CLIENT_ID")
 
 
 def parse_sse_response(response: httpx.Response) -> dict:
-    """Parse SSE response format to extract JSON data.
-    
+    r"""Parse SSE response format to extract JSON data.
+
     SSE format: "event: message\ndata: {...}\n\n"
     """
     content_type = response.headers.get("content-type", "")

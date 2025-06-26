@@ -706,12 +706,12 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     <p style="font-size: 18px; margin: 0;"><strong>Error:</strong> {error}</p>
                     <p style="margin: 10px 0 0 0;"><strong>Details:</strong> {error_description or "No additional details available"}</p>
                 </div>
-                
+
                 <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
                     <h2 style="margin: 0 0 10px 0;">What happened?</h2>
                     <p style="margin: 0;">{"Your authentication session expired. OAuth state tokens are valid for only 5 minutes for security reasons." if "expired state" in (error_description or "").lower() else "The OAuth authentication process encountered an error."}</p>
                 </div>
-                
+
                 <div style="background: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px; padding: 20px;">
                     <h2 style="color: #1d4ed8; margin: 0 0 10px 0;">How to fix this:</h2>
                     <ol style="margin: 10px 0; padding-left: 20px;">
@@ -724,7 +724,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                         <strong>Tip:</strong> If you see multiple browser tabs open, close all but the newest one to avoid confusion.
                     </p>
                 </div>
-                
+
                 <p style="text-align: center; margin-top: 30px; color: #6b7280;">
                     This page prevents caching. You can safely close this tab.
                 </p>

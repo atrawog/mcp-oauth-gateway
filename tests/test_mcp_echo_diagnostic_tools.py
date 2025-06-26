@@ -22,7 +22,7 @@ ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN", os.getenv("GATEWAY_OAUTH_ACC
 class TestMCPEchoDiagnosticTools:
     """Test all diagnostic tools in the MCP Echo server."""
 
-    def call_mcp_tool(self, tool_name: str, arguments: dict = None, bearer_token: str = None) -> dict:
+    def call_mcp_tool(self, tool_name: str, arguments: dict | None = None, bearer_token: str | None = None) -> dict:
         """Call an MCP tool directly via HTTP."""
         # Prepare request
         headers = {
@@ -65,8 +65,13 @@ class TestMCPEchoDiagnosticTools:
                         return data['result']
                     if 'error' in data:
                         pytest.fail(f"MCP error: {data['error']}")
+            # If no result found, fail
+            pytest.fail("No result found in SSE response")
         else:
             pytest.fail(f"HTTP {response.status_code}: {response.text}")
+        
+        # This should never be reached due to pytest.fail() calls, but satisfies type checker
+        return {}
 
     def get_tools_list(self) -> list:
         """Get list of available tools."""

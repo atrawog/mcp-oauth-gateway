@@ -76,9 +76,7 @@ class TestSacredSealsCompliance:
 
             # Check state key pattern and TTL
             # Find the state key (it will have a random token)
-            state_keys = []
-            async for key in redis_client.scan_iter("oauth:state:*"):
-                state_keys.append(key)
+            state_keys = [key async for key in redis_client.scan_iter("oauth:state:*")]
 
             assert len(state_keys) > 0
 
@@ -99,9 +97,7 @@ class TestSacredSealsCompliance:
 
             # Test token key patterns when we have a valid token
             # The existing OAuth token should be stored with proper pattern
-            token_keys = []
-            async for key in redis_client.scan_iter("oauth:token:*"):
-                token_keys.append(key)
+            token_keys = [key async for key in redis_client.scan_iter("oauth:token:*")]
 
             # Verify sacred key hierarchy patterns
             expected_patterns = [
@@ -407,7 +403,5 @@ class TestSacredSealsCompliance:
 
     async def _get_all_keys(self, redis_client):
         """Helper to get all Redis keys."""
-        keys = []
-        async for key in redis_client.scan_iter("*"):
-            keys.append(key)
+        keys = [key async for key in redis_client.scan_iter("*")]
         return keys

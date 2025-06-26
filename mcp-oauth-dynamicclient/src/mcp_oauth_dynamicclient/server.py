@@ -145,12 +145,12 @@ def _generate_gateway_error_html(error_description: str) -> str:
     <body>
         <div class="container">
             <h1>🔐 Welcome to the MCP OAuth Gateway!</h1>
-            
+
             <p class="welcome">
-                You've reached the MCP OAuth Gateway - your secure entry point to Model Context Protocol services. 
+                You've reached the MCP OAuth Gateway - your secure entry point to Model Context Protocol services.
                 This gateway protects and manages access to MCP servers, ensuring only authorized clients can connect.
             </p>
-            
+
             <div class="error-box">
                 <div class="error-message">Authentication Required</div>
                 <p>{error_description}</p>
@@ -205,7 +205,7 @@ def _generate_gateway_error_html(error_description: str) -> str:
             </div>
 
             <div class="tech-note">
-                <strong>Why am I seeing this?</strong> Your request is missing the required <code>Authorization</code> header. 
+                <strong>Why am I seeing this?</strong> Your request is missing the required <code>Authorization</code> header.
                 This gateway requires Bearer token authentication for all MCP endpoints. Check the documentation 
                 above to learn how to obtain and use access tokens.
             </div>
