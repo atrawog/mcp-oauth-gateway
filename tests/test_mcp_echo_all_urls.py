@@ -15,14 +15,20 @@ class TestMCPEchoAllUrls:
 
     def _parse_sse_response(self, sse_text: str) -> dict:
         """Parse SSE response to extract JSON data."""
+        import json
+
+        # Handle both SSE format and plain JSON responses
+        if sse_text.strip().startswith("{"):
+            # Plain JSON response
+            return json.loads(sse_text.strip())
+
+        # SSE format response
         for line in sse_text.strip().split("\n"):
             if line.startswith("data: "):
                 data_str = line[6:]  # Remove 'data: ' prefix
                 if data_str and data_str != "[DONE]":
-                    import json
-
                     return json.loads(data_str)
-        raise ValueError("No valid data found in SSE response")
+        raise ValueError(f"No valid data found in SSE response: {sse_text[:200]}...")
 
     @pytest.mark.asyncio
     async def test_all_echo_urls_accessible(
