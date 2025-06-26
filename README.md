@@ -58,8 +58,8 @@ The MCP OAuth Gateway is a **zero-modification authentication layer** for MCP se
 │   (Layer 2: OAuth Authorization Server)   │    │    (Layer 3: Protocol Handlers)     │
 ├───────────────────────────────────────────┤    ├─────────────────────────────────────┤
 │ Container: auth:8000                      │    │ Containers:                         │
-│ Package: mcp-oauth-dynamicclient          │    │ • mcp-fetch:3000                    │
-│                                           │    │ • mcp-filesystem:3000               │
+│ Package: mcp-oauth-dynamicclient          │    │ • mcp-echo:3000                     │
+│                                           │    │ • mcp-fetch:3000                    │
 │ OAuth Endpoints:                          │    │ • mcp-memory:3000                   │
 │ • POST /register (RFC 7591)               │    │ • mcp-time:3000                     │
 │ • GET /authorize + /callback              │    │ • ... (dynamically enabled)         │
@@ -98,6 +98,7 @@ The MCP OAuth Gateway is a **zero-modification authentication layer** for MCP se
 │ • redis:session:{id}:state → MCP session state (managed by proxy)                   │
 │ • redis:session:{id}:messages → MCP message queues                                  │
 └─────────────────────────────────────────────────────────────────────────────────────┘
+```
 
 NETWORK TOPOLOGY:
 • All services connected via 'public' Docker network
@@ -285,13 +286,14 @@ The gateway implements this sophisticated system that combines client credential
 ║  └─────────────────────────────────────────────────────────────────────────────┘  ║
 ║                                                                                   ║
 ╚═══════════════════════════════════════════════════════════════════════════════════╝
+```
 
 🔑 KEY POINTS:
 • client_id + client_secret authenticate the OAuth CLIENT (e.g., Claude.ai)
 • GitHub OAuth authenticates the human USER
 • The final access_token combines BOTH: which client AND which user
 • registration_access_token is ONLY for client management, NOT resource access
-```
+
 
 ### OAuth Roles
 
@@ -520,6 +522,7 @@ MCP_PROTOCOL_VERSION=2025-06-18
 
 | Service | Description | Protocol Version | Container Port |
 |---------|-------------|------------------|----------------|
+| mcp-echo | Diagnostic tools & OAuth debugging | 2025-06-18 | 3000 |
 | mcp-fetch | Web content fetching (stdio wrapper) | 2025-03-26 | 3000 |
 | mcp-fetchs | Native Python fetch implementation | 2025-06-18 | 3000 |
 | mcp-filesystem | File system access (sandboxed) | 2025-03-26 | 3000 |
@@ -529,7 +532,7 @@ MCP_PROTOCOL_VERSION=2025-06-18
 | mcp-tmux | Terminal multiplexer integration | 2025-06-18 | 3000 |
 | mcp-playwright | Browser automation | 2025-06-18 | 3000 |
 | mcp-everything | Test server with all features | 2025-06-18 | 3000 |
-| mcp-echo | Diagnostic tools & OAuth debugging | 2025-06-18 | 3000 |
+
 
 All services use `mcp-streamablehttp-proxy` to wrap official MCP stdio servers, exposing them via HTTP on port 3000.
 
