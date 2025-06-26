@@ -38,7 +38,7 @@ These provide fundamental capabilities commonly needed by AI assistants:
 #### mcp-fetch
 - **Purpose**: Fetch content from web URLs
 - **Implementation**: Wraps official `@modelcontextprotocol/server-fetch`
-- **Key Features**: 
+- **Key Features**:
   - HTTP/HTTPS support
   - Content extraction
   - Error handling

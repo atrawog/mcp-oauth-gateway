@@ -13,8 +13,8 @@ import pytest
 class TestMCPFetchRealContent:
     """Test fetching real content through MCP with proper authentication."""
 
-    @pytest.mark.asyncio
-    async def test_fetch_example_com_content(self, http_client, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_fetch_example_com_content(self, http_client, _wait_for_services, mcp_fetch_url):
         """Attempt to fetch https://example.com and check for 'Example Domain' text."""
         import os
 
@@ -63,8 +63,8 @@ class TestMCPFetchRealContent:
             print(f"Unexpected status: {response.status_code}")
             print(f"Response: {response.text[:200]}")
 
-    @pytest.mark.asyncio
-    async def test_mcp_fetch_without_token(self, http_client, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_fetch_without_token(self, http_client, _wait_for_services, mcp_fetch_url):
         """Verify that mcp-fetch properly rejects unauthenticated requests."""
         mcp_request = {
             "jsonrpc": "2.0",

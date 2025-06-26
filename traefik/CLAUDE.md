@@ -67,21 +67,21 @@ services:
 ### Static Configuration (Command Arguments!)
 ```yaml
 command:
- 
+
   # Docker Provider
   - "--providers.docker=true"
   - "--providers.docker.exposedbydefault=false"
   - "--providers.docker.network=public"
-  
+
   # Entrypoints
   - "--entrypoints.web.address=:80"
   - "--entrypoints.websecure.address=:443"
-  
+
   # Let's Encrypt
   - "--certificatesresolvers.le.acme.email=admin@${BASE_DOMAIN}"
   - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
   - "--certificatesresolvers.le.acme.tlschallenge=true"
-  
+
   # Logging
   - "--log.level=INFO"
   - "--accesslog=true"

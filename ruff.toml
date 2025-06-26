@@ -99,6 +99,7 @@ exclude = [
     "S608",    # Allow SQL-like string operations in tests
     "PLW2901", # Allow overwriting loop variables
     "N818",    # Exception names don't need Error suffix in tests
+    "PT019",   # Allow fixtures without values as parameters when they need dependencies
 ]
 
 # Debug scripts have special requirements for debugging and exploration

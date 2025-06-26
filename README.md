@@ -6,7 +6,7 @@ An OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Con
 
 ## ⚠️ Important Notice
 
-**This is a reference implementation and test platform for the MCP protocol.** 
+**This is a reference implementation and test platform for the MCP protocol.**
 
 - **Primary Purpose**: Reference implementation for MCP protocol development and testing
 - **Experimental Nature**: Used as a test platform for future MCP protocol iterations
@@ -162,7 +162,7 @@ NETWORK TOPOLOGY:
 The gateway implements a **sophisticated OAuth 2.1 system** with **three distinct authentication flows**:
 
 1. **GitHub Device Flow (RFC 8628)** - For command-line/browserless scenarios
-2. **GitHub OAuth Web Flow** - For browser-based end-user authentication  
+2. **GitHub OAuth Web Flow** - For browser-based end-user authentication
 3. **Dynamic Client Registration (RFC 7591)** - For MCP client registration
 
 #### Authentication Flow Decision Tree
@@ -304,7 +304,7 @@ The gateway implements this sophisticated system that combines client credential
      - `access_token`: JWT with user claims + client_id for accessing MCP resources
      - `refresh_token`: For renewing access tokens
 
-2. **GitHub OAuth** - Identity Provider (IdP) 
+2. **GitHub OAuth** - Identity Provider (IdP)
    - Authenticates human users through GitHub's OAuth flow
    - Provides user identity (ID, username, email) to the gateway
    - Gateway validates users against ALLOWED_GITHUB_USERS whitelist
@@ -312,7 +312,7 @@ The gateway implements this sophisticated system that combines client credential
 
 3. **MCP Servers** - Protected Resources
    - Run unmodified official MCP servers wrapped with mcp-streamablehttp-proxy
-   - Protected by OAuth without any code changes  
+   - Protected by OAuth without any code changes
    - Receive pre-authenticated requests with user identity in headers
    - Support various protocol versions based on implementation
 
@@ -581,7 +581,7 @@ TEST_RETRY_DELAY=1.0
 # Start all services
 just up
 
-# Stop all services  
+# Stop all services
 just down
 
 # Rebuild specific service
@@ -605,7 +605,7 @@ just generate-all-secrets
 
 # Or generate individually:
 just generate-jwt-secret      # JWT signing secret
-just generate-rsa-keys        # RSA private key  
+just generate-rsa-keys        # RSA private key
 just generate-redis-password  # Redis password
 ```
 

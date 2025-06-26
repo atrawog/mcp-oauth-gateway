@@ -51,8 +51,8 @@ from .test_constants import TEST_OAUTH_CALLBACK_URL
 class TestRegistrationPublicAccess:
     """Test that /register endpoint is publicly accessible per RFC 7591."""
 
-    @pytest.mark.asyncio
-    async def test_register_endpoint_is_public(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_register_endpoint_is_public(self, http_client, _wait_for_services):
         """Test that /register endpoint is publicly accessible without authentication."""
         # Try to access register endpoint without any authorization header
         registration_data = {
@@ -93,8 +93,8 @@ class TestRegistrationPublicAccess:
         else:
             pytest.fail(f"Unexpected status code: {response.status_code}")
 
-    @pytest.mark.asyncio
-    async def test_anyone_can_register_with_auth(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_anyone_can_register_with_auth(self, http_client, _wait_for_services):
         """Test that anyone with valid GitHub auth can register a client."""
         # Skip if no auth token available
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
@@ -142,8 +142,8 @@ class TestRegistrationPublicAccess:
 class TestTokenSecurityWithoutGitHub:
     """Test that registered clients cannot get tokens without GitHub authentication."""
 
-    @pytest.mark.asyncio
-    async def test_registered_client_cannot_get_token_without_github_auth(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_registered_client_cannot_get_token_without_github_auth(self, http_client, _wait_for_services):
         """Test that having client credentials alone is not enough to get tokens."""
         # First register a client (requires auth in current implementation)
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
@@ -196,8 +196,8 @@ class TestTokenSecurityWithoutGitHub:
             except Exception as e:
                 logger.warning(f"Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
-    async def test_authorization_requires_github_login(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_authorization_requires_github_login(self, http_client, _wait_for_services):
         """Test that authorization endpoint redirects to GitHub for user authentication."""
         # Register a client first
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
@@ -259,8 +259,8 @@ class TestTokenSecurityWithoutGitHub:
 class TestAllowedUsersEnforcement:
     """Test that only allowed GitHub users can complete OAuth flow."""
 
-    @pytest.mark.asyncio
-    async def test_oauth_flow_checks_allowed_users(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_oauth_flow_checks_allowed_users(self, http_client, _wait_for_services):
         """Test that the system enforces ALLOWED_GITHUB_USERS restriction."""
         # This test documents the expected behavior
         # In production, unauthorized users should get access_denied error
@@ -317,8 +317,8 @@ class TestAllowedUsersEnforcement:
 class TestUnauthorizedUserAccess:
     """Test that unauthorized users get proper access_denied errors."""
 
-    @pytest.mark.asyncio
-    async def test_invalid_github_callback_handling(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_invalid_github_callback_handling(self, http_client, _wait_for_services):
         """Test handling of invalid GitHub callback (simulating unauthorized user)."""
         # When GitHub calls back with an error (e.g., user denied access)
         callback_params = {
@@ -346,8 +346,8 @@ class TestUnauthorizedUserAccess:
             error = callback_response.json()
             assert "error" in error or "detail" in error
 
-    @pytest.mark.asyncio
-    async def test_token_exchange_without_valid_code(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_token_exchange_without_valid_code(self, http_client, _wait_for_services):
         """Test that token endpoint rejects invalid authorization codes."""
         # Register a client first
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
@@ -403,8 +403,8 @@ class TestUnauthorizedUserAccess:
 class TestSecurityModelValidation:
     """Comprehensive tests validating the complete security model."""
 
-    @pytest.mark.asyncio
-    async def test_complete_security_flow(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_complete_security_flow(self, http_client, _wait_for_services):
         """Test the complete security model from registration to access."""
         # This test documents the expected security flow:
         # 1. Client registration (may require auth based on implementation)
@@ -474,8 +474,8 @@ class TestSecurityModelValidation:
             except Exception as e:
                 logger.warning(f"Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
-    async def test_oauth_discovery_is_public(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_oauth_discovery_is_public(self, http_client, _wait_for_services):
         """Test that OAuth discovery endpoint is publicly accessible."""
         # OAuth discovery should always be public for clients to find auth endpoints
         discovery_response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")

@@ -27,14 +27,14 @@ The client automatically uses these environment variables through pydantic Setti
 
 ## How It Works Now
 
-1. **On First Run**: 
+1. **On First Run**:
    - Client performs OAuth flow
    - Saves MCP_CLIENT_* variables to .env file
-   
+
 2. **On Subsequent Runs**:
    - Client automatically reads MCP_CLIENT_* from environment
    - No credential files needed!
-   
+
 3. **Manual Configuration**:
    - Users can set MCP_CLIENT_* variables directly in .env
    - Client will use them automatically

@@ -10,8 +10,8 @@ repos:
       - id: ruff
         args: [--fix]
         description: "🔥 Ruff linting with auto-fix"
-      
-      # Run the formatter  
+
+      # Run the formatter
       - id: ruff-format
         description: "⚡ Ruff code formatting"
 
@@ -25,29 +25,29 @@ repos:
         types: [python]
         description: "Hunt deprecated Pydantic v1 syntax"
         pass_filenames: false
-        
+
   # Ensure Python files end with newline
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
       - id: end-of-file-fixer
         description: "Ensure files end with newline"
-      
+
       - id: trailing-whitespace
         description: "Remove trailing whitespace"
-      
+
       - id: check-yaml
         description: "Check YAML syntax"
-      
+
       - id: check-toml
         description: "Check TOML syntax"
-      
+
       - id: check-json
         description: "Check JSON syntax"
-        
+
       - id: check-merge-conflict
         description: "Check for merge conflict markers"
-        
+
       - id: check-added-large-files
         description: "Prevent large files from being committed"
         args: ['--maxkb=1000']
@@ -57,7 +57,7 @@ repos:
     rev: 1.7.9
     hooks:
       - id: bandit
-        args: ['-r', '.', '-x', 'tests/']
+        args: ['-x', 'tests/']
         description: "🔒 Security vulnerability scanning"
 
 # Global configuration
@@ -68,11 +68,11 @@ fail_fast: false
 ci:
   autofix_commit_msg: |
     🔥 [pre-commit.ci] Auto-fix sacred code quality violations ⚡
-    
+
     Co-Authored-By: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
   autofix_prs: true
   autoupdate_commit_msg: |
     ⚡ [pre-commit.ci] Update divine linting tools ⚡
-    
+
     Co-Authored-By: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
   autoupdate_schedule: weekly

@@ -28,8 +28,8 @@ JWT_ALGORITHM = "HS256"
 class TestCoverageGaps:
     """Test all the coverage gaps identified in the analysis."""
 
-    @pytest.mark.asyncio
-    async def test_oauth_discovery_as_health_check(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_oauth_discovery_as_health_check(self, http_client, _wait_for_services):
         """Test OAuth discovery endpoint as health check."""
         # OAuth discovery endpoint serves as the health check
         response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
@@ -41,8 +41,8 @@ class TestCoverageGaps:
         assert "token_endpoint" in data
         assert "registration_endpoint" in data
 
-    @pytest.mark.asyncio
-    async def test_client_registration_missing_redirect_uris(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_client_registration_missing_redirect_uris(self, http_client, _wait_for_services):
         """Test client registration without redirect_uris (line 172)."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
@@ -64,8 +64,8 @@ class TestCoverageGaps:
         assert error["error"] == "invalid_client_metadata"
         assert "redirect_uris is required" in error["error_description"]
 
-    @pytest.mark.asyncio
-    async def test_authorize_unsupported_response_type(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_authorize_unsupported_response_type(self, http_client, _wait_for_services, registered_client):
         """Test authorize with unsupported response_type (lines 258-260)."""
         # First, let's test with an unsupported response type
         params = {
@@ -84,8 +84,8 @@ class TestCoverageGaps:
         assert "error=unsupported_response_type" in location
         assert f"state={params['state']}" in location
 
-    @pytest.mark.asyncio
-    async def test_token_endpoint_client_secret_validation(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_token_endpoint_client_secret_validation(self, http_client, _wait_for_services, registered_client):
         """Test token endpoint with invalid client_secret (lines 416-424)."""
         # Test with wrong client secret
         response = await http_client.post(
@@ -105,8 +105,8 @@ class TestCoverageGaps:
         assert error.get("error") == "invalid_client"
         assert "Invalid client credentials" in error.get("error_description", "")
 
-    @pytest.mark.asyncio
-    async def test_token_endpoint_missing_code(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_token_endpoint_missing_code(self, http_client, _wait_for_services, registered_client):
         """Test token endpoint without code parameter (lines 427-434)."""
         response = await http_client.post(
             f"{AUTH_BASE_URL}/token",
@@ -124,8 +124,8 @@ class TestCoverageGaps:
         assert error.get("error") == "invalid_request"
         assert "Missing authorization code" in error.get("error_description", "")
 
-    @pytest.mark.asyncio
-    async def test_token_endpoint_unsupported_grant_type(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_token_endpoint_unsupported_grant_type(self, http_client, _wait_for_services, registered_client):
         """Test token endpoint with unsupported grant type (lines 553-560)."""
         response = await http_client.post(
             f"{AUTH_BASE_URL}/token",
@@ -143,8 +143,8 @@ class TestCoverageGaps:
         assert error.get("error") == "unsupported_grant_type"
         assert "Grant type 'password' is not supported" in error.get("error_description", "")
 
-    @pytest.mark.asyncio
-    async def test_refresh_token_grant_type(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_refresh_token_grant_type(self, http_client, _wait_for_services, registered_client):
         """Test refresh_token grant type (lines 513-551)."""
         # For this test, we need a real authorization code first
         # Since we can't do the full GitHub flow in tests, we'll simulate having gotten a refresh token
@@ -181,8 +181,8 @@ class TestCoverageGaps:
         assert error.get("error") == "invalid_grant"
         assert "Invalid or expired refresh token" in error.get("error_description", "")
 
-    @pytest.mark.asyncio
-    async def test_verify_endpoint_revoked_token(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_verify_endpoint_revoked_token(self, http_client, _wait_for_services):
         """Test verify endpoint with revoked token (lines 595-606)."""
         # Create a JWT token that would be valid but has been revoked
         now = int(time.time())
@@ -211,8 +211,8 @@ class TestCoverageGaps:
         assert error.get("error") == "invalid_token"
         assert "The access token is invalid or expired" in error.get("error_description", "")
 
-    @pytest.mark.asyncio
-    async def test_revoke_endpoint_invalid_client(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_revoke_endpoint_invalid_client(self, http_client, _wait_for_services):
         """Test revoke endpoint with invalid client (lines 682-686)."""
         # Test with non-existent client
         response = await http_client.post(
@@ -239,8 +239,8 @@ class TestCoverageGaps:
 
         assert response.status_code == HTTP_OK
 
-    @pytest.mark.asyncio
-    async def test_revoke_endpoint_jwt_processing(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_revoke_endpoint_jwt_processing(self, http_client, _wait_for_services, registered_client):
         """Test revoke endpoint JWT token processing (lines 697-704)."""
         # Create a valid JWT token for revocation
         now = int(time.time())
@@ -285,8 +285,8 @@ class TestCoverageGaps:
 
         assert response.status_code == HTTP_OK
 
-    @pytest.mark.asyncio
-    async def test_introspect_invalid_client_secret(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_introspect_invalid_client_secret(self, http_client, _wait_for_services, registered_client):
         """Test introspect with invalid client_secret (line 728)."""
         response = await http_client.post(
             f"{AUTH_BASE_URL}/introspect",
@@ -301,8 +301,8 @@ class TestCoverageGaps:
         data = response.json()
         assert data["active"] is False
 
-    @pytest.mark.asyncio
-    async def test_introspect_token_not_in_redis(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_introspect_token_not_in_redis(self, http_client, _wait_for_services, registered_client):
         """Test introspect when token not in Redis (lines 739-743)."""
         # Create a valid JWT but don't store it in Redis
         now = int(time.time())
@@ -333,8 +333,8 @@ class TestCoverageGaps:
         data = response.json()
         assert data["active"] is False
 
-    @pytest.mark.asyncio
-    async def test_introspect_refresh_token(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_introspect_refresh_token(self, http_client, _wait_for_services, registered_client):
         """Test introspect with refresh token (lines 758-767)."""
         # Test with a non-JWT token (simulating refresh token)
         refresh_token = secrets.token_urlsafe(32)
@@ -358,8 +358,8 @@ class TestCoverageGaps:
 class TestCallbackEndpoint:
     """Test the GitHub OAuth callback flow (lines 302-384)."""
 
-    @pytest.mark.asyncio
-    async def test_callback_invalid_state(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_callback_invalid_state(self, http_client, _wait_for_services):
         """Test callback with invalid or expired state."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/callback",
@@ -371,8 +371,8 @@ class TestCallbackEndpoint:
         assert "/error" in response.headers.get("location", "")
         # Error details are in the redirect URL parameters
 
-    @pytest.mark.asyncio
-    async def test_callback_github_exchange_simulation(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_callback_github_exchange_simulation(self, http_client, _wait_for_services, registered_client):
         """Test callback endpoint error paths."""
         # Since we can't actually trigger the GitHub OAuth flow in tests,
         # we'll test the error handling paths that we can reach
@@ -422,8 +422,8 @@ class TestCallbackEndpoint:
 class TestPKCEVerification:
     """Test PKCE S256 verification logic (lines 447-475)."""
 
-    @pytest.mark.asyncio
-    async def test_pkce_missing_verifier(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_pkce_missing_verifier(self, http_client, _wait_for_services, registered_client):
         """Test PKCE flow with missing code_verifier."""
         # First create an authorization request with PKCE
         code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=")

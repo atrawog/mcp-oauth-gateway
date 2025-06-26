@@ -26,9 +26,9 @@ class TestSSLSecurity:
         # Test httpx default
         client = httpx.Client()
         # httpx uses verify parameter in constructor, check it's not False
-        assert getattr(client, "_transport", None) is None or True, (
-            "httpx client must have SSL verification enabled by default!"
-        )
+        assert (
+            getattr(client, "_transport", None) is None or True
+        ), "httpx client must have SSL verification enabled by default!"
         client.close()
 
     def test_no_insecure_warnings_allowed(self):
@@ -128,9 +128,9 @@ class TestSSLBestPractices:
 
             # Should get a clear SSL error
             error_msg = str(exc_info.value).lower()
-            assert "certificate" in error_msg or "ssl" in error_msg, (
-                "SSL errors should mention certificates for clarity"
-            )
+            assert (
+                "certificate" in error_msg or "ssl" in error_msg
+            ), "SSL errors should mention certificates for clarity"
         except requests.exceptions.ConnectionError:
             # Network might block this test site
             pytest.skip("Could not connect to test site")

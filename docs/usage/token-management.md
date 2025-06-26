@@ -9,7 +9,7 @@ This guide covers token generation, management, and security practices for the M
 Only **5 tokens** are required to run the gateway:
 
 1. **`GITHUB_CLIENT_ID`** - From your GitHub OAuth App
-2. **`GITHUB_CLIENT_SECRET`** - From your GitHub OAuth App  
+2. **`GITHUB_CLIENT_SECRET`** - From your GitHub OAuth App
 3. **`GATEWAY_JWT_SECRET`** - Run: `just generate-jwt-secret`
 4. **`JWT_PRIVATE_KEY_B64`** - Run: `just generate-rsa-keys`
 5. **`REDIS_PASSWORD`** - Set manually
@@ -52,7 +52,7 @@ just generate-github-token
 
 # This initiates GitHub Device Flow:
 # 1. Requests device code from GitHub
-# 2. Shows: "Visit https://github.com/login/device"  
+# 2. Shows: "Visit https://github.com/login/device"
 # 3. Displays code: "XXXX-XXXX" for you to enter
 # 4. Polls GitHub until you authorize
 # 5. Stores the resulting GitHub PAT as GITHUB_PAT
@@ -229,23 +229,23 @@ from datetime import datetime
 def validate_token(token, secret):
     try:
         payload = jwt.decode(
-            token, 
-            secret, 
+            token,
+            secret,
             algorithms=["RS256"]
         )
-        
+
         # Check expiration
         if payload['exp'] < datetime.utcnow().timestamp():
             return False, "Token expired"
-            
+
         # Check required claims
         required = ['sub', 'iat', 'exp', 'jti']
         for claim in required:
             if claim not in payload:
                 return False, f"Missing claim: {claim}"
-                
+
         return True, payload
-        
+
     except jwt.InvalidTokenError as e:
         return False, str(e)
 ```

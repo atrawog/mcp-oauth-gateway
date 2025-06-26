@@ -149,7 +149,7 @@ redis:session:{session_id}:messages # List of pending messages
 
 ### RDB Snapshots
 - Save after 60 seconds if 1+ keys changed
-- Save after 300 seconds if 10+ keys changed  
+- Save after 300 seconds if 10+ keys changed
 - Save after 900 seconds if 100+ keys changed
 
 ### Volume Persistence

@@ -21,8 +21,8 @@ from .test_constants import MCP_FETCH_URL
 class TestTraefikRouting:
     """Test Traefik routing configuration for all services."""
 
-    @pytest.mark.asyncio
-    async def test_auth_service_routing(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_auth_service_routing(self, http_client, _wait_for_services):
         """Test that auth service routes are accessible."""
         # Test well-known endpoint
         response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
@@ -34,16 +34,16 @@ class TestTraefikRouting:
         # OAuth discovery endpoint serves as health check
         # Already tested above
 
-    @pytest.mark.asyncio
-    async def test_mcp_fetch_root_requires_auth(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_mcp_fetch_root_requires_auth(self, http_client, _wait_for_services):
         """Test that MCP service root requires authentication."""
         response = await http_client.get(MCP_FETCH_URL, follow_redirects=False)
         # With catch-all route, should get 401 from auth middleware
         assert response.status_code == HTTP_UNAUTHORIZED
         assert "www-authenticate" in response.headers
 
-    @pytest.mark.asyncio
-    async def test_mcp_fetch_path_routing_without_auth(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_mcp_fetch_path_routing_without_auth(self, http_client, _wait_for_services):
         """Test that /mcp path is routed correctly but requires auth."""
         # Test /mcp without auth - should get 401
         response = await http_client.post(
@@ -63,8 +63,8 @@ class TestTraefikRouting:
         # Auth service returns OAuth 2.0 compliant errors
         assert error["error"] == "invalid_request"
 
-    @pytest.mark.asyncio
-    async def test_mcp_fetch_trailing_slash_redirect(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_mcp_fetch_trailing_slash_redirect(self, http_client, _wait_for_services):
         """Test that /mcp redirects to /mcp/ with trailing slash."""
         # First, let's check if we get a redirect from /mcp to /mcp/
         response = await http_client.post(
@@ -83,8 +83,8 @@ class TestTraefikRouting:
     # Removed test_mcp_health_endpoint_available - /health endpoints are deprecated
     # per CLAUDE.md - use MCP protocol health checks instead
 
-    @pytest.mark.asyncio
-    async def test_all_mcp_paths_require_auth(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_all_mcp_paths_require_auth(self, http_client, _wait_for_services):
         """Test that all MCP paths require authentication."""
         paths_to_test = [
             "/mcp",
@@ -104,8 +104,8 @@ class TestTraefikRouting:
             assert response.status_code == HTTP_UNAUTHORIZED, f"Path {path} did not require auth"
             assert "www-authenticate" in response.headers, f"Path {path} missing WWW-Authenticate"
 
-    @pytest.mark.asyncio
-    async def test_routing_priority_order(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_routing_priority_order(self, http_client, _wait_for_services):
         """Test that routing priorities work correctly."""
         # Auth routes should have highest priority
         response = await http_client.get(f"{AUTH_BASE_URL}/authorize")
@@ -116,8 +116,8 @@ class TestTraefikRouting:
         response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         assert response.status_code == HTTP_OK
 
-    @pytest.mark.asyncio
-    async def test_cross_domain_routing(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_cross_domain_routing(self, http_client, _wait_for_services):
         """Test that each subdomain routes to correct service."""
         # Auth subdomain
         response = await http_client.get(f"https://auth.{BASE_DOMAIN}/.well-known/oauth-authorization-server")
@@ -136,8 +136,8 @@ class TestTraefikRouting:
         )
         assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.asyncio
-    async def test_invalid_paths_return_404_or_401(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_invalid_paths_return_404_or_401(self, http_client, _wait_for_services):
         """Test that invalid paths return appropriate errors."""
         # Invalid path on MCP service should get 401 (auth blocks first with catch-all route)
         response = await http_client.get(f"{MCP_FETCH_URL}/invalid/path")
@@ -147,7 +147,7 @@ class TestTraefikRouting:
         response = await http_client.get(f"{AUTH_BASE_URL}/invalid/path")
         assert response.status_code == HTTP_NOT_FOUND
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_http_to_https_redirect(self, http_client):
         """Test that HTTP requests are redirected to HTTPS."""
         # Test HTTP to HTTPS redirect for auth service
@@ -159,9 +159,12 @@ class TestTraefikRouting:
         )
 
         # Should get a redirect response (301 or 302)
-        assert response.status_code in [301, 302, 307, 308], (
-            f"Expected redirect status code, got {response.status_code}. Response: {response.text[:200]}"
-        )
+        assert response.status_code in [
+            301,
+            302,
+            307,
+            308,
+        ], f"Expected redirect status code, got {response.status_code}. Response: {response.text[:200]}"
 
         # Check that Location header points to HTTPS
         assert "Location" in response.headers, "Missing Location header in redirect response"

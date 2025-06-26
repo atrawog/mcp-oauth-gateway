@@ -43,25 +43,25 @@ graph TB
         HTTP[HTTP Requests]
         CLI[CLI Commands]
     end
-    
+
     subgraph "Core Components"
         R[routes.py<br/>FastAPI Routes]
         AA[auth_authlib.py<br/>OAuth Server]
         RP[resource_protector.py<br/>Token Validation]
         RF[rfc7592.py<br/>Client Management]
     end
-    
+
     subgraph "Data Layer"
         M[models.py<br/>Data Models]
         RC[redis_client.py<br/>Storage]
         C[config.py<br/>Settings]
     end
-    
+
     subgraph "Utilities"
         K[keys.py<br/>Crypto]
         CL[cli.py<br/>CLI Tools]
     end
-    
+
     HTTP --> R
     CLI --> CL
     R --> AA
@@ -72,11 +72,11 @@ graph TB
     RP --> RC
     RF --> RC
     CL --> AA
-    
+
     classDef interface fill:#9cf,stroke:#333,stroke-width:2px
     classDef core fill:#fc9,stroke:#333,stroke-width:2px
     classDef data fill:#9fc,stroke:#333,stroke-width:2px
-    
+
     class HTTP,CLI interface
     class R,AA,RP,RF core
     class M,RC,C data

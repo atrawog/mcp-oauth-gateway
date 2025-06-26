@@ -11,8 +11,8 @@ import pytest
 class TestMCPFetchIntegration:
     """Test real MCP fetch functionality with proper OAuth authentication."""
 
-    @pytest.mark.asyncio
-    async def test_fetch_requires_real_oauth_token(self, http_client, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_fetch_requires_real_oauth_token(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test that MCP fetch REQUIRES real OAuth tokens - no fakes allowed!"""
         import os
 
@@ -41,9 +41,9 @@ class TestMCPFetchIntegration:
 
         print("✅ MCP fetch correctly enforces OAuth authentication!")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mcp_fetch_security_validation(
-        self, http_client, wait_for_services, registered_client, mcp_fetch_url
+        self, http_client, _wait_for_services, registered_client, mcp_fetch_url
     ):
         """Test MCP fetch security - MUST reject all invalid auth attempts."""
         # This test verifies security by ensuring invalid tokens are rejected
@@ -96,8 +96,8 @@ class TestMCPFetchIntegration:
 
         assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.asyncio
-    async def test_mcp_fetch_endpoint_validation(self, http_client, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_fetch_endpoint_validation(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test MCP fetch endpoint validation and error handling."""
         # Test with invalid JSON-RPC format
         invalid_requests = [
@@ -148,8 +148,8 @@ class TestMCPFetchIntegration:
             # The actual JSON-RPC validation happens after auth
             assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.asyncio
-    async def test_mcp_fetch_http_methods(self, http_client, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_fetch_http_methods(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test that MCP fetch endpoint supports required HTTP methods."""
         # Test GET method (required by MCP Streamable HTTP transport)
         response = await http_client.get(f"{mcp_fetch_url}")

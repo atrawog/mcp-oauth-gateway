@@ -175,13 +175,13 @@ labels:
   # Basic routing - priority 2
   - "traefik.http.routers.mcp-filesystem.rule=Host(`filesystem.${BASE_DOMAIN}`)"
   - "traefik.http.routers.mcp-filesystem.priority=2"
-  
+
   # ForwardAuth middleware - divine authentication
   - "traefik.http.routers.mcp-filesystem.middlewares=mcp-auth@docker"
-  
+
   # Service definition
   - "traefik.http.services.mcp-filesystem.loadbalancer.server.port=3000"
-  
+
   # OAuth discovery routing - priority 10
   - "traefik.http.routers.mcp-filesystem-oauth-discovery.rule=..."
   - "traefik.http.routers.mcp-filesystem-oauth-discovery.priority=10"

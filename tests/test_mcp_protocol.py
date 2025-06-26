@@ -12,8 +12,8 @@ from .test_constants import MCP_PROTOCOL_VERSION
 class TestMCPProtocol:
     """Test MCP Protocol compliance - version MUST match .env!"""
 
-    @pytest.mark.asyncio
-    async def test_mcp_endpoint_requires_auth(self, http_client, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_endpoint_requires_auth(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test that MCP endpoint requires authentication."""
         # Try to access without auth
         response = await http_client.post(f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1})
@@ -22,8 +22,8 @@ class TestMCPProtocol:
         assert response.status_code == HTTP_UNAUTHORIZED
         assert response.headers.get("WWW-Authenticate") == "Bearer"
 
-    @pytest.mark.asyncio
-    async def test_mcp_json_rpc_format(self, http_client, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_json_rpc_format(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test JSON-RPC 2.0 message format requirements."""
         # Invalid JSON-RPC (missing required fields)
         test_cases = [
@@ -45,8 +45,8 @@ class TestMCPProtocol:
             assert response.status_code == HTTP_UNAUTHORIZED
             assert response.headers.get("WWW-Authenticate") == "Bearer"
 
-    @pytest.mark.asyncio
-    async def test_mcp_streamable_http_headers(self, http_client, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_streamable_http_headers(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test required headers for Streamable HTTP transport."""
         # Test required Accept header without auth
         response = await http_client.post(
@@ -64,8 +64,8 @@ class TestMCPProtocol:
         assert "application/json" in response.request.headers["Accept"]
         assert "text/event-stream" in response.request.headers["Accept"]
 
-    @pytest.mark.asyncio
-    async def test_mcp_session_management(self, http_client, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_session_management(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test MCP session ID handling."""
         session_id = "test-session-123"
 
@@ -88,8 +88,8 @@ class TestMCPProtocol:
         assert response.status_code == HTTP_UNAUTHORIZED
         assert "Mcp-Session-Id" in response.request.headers
 
-    @pytest.mark.asyncio
-    async def test_mcp_protocol_version(self, http_client, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_protocol_version(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test MCP protocol version negotiation."""
         response = await http_client.post(
             f"{mcp_fetch_url}",
@@ -109,7 +109,7 @@ class TestMCPProtocol:
         assert response.status_code == HTTP_UNAUTHORIZED
         assert response.request.headers.get("MCP-Protocol-Version") == MCP_PROTOCOL_VERSION
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_mcp_error_response_format(self, http_client, mcp_fetch_url):
         """Test that MCP errors follow JSON-RPC 2.0 error format."""
         # This will fail auth, but we can check the error format
@@ -125,8 +125,8 @@ class TestMCPProtocol:
             # Should have error structure
             assert "error" in error_data or "detail" in error_data
 
-    @pytest.mark.asyncio
-    async def test_mcp_batch_request_support(self, http_client, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_batch_request_support(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test that MCP supports receiving JSON-RPC batches."""
         # Send batch request without auth
         batch = [
@@ -141,8 +141,8 @@ class TestMCPProtocol:
         # Real MCP server must support receiving batches
         assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.asyncio
-    async def test_mcp_http_methods(self, http_client, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_http_methods(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test that MCP endpoint supports both POST and GET methods."""
         # Test POST method without auth
         post_response = await http_client.post(f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1})

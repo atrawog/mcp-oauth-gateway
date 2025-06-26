@@ -28,7 +28,7 @@ test *args:
 
 # Alias for backwards compatibility
 alias t := test
- 
+
 # Run tests with sidecar coverage pattern
 test-sidecar-coverage:
     docker compose down --remove-orphans
@@ -68,7 +68,30 @@ docs-build:
     pixi run jupyter-book build docs/
 
 # Lint and format code - The Divine Code Quality Commandments!
+# This runs ALL quality checks: linting, formatting, pre-commit hooks, and deprecation hunting
 lint:
+    @echo "🔥 Running Divine Code Quality Checks ⚡"
+    @echo "========================================"
+    @echo ""
+    @echo "1️⃣ Ruff Linting..."
+    pixi run ruff check .
+    @echo "✅ Ruff linting passed!"
+    @echo ""
+    @echo "2️⃣ Code Formatting Check..."
+    pixi run ruff format . --check
+    @echo "✅ Code formatting check passed!"
+    @echo ""
+    @echo "3️⃣ Pre-commit Hooks..."
+    pixi run pre-commit run --all-files
+    @echo "✅ Pre-commit hooks passed!"
+    @echo ""
+    @echo "4️⃣ Pydantic Deprecation Hunt..."
+    pixi run python scripts/lint_pydantic_compliance.py
+    @echo ""
+    @echo "🏆 ALL QUALITY CHECKS PASSED! Divine compliance achieved! ⚡"
+
+# Quick lint - just run ruff check (for fast feedback)
+lint-quick:
     pixi run ruff check .
 
 # Fix linting issues automatically
@@ -185,7 +208,7 @@ generate-jwt-secret:
     #!/usr/bin/env bash
     NEW_JWT_SECRET=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
     echo "🔐 Generated new JWT secret: ${NEW_JWT_SECRET}"
-    
+
     # Check if .env exists
     if [ ! -f .env ]; then
         echo "❌ .env file not found! Creating one..."
@@ -203,7 +226,7 @@ generate-jwt-secret:
             echo "✅ Added GATEWAY_JWT_SECRET to .env file"
         fi
     fi
-    
+
     echo "🔥 SACRED JWT SECRET HAS BEEN BLESSED AND WRITTEN TO .ENV!"
 
 # Generate RSA keys for RS256 JWT signing and save to .env
@@ -216,13 +239,13 @@ generate-redis-password:
     #!/usr/bin/env bash
     NEW_REDIS_PASSWORD=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
     echo "🔐 Generated new Redis password: ${NEW_REDIS_PASSWORD}"
-    
+
     # Check if .env exists
     if [ ! -f .env ]; then
         echo "📄 Creating .env file..."
         cp .env.example .env
     fi
-    
+
     # Update or add REDIS_PASSWORD in .env
     if grep -q "^REDIS_PASSWORD=" .env; then
         echo "🔄 Updating REDIS_PASSWORD in .env..."
@@ -231,7 +254,7 @@ generate-redis-password:
         echo "➕ Adding REDIS_PASSWORD to .env..."
         echo "REDIS_PASSWORD=${NEW_REDIS_PASSWORD}" >> .env
     fi
-    
+
     echo "✅ Redis password saved to .env successfully!"
 
 # Generate all required secrets (JWT, RSA keys, Redis password)
@@ -364,7 +387,7 @@ check-services:
 check-ssl:
 	#!/usr/bin/env bash
 	set -euo pipefail
-	
+
 	echo "Checking SSL certificates..."
 	echo ""
 	echo "=== Auth Service ==="
@@ -372,7 +395,7 @@ check-ssl:
 	echo ""
 	echo "=== MCP Services (checking enabled services only) ==="
 	echo ""
-	
+
 	# Check each MCP service if enabled
 	if [ "${MCP_EVERYTHING_ENABLED}" = "true" ]; then
 		echo "MCP Everything (${MCP_EVERYTHING_URLS}):"
@@ -381,7 +404,7 @@ check-ssl:
 		done
 		echo ""
 	fi
-	
+
 	if [ "${MCP_FETCH_ENABLED}" = "true" ]; then
 		echo "MCP Fetch (${MCP_FETCH_URLS}):"
 		for url in $(echo ${MCP_FETCH_URLS} | tr ',' ' '); do
@@ -389,7 +412,7 @@ check-ssl:
 		done
 		echo ""
 	fi
-	
+
 	if [ "${MCP_FETCHS_ENABLED}" = "true" ]; then
 		echo "MCP Fetchs (${MCP_FETCHS_URLS}):"
 		for url in $(echo ${MCP_FETCHS_URLS} | tr ',' ' '); do
@@ -397,7 +420,7 @@ check-ssl:
 		done
 		echo ""
 	fi
-	
+
 	if [ "${MCP_FILESYSTEM_ENABLED}" = "true" ]; then
 		echo "MCP Filesystem (${MCP_FILESYSTEM_URLS}):"
 		for url in $(echo ${MCP_FILESYSTEM_URLS} | tr ',' ' '); do
@@ -405,7 +428,7 @@ check-ssl:
 		done
 		echo ""
 	fi
-	
+
 	if [ "${MCP_MEMORY_ENABLED}" = "true" ]; then
 		echo "MCP Memory (${MCP_MEMORY_URLS}):"
 		for url in $(echo ${MCP_MEMORY_URLS} | tr ',' ' '); do
@@ -413,7 +436,7 @@ check-ssl:
 		done
 		echo ""
 	fi
-	
+
 	if [ "${MCP_PLAYWRIGHT_ENABLED}" = "true" ]; then
 		echo "MCP Playwright (${MCP_PLAYWRIGHT_URLS}):"
 		for url in $(echo ${MCP_PLAYWRIGHT_URLS} | tr ',' ' '); do
@@ -421,7 +444,7 @@ check-ssl:
 		done
 		echo ""
 	fi
-	
+
 	if [ "${MCP_SEQUENTIALTHINKING_ENABLED}" = "true" ]; then
 		echo "MCP Sequential Thinking (${MCP_SEQUENTIALTHINKING_URLS}):"
 		for url in $(echo ${MCP_SEQUENTIALTHINKING_URLS} | tr ',' ' '); do
@@ -429,7 +452,7 @@ check-ssl:
 		done
 		echo ""
 	fi
-	
+
 	if [ "${MCP_TIME_ENABLED}" = "true" ]; then
 		echo "MCP Time (${MCP_TIME_URLS}):"
 		for url in $(echo ${MCP_TIME_URLS} | tr ',' ' '); do
@@ -437,7 +460,7 @@ check-ssl:
 		done
 		echo ""
 	fi
-	
+
 	if [ "${MCP_TMUX_ENABLED}" = "true" ]; then
 		echo "MCP Tmux (${MCP_TMUX_URLS}):"
 		for url in $(echo ${MCP_TMUX_URLS} | tr ',' ' '); do
@@ -445,14 +468,14 @@ check-ssl:
 		done
 		echo ""
 	fi
-	
+
 	# MCP Echo service (special handling as it's not in the standard pattern)
 	if [ "${MCP_ECHO_ENABLED:-false}" = "true" ]; then
 		echo "MCP Echo:"
 		curl -I https://echo.${BASE_DOMAIN}/mcp 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: echo service"
 		echo ""
 	fi
-	
+
 	echo ""
 	echo "=== Certificates in ACME storage ==="
 	docker exec traefik cat /certificates/acme.json 2>/dev/null | jq -r '.letsencrypt.Certificates[].domain' || echo "No certificates found or Traefik not running"
@@ -593,7 +616,7 @@ oauth-backup-view-file filename:
 pypi-build package="all":
     #!/usr/bin/env bash
     packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
-    
+
     if [ "{{package}}" = "all" ]; then
         echo "🏗️  Building all Python packages..."
         for pkg in "${packages[@]}"; do
@@ -617,7 +640,7 @@ pypi-build package="all":
 pypi-test package="all":
     #!/usr/bin/env bash
     packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
-    
+
     if [ "{{package}}" = "all" ]; then
         echo "🧪 Testing all Python packages..."
         for pkg in "${packages[@]}"; do
@@ -647,7 +670,7 @@ pypi-test package="all":
 pypi-check package="all":
     #!/usr/bin/env bash
     packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
-    
+
     if [ "{{package}}" = "all" ]; then
         echo "🔍 Checking all Python packages..."
         for pkg in "${packages[@]}"; do
@@ -677,9 +700,9 @@ pypi-check package="all":
 pypi-upload-test package="all":
     #!/usr/bin/env bash
     packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
-    
+
     echo "⚠️  WARNING: This will upload to TestPyPI!"
-    
+
     # Check if required environment variables are set
     if [ -z "${TWINE_USERNAME:-}" ] || [ -z "${TWINE_PASSWORD:-}" ]; then
         echo "❌ ERROR: TWINE_USERNAME and TWINE_PASSWORD must be set for TestPyPI"
@@ -688,11 +711,11 @@ pypi-upload-test package="all":
         echo "Please add them to your .env file"
         exit 1
     fi
-    
+
     echo "✅ TWINE_USERNAME: ${TWINE_USERNAME}"
     echo "✅ TWINE_PASSWORD length: ${#TWINE_PASSWORD}"
     echo "🤖 Proceeding automatically without prompts"
-    
+
     if [ "{{package}}" = "all" ]; then
         echo "📤 Uploading all packages to TestPyPI..."
         for pkg in "${packages[@]}"; do
@@ -736,9 +759,9 @@ pypi-upload-test package="all":
 pypi-upload package="all":
     #!/usr/bin/env bash
     packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
-    
+
     echo "🚨 WARNING: This will upload to PRODUCTION PyPI!"
-    
+
     # Check if required environment variables are set
     if [ -z "${TWINE_USERNAME:-}" ] || [ -z "${TWINE_PASSWORD:-}" ]; then
         echo "❌ ERROR: TWINE_USERNAME and TWINE_PASSWORD must be set for PyPI"
@@ -747,12 +770,12 @@ pypi-upload package="all":
         echo "Please add them to your .env file"
         exit 1
     fi
-    
+
     echo "✅ TWINE_USERNAME: ${TWINE_USERNAME}"
     echo "✅ TWINE_PASSWORD length: ${#TWINE_PASSWORD}"
     echo "🚨 This action cannot be undone!"
     echo "🤖 Proceeding automatically without prompts"
-    
+
     if [ "{{package}}" = "all" ]; then
         echo "📤 Uploading all packages to PyPI..."
         for pkg in "${packages[@]}"; do
@@ -800,7 +823,7 @@ pypi-publish package="all":
 pypi-clean package="all":
     #!/usr/bin/env bash
     packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
-    
+
     if [ "{{package}}" = "all" ]; then
         echo "🧹 Cleaning all Python package build artifacts..."
         for pkg in "${packages[@]}"; do
@@ -826,7 +849,7 @@ pypi-clean package="all":
 pypi-info package="all":
     #!/usr/bin/env bash
     packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless)
-    
+
     if [ "{{package}}" = "all" ]; then
         echo "📋 Package Information for all packages:"
         for pkg in "${packages[@]}"; do

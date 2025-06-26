@@ -84,16 +84,16 @@ Each service configures routing via Docker labels:
 labels:
   # Enable Traefik processing
   - "traefik.enable=true"
-  
+
   # Define service port
   - "traefik.http.services.service-name.loadbalancer.server.port=3000"
-  
+
   # Configure routing
   - "traefik.http.routers.service-name.rule=Host(`service.${BASE_DOMAIN}`)"
   - "traefik.http.routers.service-name.priority=2"
   - "traefik.http.routers.service-name.entrypoints=websecure"
   - "traefik.http.routers.service-name.tls.certresolver=letsencrypt"
-  
+
   # Apply authentication
   - "traefik.http.routers.service-name.middlewares=mcp-auth@docker"
 ```

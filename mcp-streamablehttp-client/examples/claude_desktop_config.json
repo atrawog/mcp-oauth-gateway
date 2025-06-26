@@ -13,8 +13,8 @@
     "remote-mcp-server-docker": {
       "command": "docker",
       "args": [
-        "run", 
-        "--rm", 
+        "run",
+        "--rm",
         "-i",
         "-v", "/home/user/.mcp:/home/mcpuser/.mcp",
         "-e", "MCP_SERVER_URL=https://mcp-fetch.yourdomain.com/mcp",

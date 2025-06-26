@@ -61,9 +61,9 @@ class TestDockerComposeValidation:
             assert f"{prefix}.rule" in label_dict, f"Router {router_name} missing rule!"
 
             # Check rule includes Host
-            assert "Host(`fetch.${BASE_DOMAIN}`)" in label_dict[f"{prefix}.rule"], (
-                f"Router {router_name} rule missing Host!"
-            )
+            assert (
+                "Host(`fetch.${BASE_DOMAIN}`)" in label_dict[f"{prefix}.rule"]
+            ), f"Router {router_name} rule missing Host!"
 
             # Check path rule if required
             if router_config["path_rule"]:
@@ -84,9 +84,9 @@ class TestDockerComposeValidation:
                 f"Router {router_name} missing service assignment! This causes 404 errors!"  # TODO: Break long line
             )
 
-            assert label_dict[f"{prefix}.service"] == "mcp-fetch", (
-                f"Router {router_name} service should be 'mcp-fetch'!"
-            )
+            assert (
+                label_dict[f"{prefix}.service"] == "mcp-fetch"
+            ), f"Router {router_name} service should be 'mcp-fetch'!"
 
             # Must have priority
             assert f"{prefix}.priority" in label_dict, f"Router {router_name} missing priority!"
@@ -100,18 +100,18 @@ class TestDockerComposeValidation:
             # Check auth middleware if needed
             if router_config["needs_auth"]:
                 assert f"{prefix}.middlewares" in label_dict, f"Router {router_name} missing auth middleware!"
-                assert "mcp-auth@docker" in label_dict[f"{prefix}.middlewares"], (
-                    f"Router {router_name} should use mcp-auth middleware!"
-                )
+                assert (
+                    "mcp-auth@docker" in label_dict[f"{prefix}.middlewares"]
+                ), f"Router {router_name} should use mcp-auth middleware!"
 
         # Check service definition exists
-        assert "traefik.http.services.mcp-fetch.loadbalancer.server.port" in label_dict, (
-            "Missing service port definition!"
-        )
+        assert (
+            "traefik.http.services.mcp-fetch.loadbalancer.server.port" in label_dict
+        ), "Missing service port definition!"
 
-        assert label_dict["traefik.http.services.mcp-fetch.loadbalancer.server.port"] == "3000", (
-            "Service port should be 3000!"
-        )
+        assert (
+            label_dict["traefik.http.services.mcp-fetch.loadbalancer.server.port"] == "3000"
+        ), "Service port should be 3000!"
 
     def test_all_services_have_traefik_configuration(self):
         """Test that all services with Traefik enabled have complete configuration."""

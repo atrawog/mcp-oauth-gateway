@@ -8,7 +8,7 @@ The MCP OAuth Gateway follows a strict **no mocking** policy. All tests use real
 
 **Absolutely forbidden:**
 - Mock objects
-- Stub services  
+- Stub services
 - Fake implementations
 - In-memory databases
 
@@ -72,16 +72,16 @@ from helpers.docker import wait_for_service
 def docker_services():
     """Start real Docker services for testing."""
     client = docker.from_env()
-    
+
     # Start services
     subprocess.run(["just", "up", "-d"], check=True)
-    
+
     # Wait for health
     wait_for_service("auth", "http://localhost:8000/health")
     wait_for_service("redis", "redis://localhost:6379")
-    
+
     yield
-    
+
     # Cleanup
     subprocess.run(["just", "down"], check=True)
 
@@ -106,7 +106,7 @@ from urllib.parse import urlparse, parse_qs
 
 async def test_full_oauth_flow(auth_client, redis_client):
     """Test complete OAuth flow with real services."""
-    
+
     # 1. Register client (real HTTP call)
     response = auth_client.post("/register", json={
         "client_name": "Test Client",
@@ -115,11 +115,11 @@ async def test_full_oauth_flow(auth_client, redis_client):
     })
     assert response.status_code == 201
     client_data = response.json()
-    
+
     # 2. Verify in Redis (real Redis)
     client_key = f"oauth:client:{client_data['client_id']}"
     assert redis_client.exists(client_key)
-    
+
     # 3. Start authorization (real flow)
     auth_response = auth_client.get("/authorize", params={
         "client_id": client_data["client_id"],
@@ -128,11 +128,11 @@ async def test_full_oauth_flow(auth_client, redis_client):
         "state": "test-state"
     })
     assert auth_response.status_code == 302
-    
+
     # 4. Extract code from redirect
     redirect_url = urlparse(auth_response.headers["Location"])
     code = parse_qs(redirect_url.query)["code"][0]
-    
+
     # 5. Exchange code for token (real exchange)
     token_response = auth_client.post("/token", data={
         "grant_type": "authorization_code",
@@ -143,7 +143,7 @@ async def test_full_oauth_flow(auth_client, redis_client):
     })
     assert token_response.status_code == 200
     token_data = token_response.json()
-    
+
     # 6. Verify token in Redis
     token_key = f"oauth:token:{token_data['jti']}"
     assert redis_client.exists(token_key)
@@ -155,25 +155,25 @@ async def test_full_oauth_flow(auth_client, redis_client):
 # test_full_flow.py
 async def test_claude_to_mcp_flow(docker_services):
     """Test Claude.ai connecting to MCP service."""
-    
+
     # 1. Simulate Claude registration
     claude_client = await register_claude_client()
-    
+
     # 2. Perform OAuth flow
     access_token = await perform_oauth_flow(claude_client)
-    
+
     # 3. Initialize MCP session
     mcp_client = MCPClient(
         "http://mcp-fetch:3000",
         token=access_token
     )
     await mcp_client.initialize()
-    
+
     # 4. Call MCP method
     result = await mcp_client.request("fetch", {
         "url": "https://example.com"
     })
-    
+
     # 5. Verify result
     assert result["status"] == 200
     assert "content" in result
@@ -265,28 +265,28 @@ import httpx
 
 async def test_high_load(docker_services):
     """Test system under load."""
-    
+
     async def make_request(client, token):
-        response = await client.post("/mcp", 
+        response = await client.post("/mcp",
             headers={"Authorization": f"Bearer {token}"},
             json={"method": "ping", "id": 1}
         )
         return response.elapsed.total_seconds()
-    
+
     # Create multiple clients
     clients = [httpx.AsyncClient() for _ in range(100)]
-    
+
     # Make concurrent requests
     tasks = []
     for client in clients:
         tasks.extend([
-            make_request(client, token) 
+            make_request(client, token)
             for _ in range(10)
         ])
-    
+
     # Measure performance
     latencies = await asyncio.gather(*tasks)
-    
+
     # Assert performance requirements
     assert max(latencies) < 1.0  # Max 1 second
     assert sum(latencies) / len(latencies) < 0.1  # Avg 100ms
@@ -300,29 +300,29 @@ async def test_high_load(docker_services):
 # test_security.py
 async def test_sql_injection(auth_client):
     """Test SQL injection protection."""
-    
+
     # Attempt injection
     response = auth_client.post("/token", data={
         "grant_type": "'; DROP TABLE users; --",
         "code": "test"
     })
-    
+
     # Should handle safely
     assert response.status_code == 400
     assert "invalid_grant" in response.json()["error"]
-    
+
     # Verify database intact
     health = auth_client.get("/health")
     assert health.status_code == 200
 
 async def test_path_traversal(mcp_filesystem):
     """Test path traversal protection."""
-    
+
     # Attempt to escape root
     response = await mcp_filesystem.request("readFile", {
         "path": "../../etc/passwd"
     })
-    
+
     # Should be blocked
     assert "error" in response
     assert response["error"]["code"] == -32602
@@ -385,25 +385,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup environment
         run: |
           pixi install
           just network-create
           just volumes-create
-      
+
       - name: Start services
         run: just up
-        
+
       - name: Wait for health
         run: just ensure-services-ready
-        
+
       - name: Run tests
         run: just test
-        
+
       - name: Run coverage tests
         run: just test-sidecar-coverage
-        
+
       - name: Cleanup
         run: just down -v
 ```

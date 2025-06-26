@@ -140,7 +140,7 @@ await client.initialize()
 
 **Cause**: Invalid or expired bearer token
 
-**Solution**: 
+**Solution**:
 - Verify token with `just validate-tokens`
 - Generate new token with `just generate-github-token`
 

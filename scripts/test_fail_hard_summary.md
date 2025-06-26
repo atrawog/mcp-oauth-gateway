@@ -45,7 +45,7 @@ Tested with missing tokens:
 MCP_CLIENT_ACCESS_TOKEN="" pixi run pytest tests/test_mcp_client_proxy.py::TestMCPProtocolHandling::test_initialize_request
 # Result: FAILED - No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!
 
-# Test 2: Missing GATEWAY_OAUTH_ACCESS_TOKEN  
+# Test 2: Missing GATEWAY_OAUTH_ACCESS_TOKEN
 GATEWAY_OAUTH_ACCESS_TOKEN="" pixi run pytest tests/test_mcp_fetch_integration.py::TestMCPFetchIntegration::test_fetch_requires_real_oauth_token
 # Result: FAILED - No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!
 ```

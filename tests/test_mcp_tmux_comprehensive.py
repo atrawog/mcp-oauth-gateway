@@ -60,7 +60,7 @@ class TestMCPTmuxComprehensive:
 
     # Session Management Tests
 
-    def test_session_lifecycle(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_session_lifecycle(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test complete session lifecycle: create, list, use, destroy."""
         session_name = f"test-session-{int(time.time())}"
 
@@ -96,7 +96,7 @@ class TestMCPTmuxComprehensive:
             )
             assert "result" in list_response
 
-    def test_session_search(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_session_search(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test finding sessions by name pattern."""
         # Try to find the default session
         response = self.run_mcp_client_raw(
@@ -111,7 +111,7 @@ class TestMCPTmuxComprehensive:
 
     # Window Management Tests
 
-    def test_window_operations(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_window_operations(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test window listing and management."""
         # List windows in default session
         response = self.run_mcp_client_raw(
@@ -124,7 +124,7 @@ class TestMCPTmuxComprehensive:
         # Should either succeed or give appropriate error
         assert "result" in response or "error" in response
 
-    def test_window_creation(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_window_creation(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test creating new windows."""
         window_name = f"test-window-{int(time.time())}"
 
@@ -143,7 +143,7 @@ class TestMCPTmuxComprehensive:
 
     # Pane Management Tests
 
-    def test_pane_operations(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_pane_operations(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test pane listing and management."""
         # List panes in default session
         response = self.run_mcp_client_raw(
@@ -156,7 +156,7 @@ class TestMCPTmuxComprehensive:
         # Should either succeed or give appropriate error
         assert "result" in response or "error" in response
 
-    def test_pane_content_capture(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_pane_content_capture(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test capturing pane content with different parameters."""
         # Test basic capture
         response = self.run_mcp_client_raw(
@@ -185,7 +185,7 @@ class TestMCPTmuxComprehensive:
             )
             assert "result" in range_response or "error" in range_response
 
-    def test_pane_splitting(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_pane_splitting(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test splitting panes."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,
@@ -202,7 +202,7 @@ class TestMCPTmuxComprehensive:
 
     # Command Execution Tests
 
-    def test_command_execution_simple(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_command_execution_simple(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test executing simple commands."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,
@@ -219,7 +219,7 @@ class TestMCPTmuxComprehensive:
 
         assert "result" in response or "error" in response
 
-    def test_command_execution_with_output(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_command_execution_with_output(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test command execution and output capture."""
         # Execute a command that produces output
         response = self.run_mcp_client_raw(
@@ -238,7 +238,7 @@ class TestMCPTmuxComprehensive:
 
         assert "result" in response or "error" in response
 
-    def test_key_sending(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_key_sending(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test sending keystrokes to panes."""
         # Send some keys
         response = self.run_mcp_client_raw(
@@ -266,7 +266,7 @@ class TestMCPTmuxComprehensive:
 
         assert "result" in enter_response or "error" in enter_response
 
-    def test_shell_command_execution(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_shell_command_execution(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test running shell commands."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,
@@ -285,7 +285,7 @@ class TestMCPTmuxComprehensive:
 
     # Resource Access Tests
 
-    def test_sessions_resource(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_sessions_resource(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test reading sessions resource."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,
@@ -296,7 +296,7 @@ class TestMCPTmuxComprehensive:
 
         assert "result" in response or "error" in response
 
-    def test_specific_session_resource(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_specific_session_resource(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test reading specific session resource."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,
@@ -307,7 +307,7 @@ class TestMCPTmuxComprehensive:
 
         assert "result" in response or "error" in response
 
-    def test_pane_resource(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_pane_resource(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test reading pane content resource."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,
@@ -320,7 +320,7 @@ class TestMCPTmuxComprehensive:
 
     # Error Handling and Edge Cases
 
-    def test_invalid_session_operations(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_invalid_session_operations(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test operations on non-existent sessions."""
         # Try to operate on non-existent session
         response = self.run_mcp_client_raw(
@@ -337,7 +337,7 @@ class TestMCPTmuxComprehensive:
         if "error" in response:
             assert response["error"]["code"] != 0
 
-    def test_invalid_pane_operations(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_invalid_pane_operations(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test operations on non-existent panes."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,
@@ -352,7 +352,7 @@ class TestMCPTmuxComprehensive:
         # Should handle non-existent pane gracefully
         assert "result" in response or "error" in response
 
-    def test_malformed_commands(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_malformed_commands(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test handling of malformed commands."""
         # Test command with missing required arguments
         response = self.run_mcp_client_raw(
@@ -371,7 +371,7 @@ class TestMCPTmuxComprehensive:
 
     # Performance and Stress Tests
 
-    def test_multiple_session_operations(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_multiple_session_operations(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test handling multiple session operations."""
         # Create multiple sessions
         for i in range(3):
@@ -388,7 +388,7 @@ class TestMCPTmuxComprehensive:
             # Each should either succeed or fail gracefully
             assert "result" in response or "error" in response
 
-    def test_rapid_command_execution(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_rapid_command_execution(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test rapid command execution."""
         # Execute multiple commands quickly
         for i in range(5):
@@ -409,7 +409,7 @@ class TestMCPTmuxComprehensive:
 
     # Integration and Compatibility Tests
 
-    def test_tmux_version_compatibility(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_tmux_version_compatibility(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test tmux version compatibility."""
         # Execute tmux version command
         response = self.run_mcp_client_raw(
@@ -428,7 +428,7 @@ class TestMCPTmuxComprehensive:
             result = response["result"]
             assert "content" in result
 
-    def test_environment_variables(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_environment_variables(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test environment variable access."""
         response = self.run_mcp_client_raw(
             url=mcp_tmux_url,
@@ -445,7 +445,7 @@ class TestMCPTmuxComprehensive:
 
         assert "result" in response or "error" in response
 
-    def test_long_running_processes(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_long_running_processes(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test handling of long-running processes."""
         # Start a process that runs for a few seconds
         response = self.run_mcp_client_raw(
@@ -463,7 +463,7 @@ class TestMCPTmuxComprehensive:
 
         assert "result" in response or "error" in response
 
-    def test_unicode_and_special_characters(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_unicode_and_special_characters(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test handling of unicode and special characters."""
         # Test with unicode characters
         response = self.run_mcp_client_raw(
@@ -481,7 +481,7 @@ class TestMCPTmuxComprehensive:
 
         assert "result" in response or "error" in response
 
-    def test_tool_parameter_validation(self, mcp_tmux_url, mcp_client_token, wait_for_services):
+    def test_tool_parameter_validation(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
         """Test parameter validation for tmux tools."""
         # Test with invalid parameter types
         response = self.run_mcp_client_raw(

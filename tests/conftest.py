@@ -44,7 +44,7 @@ MCP_CLIENT_SECRET = os.getenv("MCP_CLIENT_SECRET")
 _RATE_LIMITER = Semaphore(10)  # Max 10 concurrent requests across all tests
 
 
-@pytest.fixture
+@pytest.fixture()
 async def rate_limiter():
     """Provides a rate limiter to prevent overwhelming services."""
     async with _RATE_LIMITER:
@@ -277,7 +277,7 @@ def update_env_file(key: str, value: str):
         f.writelines(lines)
 
 
-@pytest.fixture
+@pytest.fixture()
 async def http_client() -> AsyncGenerator[httpx.AsyncClient, None]:
     """Provides an async HTTP client for tests with proper SSL verification."""
     # Use timeout from test_constants - already validated!
@@ -293,7 +293,7 @@ async def http_client() -> AsyncGenerator[httpx.AsyncClient, None]:
 
 
 @pytest.fixture(autouse=True)
-async def cleanup_redis_test_data(request):
+async def _cleanup_redis_test_data(request):
     """Clean up test-specific Redis data after each test to prevent interference."""
     import redis.asyncio as redis
 
@@ -334,7 +334,7 @@ async def cleanup_redis_test_data(request):
 
 
 @pytest.fixture(scope="session", autouse=True)
-async def ensure_services_ready():
+async def _ensure_services_ready():
     """Ensure all services are ready before ANY tests run - replaces scripts/check_services_ready.py."""
     print("\n" + "=" * 60)
     print("Pre-test Service Check")
@@ -431,7 +431,7 @@ async def ensure_services_ready():
 
 
 @pytest.fixture(scope="session", autouse=True)
-async def refresh_and_validate_tokens(ensure_services_ready):
+async def _refresh_and_validate_tokens(_ensure_services_ready):
     """Refresh and validate all tokens before tests - replaces scripts/refresh_tokens.py and validate_tokens.py."""
     print("\n" + "=" * 60)
     print("🔐 TOKEN REFRESH AND VALIDATION")
@@ -597,8 +597,8 @@ async def refresh_and_validate_tokens(ensure_services_ready):
     print("=" * 60)
 
 
-@pytest.fixture
-async def wait_for_services(http_client: httpx.AsyncClient):
+@pytest.fixture()
+async def _wait_for_services(http_client: httpx.AsyncClient):
     """Wait for all services to be healthy before running tests."""
     # Always check auth service via OAuth discovery
     services_to_check = [(AUTH_BASE_URL, "/.well-known/oauth-authorization-server", 200)]
@@ -628,7 +628,7 @@ async def wait_for_services(http_client: httpx.AsyncClient):
                 await asyncio.sleep(TEST_RETRY_DELAY)
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_test_url():
     """Get the MCP URL to use for testing - supports MCP_TESTING_URL and MCP_*_URLS."""
     # First check for MCP_TESTING_URL
@@ -640,7 +640,7 @@ def mcp_test_url():
     return MCP_FETCH_URL
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_test_urls():
     """Get all MCP URLs to test - supports testing multiple URLs."""
     urls = []
@@ -675,8 +675,8 @@ def mcp_test_urls():
     return urls
 
 
-@pytest.fixture
-async def registered_client(http_client: httpx.AsyncClient, wait_for_services) -> dict:
+@pytest.fixture()
+async def registered_client(http_client: httpx.AsyncClient, _wait_for_services) -> dict:
     """Register a test OAuth client dynamically - no hardcoded values!
 
     This fixture properly cleans up the registration using RFC 7592 DELETE endpoint.
@@ -718,7 +718,7 @@ async def registered_client(http_client: httpx.AsyncClient, wait_for_services) -
             print(f"Warning: Error during client cleanup: {e}")
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_client_token():
     """Provides MCP client access token for external client testing."""
     if not MCP_CLIENT_ACCESS_TOKEN:
@@ -726,7 +726,7 @@ def mcp_client_token():
     return MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_client_credentials():
     """Provides MCP client credentials for external client testing."""
     if not MCP_CLIENT_ID or not MCP_CLIENT_SECRET:
@@ -738,7 +738,7 @@ def mcp_client_credentials():
     }
 
 
-@pytest.fixture
+@pytest.fixture()
 async def mcp_authenticated_client(http_client: httpx.AsyncClient, mcp_client_token: str) -> httpx.AsyncClient:
     """Provides an HTTP client with MCP authentication headers pre-configured."""
     # Create a new client with auth headers
@@ -746,7 +746,7 @@ async def mcp_authenticated_client(http_client: httpx.AsyncClient, mcp_client_to
     return http_client
 
 
-@pytest.fixture
+@pytest.fixture()
 def gateway_auth_headers():
     """Provides standard auth headers for gateway requests."""
     token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
@@ -755,7 +755,7 @@ def gateway_auth_headers():
     return {"Authorization": f"Bearer {token}"}
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_echo_url():
     """Base URL for mcp-echo service, with test skip logic."""
     from .test_constants import MCP_ECHO_TESTS_ENABLED
@@ -770,7 +770,7 @@ def mcp_echo_url():
     return MCP_ECHO_URLS[0]
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_echo_urls():
     """All URLs for mcp-echo service, with test skip logic."""
     from .test_constants import MCP_ECHO_TESTS_ENABLED
@@ -785,7 +785,7 @@ def mcp_echo_urls():
     return MCP_ECHO_URLS
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_fetch_url():
     """Base URL for mcp-fetch service, with test skip logic."""
     from .test_constants import MCP_FETCH_TESTS_ENABLED
@@ -800,7 +800,7 @@ def mcp_fetch_url():
     return MCP_FETCH_URLS[0]
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_fetchs_url():
     """Base URL for mcp-fetchs service, with test skip logic."""
     from .test_constants import MCP_FETCHS_TESTS_ENABLED
@@ -815,7 +815,7 @@ def mcp_fetchs_url():
     return MCP_FETCHS_URLS[0]
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_filesystem_url():
     """Base URL for mcp-filesystem service, with test skip logic."""
     from .test_constants import MCP_FILESYSTEM_TESTS_ENABLED
@@ -830,7 +830,7 @@ def mcp_filesystem_url():
     return MCP_FILESYSTEM_URLS[0]
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_memory_url():
     """Base URL for mcp-memory service, with test skip logic."""
     from .test_constants import MCP_MEMORY_TESTS_ENABLED
@@ -845,7 +845,7 @@ def mcp_memory_url():
     return MCP_MEMORY_URLS[0]
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_playwright_url():
     """Base URL for mcp-playwright service, with test skip logic."""
     from .test_constants import MCP_PLAYWRIGHT_TESTS_ENABLED
@@ -860,7 +860,7 @@ def mcp_playwright_url():
     return MCP_PLAYWRIGHT_URLS[0]
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_sequentialthinking_url():
     """Base URL for mcp-sequentialthinking service, with test skip logic."""
     from .test_constants import MCP_SEQUENTIALTHINKING_TESTS_ENABLED
@@ -877,7 +877,7 @@ def mcp_sequentialthinking_url():
     return MCP_SEQUENTIALTHINKING_URLS[0]
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_time_url():
     """Base URL for mcp-time service, with test skip logic."""
     from .test_constants import MCP_TIME_TESTS_ENABLED
@@ -892,7 +892,7 @@ def mcp_time_url():
     return MCP_TIME_URLS[0]
 
 
-@pytest.fixture
+@pytest.fixture()
 def mcp_tmux_url():
     """Base URL for mcp-tmux service, with test skip logic."""
     from .test_constants import MCP_TMUX_TESTS_ENABLED

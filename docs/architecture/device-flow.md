@@ -86,11 +86,11 @@ async def github_device_flow() -> str:
         "https://github.com/login/device/code",
         data={"client_id": github_client_id, "scope": "user:email"}
     )
-    
+
     # 2. Display code to user
     print(f"Visit: {device_data['verification_uri']}")
     print(f"Enter code: {device_data['user_code']}")
-    
+
     # 3. Poll for authorization
     while True:
         poll_response = await client.post(

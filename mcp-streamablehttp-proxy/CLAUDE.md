@@ -39,18 +39,18 @@ mcp_streamablehttp_proxy/
 ```python
 class MCPProxy:
     """The divine translator between stdio and HTTP!"""
-    
+
     def __init__(self, stdio_command: List[str]):
         """Initialize with MCP server command!"""
         self.process = None  # The subprocess vessel
         self.sessions = {}   # Active session tracking
-        
+
     async def start(self):
         """Spawn the MCP server subprocess!"""
-        
+
     async def handle_request(self, request: dict) -> dict:
         """Translate HTTP request to stdio and back!"""
-        
+
     async def stop(self):
         """Gracefully terminate the subprocess!"""
 ```
@@ -74,7 +74,7 @@ async def handle_mcp_request(request: Request) -> Response:
     # Translate request to stdio format
     # Send to subprocess and await response
     # Return formatted HTTP response
-    
+
 # Health checks now done via MCP protocol initialization
 ```
 
@@ -95,7 +95,7 @@ def serve(
 ):
     """
     Start the divine proxy server!
-    
+
     Example:
         mcp-streamablehttp-proxy serve -- mcp-server-fetch --arg1 --arg2
     """
@@ -232,7 +232,7 @@ response = await client.post("/mcp", json=request, headers=headers)
     "id": "request-123"
 }
 
-# Error response  
+# Error response
 {
     "jsonrpc": "2.0",
     "error": {
@@ -271,7 +271,7 @@ async def test_proxy_lifecycle():
     await proxy.start()
     assert proxy.is_alive()
     await proxy.stop()
-    
+
 # Test request handling
 async def test_request_translation():
     proxy = MCPProxy(["mcp-test-server"])

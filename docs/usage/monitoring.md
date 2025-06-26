@@ -144,7 +144,7 @@ just ensure-services-ready
    ```bash
    # Check Redis logs
    just logs redis
-   
+
    # Test Redis connection
    just exec redis redis-cli ping
    ```
@@ -162,7 +162,7 @@ just ensure-services-ready
    ```bash
    # Run OAuth flow tests
    just test-oauth-flow
-   
+
    # Check auth logs
    just logs auth | grep "GitHub OAuth"
    ```
@@ -179,7 +179,7 @@ just ensure-services-ready
    ```bash
    # List and check token expiration
    just oauth-list-tokens
-   
+
    # Purge expired tokens
    just oauth-purge-expired
    ```
@@ -188,7 +188,7 @@ just ensure-services-ready
    ```bash
    # Show test registrations
    just test-cleanup-show
-   
+
    # Clean test data
    just test-cleanup
    ```

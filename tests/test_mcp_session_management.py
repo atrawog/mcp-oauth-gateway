@@ -21,9 +21,9 @@ MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
 class TestMCPSessionCreation:
     """Test MCP session creation and initialization."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_session_created_on_initialize(
-        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
     ):
         """Test that a session is created when client initializes."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -56,8 +56,8 @@ class TestMCPSessionCreation:
         # The proxy might return a session ID in headers
         # Session handling is internal to the proxy
 
-    @pytest.mark.asyncio
-    async def test_multiple_sessions_isolated(self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_multiple_sessions_isolated(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
         """Test that multiple clients get isolated sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
@@ -120,9 +120,9 @@ class TestMCPSessionCreation:
 class TestMCPSessionPersistence:
     """Test that sessions persist across requests."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_session_persists_between_requests(
-        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
     ):
         """Test that session state persists between requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -177,9 +177,9 @@ class TestMCPSessionPersistence:
         assert tools_response.status_code == HTTP_OK
         # If session wasn't maintained, this would fail as uninitialized
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_session_requires_initialization(
-        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
     ):
         """Test that operations fail without initialization."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -209,10 +209,10 @@ class TestMCPSessionPersistence:
 class TestMCPSessionTimeout:
     """Test session timeout behavior."""
 
-    @pytest.mark.asyncio
-    @pytest.mark.slow
+    @pytest.mark.asyncio()
+    @pytest.mark.slow()
     async def test_session_timeout_configuration(
-        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
     ):
         """Test that sessions respect timeout configuration."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -268,8 +268,8 @@ class TestMCPSessionTimeout:
         )
         assert tools_response.status_code == HTTP_OK
 
-    @pytest.mark.asyncio
-    async def test_session_activity_updates(self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_session_activity_updates(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
         """Test that session activity is updated on each request."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
@@ -321,9 +321,9 @@ class TestMCPSessionTimeout:
 class TestMCPSessionConcurrency:
     """Test concurrent request handling within sessions."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_concurrent_requests_same_session(
-        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
     ):
         """Test that concurrent requests to same session are handled properly."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -390,8 +390,8 @@ class TestMCPSessionConcurrency:
             assert "result" in data
             assert "tools" in data["result"]
 
-    @pytest.mark.asyncio
-    async def test_request_id_uniqueness(self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url):
+    @pytest.mark.asyncio()
+    async def test_request_id_uniqueness(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
         """Test that request IDs are properly tracked per session."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
@@ -456,9 +456,9 @@ class TestMCPSessionConcurrency:
 class TestMCPSessionCleanup:
     """Test session cleanup and resource management."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_session_cleanup_on_client_disconnect(
-        self, http_client: httpx.AsyncClient, wait_for_services, mcp_fetch_url
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
     ):
         """Test that sessions are cleaned up when client disconnects."""
         if not MCP_CLIENT_ACCESS_TOKEN:

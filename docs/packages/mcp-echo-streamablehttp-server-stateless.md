@@ -25,27 +25,27 @@ graph TB
         S1[Session Store]
         P1[Process Request]
         R1[Response]
-        
+
         C1 --> S1
         S1 --> P1
         P1 --> R1
     end
-    
+
     subgraph "Stateless Echo Server"
         C2[Client Request]
         T[Task Context]
         P2[Process Request]
         R2[Response]
-        
+
         C2 --> T
         T --> P2
         P2 --> R2
         T -.->|Cleanup| X[Discarded]
     end
-    
+
     classDef stateful fill:#fcc,stroke:#333,stroke-width:2px
     classDef stateless fill:#cfc,stroke:#333,stroke-width:2px
-    
+
     class C1,S1,P1,R1 stateful
     class C2,T,P2,R2,X stateless
 ```
@@ -59,7 +59,7 @@ graph LR
         I[Initialize Handler]
         L[Tools List Handler]
         TC[Tools Call Handler]
-        
+
         subgraph "Diagnostic Tools"
             T1[echo]
             T2[printHeader]
@@ -73,7 +73,7 @@ graph LR
             T10[whoIStheGOAT]
         end
     end
-    
+
     M --> I
     M --> L
     M --> TC
@@ -183,7 +183,7 @@ The server maintains request context per async task for stateless operation:
 class MCPEchoServer:
     def __init__(self):
         self._request_context = {}  # Task ID -> context
-    
+
     async def handle_mcp_request(self, request):
         task_id = id(asyncio.current_task())
         self._request_context[task_id] = {
@@ -239,7 +239,7 @@ def _error_response(self, request_id, code, message, data=None):
     }
     if data is not None:
         error["data"] = data
-    
+
     return {
         "jsonrpc": "2.0",
         "id": request_id,
@@ -283,7 +283,7 @@ MCP_ECHO_HOST=0.0.0.0
 MCP_ECHO_PORT=3000
 MCP_ECHO_DEBUG=false
 
-# Protocol configuration  
+# Protocol configuration
 MCP_PROTOCOL_VERSION=2025-06-18
 MCP_PROTOCOL_VERSIONS_SUPPORTED=2025-06-18,2024-11-05
 ```

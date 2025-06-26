@@ -167,7 +167,7 @@ event: message
 data: {"jsonrpc":"2.0","result":{...},"id":"request-id"}
 
 event: close
-data: 
+data:
 ```
 
 ## Common Methods
@@ -273,10 +273,10 @@ async with httpx.AsyncClient() as client:
             "id": "1"
         }
     )
-    
+
     init_result = response.json()
     session_id = init_result["result"]["sessionId"]
-    
+
     # Call method
     response = await client.post(
         "https://mcp-fetch.gateway.com/mcp",

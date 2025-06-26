@@ -26,25 +26,25 @@ graph TB
         S[Subprocess]
         M1[stdio]
         I[MCP Implementation]
-        
+
         C1 --> P
         P --> S
         S --> M1
         M1 --> I
     end
-    
+
     subgraph "Native Implementation"
         C2[HTTP Client]
         F[FastAPI Server]
         H[Handler Functions]
-        
+
         C2 --> F
         F --> H
     end
-    
+
     classDef traditional fill:#fcc,stroke:#333,stroke-width:2px
     classDef native fill:#cfc,stroke:#333,stroke-width:2px
-    
+
     class C1,P,S,M1,I traditional
     class C2,F,H native
 ```
@@ -317,10 +317,10 @@ app = FastAPI(title="MCP Fetch Streamable HTTP Server")
 @app.post("/mcp")
 async def mcp_endpoint(request: Request) -> Response:
     """Main MCP protocol endpoint"""
-    
+
     # Parse JSON-RPC request
     body = await request.json()
-    
+
     # Route to appropriate handler
     if body["method"] == "initialize":
         result = await handlers.handle_initialize(body["params"])
@@ -330,7 +330,7 @@ async def mcp_endpoint(request: Request) -> Response:
         result = await handlers.handle_tools_call(body["params"])
     else:
         result = {"error": {"code": -32601, "message": "Method not found"}}
-    
+
     # Return JSON-RPC response
     return Response(
         content=json.dumps({
@@ -381,7 +381,7 @@ async def fetch_url(url: str, **options) -> dict:
             follow_redirects=True,
             timeout=REQUEST_TIMEOUT
         )
-        
+
         return process_response(response)
 ```
 
@@ -477,7 +477,7 @@ The test suite covers:
 ```python
 async def test_fetch_tool():
     """Test fetch tool execution"""
-    
+
     # Start test server
     async with TestClient(app) as client:
         # Call fetch tool
@@ -492,7 +492,7 @@ async def test_fetch_tool():
             },
             "id": 1
         })
-        
+
         assert response.status_code == 200
         result = response.json()
         assert result["result"]["status_code"] == 200
@@ -523,7 +523,7 @@ class FetchService:
                 max_connections=100
             )
         )
-    
+
     async def fetch(self, url: str, **options):
         # Reuses connections
         return await self.client.request(...)
@@ -537,13 +537,13 @@ from cachetools import TTLCache
 class CachedFetchService:
     def __init__(self):
         self.cache = TTLCache(maxsize=1000, ttl=300)
-    
+
     async def fetch(self, url: str, **options):
         cache_key = f"{url}:{options}"
-        
+
         if cache_key in self.cache:
             return self.cache[cache_key]
-        
+
         result = await self._fetch_uncached(url, **options)
         self.cache[cache_key] = result
         return result
@@ -570,10 +570,10 @@ from mcp_fetch_streamablehttp_server import register_tool
 async def custom_tool(arguments: dict) -> dict:
     """Custom tool implementation"""
     param = arguments["param"]
-    
+
     # Tool logic here
     result = await process_param(param)
-    
+
     return {
         "result": result,
         "metadata": {
@@ -649,11 +649,11 @@ async def track_metrics(request: Request, call_next):
     start = time.time()
     response = await call_next(request)
     duration = time.time() - start
-    
+
     method = request.path_params.get("method", "unknown")
     request_count.labels(method=method, status=response.status_code).inc()
     request_duration.labels(method=method).observe(duration)
-    
+
     return response
 ```
 
@@ -665,19 +665,19 @@ async def track_metrics(request: Request, call_next):
 def validate_url(url: str) -> bool:
     """Validate URL for security"""
     parsed = urlparse(url)
-    
+
     # Check scheme
     if parsed.scheme not in ALLOWED_SCHEMES:
         return False
-    
+
     # Check for local addresses
     if is_local_address(parsed.hostname):
         return False
-    
+
     # Check against blocklist
     if is_blocked_domain(parsed.hostname):
         return False
-    
+
     return True
 ```
 
@@ -747,7 +747,7 @@ If migrating from `mcp-streamablehttp-proxy`:
            while True:
                event = await get_next_event()
                yield f"data: {json.dumps(event)}\n\n"
-       
+
        return StreamingResponse(generate(), media_type="text/event-stream")
    ```
 
@@ -756,7 +756,7 @@ If migrating from `mcp-streamablehttp-proxy`:
    @app.websocket("/mcp/ws")
    async def mcp_websocket(websocket: WebSocket):
        await websocket.accept()
-       
+
        while True:
            data = await websocket.receive_json()
            result = await handle_mcp_request(data)

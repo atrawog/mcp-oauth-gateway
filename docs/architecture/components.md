@@ -6,9 +6,9 @@ This document provides detailed information about each system component in the M
 
 ### Overview
 
-**Container**: `traefik:443/80`  
-**Image**: `traefik:v3.0`  
-**Networks**: `public` (external)  
+**Container**: `traefik:443/80`
+**Image**: `traefik:v3.0`
+**Networks**: `public` (external)
 **Role**: Entry point for all HTTP/HTTPS traffic
 
 Traefik serves as the intelligent edge router, providing:
@@ -31,16 +31,16 @@ graph TB
         P2[Priority 2<br/>MCP Endpoints<br/>/mcp with auth]
         P1[Priority 1<br/>Catch-all<br/>Default routing]
     end
-    
+
     P10 --> P4
     P4 --> P3
     P3 --> P2
     P2 --> P1
-    
+
     classDef high fill:#f99,stroke:#333,stroke-width:2px
     classDef medium fill:#fc9,stroke:#333,stroke-width:2px
     classDef low fill:#9cf,stroke:#333,stroke-width:2px
-    
+
     class P10 high
     class P4,P3 medium
     class P2,P1 low
@@ -52,20 +52,20 @@ graph TB
 # MCP Service Labels
 labels:
   - "traefik.enable=true"
-  
+
   # Discovery endpoint (Priority 10)
   - "traefik.http.routers.mcp-fetch-discovery.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
   - "traefik.http.routers.mcp-fetch-discovery.priority=10"
   - "traefik.http.routers.mcp-fetch-discovery.service=auth@docker"
   - "traefik.http.middlewares.discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
-  
+
   # MCP endpoint with auth (Priority 2)
   - "traefik.http.routers.mcp-fetch.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
   - "traefik.http.routers.mcp-fetch.priority=2"
   - "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@docker"
   - "traefik.http.routers.mcp-fetch.service=mcp-fetch"
   - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
-  
+
   # Catch-all (Priority 1)
   - "traefik.http.routers.mcp-fetch-catchall.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
   - "traefik.http.routers.mcp-fetch-catchall.priority=1"
@@ -81,12 +81,12 @@ sequenceDiagram
     participant Traefik
     participant Auth
     participant Service
-    
+
     Client->>Traefik: Request with Bearer token
-    
+
     Note over Traefik: ForwardAuth Check
     Traefik->>Auth: GET /verify<br/>Forward: Authorization header
-    
+
     alt Token Valid
         Auth->>Traefik: 200 OK<br/>X-User-Id: 123<br/>X-User-Name: john
         Traefik->>Service: Original request<br/>+ User headers
@@ -124,9 +124,9 @@ http:
 
 ### Architecture
 
-**Container**: `auth:8000`  
-**Package**: `mcp-oauth-dynamicclient`  
-**Framework**: FastAPI + Authlib  
+**Container**: `auth:8000`
+**Package**: `mcp-oauth-dynamicclient`
+**Framework**: FastAPI + Authlib
 **Role**: OAuth 2.1 Authorization Server
 
 The Auth Service is the core authentication component that:
@@ -145,34 +145,34 @@ graph TB
         PE2[GET /.well-known/*<br/>RFC 8414]
         PE3[GET /jwks<br/>Public keys]
     end
-    
+
     subgraph "User Auth Endpoints"
         UA1[GET /authorize<br/>Start OAuth flow]
         UA2[GET /callback<br/>GitHub callback]
         UA3[GET /success<br/>Success page]
     end
-    
+
     subgraph "Client Auth Endpoints"
         CA1[POST /token<br/>Token exchange]
         CA2[POST /revoke<br/>Token revocation]
         CA3[POST /introspect<br/>Token info]
     end
-    
+
     subgraph "Management Endpoints"
         ME1[GET /register/:id<br/>View client]
         ME2[PUT /register/:id<br/>Update client]
         ME3[DELETE /register/:id<br/>Delete client]
     end
-    
+
     subgraph "Internal Endpoints"
         IE1[GET/POST /verify<br/>ForwardAuth]
     end
-    
+
     classDef public fill:#9cf,stroke:#333,stroke-width:2px
     classDef auth fill:#fc9,stroke:#333,stroke-width:2px
     classDef mgmt fill:#c9f,stroke:#333,stroke-width:2px
     classDef internal fill:#ccc,stroke:#333,stroke-width:2px
-    
+
     class PE1,PE2,PE3 public
     class UA1,UA2,UA3,CA1,CA2,CA3 auth
     class ME1,ME2,ME3 mgmt
@@ -202,18 +202,18 @@ The Auth Service is powered by the `mcp-oauth-dynamicclient` package:
 stateDiagram-v2
     [*] --> ClientRegistration: POST /register
     ClientRegistration --> ClientCredentials: client_id + secret
-    
+
     ClientCredentials --> Authorization: GET /authorize
     Authorization --> GitHubOAuth: Redirect to GitHub
     GitHubOAuth --> Callback: Return with code
     Callback --> AuthorizationCode: Generate auth code
-    
+
     AuthorizationCode --> TokenExchange: POST /token
     TokenExchange --> JWTToken: Access + Refresh tokens
-    
+
     JWTToken --> ResourceAccess: Bearer token
     JWTToken --> TokenRefresh: POST /token (refresh)
-    
+
     ResourceAccess --> [*]
     TokenRefresh --> JWTToken
 ```
@@ -262,9 +262,9 @@ stateDiagram-v2
 
 ### Overview
 
-**Containers**: `mcp-*:3000`  
-**Wrapper**: `mcp-streamablehttp-proxy`  
-**Source**: Official modelcontextprotocol/servers  
+**Containers**: `mcp-*:3000`
+**Wrapper**: `mcp-streamablehttp-proxy`
+**Source**: Official modelcontextprotocol/servers
 **Role**: MCP protocol implementations
 
 MCP services are the actual functionality providers, completely isolated from authentication concerns. They receive pre-authenticated requests with user identity in headers.
@@ -275,34 +275,34 @@ MCP services are the actual functionality providers, completely isolated from au
 graph TB
     subgraph "MCP Service Container"
         direction TB
-        
+
         subgraph "Port 3000"
             H[HTTP/SSE Endpoint<br/>/mcp]
         end
-        
+
         subgraph "mcp-streamablehttp-proxy"
             PM[Process Manager]
             SB[Session Bridge]
             PB[Protocol Bridge]
             HM[Health Monitor]
         end
-        
+
         subgraph "Official MCP Server"
             STDIO[stdio interface]
             IMPL[MCP Implementation<br/>Tools, Resources, Prompts]
         end
-        
+
         H --> PM
         PM --> SB
         SB --> PB
         PB --> STDIO
         STDIO --> IMPL
     end
-    
+
     classDef endpoint fill:#9cf,stroke:#333,stroke-width:2px
     classDef proxy fill:#fc9,stroke:#333,stroke-width:2px
     classDef server fill:#9fc,stroke:#333,stroke-width:2px
-    
+
     class H endpoint
     class PM,SB,PB,HM proxy
     class STDIO,IMPL server
@@ -354,7 +354,7 @@ stateDiagram-v2
 
 ```yaml
 healthcheck:
-  test: ["CMD", "sh", "-c", 
+  test: ["CMD", "sh", "-c",
     "curl -s -X POST http://localhost:3000/mcp \
      -H 'Content-Type: application/json' \
      -H 'Accept: application/json, text/event-stream' \
@@ -396,9 +396,9 @@ services:
 
 ### Overview
 
-**Container**: `redis:6379`  
-**Image**: `redis:7-alpine`  
-**Networks**: `public` (internal only)  
+**Container**: `redis:6379`
+**Image**: `redis:7-alpine`
+**Networks**: `public` (internal only)
 **Role**: Persistent state management
 
 Redis serves as the central state store for all OAuth flows, client registrations, tokens, and MCP session data. It provides fast, atomic operations with configurable persistence.
@@ -411,28 +411,28 @@ graph TB
         OS1[oauth:state:STATE<br/>5 min TTL]
         OS2[oauth:pkce:CHALLENGE<br/>5 min TTL]
     end
-    
+
     subgraph "Client Data (Long-lived)"
         CD1[oauth:client:CLIENT_ID<br/>90 days / eternal]
         CD2[oauth:code:CODE<br/>1 year TTL]
     end
-    
+
     subgraph "Token Data (Medium-lived)"
         TD1[oauth:token:JTI<br/>30 days TTL]
         TD2[oauth:refresh:TOKEN<br/>1 year TTL]
         TD3[oauth:user_tokens:USERNAME<br/>No TTL]
     end
-    
+
     subgraph "Session Data (Dynamic)"
         SD1[redis:session:ID:state<br/>Session-based]
         SD2[redis:session:ID:messages<br/>Session-based]
     end
-    
+
     classDef shortlived fill:#fcc,stroke:#333,stroke-width:2px
     classDef longlived fill:#cfc,stroke:#333,stroke-width:2px
     classDef mediumlived fill:#ccf,stroke:#333,stroke-width:2px
     classDef dynamic fill:#ffc,stroke:#333,stroke-width:2px
-    
+
     class OS1,OS2 shortlived
     class CD1,CD2 longlived
     class TD1,TD2,TD3 mediumlived
@@ -490,7 +490,7 @@ graph LR
     subgraph "Single Instance (Current)"
         R1[Redis Primary<br/>AOF + RDB]
     end
-    
+
     subgraph "Sentinel HA (Option)"
         RP[Redis Primary]
         RS1[Redis Replica 1]
@@ -498,17 +498,17 @@ graph LR
         S1[Sentinel 1]
         S2[Sentinel 2]
         S3[Sentinel 3]
-        
+
         RP -.-> RS1
         RP -.-> RS2
         S1 & S2 & S3 --> RP & RS1 & RS2
     end
-    
+
     subgraph "Cluster (Option)"
         RC1[Redis Node 1<br/>Slots 0-5460]
         RC2[Redis Node 2<br/>Slots 5461-10922]
         RC3[Redis Node 3<br/>Slots 10923-16383]
-        
+
         RC1 <--> RC2
         RC2 <--> RC3
         RC1 <--> RC3
@@ -560,14 +560,14 @@ graph TB
     subgraph "Public Network"
         T[Traefik]
     end
-    
+
     subgraph "Internal Network"
         A[Auth]
         R[Redis]
         M1["MCP Service 1"]
         M2["MCP Service 2"]
     end
-    
+
     T -.->|"HTTP"| A
     T -.->|"HTTP"| M1
     T -.->|"HTTP"| M2

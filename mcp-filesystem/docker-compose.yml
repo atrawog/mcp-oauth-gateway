@@ -16,7 +16,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.mcp-filesystem.loadbalancer.server.port=3000"
-      
+
       # OAuth discovery route - Priority 10 (ABSOLUTE HIGHEST - must work without auth!)
       - "traefik.http.routers.mcp-filesystem-oauth-discovery.rule=Host(`filesystem.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
       - "traefik.http.routers.mcp-filesystem-oauth-discovery.priority=10"
@@ -25,10 +25,10 @@ services:
       - "traefik.http.routers.mcp-filesystem-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
       - "traefik.http.routers.mcp-filesystem-oauth-discovery.service=auth@docker"
       # No auth middleware - OAuth discovery must be public!
-      
+
       # Middleware to rewrite host header for auth service
       - "traefik.http.middlewares.oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
-      
+
       # CORS preflight route (OPTIONS) - Priority 4 (HIGHEST for OPTIONS)
       - "traefik.http.routers.mcp-filesystem-cors.rule=Host(`filesystem.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-filesystem-cors.priority=4"
@@ -36,7 +36,7 @@ services:
       - "traefik.http.routers.mcp-filesystem-cors.tls.certresolver=letsencrypt"
       - "traefik.http.routers.mcp-filesystem-cors.service=mcp-filesystem"
       # No auth middleware for CORS preflight!
-      
+
       # MCP route with auth - Priority 2
       # Use PathPrefix to handle both /mcp and /mcp/
       - "traefik.http.routers.mcp-filesystem.rule=Host(`filesystem.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
@@ -45,7 +45,7 @@ services:
       - "traefik.http.routers.mcp-filesystem.tls.certresolver=letsencrypt"
       - "traefik.http.routers.mcp-filesystem.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-filesystem.service=mcp-filesystem"
-      
+
       # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
       - "traefik.http.routers.mcp-filesystem-catchall.rule=Host(`filesystem.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-filesystem-catchall.priority=1"
@@ -53,7 +53,7 @@ services:
       - "traefik.http.routers.mcp-filesystem-catchall.tls.certresolver=letsencrypt"
       - "traefik.http.routers.mcp-filesystem-catchall.middlewares=mcp-auth@docker,mcp-cors@docker"
       - "traefik.http.routers.mcp-filesystem-catchall.service=mcp-filesystem"
-      
+
       # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)
       - "traefik.http.routers.mcp-filesystem-redirect.rule=Host(`filesystem.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-filesystem-redirect.entrypoints=web"

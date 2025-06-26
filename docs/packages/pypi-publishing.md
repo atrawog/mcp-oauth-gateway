@@ -7,7 +7,7 @@ This guide covers building, testing, and publishing the MCP OAuth Gateway Python
 The MCP OAuth Gateway contains four Python packages that can be published to PyPI:
 
 - **mcp-oauth-dynamicclient** - OAuth 2.1 Authorization Server Library
-- **mcp-streamablehttp-proxy** - Universal stdio-to-HTTP Bridge  
+- **mcp-streamablehttp-proxy** - Universal stdio-to-HTTP Bridge
 - **mcp-streamablehttp-client** - Client Bridge with OAuth Support
 - **mcp-fetch-streamablehttp-server** - Native MCP Server Implementation
 

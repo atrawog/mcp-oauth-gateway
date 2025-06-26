@@ -11,19 +11,19 @@ from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from tests.test_constants import MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture
+@pytest.fixture()
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture
+@pytest.fixture()
 def gateway_token():
     """Gateway OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
 
 
-@pytest.fixture
+@pytest.fixture()
 def client_token():
     """MCP client access token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
@@ -32,9 +32,9 @@ def client_token():
 class TestMCPFetchsRealContent:
     """Test fetching real content from various sources."""
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_fetchs_example_com_content(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
+    async def test_fetchs_example_com_content(self, mcp_fetchs_url, gateway_token, _wait_for_services):
         """Test fetching example.com and verifying content."""
         async with httpx.AsyncClient(verify=True) as client:
             # Initialize session
@@ -101,7 +101,7 @@ class TestMCPFetchsRealContent:
     # # REMOVED: This test used httpbin.org which violates our testing principles.
     # Per CLAUDE.md: Test against real deployed services (our own), not external ones.
     # async def test_fetchs_httpbin_endpoints(
-    #    #     self, mcp_fetchs_url, client_token, wait_for_services
+    #    #     self, mcp_fetchs_url, client_token, _wait_for_services
     #    # ):
     #    #     """Test various httpbin.org endpoints for different scenarios."""
     #    #     async with httpx.AsyncClient(verify=True) as client:
@@ -159,9 +159,9 @@ class TestMCPFetchsRealContent:
     #    #         content = data["result"]["content"][0]
     #    #         assert "MCP-Fetchs-Test/2.0" in content["text"]
     #    #
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_fetchs_auth_service_health(self, mcp_fetchs_url, base_domain, gateway_token, wait_for_services):
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
+    async def test_fetchs_auth_service_health(self, mcp_fetchs_url, base_domain, gateway_token, _wait_for_services):
         """Test fetching from our own auth service."""
         async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
@@ -203,7 +203,7 @@ class TestMCPFetchsRealContent:
 #    # # REMOVED: This test used httpbin.org which violates our testing principles.
 # Per CLAUDE.md: Test against real deployed services (our own), not external ones.
 # async def test_fetchs_redirect_following(
-# #    #     self, mcp_fetchs_url, gateway_token, wait_for_services
+# #    #     self, mcp_fetchs_url, gateway_token, _wait_for_services
 # #    # ):
 # #    #     """Test automatic redirect following."""
 # #    #     async with httpx.AsyncClient(verify=True) as client:
@@ -242,7 +242,7 @@ class TestMCPFetchsRealContent:
 # #    # # REMOVED: This test used httpbin.org which violates our testing principles.
 # Per CLAUDE.md: Test against real deployed services (our own), not external ones.
 # async def test_fetchs_different_content_types(
-# # #    #     self, mcp_fetchs_url, gateway_token, wait_for_services
+# # #    #     self, mcp_fetchs_url, gateway_token, _wait_for_services
 # # #    # ):
 # # #    #     """Test handling different content types."""
 # # #    #     content_type_tests = [
@@ -283,7 +283,7 @@ class TestMCPFetchsRealContent:
 # # #    # # REMOVED: This test used httpbin.org which violates our testing principles.
 # Per CLAUDE.md: Test against real deployed services (our own), not external ones.
 # async def test_fetchs_response_size_handling(
-# # # #    #     self, mcp_fetchs_url, gateway_token, wait_for_services
+# # # #    #     self, mcp_fetchs_url, gateway_token, _wait_for_services
 # # # #    # ):
 # # # #    #     """Test handling of large responses."""
 # # # #    #     async with httpx.AsyncClient(verify=True) as client:
@@ -325,7 +325,7 @@ class TestMCPFetchsRealContent:
 # # # #    # # REMOVED: This test used httpbin.org which violates our testing principles.
 # Per CLAUDE.md: Test against real deployed services (our own), not external ones.
 # async def test_fetchs_status_code_handling(
-# # # # #    #     self, mcp_fetchs_url, gateway_token, wait_for_services
+# # # # #    #     self, mcp_fetchs_url, gateway_token, _wait_for_services
 # # # # #    # ):
 # # # # #    #     """Test handling of various HTTP status codes."""
 # # # # #    #     status_codes = [200, 201, 301, 400, 401, 403, 404, 500, 502]

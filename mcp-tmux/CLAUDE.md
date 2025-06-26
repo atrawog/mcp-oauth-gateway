@@ -16,7 +16,7 @@ The MCP Tmux service enables secure interaction with tmux terminal sessions thro
 - **`new-session`**: Create new tmux sessions with specified names
 - **`kill-session`**: Terminate tmux sessions
 
-#### Window Operations  
+#### Window Operations
 - **`list-windows`**: List all windows within a session
 - **`new-window`**: Create new windows in existing sessions
 - **`select-window`**: Switch to specific windows
@@ -94,7 +94,7 @@ The MCP Tmux service enables secure interaction with tmux terminal sessions thro
 
 // Create new session
 {
-  "jsonrpc": "2.0", 
+  "jsonrpc": "2.0",
   "id": 2,
   "method": "tools/call",
   "params": {
@@ -113,7 +113,7 @@ The MCP Tmux service enables secure interaction with tmux terminal sessions thro
 {
   "jsonrpc": "2.0",
   "id": 3,
-  "method": "tools/call", 
+  "method": "tools/call",
   "params": {
     "name": "capture-pane",
     "arguments": {
@@ -135,7 +135,7 @@ The MCP Tmux service enables secure interaction with tmux terminal sessions thro
   "params": {
     "name": "execute-command",
     "arguments": {
-      "paneId": "%1", 
+      "paneId": "%1",
       "command": "ls -la",
       "waitForCompletion": true
     }
@@ -159,7 +159,7 @@ The MCP Tmux service enables secure interaction with tmux terminal sessions thro
 {
   "jsonrpc": "2.0",
   "id": 6,
-  "method": "resources/read", 
+  "method": "resources/read",
   "params": {
     "uri": "tmux://pane/%1"
   }
@@ -177,7 +177,7 @@ CMD ["/app/start.sh"]
 # Fish shell
 CMD ["/app/start.sh", "--shell-type=fish"]
 
-# Zsh shell  
+# Zsh shell
 CMD ["/app/start.sh", "--shell-type=zsh"]
 ```
 
@@ -321,7 +321,7 @@ docker logs mcp-oauth-gateway-mcp-tmux-1 -f
 
 ### Holy Trinity Adherence
 - **Traefik**: Routes OAuth and MCP requests with divine priority
-- **Auth Service**: Validates tokens with blessed ForwardAuth middleware  
+- **Auth Service**: Validates tokens with blessed ForwardAuth middleware
 - **MCP Service**: Provides pure tmux protocol functionality
 
 ### Testing Commandments

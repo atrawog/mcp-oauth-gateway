@@ -28,7 +28,7 @@ just up-fresh
 
 Services start in dependency order:
 1. Networks created via `just network-create`
-2. Volumes created via `just volumes-create` 
+2. Volumes created via `just volumes-create`
 3. Docker-compose includes generated
 4. All services start
 

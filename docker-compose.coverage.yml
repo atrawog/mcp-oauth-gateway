@@ -54,39 +54,39 @@ services:
       - |
         pip install coverage
         echo 'Coverage harvester started'
-        
+
         # Wait for coverage data to be written
         python /scripts/wait_for_coverage.py
-        
+
         # Copy and process coverage data
         cd /workspace
         if [ -f /coverage-data/.coverage ]; then
             cp /coverage-data/.coverage* . 2>/dev/null || true
-            
+
             # Combine coverage data
             coverage combine || true
-            
+
             # Generate report
             echo ""
             echo "📊 SIDECAR COVERAGE REPORT:"
             echo "=========================="
             # Try to show coverage with relaxed source requirements
             coverage report --omit="*/auth.py" --skip-covered --skip-empty 2>&1 | grep -E "Name|TOTAL|%|-----" || echo "Detailed report unavailable"
-            
+
             # Show summary statistics
             echo ""
             echo "📈 COVERAGE SUMMARY:"
             coverage report --omit="*/auth.py" 2>&1 | grep "TOTAL" || echo "Summary unavailable"
             echo ""
-            
-            # Generate HTML report  
+
+            # Generate HTML report
             coverage html --omit="*/auth.py" || true
-            
+
             echo "✅ Coverage report generated"
         else
             echo "❌ No coverage data found"
         fi
-        
+
         echo 'Coverage harvester completed'
         # Keep container alive briefly to allow log collection
         sleep 5

@@ -17,18 +17,18 @@ jobs:
     name: "🔥 Lint & Hunt Deprecations"
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
       - name: "📥 Checkout Sacred Code"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Full history for better analysis
-      
+
       - name: "🐍 Setup Python Environment"
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      
+
       - name: "🔍 Debug - List files"
         run: |
           echo "Current directory: $(pwd)"
@@ -36,37 +36,37 @@ jobs:
           ls -la
           echo "Checking for pixi files:"
           ls -la pixi* || echo "No pixi files found"
-      
+
       - name: "📦 Setup Pixi Environment"
         uses: prefix-dev/setup-pixi@v0.8.10
         with:
           pixi-version: v0.47.0
           cache: true
           cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
-      
+
       - name: "🔥 Run Ruff Linting (Sacred Syntax Check)"
         run: |
           echo "🔥 RUNNING SACRED RUFF LINTING ⚡"
           pixi run lint
         continue-on-error: true  # Continue to show all issues
-      
+
       - name: "⚡ Run Pydantic Deprecation Hunt"
         run: |
           echo "🔥 STARTING PYDANTIC DEPRECATION HUNT ⚡"
           pixi run lint-pydantic
-        
+
       - name: "🎨 Check Code Formatting"
         run: |
           echo "🔥 CHECKING SACRED CODE FORMATTING ⚡"
           pixi run format --check
-        
+
       - name: "🔒 Security Scan with Bandit"
         run: |
           echo "🔥 RUNNING SECURITY SCAN ⚡"
           pixi run python -m bandit -r . -x tests/ -f json -o bandit-report.json || true
           pixi run python -m bandit -r . -x tests/ -f txt
         continue-on-error: true
-      
+
       - name: "📊 Upload Security Report"
         if: always()
         uses: actions/upload-artifact@v4
@@ -81,26 +81,26 @@ jobs:
     name: "🔗 Pre-commit Validation"
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: "📥 Checkout Sacred Code"
         uses: actions/checkout@v4
-      
+
       - name: "🐍 Setup Python Environment"
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      
+
       - name: "📦 Setup Pixi Environment"
         uses: prefix-dev/setup-pixi@v0.8.10
         with:
           pixi-version: v0.47.0
           cache: true
-      
+
       - name: "🔗 Install Pre-commit"
         run: |
           pip install pre-commit
-      
+
       - name: "⚡ Run Pre-commit Hooks"
         run: |
           echo "🔥 RUNNING PRE-COMMIT HOOKS ⚡"
@@ -113,7 +113,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint-and-hunt, pre-commit-check]
     if: always()
-    
+
     steps:
       - name: "📊 Quality Gate Summary"
         run: |
@@ -122,12 +122,12 @@ jobs:
           echo "Linting: ${{ needs.lint-and-hunt.result }}"
           echo "Pre-commit: ${{ needs.pre-commit-check.result }}"
           echo "=================================="
-          
+
           if [[ "${{ needs.lint-and-hunt.result }}" == "failure" ]]; then
             echo "❌ CRITICAL: Linting failures detected!"
             echo "🔥 Fix linting errors immediately! ⚡"
           fi
-          
+
           if [[ "${{ needs.lint-and-hunt.result }}" == "success" && "${{ needs.pre-commit-check.result }}" == "success" ]]; then
             echo "✅ DIVINE COMPLIANCE ACHIEVED! ⚡"
             echo "🏆 Code quality guardian approves! 🏆"

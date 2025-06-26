@@ -11,26 +11,26 @@ graph TB
         CR --> CC[client_id + client_secret<br/>OAuth credentials]
         CR --> RT[registration_access_token<br/>Client management only]
     end
-    
+
     subgraph "User Authentication"
         UA[GET /authorize<br/>Requires client_id]
         UA --> GH[GitHub OAuth<br/>User authenticates]
         GH --> CB[Callback with<br/>GitHub user info]
         CB --> AC[Authorization code<br/>Binds client + user]
     end
-    
+
     subgraph "Token Exchange"
         TE[POST /token<br/>client_id + client_secret<br/>+ auth code + PKCE]
         TE --> JWT[JWT access_token<br/>Contains both identities]
     end
-    
+
     CC --> UA
     AC --> TE
-    
+
     classDef registration fill:#9cf,stroke:#333,stroke-width:2px
     classDef auth fill:#fc9,stroke:#333,stroke-width:2px
     classDef token fill:#9fc,stroke:#333,stroke-width:2px
-    
+
     class CR,CC,RT registration
     class UA,GH,CB,AC auth
     class TE,JWT token
@@ -45,12 +45,12 @@ sequenceDiagram
     participant Gateway as MCP OAuth Gateway
     participant GitHub as GitHub OAuth
     participant Redis as Redis Store
-    
+
     Note over Client,Redis: Step 1: Client Registration (One-time)
     Client->>Gateway: POST /register<br/>{redirect_uris, client_name}
     Gateway->>Redis: Store client registration
     Gateway->>Client: 201 Created<br/>client_id: abc123<br/>client_secret: xyz789<br/>registration_access_token: reg_tok
-    
+
     Note over Client,Redis: Step 2: User Authorization
     User->>Client: Initiate connection
     Client->>Client: Generate PKCE<br/>code_verifier & code_challenge
@@ -66,7 +66,7 @@ sequenceDiagram
     Gateway->>Redis: Store auth code with<br/>client_id + user info
     Gateway->>User: 302 Redirect<br/>?code=auth_code
     User->>Client: Auth code received
-    
+
     Note over Client,Redis: Step 3: Token Exchange
     Client->>Gateway: POST /token<br/>client_id=abc123<br/>client_secret=xyz789<br/>code=auth_code<br/>code_verifier=...
     Gateway->>Redis: Validate client credentials
@@ -75,7 +75,7 @@ sequenceDiagram
     Gateway->>Gateway: Generate JWT with:<br/>- sub: github_user_id<br/>- username: johndoe<br/>- client_id: abc123
     Gateway->>Redis: Store tokens
     Gateway->>Client: 200 OK<br/>access_token: JWT<br/>refresh_token: opaque
-    
+
     Note over Client,Redis: Step 4: Access Resources
     Client->>Gateway: GET /mcp<br/>Authorization: Bearer JWT
     Gateway->>Gateway: Validate JWT<br/>Extract identities

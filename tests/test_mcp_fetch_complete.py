@@ -28,8 +28,8 @@ from .test_constants import TEST_OAUTH_CALLBACK_URL
 class TestMCPFetchComplete:
     """Test actual MCP fetch functionality - no shortcuts allowed!"""
 
-    @pytest.mark.asyncio
-    async def test_mcp_fetch_actually_fetches_content(self, http_client, wait_for_services, mcp_test_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_fetch_actually_fetches_content(self, http_client, _wait_for_services, mcp_test_url):
         """This test MUST:
 
         1. Complete the FULL OAuth flow (no fake tokens!)
@@ -201,8 +201,8 @@ class TestMCPFetchComplete:
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
-    async def test_mcp_fetch_validates_url_parameter(self, http_client, wait_for_services, mcp_test_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_fetch_validates_url_parameter(self, http_client, _wait_for_services, mcp_test_url):
         """Test that MCP fetch properly validates the URL parameter."""
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
@@ -252,8 +252,8 @@ class TestMCPFetchComplete:
             print(f"✓ Got expected validation error: {e}")
             return
 
-    @pytest.mark.asyncio
-    async def test_mcp_fetch_handles_invalid_urls(self, http_client, wait_for_services, mcp_test_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_fetch_handles_invalid_urls(self, http_client, _wait_for_services, mcp_test_url):
         """Test that MCP fetch properly handles invalid URLs."""
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
@@ -311,8 +311,8 @@ class TestMCPFetchComplete:
                 print(f"✓ Got expected error for '{invalid_url}': {e}")
                 continue
 
-    @pytest.mark.asyncio
-    async def test_mcp_fetch_respects_max_size(self, http_client, wait_for_services, mcp_test_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_fetch_respects_max_size(self, http_client, _wait_for_services, mcp_test_url):
         """Test that MCP fetch respects max_size parameter."""
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN") or os.getenv("OAUTH_JWT_TOKEN")
         if not oauth_token:
@@ -362,8 +362,8 @@ class TestMCPFetchComplete:
             # Tool might reject very small max_length
             print(f"✓ Server handled small max_length appropriately: {e}")
 
-    @pytest.mark.asyncio
-    async def test_mcp_fetch_without_auth_must_fail(self, http_client, wait_for_services, mcp_test_url):
+    @pytest.mark.asyncio()
+    async def test_mcp_fetch_without_auth_must_fail(self, http_client, _wait_for_services, mcp_test_url):
         """Test that MCP fetch ALWAYS requires authentication - no exceptions!"""
         mcp_request = {
             "jsonrpc": "2.0",
@@ -375,9 +375,9 @@ class TestMCPFetchComplete:
         # Test 1: No auth header at all
         response = await http_client.post(f"{mcp_test_url}", json=mcp_request)
 
-        assert response.status_code == HTTP_UNAUTHORIZED, (
-            f"SECURITY VIOLATION! Got {response.status_code} without auth! MCP fetch MUST require authentication!"
-        )
+        assert (
+            response.status_code == HTTP_UNAUTHORIZED
+        ), f"SECURITY VIOLATION! Got {response.status_code} without auth! MCP fetch MUST require authentication!"
         assert "WWW-Authenticate" in response.headers, "Missing WWW-Authenticate header!"
         assert response.headers["WWW-Authenticate"] == "Bearer", "Wrong auth challenge!"
 
@@ -394,9 +394,9 @@ class TestMCPFetchComplete:
             headers={"Authorization": "Bearer completely-invalid-token"},
         )
 
-        assert response.status_code == HTTP_UNAUTHORIZED, (
-            f"SECURITY VIOLATION! Got {response.status_code} with invalid token! MCP fetch MUST validate tokens!"
-        )
+        assert (
+            response.status_code == HTTP_UNAUTHORIZED
+        ), f"SECURITY VIOLATION! Got {response.status_code} with invalid token! MCP fetch MUST validate tokens!"
 
         # Test 4: Wrong auth scheme
         response = await http_client.post(
@@ -405,16 +405,16 @@ class TestMCPFetchComplete:
             headers={"Authorization": "Basic dXNlcjpwYXNz"},  # Basic auth
         )
 
-        assert response.status_code == HTTP_UNAUTHORIZED, (
-            f"SECURITY VIOLATION! Got {response.status_code} with Basic auth! MCP fetch MUST only accept Bearer tokens!"
-        )
+        assert (
+            response.status_code == HTTP_UNAUTHORIZED
+        ), f"SECURITY VIOLATION! Got {response.status_code} with Basic auth! MCP fetch MUST only accept Bearer tokens!"
 
 
 @pytest.mark.skipif(
     not MCP_FETCH_TESTS_ENABLED, reason="MCP Fetch tests are disabled. Set MCP_FETCH_TESTS_ENABLED=true to enable."
 )
-@pytest.mark.asyncio
-async def test_complete_oauth_flow_integration(http_client, wait_for_services, mcp_test_url):
+@pytest.mark.asyncio()
+async def test_complete_oauth_flow_integration(http_client, _wait_for_services, mcp_test_url):
     """The ultimate test - complete OAuth flow with actual functionality verification.
 
     This test MUST FAIL if ANY part doesn't work 100%!
@@ -495,9 +495,9 @@ async def test_complete_oauth_flow_integration(http_client, wait_for_services, m
         content_text = json.dumps(mcp_result)
 
     # example.com returns a simple HTML page
-    assert "example" in content_text.lower() or "domain" in content_text.lower(), (
-        f"Didn't get expected content from example.com! Got: {content_text[:200]}"
-    )
+    assert (
+        "example" in content_text.lower() or "domain" in content_text.lower()
+    ), f"Didn't get expected content from example.com! Got: {content_text[:200]}"
 
     print("✅ COMPLETE INTEGRATION TEST PASSED!")
     print("✅ OAuth + MCP + Fetch all working together!")

@@ -23,8 +23,8 @@ from .test_constants import REDIS_URL
 class TestSacredSealsCompliance:
     """Test all 25 Sacred Seals for 100% divine compliance."""
 
-    @pytest.mark.asyncio
-    async def test_redis_key_patterns_and_ttls(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_redis_key_patterns_and_ttls(self, http_client, _wait_for_services):
         """Test SEAL OF REDIS PATTERNS - Sacred key hierarchies preserve all state."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
@@ -141,8 +141,8 @@ class TestSacredSealsCompliance:
             except Exception as e:
                 logger.warning(f"Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
-    async def test_dual_realms_architecture(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_dual_realms_architecture(self, http_client, _wait_for_services):
         """Test SEAL OF DUAL REALMS - Client auth and user auth never intermingle."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
@@ -229,7 +229,7 @@ class TestSacredSealsCompliance:
             except Exception as e:
                 logger.warning(f"Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sacred_directory_structure(self):
         """Test SEAL OF SACRED STRUCTURE - Divine directory isolation."""
         # Verify all sacred directories exist per Commandment 3
@@ -291,11 +291,11 @@ class TestSacredSealsCompliance:
             # Skip pixi environment files
             if ".pixi" in str(py_file):
                 continue  # These are installed packages, not our tests
-            assert py_file.parent.name == "tests" or "tests" in str(py_file.parent), (
-                f"Test file {py_file} violates sacred structure - must be in ./tests/!"
-            )
+            assert py_file.parent.name == "tests" or "tests" in str(
+                py_file.parent
+            ), f"Test file {py_file} violates sacred structure - must be in ./tests/!"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_sidecar_coverage_collection(self):
         """Test SEAL OF SIDECAR COVERAGE - Production containers measured without contamination."""
         # Verify sidecar coverage setup exists
@@ -310,9 +310,9 @@ class TestSacredSealsCompliance:
 
         # Check sitecustomize.py has proper coverage initialization
         sitecustomize_content = Path("./coverage-spy/sitecustomize.py").read_text()
-        assert "coverage.process_startup()" in sitecustomize_content, (
-            "sitecustomize.py must call coverage.process_startup()!"
-        )
+        assert (
+            "coverage.process_startup()" in sitecustomize_content
+        ), "sitecustomize.py must call coverage.process_startup()!"
 
         # Check docker-compose.coverage.yml has proper setup
         coverage_compose = Path("./docker-compose.coverage.yml").read_text()
@@ -321,9 +321,9 @@ class TestSacredSealsCompliance:
         assert "PYTHONPATH=/coverage-spy" in coverage_compose, "Coverage must be injected via PYTHONPATH!"
 
         # Verify COVERAGE_PROCESS_START
-        assert "COVERAGE_PROCESS_START=" in coverage_compose, (
-            "COVERAGE_PROCESS_START must be set for subprocess coverage!"
-        )
+        assert (
+            "COVERAGE_PROCESS_START=" in coverage_compose
+        ), "COVERAGE_PROCESS_START must be set for subprocess coverage!"
 
         # Verify read-only mounts
         assert ":ro" in coverage_compose, "Source mounts must be read-only - observer pattern!"
@@ -346,7 +346,7 @@ class TestSacredSealsCompliance:
         assert "/app" in coveragerc_content, "Must map container path /app!"
         assert "./auth" in coveragerc_content, "Must map local path ./auth!"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_documentation_build(self):
         """Test SEAL OF DOCUMENTATION - Jupyter Book with MyST preserves all wisdom."""
         # Check Jupyter Book configuration exists

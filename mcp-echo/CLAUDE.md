@@ -63,13 +63,13 @@ labels:
   # Basic routing - priority 2
   - "traefik.http.routers.mcp-echo.rule=Host(`echo.${BASE_DOMAIN}`)"
   - "traefik.http.routers.mcp-echo.priority=2"
-  
+
   # ForwardAuth middleware - divine authentication
   - "traefik.http.routers.mcp-echo.middlewares=mcp-auth@docker"
-  
+
   # Service definition
   - "traefik.http.services.mcp-echo.loadbalancer.server.port=3000"
-  
+
   # OAuth discovery routing - priority 10
   - "traefik.http.routers.mcp-echo-oauth-discovery.rule=..."
   - "traefik.http.routers.mcp-echo-oauth-discovery.priority=10"

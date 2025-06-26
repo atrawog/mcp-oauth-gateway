@@ -15,8 +15,8 @@ from .test_constants import HTTP_UNAUTHORIZED
 class TestRegisterEndpointSecurity:
     """Test OAuth client registration endpoint security."""
 
-    @pytest.mark.asyncio
-    async def test_register_is_public_endpoint(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_register_is_public_endpoint(self, http_client, _wait_for_services):
         """Test that /register endpoint is public per RFC 7591."""
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
@@ -49,8 +49,8 @@ class TestRegisterEndpointSecurity:
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
-    async def test_register_ignores_authorization_headers(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_register_ignores_authorization_headers(self, http_client, _wait_for_services):
         """Test that /register endpoint ignores auth headers per RFC 7591."""
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
@@ -85,8 +85,8 @@ class TestRegisterEndpointSecurity:
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
-    async def test_security_enforced_at_authorization_stage(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_security_enforced_at_authorization_stage(self, http_client, _wait_for_services):
         """Test that security is enforced at authorization, not registration."""
         # First, register a client publicly (no auth required)
         registration_data = {
@@ -131,8 +131,8 @@ class TestRegisterEndpointSecurity:
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
-    async def test_register_with_valid_token_still_succeeds(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_register_with_valid_token_still_succeeds(self, http_client, _wait_for_services):
         """Test that /register endpoint succeeds even with valid token (public endpoint)."""
         # Even if we have a valid token, registration should still work
         # because it's a public endpoint per RFC 7591
@@ -169,8 +169,8 @@ class TestRegisterEndpointSecurity:
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
-    async def test_token_endpoint_requires_authentication(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_token_endpoint_requires_authentication(self, http_client, _wait_for_services):
         """Test that token endpoint requires proper client authentication."""
         # First register a client (public, no auth)
         reg_response = await http_client.post(
@@ -212,8 +212,8 @@ class TestRegisterEndpointSecurity:
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
-    async def test_multiple_clients_can_register_publicly(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_multiple_clients_can_register_publicly(self, http_client, _wait_for_services):
         """Test that multiple clients can register without authentication."""
         # Register multiple clients to verify public registration works
         clients = []
@@ -257,8 +257,8 @@ class TestRegisterEndpointSecurity:
 class TestRegisterEndpointBootstrap:
     """Test bootstrap scenarios for OAuth client registration."""
 
-    @pytest.mark.asyncio
-    async def test_anyone_can_register_multiple_clients(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_anyone_can_register_multiple_clients(self, http_client, _wait_for_services):
         """Test that anyone can register multiple OAuth clients (public endpoint)."""
         # RFC 7591: Dynamic client registration is a public endpoint
         # No authentication required for registration

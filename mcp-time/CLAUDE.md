@@ -96,7 +96,7 @@ mcp-streamablehttp-client --raw '{"method": "tools/call", "params": {"name": "ge
 
 The service is tested via the comprehensive MCP test suite:
 - Protocol compliance tests
-- Tool execution tests  
+- Tool execution tests
 - Authentication flow tests
 - Error handling validation
 - Timezone accuracy tests

@@ -17,8 +17,8 @@ from .test_constants import TEST_OAUTH_CALLBACK_URL
 class TestPKCES256Enforcement:
     """Test PKCE S256 enforcement per CLAUDE.md sacred commandments."""
 
-    @pytest.mark.asyncio
-    async def test_pkce_plain_method_rejected(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_pkce_plain_method_rejected(self, http_client, _wait_for_services):
         """Verify that plain PKCE method is rejected per CLAUDE.md commandments."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
@@ -77,8 +77,8 @@ class TestPKCES256Enforcement:
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
-    async def test_pkce_s256_proper_validation(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_pkce_s256_proper_validation(self, http_client, _wait_for_services):
         """Verify S256 PKCE validation actually works correctly."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
@@ -136,16 +136,16 @@ class TestPKCES256Enforcement:
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
-    @pytest.mark.asyncio
-    async def test_pkce_s256_wrong_verifier_rejected(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_pkce_s256_wrong_verifier_rejected(self, http_client, _wait_for_services):
         """Verify that incorrect PKCE verifier is rejected through full OAuth flow."""
         # This test verifies PKCE validation by attempting authorization with wrong challenge
         # A full OAuth flow test would require simulating GitHub callback
         # For now we verify that S256 is required and plain is rejected
         # Covered by other tests
 
-    @pytest.mark.asyncio
-    async def test_server_metadata_only_advertises_s256(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_server_metadata_only_advertises_s256(self, http_client, _wait_for_services):
         """Verify server metadata only advertises S256 support."""
         response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
         assert response.status_code == HTTP_OK

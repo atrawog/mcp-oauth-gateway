@@ -20,7 +20,7 @@ just up --force-recreate
 # Start all services with fresh build
 just up-fresh
 
-# Stop all services  
+# Stop all services
 just down
 
 # Stop with options (remove volumes/orphans)

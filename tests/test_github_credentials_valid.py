@@ -18,7 +18,7 @@ from .test_constants import HTTP_UNAUTHORIZED
 class TestGitHubCredentialsValid:
     """Verify GitHub OAuth credentials are still valid."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_github_pat_valid(self):
         """Test if GITHUB_PAT is still valid."""
         github_pat = os.getenv("GITHUB_PAT")
@@ -56,7 +56,7 @@ class TestGitHubCredentialsValid:
             else:
                 pytest.fail(f"Unexpected response: {response.status_code} - {response.text}")
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_oauth_client_credentials_valid(self):
         """Test if GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET are still valid."""
         oauth_client_id = os.getenv("GATEWAY_OAUTH_CLIENT_ID")
@@ -90,8 +90,8 @@ class TestGitHubCredentialsValid:
             f"✅ GATEWAY_OAUTH_CLIENT_SECRET format valid: {len(oauth_client_secret)} chars"  # TODO: Break long line
         )
 
-    @pytest.mark.asyncio
-    async def test_github_oauth_app_valid(self, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_github_oauth_app_valid(self, _wait_for_services):
         """Test if GitHub OAuth app credentials are valid."""
         # Try to reach GitHub OAuth authorize endpoint with our app
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -144,7 +144,7 @@ class TestGitHubCredentialsValid:
                     "This might indicate invalid OAuth app credentials."
                 )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_all_required_credentials_present(self):
         """Ensure all required credentials are set."""
         required_vars = {

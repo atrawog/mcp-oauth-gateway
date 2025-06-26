@@ -27,17 +27,17 @@ graph LR
         C[HTTP Client]
         H[HTTP Endpoint<br/>/mcp]
     end
-    
+
     subgraph "mcp-streamablehttp-proxy"
         PM[Process Manager]
         SB[Session Bridge]
         PB[Protocol Bridge]
     end
-    
+
     subgraph "stdio World"
         MS[MCP Server<br/>stdin/stdout]
     end
-    
+
     C -->|HTTP POST| H
     H --> PM
     PM --> SB
@@ -47,11 +47,11 @@ graph LR
     PB --> SB
     SB --> H
     H -->|HTTP Response| C
-    
+
     classDef http fill:#9cf,stroke:#333,stroke-width:2px
     classDef proxy fill:#fc9,stroke:#333,stroke-width:2px
     classDef stdio fill:#9fc,stroke:#333,stroke-width:2px
-    
+
     class C,H http
     class PM,SB,PB proxy
     class MS stdio
@@ -75,18 +75,18 @@ mcp_streamablehttp_proxy/
 ```python
 class MCPProxy:
     """Core stdio-HTTP bridge implementation"""
-    
+
     def __init__(self, stdio_command: List[str]):
         self.command = stdio_command
         self.sessions = {}  # Active sessions
         self.process = None
-        
+
     async def start(self):
         """Spawn MCP server subprocess"""
-        
+
     async def handle_request(self, request: dict, session_id: Optional[str]) -> dict:
         """Bridge HTTP request to stdio and back"""
-        
+
     async def stop(self):
         """Graceful shutdown"""
 ```
@@ -606,7 +606,7 @@ Run multiple servers on different ports:
 # Terminal 1
 mcp-streamablehttp-proxy serve --port 3001 -- mcp-server-fetch
 
-# Terminal 2  
+# Terminal 2
 mcp-streamablehttp-proxy serve --port 3002 -- mcp-server-filesystem /data
 
 # Terminal 3

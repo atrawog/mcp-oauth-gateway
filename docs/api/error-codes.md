@@ -251,12 +251,12 @@ try:
     response = await client.post("/mcp", json=request)
     response.raise_for_status()
     result = response.json()
-    
+
     if "error" in result:
         handle_mcp_error(result["error"])
     else:
         process_result(result["result"])
-        
+
 except httpx.HTTPStatusError as e:
     if e.response.status_code == 401:
         # Refresh token and retry

@@ -51,22 +51,22 @@ mcp_oauth_dynamicclient/
 ```python
 class Settings(BaseSettings):
     """Divine configuration with automatic validation!"""
-    
+
     # GitHub OAuth settings
     github_client_id: str
     github_client_secret: str
-    
+
     # JWT configuration
     gateway_jwt_secret: str
     gateway_jwt_algorithm: str = "HS256"
     gateway_jwt_expire_minutes: int = 43200  # 30 days
-    
+
     # Redis connection
     redis_url: str = "redis://redis:6379/0"
-    
+
     # OAuth settings
     client_lifetime: int = 7776000  # 90 days (0 = eternal)
-    
+
     model_config = SettingsConfigDict(env_file=".env")
 ```
 
@@ -81,7 +81,7 @@ class OAuthClient(BaseModel):
     redirect_uris: List[str]
     created_at: datetime
     expires_at: Optional[datetime]
-    
+
 # Token models with divine claims
 class TokenData(BaseModel):
     sub: str  # Subject (user ID)
@@ -132,13 +132,13 @@ oauth_server.register_extension(CodeChallengeExtension)
 ```python
 class RedisClient:
     """Divine Redis operations for OAuth state!"""
-    
+
     async def store_client(self, client_data: dict) -> None:
         """Store client registration eternally!"""
-        
+
     async def store_token(self, token: str, data: dict) -> None:
         """Store token with TTL blessing!"""
-        
+
     async def get_and_delete(self, key: str) -> Optional[str]:
         """Atomic get-and-delete for security!"""
 ```
@@ -150,10 +150,10 @@ class RedisClient:
 # RFC 7592 compliant client management
 async def get_client_registration(client_id: str, token: str):
     """View client registration with bearer auth!"""
-    
+
 async def update_client_registration(client_id: str, token: str, data: dict):
     """Update registration with validation!"""
-    
+
 async def delete_client_registration(client_id: str, token: str):
     """Revoke client with divine finality!"""
 ```
@@ -205,7 +205,7 @@ pixi run mcp-oauth-token
 
 # The sacred flow:
 # 1. Opens browser for GitHub auth
-# 2. Captures callback automatically  
+# 2. Captures callback automatically
 # 3. Saves tokens to .env file
 # 4. Ready for immediate use!
 ```
@@ -236,7 +236,7 @@ token_data = await verify_token(bearer_token)
 - **JTI tracking** - Unique token identifiers!
 - **Redis blacklist** - Revocation support!
 
-### Client Security  
+### Client Security
 - **Secure random secrets** - 32-byte entropy!
 - **Registration tokens** - RFC 7592 bearer auth!
 - **Redirect URI validation** - No open redirects!
@@ -293,7 +293,7 @@ pixi run pytest --cov=mcp_oauth_dynamicclient
 # App creation
 app = create_app(settings: Optional[Settings] = None)
 
-# Token operations  
+# Token operations
 token_data = await verify_token(token: str) -> TokenData
 access_token = create_access_token(data: dict) -> str
 

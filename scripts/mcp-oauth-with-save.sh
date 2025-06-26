@@ -20,7 +20,7 @@ echo "$OUTPUT" | grep "^export MCP_CLIENT_" | while read -r line; do
     if [[ $line =~ ^export\ ([^=]+)=(.+)$ ]]; then
         KEY="${BASH_REMATCH[1]}"
         VALUE="${BASH_REMATCH[2]}"
-        
+
         # Save to .env
         if grep -q "^$KEY=" .env 2>/dev/null; then
             # Update existing

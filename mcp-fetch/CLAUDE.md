@@ -150,13 +150,13 @@ labels:
   # Basic routing - priority 2
   - "traefik.http.routers.mcp-fetch.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
   - "traefik.http.routers.mcp-fetch.priority=2"
-  
+
   # ForwardAuth middleware - divine authentication
   - "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@docker"
-  
+
   # Service definition
   - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
-  
+
   # OAuth discovery routing - priority 10
   - "traefik.http.routers.mcp-fetch-oauth-discovery.rule=..."
   - "traefik.http.routers.mcp-fetch-oauth-discovery.priority=10"

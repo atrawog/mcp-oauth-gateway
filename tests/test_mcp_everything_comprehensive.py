@@ -11,13 +11,13 @@ from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
 from tests.test_constants import MCP_EVERYTHING_URLS
 
 
-@pytest.fixture
+@pytest.fixture()
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture
+@pytest.fixture()
 def everything_url():
     """Full URL for everything service."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
@@ -27,13 +27,13 @@ def everything_url():
     return MCP_EVERYTHING_URLS[0]
 
 
-@pytest.fixture
+@pytest.fixture()
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture
+@pytest.fixture()
 async def wait_for_services():
     """Ensure all services are ready."""
     # Services are already checked by conftest
@@ -66,8 +66,8 @@ class TestMCPEverythingComprehensive:
 
         return result.returncode, result.stdout, result.stderr
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_echo_tool(self, everything_url, client_token, wait_for_services):
         """Test the echo tool with a message."""
@@ -84,8 +84,8 @@ class TestMCPEverythingComprehensive:
         assert returncode == 0
         assert "Hello from comprehensive test!" in stdout
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_add_tool(self, everything_url, client_token, wait_for_services):
         """Test the add tool with two numbers."""
@@ -101,8 +101,8 @@ class TestMCPEverythingComprehensive:
         assert returncode == 0
         assert "8" in stdout or "5 + 3 = 8" in stdout
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_add_tool_key_value(self, everything_url, client_token, wait_for_services):
         """Test the add tool with key=value format."""
@@ -117,8 +117,8 @@ class TestMCPEverythingComprehensive:
         assert returncode == 0
         assert "25" in stdout or "10 + 15 = 25" in stdout
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_printenv_tool(self, everything_url, client_token, wait_for_services):
         """Test the printEnv tool."""
@@ -132,8 +132,8 @@ class TestMCPEverythingComprehensive:
         # Should show environment variables
         assert "Environment Variables" in stdout or "PATH" in stdout or "=" in stdout
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_annotated_message_tool(self, everything_url, client_token, wait_for_services):
         """Test the annotatedMessage tool with different message types."""
@@ -165,8 +165,8 @@ class TestMCPEverythingComprehensive:
         assert returncode == 0
         assert "success" in stdout.lower() or "Success" in stdout
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_get_resource_reference(self, everything_url, client_token, wait_for_services):
         """Test the getResourceReference tool."""
@@ -184,8 +184,8 @@ class TestMCPEverythingComprehensive:
         # Should return a resource reference
         assert "resource" in stdout.lower() or "42" in stdout
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_invalid_tool_parameters(self, everything_url, client_token, wait_for_services):
         """Test error handling for invalid tool parameters."""
@@ -200,8 +200,8 @@ class TestMCPEverythingComprehensive:
         assert returncode == 1
         assert "error" in stdout.lower() or "failed" in stdout.lower()
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_multiple_tools_sequence(self, everything_url, client_token, wait_for_services):
         """Test running multiple tools in sequence."""

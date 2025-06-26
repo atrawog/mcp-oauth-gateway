@@ -9,7 +9,7 @@ The MCP Sequential Thinking server provides structured, dynamic problem-solving 
 ## Features
 
 - 🧠 **Structured Problem Solving**: Break complex problems into manageable steps
-- 🔄 **Iterative Refinement**: Revise and refine thoughts as understanding deepens  
+- 🔄 **Iterative Refinement**: Revise and refine thoughts as understanding deepens
 - 🌳 **Branching Logic**: Explore alternative paths of reasoning
 - 📈 **Dynamic Scaling**: Adjust the total number of thoughts dynamically
 - ✅ **Hypothesis Testing**: Generate and verify solution hypotheses
@@ -74,7 +74,7 @@ mcp-streamablehttp-client --raw '{"method": "tools/call", "params": {"name": "se
 
 The service is tested via the comprehensive MCP test suite:
 - Protocol compliance tests
-- Tool execution tests  
+- Tool execution tests
 - Authentication flow tests
 - Error handling validation
 
@@ -120,7 +120,7 @@ The service provides structured thinking tools for:
 ### Common Issues
 
 1. **Thinking process not starting**: Check tool parameters and format
-2. **Authentication failures**: Verify OAuth token validity  
+2. **Authentication failures**: Verify OAuth token validity
 3. **Service not responding**: Check container logs and health status
 
 ### Debugging

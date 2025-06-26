@@ -16,13 +16,13 @@ from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
 from tests.test_constants import MCP_EVERYTHING_URLS
 
 
-@pytest.fixture
+@pytest.fixture()
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture
+@pytest.fixture()
 def everything_base_url():
     """Base URL for everything service."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
@@ -33,13 +33,13 @@ def everything_base_url():
     return MCP_EVERYTHING_URLS[0]
 
 
-@pytest.fixture
+@pytest.fixture()
 def gateway_token():
     """Gateway OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
 
 
-@pytest.fixture
+@pytest.fixture()
 async def wait_for_services():
     """Ensure all services are ready."""
     # Services are already checked by conftest
@@ -57,8 +57,8 @@ def parse_sse_response(response_text):
 class TestMCPEverythingIntegration:
     """Test the MCP Everything service integration."""
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_reachable_no_auth(self, everything_base_url, wait_for_services):
         """Test that service is reachable (root requires auth)."""
@@ -69,8 +69,8 @@ class TestMCPEverythingIntegration:
             # The root requires auth through Traefik
             assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_requires_auth(self, everything_base_url, wait_for_services):
         """Test that MCP endpoint requires authentication."""
@@ -95,8 +95,8 @@ class TestMCPEverythingIntegration:
             )
             assert response.status_code == HTTP_UNAUTHORIZED
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_initialize(self, everything_base_url, gateway_token, wait_for_services):
         """Test MCP initialize method."""
@@ -128,8 +128,8 @@ class TestMCPEverythingIntegration:
             assert "serverInfo" in data["result"]
             assert data["result"]["serverInfo"]["name"] == "example-servers/everything"
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_list_tools(self, everything_base_url, gateway_token, wait_for_services):
         """Test listing available tools in the everything server."""
@@ -194,8 +194,8 @@ class TestMCPEverythingIntegration:
                 assert "description" in tool
                 assert "inputSchema" in tool
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_echo_tool(self, everything_base_url, gateway_token, wait_for_services):
         """Test calling the echo tool if available."""
@@ -260,8 +260,8 @@ class TestMCPEverythingIntegration:
                         if isinstance(item, dict)
                     )
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_oauth_discovery(self, everything_base_url, wait_for_services):
         """Test OAuth discovery endpoint is accessible."""
@@ -275,8 +275,8 @@ class TestMCPEverythingIntegration:
             assert "authorization_endpoint" in data
             assert "token_endpoint" in data
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_cors_preflight(self, everything_base_url, wait_for_services):
         """Test CORS preflight request handling."""
@@ -303,9 +303,10 @@ class TestMCPEverythingIntegration:
             origin_header = response.headers.get("access-control-allow-origin")
             if origin_header:
                 # If CORS is configured, validate the headers
-                assert origin_header in ["https://claude.ai", "*"], (
-                    f"Expected claude.ai or * origin, got {origin_header}"
-                )
+                assert origin_header in [
+                    "https://claude.ai",
+                    "*",
+                ], f"Expected claude.ai or * origin, got {origin_header}"
 
                 methods_header = response.headers.get("access-control-allow-methods", "")
                 if methods_header:

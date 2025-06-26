@@ -26,11 +26,11 @@ services:
       - "--ping=true"
     labels:
       - "traefik.enable=true"
-      
+
       # HTTPS redirect middleware
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
-      
+
       # Global HTTP to HTTPS redirect router with lowest priority
       - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
       - "traefik.http.routers.http-catchall.entrypoints=web"

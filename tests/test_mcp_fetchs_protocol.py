@@ -12,13 +12,13 @@ from tests.test_constants import BASE_DOMAIN
 from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 
 
-@pytest.fixture
+@pytest.fixture()
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture
+@pytest.fixture()
 def valid_token():
     """Valid OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
@@ -27,9 +27,9 @@ def valid_token():
 class TestMCPFetchsProtocol:
     """MCP protocol compliance tests for fetchs."""
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_fetchs_json_rpc_compliance(self, mcp_fetchs_url, valid_token, wait_for_services):
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
+    async def test_fetchs_json_rpc_compliance(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test JSON-RPC 2.0 compliance."""
         test_cases = [
             # Valid requests
@@ -97,9 +97,9 @@ class TestMCPFetchsProtocol:
                     assert data["error"]["code"] == test["expected_error_code"]
                     assert "message" in data["error"]
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_fetchs_method_routing(self, mcp_fetchs_url, valid_token, wait_for_services):
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
+    async def test_fetchs_method_routing(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test correct routing of different MCP methods."""
         methods = [
             ("initialize", True),
@@ -144,9 +144,9 @@ class TestMCPFetchsProtocol:
                     assert "error" in data
                     assert data["error"]["code"] == -32601  # Method not found
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_fetchs_session_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
+    async def test_fetchs_session_handling(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test MCP session management."""
         async with httpx.AsyncClient(verify=True) as client:
             # Initialize without session
@@ -197,9 +197,9 @@ class TestMCPFetchsProtocol:
             # Should still work (stateless implementation)
             assert response.status_code == HTTP_OK
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_fetchs_protocol_headers(self, mcp_fetchs_url, valid_token, wait_for_services):
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
+    async def test_fetchs_protocol_headers(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test MCP protocol headers."""
         async with httpx.AsyncClient(verify=True) as client:
             # Test with protocol version header
@@ -225,9 +225,9 @@ class TestMCPFetchsProtocol:
             assert "MCP-Protocol-Version" in response.headers
             assert response.headers["MCP-Protocol-Version"] == "2025-06-18"
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_fetchs_error_response_format(self, mcp_fetchs_url, valid_token, wait_for_services):
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
+    async def test_fetchs_error_response_format(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test error response format compliance."""
         error_scenarios = [
             # Parse error
@@ -285,9 +285,9 @@ class TestMCPFetchsProtocol:
                 if "data" in data["error"]:
                     assert isinstance(data["error"]["data"], str | dict | list)
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_fetchs_content_type_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
+    async def test_fetchs_content_type_handling(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test Content-Type header handling."""
         # The service accepts various content types more leniently
         content_types = [
@@ -319,9 +319,9 @@ class TestMCPFetchsProtocol:
                 data = response.json()
                 assert "result" in data or "error" in data
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_fetchs_request_id_handling(self, mcp_fetchs_url, valid_token, wait_for_services):
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
+    async def test_fetchs_request_id_handling(self, mcp_fetchs_url, valid_token, _wait_for_services):
         """Test proper handling of request IDs."""
         id_values = [
             1,

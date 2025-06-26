@@ -58,19 +58,19 @@ def authenticate_client(self, request: HTTPConnection, client_id: str) -> Option
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
         return None
-    
+
     token = auth_header[7:]  # Remove "Bearer " prefix
-    
+
     # Retrieve client from storage
     client_data = self.storage.get_client(client_id)
     if not client_data:
         raise ValueError(f"Client {client_id} not found")
-    
+
     # Verify registration access token
     stored_token = client_data.get("registration_access_token")
     if not stored_token or not secrets.compare_digest(token, stored_token):
         return None
-    
+
     return client_data
 ```
 
@@ -92,7 +92,7 @@ View client registration details:
 async def get_client_configuration(client_id: str, request: Request):
     # Authenticate using registration access token
     client_data = config_endpoint.authenticate_client(request, client_id)
-    
+
     # Return 404 if client not found
     # Return 401 if no auth header
     # Return 403 if invalid token

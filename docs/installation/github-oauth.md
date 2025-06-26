@@ -159,7 +159,7 @@ GITHUB_CLIENT_SECRET_PROD=prodsecret456...
 
 **Error**: "The redirect_uri MUST match the registered callback URL"
 
-**Solution**: 
+**Solution**:
 - Ensure callback URL in GitHub matches exactly
 - Include `https://` protocol
 - Check for trailing slashes

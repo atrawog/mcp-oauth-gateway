@@ -13,13 +13,13 @@ from tests.test_constants import MCP_PROTOCOL_VERSION
 from tests.test_constants import MCP_PROTOCOL_VERSIONS_SUPPORTED
 
 
-@pytest.fixture
+@pytest.fixture()
 def client_token():
     """MCP client OAuth token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture
+@pytest.fixture()
 async def wait_for_services():
     """Ensure all services are ready."""
     return True
@@ -133,8 +133,8 @@ class TestMCPTimeIntegration:
         )
         assert "result" in response, f"Initialize failed: {response}"
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     async def test_time_initialize(self, mcp_time_url, client_token, wait_for_services):
         time_url = f"{mcp_time_url}"
         """Test initialize method to establish connection."""
@@ -167,8 +167,8 @@ class TestMCPTimeIntegration:
         assert "time" in server_name.lower(), f"Server name '{server_name}' doesn't indicate time functionality"
         assert "capabilities" in result
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     async def test_time_list_tools(self, mcp_time_url, client_token, wait_for_services):
         time_url = f"{mcp_time_url}"
         """Test listing available tools."""
@@ -198,8 +198,8 @@ class TestMCPTimeIntegration:
         for expected_tool in expected_tools:
             assert expected_tool in tool_names, f"Missing expected tool: {expected_tool}"
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     async def test_time_list_resources(self, mcp_time_url, client_token, wait_for_services):
         time_url = f"{mcp_time_url}"
         """Test listing available resources."""
@@ -230,8 +230,8 @@ class TestMCPTimeIntegration:
             resource_names = [res["name"] for res in resources]
             print(f"Available time resources: {resource_names}")
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     async def test_time_health_check(self, mcp_time_url, client_token, wait_for_services):
         time_url = f"{mcp_time_url}"
         """Test that the time service health endpoint is accessible."""

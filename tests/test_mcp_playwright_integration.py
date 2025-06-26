@@ -113,15 +113,15 @@ class TestMCPPlaywrightIntegration:
         except Exception as e:
             pytest.fail(f"Failed to parse JSON response: {e}\nOutput: {result.stdout}")
 
-    def test_playwright_service_health(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_service_health(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test playwright service health using MCP protocol per divine CLAUDE.md."""
         import requests
 
         # First verify that /health requires authentication
         response = requests.get(f"{mcp_playwright_url}/health", timeout=10)
-        assert response.status_code == HTTP_UNAUTHORIZED, (
-            "/health endpoint must require authentication per divine CLAUDE.md"
-        )
+        assert (
+            response.status_code == HTTP_UNAUTHORIZED
+        ), "/health endpoint must require authentication per divine CLAUDE.md"
 
         # Health checks should use MCP protocol initialization
         response = self.run_mcp_client_raw(
@@ -168,7 +168,7 @@ class TestMCPPlaywrightIntegration:
         assert oauth_config["token_endpoint"]
         assert oauth_config["registration_endpoint"]
 
-    def test_playwright_mcp_initialize(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_mcp_initialize(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test MCP protocol initialization."""
         response = self.run_mcp_client_raw(
             url=mcp_playwright_url,
@@ -187,7 +187,7 @@ class TestMCPPlaywrightIntegration:
         assert "capabilities" in result
         assert "serverInfo" in result
 
-    def test_playwright_list_tools(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_list_tools(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test listing available playwright tools."""
         response = self.run_mcp_client_raw(url=mcp_playwright_url, token=mcp_client_token, method="tools/list")
 
@@ -203,7 +203,7 @@ class TestMCPPlaywrightIntegration:
         found_basic = basic_tools.intersection(tool_names)
         assert len(found_basic) > 0, f"No basic browser tools found. Available: {tool_names}"
 
-    def test_playwright_navigate(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_navigate(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test navigating to a web page."""
         response = self.run_mcp_client_raw(
             url=mcp_playwright_url,
@@ -219,7 +219,7 @@ class TestMCPPlaywrightIntegration:
         result = response["result"]
         assert "content" in result
 
-    def test_playwright_get_page_content(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_get_page_content(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test getting page content."""
         # First navigate to a page
         navigate_response = self.run_mcp_client_raw(
@@ -246,7 +246,7 @@ class TestMCPPlaywrightIntegration:
         result = response["result"]
         assert "content" in result
 
-    def test_playwright_get_text(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_get_text(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test extracting text from elements."""
         # First navigate to a page
         self.run_mcp_client_raw(
@@ -273,7 +273,7 @@ class TestMCPPlaywrightIntegration:
             result = response["result"]
             assert "content" in result
 
-    def test_playwright_screenshot(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_screenshot(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test taking a screenshot."""
         # First navigate to a page
         self.run_mcp_client_raw(
@@ -298,7 +298,7 @@ class TestMCPPlaywrightIntegration:
         result = response["result"]
         assert "content" in result
 
-    def test_playwright_evaluate_javascript(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_evaluate_javascript(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test executing JavaScript in the page."""
         # First navigate to a page
         self.run_mcp_client_raw(
@@ -323,7 +323,7 @@ class TestMCPPlaywrightIntegration:
         result = response["result"]
         assert "content" in result
 
-    def test_playwright_wait_for_selector(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_wait_for_selector(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test waiting for an element to appear."""
         # First navigate to a page
         self.run_mcp_client_raw(
@@ -348,7 +348,7 @@ class TestMCPPlaywrightIntegration:
         result = response["result"]
         assert "content" in result
 
-    def test_playwright_get_attribute(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_get_attribute(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test getting element attributes."""
         # First navigate to a page
         self.run_mcp_client_raw(
@@ -375,7 +375,7 @@ class TestMCPPlaywrightIntegration:
             result = response["result"]
             assert "content" in result
 
-    def test_playwright_list_resources(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_list_resources(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test listing available playwright resources."""
         response = self.run_mcp_client_raw(url=mcp_playwright_url, token=mcp_client_token, method="resources/list")
 
@@ -394,7 +394,7 @@ class TestMCPPlaywrightIntegration:
             error = response["error"]
             assert error["code"] == -32601  # Method not found
 
-    def test_playwright_protocol_version_compliance(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_protocol_version_compliance(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test MCP protocol version compliance."""
         # Test with correct protocol version
         response = self.run_mcp_client_raw(
@@ -412,7 +412,7 @@ class TestMCPPlaywrightIntegration:
         result = response["result"]
         assert result["protocolVersion"] == "2025-06-18"
 
-    def test_playwright_error_handling(self, mcp_playwright_url, mcp_client_token, wait_for_services):
+    def test_playwright_error_handling(self, mcp_playwright_url, mcp_client_token, _wait_for_services):
         """Test error handling for invalid operations."""
         # Test invalid method
         response = self.run_mcp_client_raw(url=mcp_playwright_url, token=mcp_client_token, method="invalid/method")

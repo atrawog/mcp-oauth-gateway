@@ -17,7 +17,7 @@ These guidelines are based on the "Sacred Commandments" in CLAUDE.md and must be
 @patch('requests.get')
 def test_fetch(mock_get):
     mock_get.return_value.json.return_value = {'data': 'fake'}
-    
+
 # ✅ BLESSED - Real integration testing
 def test_fetch():
     response = requests.get('http://mcp-fetch:3000/mcp')
@@ -31,7 +31,7 @@ def test_fetch():
 **Always use these three blessed tools**:
 
 1. **`just`** - All commands flow through just
-2. **`pixi`** - All Python packages through pixi  
+2. **`pixi`** - All Python packages through pixi
 3. **`docker-compose`** - All services through compose
 
 ```bash
@@ -40,7 +40,7 @@ pytest tests/test_auth.py
 pip install requests
 docker run auth-service
 
-# ✅ RIGHTEOUSNESS  
+# ✅ RIGHTEOUSNESS
 just test tests/test_auth.py
 pixi add requests
 just up auth
@@ -149,7 +149,7 @@ async def test_real_oauth_flow():
             json={"client_name": "test"}
         )
         assert response.status_code == 201
-        
+
     # 2. Test actual OAuth flow
     # No mocking allowed!
 ```
@@ -182,10 +182,10 @@ from typing import Dict, Optional
 async def validate_token(token: str) -> Optional[Dict[str, Any]]:
     """
     Validate JWT token and return claims.
-    
+
     Args:
         token: JWT token string
-        
+
     Returns:
         Token claims dict or None if invalid
     """
@@ -256,7 +256,7 @@ from pydantic import BaseModel, HttpUrl, validator
 class ClientRegistration(BaseModel):
     client_name: str
     redirect_uris: List[HttpUrl]
-    
+
     @validator('redirect_uris', each_item=True)
     def validate_redirect_uri(cls, uri):
         if uri.host == 'localhost':
@@ -278,14 +278,14 @@ async def test_feature_end_to_end():
     """Test complete flow with real services."""
     # 1. Setup
     await register_test_client()
-    
+
     # 2. Execute
     token = await get_oauth_token()
     response = await call_mcp_service(token)
-    
+
     # 3. Verify
     assert response.status_code == 200
-    
+
     # 4. Cleanup
     await cleanup_test_data()
 ```
@@ -341,7 +341,7 @@ Follow conventional commits:
 
 ```bash
 feat: Add PKCE support to OAuth flow
-fix: Correct token expiration calculation  
+fix: Correct token expiration calculation
 docs: Update API documentation
 test: Add integration tests for refresh token
 refactor: Extract token validation logic

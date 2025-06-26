@@ -15,7 +15,7 @@ class TestAuthCORS:
     """Test that Auth service has proper CORS configuration."""
 
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def _setup(self):
         """Setup test environment."""
         self.base_domain = os.getenv("BASE_DOMAIN")
         if not self.base_domain:
@@ -61,37 +61,37 @@ class TestAuthCORS:
                     )
 
                     # Check CORS headers
-                    assert "access-control-allow-origin" in response.headers, (
-                        f"Missing Access-Control-Allow-Origin header for {endpoint}"
-                    )
+                    assert (
+                        "access-control-allow-origin" in response.headers
+                    ), f"Missing Access-Control-Allow-Origin header for {endpoint}"
 
                     # When wildcard is configured, FastAPI returns the specific origin, not "*"
                     if self.cors_origins == ["*"]:
-                        assert response.headers["access-control-allow-origin"] == test_origin, (
-                            f"CORS origin mismatch for {endpoint}"
-                        )
+                        assert (
+                            response.headers["access-control-allow-origin"] == test_origin
+                        ), f"CORS origin mismatch for {endpoint}"
                     else:
-                        assert response.headers["access-control-allow-origin"] == test_origin, (
-                            f"CORS origin mismatch for {endpoint}"
-                        )
+                        assert (
+                            response.headers["access-control-allow-origin"] == test_origin
+                        ), f"CORS origin mismatch for {endpoint}"
 
-                    assert "access-control-allow-methods" in response.headers, (
-                        f"Missing Access-Control-Allow-Methods header for {endpoint}"
-                    )
+                    assert (
+                        "access-control-allow-methods" in response.headers
+                    ), f"Missing Access-Control-Allow-Methods header for {endpoint}"
                     allowed_methods = response.headers["access-control-allow-methods"].upper()
-                    assert "POST" in allowed_methods or "GET" in allowed_methods, (
-                        f"Required methods not allowed in CORS for {endpoint}"
-                    )
+                    assert (
+                        "POST" in allowed_methods or "GET" in allowed_methods
+                    ), f"Required methods not allowed in CORS for {endpoint}"
 
-                    assert "access-control-allow-headers" in response.headers, (
-                        f"Missing Access-Control-Allow-Headers header for {endpoint}"
-                    )
+                    assert (
+                        "access-control-allow-headers" in response.headers
+                    ), f"Missing Access-Control-Allow-Headers header for {endpoint}"
                     assert "access-control-allow-credentials" in response.headers, (
                         f"Missing Access-Control-Allow-Credentials header for {endpoint}"  # TODO: Break long line
                     )
-                    assert response.headers["access-control-allow-credentials"].lower() == "true", (
-                        f"CORS credentials not allowed for {endpoint}"
-                    )
+                    assert (
+                        response.headers["access-control-allow-credentials"].lower() == "true"
+                    ), f"CORS credentials not allowed for {endpoint}"
 
     def test_auth_actual_request_cors_headers(self):
         """Test that actual Auth requests include proper CORS headers."""
@@ -124,9 +124,9 @@ class TestAuthCORS:
             if "access-control-expose-headers" in response.headers:
                 exposed_headers = response.headers["access-control-expose-headers"].lower()
                 # Auth service exposes these headers
-                assert any(h in exposed_headers for h in ["x-user-id", "x-user-name", "x-auth-token"]), (
-                    "Auth headers not exposed in CORS"
-                )
+                assert any(
+                    h in exposed_headers for h in ["x-user-id", "x-user-name", "x-auth-token"]
+                ), "Auth headers not exposed in CORS"
 
     def test_auth_health_endpoint_cors(self):
         """Test that OAuth discovery endpoint also has CORS headers."""

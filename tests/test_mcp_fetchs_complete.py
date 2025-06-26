@@ -13,19 +13,19 @@ from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from tests.test_constants import MCP_CLIENT_ACCESS_TOKEN
 
 
-@pytest.fixture
+@pytest.fixture()
 def base_domain():
     """Base domain for tests."""
     return BASE_DOMAIN
 
 
-@pytest.fixture
+@pytest.fixture()
 def gateway_token():
     """Gateway OAuth token for testing."""
     return GATEWAY_OAUTH_ACCESS_TOKEN
 
 
-@pytest.fixture
+@pytest.fixture()
 def client_token():
     """MCP client access token for testing."""
     return MCP_CLIENT_ACCESS_TOKEN
@@ -34,9 +34,9 @@ def client_token():
 class TestMCPFetchsComplete:
     """Comprehensive tests for mcp-fetchs matching mcp-fetch test coverage."""
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_fetchs_complete_oauth_flow_integration(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
+    async def test_fetchs_complete_oauth_flow_integration(self, mcp_fetchs_url, gateway_token, _wait_for_services):
         """Test complete OAuth flow from authentication to content fetching."""
         # Step 1: Verify authentication is required
         async with httpx.AsyncClient(verify=True) as client:
@@ -142,7 +142,7 @@ class TestMCPFetchsComplete:
     # @pytest.mark.integration
     # @pytest.mark.asyncio
     # async def test_fetchs_with_mcp_client_token(
-    #     self, mcp_fetchs_url, client_token, wait_for_services
+    #     self, mcp_fetchs_url, client_token, _wait_for_services
     # ):
     #     """Test fetchs using MCP client access token."""
     #     async with httpx.AsyncClient(verify=True) as client:
@@ -199,7 +199,7 @@ class TestMCPFetchsComplete:
     #
     # @pytest.mark.integration
     # @pytest.mark.asyncio
-    async def test_fetchs_url_parameter_validation(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_url_parameter_validation(self, mcp_fetchs_url, gateway_token, _wait_for_services):
         """Test URL parameter validation in fetchs."""
         async with httpx.AsyncClient(verify=True) as client:
             # Test missing URL
@@ -256,7 +256,7 @@ class TestMCPFetchsComplete:
     # @pytest.mark.integration
     # @pytest.mark.asyncio
     # async def test_fetchs_max_length_parameter(
-    #     self, mcp_fetchs_url, gateway_token, wait_for_services
+    #     self, mcp_fetchs_url, gateway_token, _wait_for_services
     # ):
     #     """Test max_length parameter handling."""
     #     async with httpx.AsyncClient(verify=True) as client:
@@ -297,7 +297,7 @@ class TestMCPFetchsComplete:
     # Per CLAUDE.md: Test against real deployed services (our own), not external ones.
     # test.mark.asyncio
     # async def test_fetchs_custom_headers_and_user_agent(
-    #     self, mcp_fetchs_url, gateway_token, wait_for_services
+    #     self, mcp_fetchs_url, gateway_token, _wait_for_services
     # ):
     #     """Test custom headers and user agent support."""
     #     async with httpx.AsyncClient(verify=True) as client:
@@ -341,7 +341,7 @@ class TestMCPFetchsComplete:
     # Per CLAUDE.md: Test against real deployed services (our own), not external ones.
     # test.mark.asyncio
     # async def test_fetchs_post_method_with_body(
-    #     self, mcp_fetchs_url, gateway_token, wait_for_services
+    #     self, mcp_fetchs_url, gateway_token, _wait_for_services
     # ):
     #     """Test POST method with request body."""
     #     async with httpx.AsyncClient(verify=True) as client:
@@ -384,7 +384,7 @@ class TestMCPFetchsComplete:
     # Per CLAUDE.md: Test against real deployed services (our own), not external ones.
     # test.mark.asyncio
     # async def test_fetchs_error_handling(
-    #     self, mcp_fetchs_url, gateway_token, wait_for_services
+    #     self, mcp_fetchs_url, gateway_token, _wait_for_services
     # ):
     #     """Test error handling for various failure scenarios."""
     #     async with httpx.AsyncClient(verify=True) as client:
@@ -447,7 +447,7 @@ class TestMCPFetchsComplete:
     #
     # @pytest.mark.integration
     # @pytest.mark.asyncio
-    async def test_fetchs_protocol_version_negotiation(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    async def test_fetchs_protocol_version_negotiation(self, mcp_fetchs_url, gateway_token, _wait_for_services):
         """Test protocol version negotiation."""
         async with httpx.AsyncClient(verify=True) as client:
             # Try with older protocol version
@@ -476,9 +476,9 @@ class TestMCPFetchsComplete:
             assert "1.0" in data["error"]["data"]  # Should mention the attempted version
             assert "2025-06-18" in data["error"]["data"]  # Should mention supported version
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_fetchs_session_management(self, mcp_fetchs_url, gateway_token, wait_for_services):
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
+    async def test_fetchs_session_management(self, mcp_fetchs_url, gateway_token, _wait_for_services):
         """Test session management behavior."""
         async with httpx.AsyncClient(verify=True) as client:
             # Create two separate initialization requests
@@ -528,7 +528,7 @@ class TestMCPFetchsComplete:
     # @pytest.mark.integration
     # @pytest.mark.asyncio
     # async def test_fetchs_concurrent_requests(
-    #     self, mcp_fetchs_url, gateway_token, wait_for_services
+    #     self, mcp_fetchs_url, gateway_token, _wait_for_services
     # ):
     #     """Test concurrent request handling."""
     #     import asyncio

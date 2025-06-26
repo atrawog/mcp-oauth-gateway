@@ -9,31 +9,31 @@ graph TB
     subgraph "Client Side"
         C[mcp-streamablehttp-client]
     end
-    
+
     subgraph "Gateway Infrastructure"
         O[mcp-oauth-dynamicclient]
         P[mcp-streamablehttp-proxy]
         F[mcp-fetch-streamablehttp-server]
         E[mcp-echo-streamablehttp-server-stateless]
     end
-    
+
     subgraph "External Dependencies"
         MC[MCP Clients<br/>Claude Desktop, IDEs]
         MS[MCP Servers<br/>Official stdio servers]
     end
-    
+
     MC -->|stdio| C
     C -->|HTTP + OAuth| O
     O -->|Authentication| P
     O -->|Authentication| F
     O -->|Authentication| E
     P -->|stdio| MS
-    
+
     classDef client fill:#9cf,stroke:#333,stroke-width:2px
     classDef infra fill:#fc9,stroke:#333,stroke-width:2px
     classDef external fill:#ccc,stroke:#333,stroke-width:2px
     classDef diagnostic fill:#f9f,stroke:#333,stroke-width:2px
-    
+
     class C client
     class O,P,F infra
     class E diagnostic
@@ -104,7 +104,7 @@ graph LR
         F2[mcp-fetchs] -->|uses| FS[mcp-fetch-streamablehttp-server]
         E1[mcp-echo] -->|uses| ES[mcp-echo-streamablehttp-server-stateless]
     end
-    
+
     subgraph "Client Dependencies"
         CD[Claude Desktop] -->|uses| C[mcp-streamablehttp-client]
     end

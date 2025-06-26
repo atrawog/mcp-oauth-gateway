@@ -8,7 +8,7 @@ Through systematic investigation, we identified the root cause of the 400 Bad Re
 
 **Problem**: MCP servers require the `Accept: application/json, text/event-stream` header, but many test requests were missing it.
 
-**Evidence**: 
+**Evidence**:
 - Debug script showed: `{"error": "Client must accept both application/json and text/event-stream"}`
 - Requests with proper Accept header returned 200 OK
 - Requests without Accept header returned 400 Bad Request
@@ -23,7 +23,7 @@ Through systematic investigation, we identified the root cause of the 400 Bad Re
 ### Fixed Files (11 total):
 1. `test_mcp_client_oauth.py` - 5 header fixes
 2. `test_mcp_client_proxy.py` - 8 header fixes + hardcoded version fix + manual Accept header fixes
-3. `test_mcp_debug.py` - 1 header fix  
+3. `test_mcp_debug.py` - 1 header fix
 4. `test_mcp_oauth_dynamicclient.py` - 15 header fixes
 5. `test_mcp_protocol_compliance.py` - 2 header fixes
 6. `test_mcp_protocol_version_strict.py` - 1 hardcoded version fix
@@ -42,7 +42,7 @@ All other MCP test files already had proper headers or weren't using MCP client 
 ```python
 headers = {
     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
-    "Content-Type": "application/json", 
+    "Content-Type": "application/json",
     "Accept": "application/json, text/event-stream",
 }
 ```

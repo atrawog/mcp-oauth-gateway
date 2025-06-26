@@ -92,7 +92,7 @@ REDIS_URL=redis://redis:6379
 ```bash
 # Token Lifetimes in seconds (REQUIRED)
 ACCESS_TOKEN_LIFETIME=86400      # 24 hours
-REFRESH_TOKEN_LIFETIME=2592000   # 30 days  
+REFRESH_TOKEN_LIFETIME=2592000   # 30 days
 SESSION_TIMEOUT=3600             # 1 hour
 ```
 
@@ -157,7 +157,7 @@ services:
     environment:
       - DEBUG=true
       - LOG_LEVEL=DEBUG
-  
+
   mcp-fetch:
     volumes:
       - ./custom-config:/config
@@ -218,7 +218,7 @@ MCP_TMUX_TESTS_ENABLED=false             # Enable/disable mcp-tmux tests
 MCP_TMUX_URLS=https://tmux.yourdomain.com/mcp
 ```
 
-**Note:** 
+**Note:**
 - When a service is disabled (`*_ENABLED=false`), it won't be included in docker-compose
 - Test flags (`*_TESTS_ENABLED`) control whether tests for that service run
 - URLs can be comma-separated for multiple instances of the same service

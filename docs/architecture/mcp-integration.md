@@ -37,18 +37,18 @@ graph TB
     subgraph "Client Layer"
         C[MCP Client<br/>Claude.ai/IDE]
     end
-    
+
     subgraph "Gateway Layer"
         T[Traefik]
         A[Auth Service]
     end
-    
+
     subgraph "MCP Layer"
         P[mcp-streamablehttp-proxy]
         S[Official MCP Server<br/>stdio-based]
         N[Native HTTP Server]
     end
-    
+
     C -->|HTTPS + Bearer Token| T
     T -->|ForwardAuth| A
     T -->|Authenticated Request| P
@@ -77,7 +77,7 @@ sequenceDiagram
     participant Client
     participant Proxy
     participant MCPServer
-    
+
     Note over Client,MCPServer: Initialization
     Client->>Proxy: POST /mcp<br/>{"method": "initialize"}
     Proxy->>Proxy: Create session
@@ -85,7 +85,7 @@ sequenceDiagram
     Proxy->>MCPServer: Write to stdin
     MCPServer->>Proxy: Read from stdout
     Proxy->>Client: HTTP Response<br/>Mcp-Session-Id: xxx
-    
+
     Note over Client,MCPServer: Subsequent Requests
     Client->>Proxy: POST /mcp<br/>Mcp-Session-Id: xxx
     Proxy->>Proxy: Find session
@@ -128,17 +128,17 @@ graph LR
     subgraph "1. Request Arrives"
         A[Client Request<br/>Bearer Token]
     end
-    
+
     subgraph "2. Traefik Validates"
         B[ForwardAuth to<br/>/verify endpoint]
         C{Token Valid?}
     end
-    
+
     subgraph "3. Route Decision"
         D[Forward to MCP]
         E[Return 401]
     end
-    
+
     A --> B
     B --> C
     C -->|Yes| D
@@ -315,10 +315,10 @@ labels:
   # Routing
   - "traefik.http.routers.mcp-fetch.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
   - "traefik.http.routers.mcp-fetch.priority=2"
-  
+
   # Authentication
   - "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@docker"
-  
+
   # Service
   - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
 ```

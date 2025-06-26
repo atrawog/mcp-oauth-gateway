@@ -20,7 +20,7 @@ graph TB
         C3[IDE extensions]
         C4[Custom integrations]
     end
-    
+
     subgraph "Traefik Reverse Proxy - Layer 1"
         direction TB
         T[Traefik :443/:80]
@@ -33,7 +33,7 @@ graph TB
         T --> T3
         T --> T4
     end
-    
+
     subgraph "Auth Service - Layer 2"
         direction TB
         A[Auth Service :8000]
@@ -46,7 +46,7 @@ graph TB
         A --> A3
         A --> A4
     end
-    
+
     subgraph "MCP Services - Layer 3"
         direction TB
         M1[mcp-fetch:3000]
@@ -57,7 +57,7 @@ graph TB
         MP[mcp-streamablehttp-proxy<br/>stdio ↔ HTTP bridge]
         M1 & M2 & M3 & M4 & M5 --> MP
     end
-    
+
     subgraph "Storage Layer"
         R[(Redis :6379)]
         R1[oauth:client:ID]
@@ -68,24 +68,24 @@ graph TB
         R6[redis:session:ID]
         R --> R1 & R2 & R3 & R4 & R5 & R6
     end
-    
+
     subgraph "External Services"
         GH[GitHub OAuth]
     end
-    
+
     C1 & C2 & C3 & C4 -.->|HTTPS :443| T
     T -->|OAuth/Auth<br/>unauthenticated| A
     T -->|MCP requests<br/>authenticated| M1 & M2 & M3 & M4 & M5
     T3 -.->|/verify| A3
     A <--> R
     A <--> GH
-    
+
     classDef external fill:#f9f,stroke:#333,stroke-width:2px
     classDef layer1 fill:#9cf,stroke:#333,stroke-width:2px
     classDef layer2 fill:#fc9,stroke:#333,stroke-width:2px
     classDef layer3 fill:#9fc,stroke:#333,stroke-width:2px
     classDef storage fill:#c9f,stroke:#333,stroke-width:2px
-    
+
     class C1,C2,C3,C4,GH external
     class T,T1,T2,T3,T4 layer1
     class A,A1,A2,A3,A4 layer2
@@ -97,7 +97,7 @@ graph TB
 
 ### Layer 1: Traefik Reverse Proxy
 
-**Container**: `traefik:443/80`  
+**Container**: `traefik:443/80`
 **Role**: Routing & TLS Termination
 
 #### Responsibilities
@@ -126,8 +126,8 @@ auth.domain.com/verify → Auth Service
 
 ### Layer 2: Auth Service (OAuth Authorization Server)
 
-**Container**: `auth:8000`  
-**Package**: `mcp-oauth-dynamicclient`  
+**Container**: `auth:8000`
+**Package**: `mcp-oauth-dynamicclient`
 **Role**: OAuth 2.1 Implementation
 
 #### OAuth Endpoints (Public)
@@ -161,7 +161,7 @@ auth.domain.com/verify → Auth Service
 
 ### Layer 3: MCP Services (Protocol Handlers)
 
-**Containers**: `mcp-*:3000`  
+**Containers**: `mcp-*:3000`
 **Architecture**: mcp-streamablehttp-proxy wrapper
 
 #### Service Architecture
@@ -196,7 +196,7 @@ auth.domain.com/verify → Auth Service
 
 ### Storage Layer: Redis
 
-**Container**: `redis:6379`  
+**Container**: `redis:6379`
 **Persistence**: AOF + RDB snapshots
 
 #### Data Structures
@@ -222,7 +222,7 @@ sequenceDiagram
     participant Traefik
     participant Auth
     participant Redis
-    
+
     Client->>Traefik: POST /register<br/>{redirect_uris, client_name}
     Traefik->>Auth: Route (no auth required)
     Auth->>Auth: Generate client_id<br/>Generate client_secret<br/>Generate registration_access_token
@@ -241,7 +241,7 @@ sequenceDiagram
     participant Auth
     participant GitHub
     participant Redis
-    
+
     Client->>Traefik: GET /authorize<br/>?client_id=abc&redirect_uri=...&code_challenge=xyz
     Traefik->>Auth: Route to Auth Service
     Auth->>Redis: Validate client_id exists
@@ -249,11 +249,11 @@ sequenceDiagram
     Auth->>Auth: Store PKCE challenge
     Auth->>Redis: Store oauth:state:{state}<br/>TTL: 5 minutes
     Auth->>Client: 302 Redirect<br/>Location: github.com/login/oauth/authorize
-    
+
     Client->>GitHub: User authenticates
     User->>GitHub: Login + Authorize
     GitHub->>Client: 302 Redirect<br/>Location: /callback?code=gh_code&state=...
-    
+
     Client->>Traefik: GET /callback?code=gh_code&state=...
     Traefik->>Auth: Route to Auth Service
     Auth->>Redis: Get oauth:state:{state}
@@ -276,7 +276,7 @@ sequenceDiagram
     participant Traefik
     participant Auth
     participant Redis
-    
+
     Client->>Traefik: POST /token<br/>client_id=abc<br/>client_secret=xyz<br/>code=auth_code<br/>code_verifier=pkce_verifier
     Traefik->>Auth: Route to Auth Service
     Auth->>Redis: Get oauth:client:{client_id}
@@ -302,17 +302,17 @@ sequenceDiagram
     participant Auth
     participant MCP
     participant StdioServer
-    
+
     Client->>Traefik: POST /mcp<br/>Authorization: Bearer {JWT}<br/>{jsonrpc: "2.0", method: "initialize"}
-    
+
     Note over Traefik: ForwardAuth Middleware
     Traefik->>Auth: GET /verify<br/>Authorization: Bearer {JWT}
     Auth->>Auth: Validate JWT signature<br/>Check expiration<br/>Extract claims
     Auth->>Traefik: 200 OK<br/>X-User-Id: 12345<br/>X-User-Name: johndoe<br/>X-Auth-Token: {JWT}
-    
+
     Note over Traefik: Route to MCP Service
     Traefik->>MCP: POST /mcp<br/>+ User headers<br/>+ Request body
-    
+
     Note over MCP: mcp-streamablehttp-proxy
     MCP->>MCP: Create/find session<br/>for user
     MCP->>StdioServer: Write JSON-RPC<br/>to stdin
@@ -335,12 +335,12 @@ graph TB
         L4[4. Token Authentication<br/>JWT Bearer tokens]
         L5[5. PKCE Protection<br/>S256 code challenges]
     end
-    
+
     L1 --> L2
     L2 --> L3
     L3 --> L4
     L4 --> L5
-    
+
     classDef security fill:#faa,stroke:#333,stroke-width:2px
     class L1,L2,L3,L4,L5 security
 ```
@@ -362,7 +362,7 @@ graph TB
 The gateway implements **complete separation** between token types:
 
 1. **Registration Access Tokens** (RFC 7592)
-   - Format: `reg-{32-byte-random}` 
+   - Format: `reg-{32-byte-random}`
    - Generated: Only during client registration
    - Purpose: ONLY for client management endpoints
    - Storage: Part of client data in Redis
@@ -387,14 +387,14 @@ graph LR
         RFT[refresh_token<br/>Renew access tokens]
         AC[authorization_code<br/>One-time user-client binding]
     end
-    
+
     subgraph "Security Properties"
         S1[32-byte random]
         S2[RS256/HS256 signed]
         S3[Opaque token]
         S4[5-min expiry]
     end
-    
+
     RT --> S1
     AT --> S2
     RFT --> S3
@@ -449,13 +449,13 @@ graph TB
         B4[Error translation<br/>stdio → HTTP]
         B5[Horizontal scaling<br/>possibilities]
     end
-    
+
     subgraph "Architecture"
         HTTP[HTTP Request] --> PROXY[mcp-streamablehttp-proxy]
         PROXY --> STDIO[stdio pipes]
         STDIO --> MCP[Official MCP Server]
     end
-    
+
     B1 & B2 & B3 & B4 & B5 -.-> PROXY
 ```
 
@@ -486,12 +486,12 @@ graph TB
     subgraph "Internet"
         USERS[External Users]
     end
-    
+
     subgraph "Docker Host"
         subgraph "Public Network"
             TRAEFIK[Traefik :443/:80]
         end
-        
+
         subgraph "Internal Network"
             AUTH[Auth :8000]
             REDIS[Redis :6379]
@@ -500,13 +500,13 @@ graph TB
             MCPN[... more services]
         end
     end
-    
+
     USERS -.->|HTTPS Only| TRAEFIK
     TRAEFIK -->|Internal HTTP| AUTH
     TRAEFIK -->|Internal HTTP| MCP1
     TRAEFIK -->|Internal HTTP| MCP2
     AUTH <-->|Redis Protocol| REDIS
-    
+
     style USERS fill:#f96,stroke:#333,stroke-width:2px
     style TRAEFIK fill:#9cf,stroke:#333,stroke-width:2px
     style AUTH fill:#fc9,stroke:#333,stroke-width:2px

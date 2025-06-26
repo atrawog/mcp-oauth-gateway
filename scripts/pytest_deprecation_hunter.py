@@ -77,14 +77,14 @@ deprecation_hunter = DeprecationHunter()
 
 
 @pytest.fixture(autouse=True, scope="session")
-def setup_deprecation_hunting():
+def _setup_deprecation_hunting():
     """Setup deprecation hunting for the entire test session."""
     deprecation_hunter.setup()
     yield
     deprecation_hunter.teardown()
 
 
-@pytest.fixture
+@pytest.fixture()
 def deprecation_warnings():
     """Provide access to captured deprecation warnings in tests."""
     # Clear previous warnings for this test

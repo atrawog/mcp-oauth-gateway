@@ -17,8 +17,8 @@ from .test_constants import HTTP_BAD_REQUEST
 class TestPKCEValidation:
     """Test PKCE S256 enforcement per CLAUDE.md requirements."""
 
-    @pytest.mark.asyncio
-    async def test_pkce_plain_method_rejected(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_pkce_plain_method_rejected(self, http_client, _wait_for_services, registered_client):
         """Verify that plain code_challenge_method is rejected as per CLAUDE.md."""
         # Generate a simple verifier and use it as plain challenge
         code_verifier = secrets.token_urlsafe(43)
@@ -51,8 +51,8 @@ class TestPKCEValidation:
         # Plain method should now be rejected at authorize endpoint
         assert response.status_code == HTTP_BAD_REQUEST
 
-    @pytest.mark.asyncio
-    async def test_pkce_s256_verification_fixed(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_pkce_s256_verification_fixed(self, http_client, _wait_for_services, registered_client):
         """Test that S256 verification now works correctly (fixed from always returning True)."""
         # Generate proper PKCE values
         code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("utf-8").rstrip("=")
@@ -86,7 +86,7 @@ class TestPKCEValidation:
         # S256 verification is now properly implemented and validates challenges correctly
         # The vulnerability has been fixed - it properly verifies S256 challenges!
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_verify_pkce_challenge_implementation(self):
         """Verify the fixed PKCE verification implementation."""
         # The verify_pkce_challenge function in auth.py has been fixed:
@@ -101,8 +101,8 @@ class TestPKCEValidation:
         # 1. S256 verification is NOW properly implemented with SHA256
         # 2. Plain method is NOW rejected per CLAUDE.md requirements
 
-    @pytest.mark.asyncio
-    async def test_pkce_verifier_wrong_value(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_pkce_verifier_wrong_value(self, http_client, _wait_for_services, registered_client):
         """Test that wrong PKCE verifier is accepted due to broken verification."""
         # This test would require going through the full OAuth flow
         # Since we can't easily simulate the GitHub callback in tests,

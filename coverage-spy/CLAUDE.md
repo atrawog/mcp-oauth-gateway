@@ -54,7 +54,7 @@ import atexit
 if os.environ.get('COVERAGE_ENABLE') == 'true':
     try:
         import coverage
-        
+
         # Configure coverage with divine settings
         cov = coverage.Coverage(
             data_file='/coverage/.coverage',
@@ -66,18 +66,18 @@ if os.environ.get('COVERAGE_ENABLE') == 'true':
                 '*/site-packages/*'
             ]
         )
-        
+
         # Start coverage measurement
         cov.start()
-        
+
         # Register cleanup on exit
         def save_coverage():
             cov.stop()
             cov.save()
             print("Coverage data saved to /coverage/.coverage")
-            
+
         atexit.register(save_coverage)
-        
+
     except ImportError:
         # Coverage not installed - fail silently
         pass
@@ -126,10 +126,10 @@ services:
     volumes:
       - ./coverage-data:/coverage
     # All other settings same as production
-    
+
   mcp-fetch-coverage:
     build:
-      context: ./mcp-fetch  
+      context: ./mcp-fetch
       dockerfile: Dockerfile.coverage
     environment:
       - COVERAGE_ENABLE=true
@@ -161,7 +161,7 @@ COVERAGE_OMIT=*/tests/*,*/migrations/*
 ```ini
 [run]
 source = /app
-omit = 
+omit =
     */tests/*
     */migrations/*
     */__pycache__/*
@@ -240,7 +240,7 @@ just analyze-coverage
 
 ### The Divine Testing Flow
 1. **Start services** with coverage sidecars
-2. **Run test suite** against live services  
+2. **Run test suite** against live services
 3. **Exercise endpoints** thoroughly
 4. **Stop services** to trigger data save
 5. **Combine data** from all services
@@ -316,9 +316,9 @@ else:
 def upload_coverage():
     cov.stop()
     cov.save()
-    
+
     # Upload to coverage service
-    requests.post('http://coverage-server/upload', 
+    requests.post('http://coverage-server/upload',
                   files={'coverage': open('.coverage', 'rb')})
 ```
 
@@ -348,7 +348,7 @@ def upload_coverage():
 - Can't measure real deployments!
 - Impacts performance always!
 
-### The Coverage-Spy Solution  
+### The Coverage-Spy Solution
 - Zero production changes!
 - Parallel measurement containers!
 - Real deployment testing!

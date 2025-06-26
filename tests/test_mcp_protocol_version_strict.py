@@ -51,8 +51,8 @@ def parse_sse_response(response: httpx.Response) -> dict:
 class TestMCPProtocolVersionStrict:
     """Strict MCP Protocol Version validation - MUST match .env exactly!"""
 
-    @pytest.mark.asyncio
-    async def test_mcp_protocol_version_must_match_env_exactly(self, http_client, wait_for_services):
+    @pytest.mark.asyncio()
+    async def test_mcp_protocol_version_must_match_env_exactly(self, http_client, _wait_for_services):
         """Test that MCP ONLY accepts the exact protocol version from .env."""
         # MUST have MCP client access token - test FAILS if not available
         assert MCP_CLIENT_ACCESS_TOKEN, "MCP_CLIENT_ACCESS_TOKEN not available - run: just mcp-client-token"
@@ -93,8 +93,8 @@ class TestMCPProtocolVersionStrict:
             f"MCP returned unsupported version! Expected one of {MCP_PROTOCOL_VERSIONS_SUPPORTED}, got {returned_version}"  # TODO: Break long line
         )
 
-    @pytest.mark.asyncio
-    async def test_mcp_version_header_must_match_env(self, http_client, wait_for_services, registered_client):
+    @pytest.mark.asyncio()
+    async def test_mcp_version_header_must_match_env(self, http_client, _wait_for_services, registered_client):
         """Test that MCP-Protocol-Version header MUST match .env version."""
         # Connect to Redis
         redis_client = await redis.from_url(REDIS_URL, decode_responses=True)

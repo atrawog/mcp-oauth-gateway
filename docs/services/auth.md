@@ -158,7 +158,7 @@ oauth:state:{state}           # OAuth flow state (5min TTL)
 oauth:code:{code}             # Authorization codes (1year TTL)
 oauth:pkce:{code_challenge}   # PKCE verifiers
 
-# Client Management  
+# Client Management
 oauth:client:{client_id}      # Client registration data
 oauth:client_index            # Client ID index
 

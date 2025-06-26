@@ -74,13 +74,13 @@ The gateway implements a clean three-tier architecture:
 graph TD
     Client[MCP Client] --> Traefik[Traefik Router]
     User[User Browser] --> Traefik
-    
+
     Traefik --> |OAuth paths| Auth[Auth Service]
     Traefik --> |MCP paths + ForwardAuth| MCP[MCP Services]
-    
+
     Auth --> |User auth| GitHub[GitHub OAuth]
     Auth --> |Token storage| Redis[(Redis)]
-    
+
     MCP --> Proxy[mcp-streamablehttp-proxy]
     Proxy --> |stdio| Servers[Official MCP Servers]
 ```

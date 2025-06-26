@@ -24,30 +24,30 @@ graph LR
     subgraph "MCP Client Application"
         CD[Claude Desktop<br/>or IDE]
     end
-    
+
     subgraph "mcp-streamablehttp-client"
         CLI[CLI Interface]
         P[Proxy Core]
         O[OAuth Manager]
         C[Config Manager]
     end
-    
+
     subgraph "Remote Infrastructure"
         GW[OAuth Gateway]
         MS[MCP Servers]
     end
-    
+
     CD -->|stdio| CLI
     CLI --> P
     P --> O
     O --> C
     P -->|HTTP + OAuth| GW
     GW --> MS
-    
+
     classDef client fill:#9cf,stroke:#333,stroke-width:2px
     classDef bridge fill:#fc9,stroke:#333,stroke-width:2px
     classDef remote fill:#9fc,stroke:#333,stroke-width:2px
-    
+
     class CD client
     class CLI,P,O,C bridge
     class GW,MS remote
@@ -142,10 +142,10 @@ pixi run mcp-streamablehttp-client
 # 🔐 No valid authentication found. Starting OAuth flow...
 # 📝 Registering as OAuth client...
 # ✅ Client registered successfully!
-# 
+#
 # 🌐 Please visit: https://auth.example.com/device
 # 📋 Enter code: ABCD-1234
-# 
+#
 # ⏳ Waiting for authorization...
 # ✅ Authentication successful!
 # 💾 Credentials saved to .env file
@@ -226,7 +226,7 @@ pixi run mcp-streamablehttp-client --list-tools
 #     - url (string, required): URL to fetch
 #     - method (string): HTTP method (default: GET)
 #     - headers (object): Custom headers
-# 
+#
 # - echo: Echo back a message
 #   Arguments:
 #     - message (string, required): Message to echo
@@ -336,25 +336,25 @@ sequenceDiagram
     participant Client
     participant AuthServer
     participant GitHub
-    
+
     Client->>AuthServer: POST /register<br/>(Dynamic Registration)
     AuthServer-->>Client: client_id, client_secret
-    
+
     Client->>AuthServer: POST /device/code<br/>(Request device code)
     AuthServer-->>Client: device_code, user_code, verification_uri
-    
+
     Client->>User: Display: "Visit: {uri}<br/>Code: {user_code}"
-    
+
     User->>AuthServer: Visit URL, enter code
     AuthServer->>GitHub: Redirect to GitHub OAuth
     User->>GitHub: Authenticate
     GitHub-->>AuthServer: Authorization code
-    
+
     loop Poll for completion
         Client->>AuthServer: POST /token<br/>(Check device code)
         AuthServer-->>Client: pending / token
     end
-    
+
     AuthServer-->>Client: access_token, refresh_token
     Client->>Client: Save to .env
 ```
@@ -378,13 +378,13 @@ When used with Claude Desktop, the client operates in stdio mode:
 # Internal flow
 while True:
     request = read_from_stdin()
-    
+
     # Check/refresh auth
     ensure_valid_token()
-    
+
     # Forward to HTTP server
     response = forward_to_http(request)
-    
+
     # Return to client
     write_to_stdout(response)
 ```

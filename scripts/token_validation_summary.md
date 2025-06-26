@@ -9,7 +9,7 @@ The `just test` command now calls `refresh-tokens` which:
 - ✅ Validates and sets MCP_CLIENT_ACCESS_TOKEN
 - ✅ Updates .env file with refreshed tokens
 
-### 2. Enhanced `validate-tokens` Recipe  
+### 2. Enhanced `validate-tokens` Recipe
 The `just test` command also calls `validate-tokens` which:
 - ✅ Validates GATEWAY_OAUTH_ACCESS_TOKEN expiry and tests against auth service
 - ✅ **REQUIRES GitHub PAT** - Tests it against GitHub API

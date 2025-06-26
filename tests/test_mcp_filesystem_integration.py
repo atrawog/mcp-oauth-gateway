@@ -12,8 +12,8 @@ from .test_constants import TEST_HTTP_TIMEOUT
 class TestMCPFilesystemIntegration:
     """Divine integration tests for MCP Filesystem service."""
 
-    @pytest.mark.asyncio
-    async def test_filesystem_health_check_no_auth(self, http_client, wait_for_services, mcp_filesystem_url):
+    @pytest.mark.asyncio()
+    async def test_filesystem_health_check_no_auth(self, http_client, _wait_for_services, mcp_filesystem_url):
         """Test that health check endpoint requires authentication per divine CLAUDE.md."""
         # Health check must require auth per divine CLAUDE.md
         response = await http_client.get(f"{mcp_filesystem_url}/health", timeout=TEST_HTTP_TIMEOUT)
@@ -22,7 +22,7 @@ class TestMCPFilesystemIntegration:
             f"Health check must require authentication per divine CLAUDE.md: {response.status_code} - {response.text}"  # TODO: Break long line
         )
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filesystem_requires_auth(self, http_client, mcp_filesystem_url):
         """Test that MCP endpoint requires authentication."""
         # Request without auth should return 401
@@ -40,7 +40,7 @@ class TestMCPFilesystemIntegration:
 
         assert response.status_code == HTTP_UNAUTHORIZED, f"Expected 401 without auth, got {response.status_code}"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filesystem_list_directory(self, http_client, mcp_filesystem_url):
         """Test filesystem directory listing with authentication."""
         # Use the gateway token from environment
@@ -68,7 +68,7 @@ class TestMCPFilesystemIntegration:
         result = response.json()
         assert "result" in result or "error" in result, f"Invalid response format: {result}"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filesystem_read_file(self, http_client, mcp_filesystem_url):
         """Test filesystem file reading with authentication."""
         # Use the gateway token from environment
@@ -95,9 +95,9 @@ class TestMCPFilesystemIntegration:
             timeout=TEST_HTTP_TIMEOUT,
         )
 
-        assert init_response.status_code == HTTP_OK, (
-            f"Initialize failed: {init_response.status_code} - {init_response.text}"
-        )
+        assert (
+            init_response.status_code == HTTP_OK
+        ), f"Initialize failed: {init_response.status_code} - {init_response.text}"
 
         # Extract session ID if provided
         session_id = None
@@ -171,7 +171,7 @@ class TestMCPFilesystemIntegration:
                     text_content = str(content)
                 assert "MCP Filesystem service" in text_content, f"Test file content not found: {text_content}"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filesystem_oauth_discovery(self, http_client):
         """Test that OAuth discovery endpoint is accessible on filesystem subdomain."""
         from tests.test_constants import MCP_FILESYSTEM_TESTS_ENABLED
@@ -186,9 +186,11 @@ class TestMCPFilesystemIntegration:
         response = await http_client.get(oauth_discovery_url, timeout=TEST_HTTP_TIMEOUT, follow_redirects=False)
 
         # Should either return metadata directly or redirect to auth service
-        assert response.status_code in [200, 302, 307], (
-            f"OAuth discovery failed: {response.status_code} - {response.text}"
-        )
+        assert response.status_code in [
+            200,
+            302,
+            307,
+        ], f"OAuth discovery failed: {response.status_code} - {response.text}"
 
         if response.status_code == HTTP_OK:
             # Verify it's valid OAuth metadata
@@ -197,7 +199,7 @@ class TestMCPFilesystemIntegration:
             assert "authorization_endpoint" in metadata, "Missing authorization_endpoint"
             assert "token_endpoint" in metadata, "Missing token_endpoint"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_filesystem_cors_preflight(self, http_client, mcp_filesystem_url):
         """Test CORS preflight handling for filesystem service."""
         # OPTIONS request should work without auth
