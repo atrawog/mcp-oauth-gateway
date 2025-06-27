@@ -15,7 +15,7 @@ import pytest
 from .test_constants import BASE_DOMAIN
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import MCP_ECHO_URL
+from .test_constants import MCP_ECHO_STATELESS_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 
 
@@ -68,14 +68,14 @@ class TestMCPClientProxyBasics:
 
         # First test: should get 401 without auth
         response = await http_client.post(
-            f"{MCP_ECHO_URL}", json=request_data, headers={"Content-Type": "application/json"}, timeout=30.0
+            f"{MCP_ECHO_STATELESS_URL}", json=request_data, headers={"Content-Type": "application/json"}, timeout=30.0
         )
         assert response.status_code == HTTP_UNAUTHORIZED, "MCP endpoint should require authentication"
 
         # If we have a token, test with auth
         if MCP_CLIENT_ACCESS_TOKEN:
             response = await http_client.post(
-                f"{MCP_ECHO_URL}",
+                f"{MCP_ECHO_STATELESS_URL}",
                 json=request_data,
                 headers={
                     "Content-Type": "application/json",
@@ -104,7 +104,9 @@ class TestMCPClientProxyBasics:
         """Test that proxy endpoints require authentication."""
         # Try to access MCP endpoint without auth
         response = await http_client.post(
-            f"{MCP_ECHO_URL}", json={"jsonrpc": "2.0", "method": "initialize", "params": {}, "id": 1}, timeout=30.0
+            f"{MCP_ECHO_STATELESS_URL}",
+            json={"jsonrpc": "2.0", "method": "initialize", "params": {}, "id": 1},
+            timeout=30.0,
         )
 
         assert response.status_code == HTTP_UNAUTHORIZED
@@ -112,7 +114,7 @@ class TestMCPClientProxyBasics:
 
         # Check OAuth discovery is available
         # Remove /mcp suffix from URL to get base domain
-        base_url = MCP_ECHO_URL[:-4] if MCP_ECHO_URL.endswith("/mcp") else MCP_ECHO_URL
+        base_url = MCP_ECHO_STATELESS_URL[:-4] if MCP_ECHO_STATELESS_URL.endswith("/mcp") else MCP_ECHO_STATELESS_URL
         discovery_url = f"{base_url}/.well-known/oauth-authorization-server"
         discovery_response = await http_client.get(discovery_url, timeout=30.0)
 
@@ -146,7 +148,7 @@ class TestMCPProtocolHandling:
         }
 
         response = await http_client.post(
-            f"{MCP_ECHO_URL}",
+            f"{MCP_ECHO_STATELESS_URL}",
             json=request_data,
             headers={
                 "Content-Type": "application/json",
@@ -188,7 +190,7 @@ class TestMCPProtocolHandling:
 
         # Initialize to get session
         init_response = await http_client.post(
-            f"{MCP_ECHO_URL}",
+            f"{MCP_ECHO_STATELESS_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -217,7 +219,7 @@ class TestMCPProtocolHandling:
 
             # Try to use the session
             tools_response = await http_client.post(
-                f"{MCP_ECHO_URL}",
+                f"{MCP_ECHO_STATELESS_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
                 headers={
                     "Content-Type": "application/json",
@@ -244,7 +246,7 @@ class TestMCPProtocolHandling:
         # Try different protocol versions
         for version in ["2025-06-18", "2024-11-05", "1.0"]:
             response = await http_client.post(
-                f"{MCP_ECHO_URL}",
+                f"{MCP_ECHO_STATELESS_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -295,7 +297,7 @@ class TestProxyErrorHandling:
 
         for request in invalid_requests:
             response = await http_client.post(
-                f"{MCP_ECHO_URL}",
+                f"{MCP_ECHO_STATELESS_URL}",
                 json=request,
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -333,7 +335,7 @@ class TestProxyErrorHandling:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
 
         response = await http_client.post(
-            f"{MCP_ECHO_URL}",
+            f"{MCP_ECHO_STATELESS_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "non_existent_method",
@@ -362,7 +364,7 @@ class TestProxyErrorHandling:
         """Test proxy behavior with expired tokens."""
         # Use an obviously expired token
         response = await http_client.post(
-            f"{MCP_ECHO_URL}",
+            f"{MCP_ECHO_STATELESS_URL}",
             json={"jsonrpc": "2.0", "method": "initialize", "params": {}, "id": 1},
             headers={"Authorization": "Bearer expired_token_12345"},
             timeout=30.0,
@@ -389,7 +391,7 @@ class TestProxyRealWorldScenarios:
         if session_id:
             # List tools
             response = await http_client.post(
-                f"{MCP_ECHO_URL}",
+                f"{MCP_ECHO_STATELESS_URL}",
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2},
                 headers={
                     "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
@@ -420,7 +422,7 @@ class TestProxyRealWorldScenarios:
         # Create multiple sessions concurrently
         async def create_session(session_num: int) -> str | None:
             response = await http_client.post(
-                f"{MCP_ECHO_URL}",
+                f"{MCP_ECHO_STATELESS_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",
@@ -467,7 +469,7 @@ class TestProxyRealWorldScenarios:
         large_data = "x" * 10000  # 10KB of data
 
         response = await http_client.post(
-            f"{MCP_ECHO_URL}",
+            f"{MCP_ECHO_STATELESS_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -496,7 +498,7 @@ class TestProxyRealWorldScenarios:
     async def _create_session(self, http_client: httpx.AsyncClient, unique_test_id: str) -> str | None:
         """Helper to create a session."""
         response = await http_client.post(
-            f"{MCP_ECHO_URL}",
+            f"{MCP_ECHO_STATELESS_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -533,7 +535,7 @@ class TestProxyAuthenticationFlows:
 
         # Test with valid token using MCP protocol
         response = await http_client.post(
-            f"{MCP_ECHO_URL}",
+            f"{MCP_ECHO_STATELESS_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -562,7 +564,7 @@ class TestProxyAuthenticationFlows:
         """Test OAuth discovery endpoint through proxy domain."""
         # This should be publicly accessible
         # Remove /mcp suffix from URL to get base domain
-        base_url = MCP_ECHO_URL[:-4] if MCP_ECHO_URL.endswith("/mcp") else MCP_ECHO_URL
+        base_url = MCP_ECHO_STATELESS_URL[:-4] if MCP_ECHO_STATELESS_URL.endswith("/mcp") else MCP_ECHO_STATELESS_URL
         response = await http_client.get(f"{base_url}/.well-known/oauth-authorization-server", timeout=30.0)
 
         assert response.status_code == HTTP_OK
@@ -592,7 +594,7 @@ class TestProxyAuthenticationFlows:
                 headers["Authorization"] = auth_header
 
             response = await http_client.post(
-                f"{MCP_ECHO_URL}",
+                f"{MCP_ECHO_STATELESS_URL}",
                 json={"jsonrpc": "2.0", "method": "test", "params": {}, "id": 1},
                 headers=headers,
                 timeout=30.0,
@@ -617,7 +619,7 @@ class TestProxyPerformance:
 
         # Measure auth check (minimal processing)
         start = time.time()
-        response = await http_client.get(f"{MCP_ECHO_URL}", timeout=30.0)
+        response = await http_client.get(f"{MCP_ECHO_STATELESS_URL}", timeout=30.0)
         auth_check_time = time.time() - start
 
         assert response.status_code == HTTP_UNAUTHORIZED  # Should require auth
@@ -626,7 +628,7 @@ class TestProxyPerformance:
         # Measure MCP request
         start = time.time()
         response = await http_client.post(
-            f"{MCP_ECHO_URL}",
+            f"{MCP_ECHO_STATELESS_URL}",
             json={
                 "jsonrpc": "2.0",
                 "method": "initialize",
@@ -662,7 +664,7 @@ class TestProxyPerformance:
         # Make multiple requests with same client using MCP protocol
         for i in range(3):
             response = await http_client.post(
-                f"{MCP_ECHO_URL}",
+                f"{MCP_ECHO_STATELESS_URL}",
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/list",

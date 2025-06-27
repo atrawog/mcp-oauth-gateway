@@ -16,7 +16,9 @@ class TestMCPEchoSecurity:
     """Test MCP Echo service security and authentication enforcement."""
 
     @pytest.mark.asyncio
-    async def test_echo_rejects_all_unauthenticated_methods(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
+    async def test_echo_rejects_all_unauthenticated_methods(
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str
+    ):
         """Test that ALL MCP methods require authentication - no exceptions!"""
         methods = [
             (
@@ -35,7 +37,7 @@ class TestMCPEchoSecurity:
 
         for method, params in methods:
             response = await http_client.post(
-                mcp_echo_url,
+                mcp_echo_stateless_url,
                 json={"jsonrpc": "2.0", "method": method, "params": params, "id": f"unauth-{method}"},
                 headers={"Accept": "application/json, text/event-stream", "Content-Type": "application/json"},
             )
@@ -44,7 +46,9 @@ class TestMCPEchoSecurity:
             assert response.headers.get("WWW-Authenticate") == "Bearer"
 
     @pytest.mark.asyncio
-    async def test_echo_rejects_invalid_bearer_tokens(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
+    async def test_echo_rejects_invalid_bearer_tokens(
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str
+    ):
         """Test that Echo service rejects various invalid token formats."""
         invalid_tokens = [
             "invalid_token",
@@ -59,7 +63,7 @@ class TestMCPEchoSecurity:
             auth_header = "Bearer" if token == "" else f"Bearer {token}"
 
             response = await http_client.post(
-                mcp_echo_url,
+                mcp_echo_stateless_url,
                 json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "invalid-token-test"},
                 headers={
                     "Authorization": auth_header,
@@ -71,7 +75,7 @@ class TestMCPEchoSecurity:
             assert response.status_code == 401, f"Should reject invalid token: {token[:20]}..."
 
     @pytest.mark.asyncio
-    async def test_echo_rejects_expired_tokens(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
+    async def test_echo_rejects_expired_tokens(self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str):
         """Test that Echo service rejects expired JWT tokens."""
         # Create an expired JWT (this is just for testing rejection)
         expired_payload = {
@@ -84,7 +88,7 @@ class TestMCPEchoSecurity:
         expired_token = jwt.encode(expired_payload, "fake-secret", algorithm="HS256")
 
         response = await http_client.post(
-            mcp_echo_url,
+            mcp_echo_stateless_url,
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "expired-token-test"},
             headers={
                 "Authorization": f"Bearer {expired_token}",
@@ -98,12 +102,12 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_validates_token_with_auth_service(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
     ):
         """Test that Echo service properly validates tokens through ForwardAuth."""
         # Valid token should work
         response = await http_client.post(
-            mcp_echo_url,
+            mcp_echo_stateless_url,
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "valid-token-test"},
             headers={
                 **gateway_auth_headers,
@@ -116,13 +120,13 @@ class TestMCPEchoSecurity:
         assert response.status_code == 200
 
     @pytest.mark.asyncio
-    async def test_echo_cors_security(self, http_client: httpx.AsyncClient, mcp_echo_url: str):
+    async def test_echo_cors_security(self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str):
         """Test CORS security - preflight should work but actual requests need auth."""
         origin = "https://malicious-site.com"
 
         # Preflight should work without auth
         preflight_response = await http_client.options(
-            mcp_echo_url,
+            mcp_echo_stateless_url,
             headers={
                 "Origin": origin,
                 "Access-Control-Request-Method": "POST",
@@ -134,7 +138,7 @@ class TestMCPEchoSecurity:
 
         # But actual POST should require auth even with CORS headers
         post_response = await http_client.post(
-            mcp_echo_url,
+            mcp_echo_stateless_url,
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "cors-test"},
             headers={
                 "Origin": origin,
@@ -147,7 +151,7 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_header_injection_protection(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
     ):
         """Test that the HTTP client prevents header injection attacks."""
         import httpx
@@ -156,7 +160,7 @@ class TestMCPEchoSecurity:
         # Test 1: Verify that httpx prevents CRLF injection in header values
         with pytest.raises(httpx.LocalProtocolError):
             await http_client.post(
-                mcp_echo_url,
+                mcp_echo_stateless_url,
                 json={"test": "data"},
                 headers={
                     **gateway_auth_headers,
@@ -168,7 +172,7 @@ class TestMCPEchoSecurity:
 
         # Test 2: Verify safe headers work normally
         safe_response = await http_client.post(
-            mcp_echo_url,
+            mcp_echo_stateless_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -189,12 +193,12 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_oauth_token_scopes(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
     ):
         """Test that Echo service respects OAuth token scopes if present."""
         # This test assumes the gateway token has proper scopes
         response = await http_client.post(
-            mcp_echo_url,
+            mcp_echo_stateless_url,
             json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "scope-test"},
             headers={
                 **gateway_auth_headers,
@@ -208,14 +212,14 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_rate_limiting_protection(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
     ):
         """Test that Echo service is protected by rate limiting."""
         # Make many rapid requests
         responses = []
         for i in range(20):
             response = await http_client.post(
-                mcp_echo_url,
+                mcp_echo_stateless_url,
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -235,14 +239,14 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_large_payload_protection(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
     ):
         """Test that Echo service handles large payloads safely."""
         # Create a large message (1MB)
         large_message = "x" * (1024 * 1024)
 
         response = await http_client.post(
-            mcp_echo_url,
+            mcp_echo_stateless_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",
@@ -263,7 +267,7 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_sql_injection_protection(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
     ):
         """Test that Echo service is safe from injection attacks in tool arguments."""
         # Try various injection patterns
@@ -277,7 +281,7 @@ class TestMCPEchoSecurity:
 
         for attempt in injection_attempts:
             response = await http_client.post(
-                mcp_echo_url,
+                mcp_echo_stateless_url,
                 json={
                     "jsonrpc": "2.0",
                     "method": "tools/call",
@@ -299,11 +303,11 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_forwardauth_header_validation(
-        self, http_client: httpx.AsyncClient, mcp_echo_url: str, gateway_auth_headers: dict
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
     ):
         """Test that ForwardAuth headers are properly passed through."""
         response = await http_client.post(
-            mcp_echo_url,
+            mcp_echo_stateless_url,
             json={
                 "jsonrpc": "2.0",
                 "method": "tools/call",

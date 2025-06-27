@@ -16,7 +16,7 @@ from .test_constants import GATEWAY_OAUTH_CLIENT_SECRET
 from .test_constants import HTTP_BAD_REQUEST
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
-from .test_constants import MCP_ECHO_URL
+from .test_constants import MCP_ECHO_STATELESS_URL
 from .test_constants import MCP_PROTOCOL_VERSION
 from .test_constants import TEST_OAUTH_CALLBACK_URL
 
@@ -35,7 +35,7 @@ class TestFullOAuthFlow:
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Step 1: Try to access MCP endpoint without auth
             response = await client.post(
-                MCP_ECHO_URL,
+                MCP_ECHO_STATELESS_URL,
                 json={
                     "jsonrpc": "2.0",
                     "method": "initialize",

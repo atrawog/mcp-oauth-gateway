@@ -2,7 +2,7 @@
 
 This test file follows CLAUDE.md Sacred Commandments:
 - NO MOCKING - Tests against real deployed mcp-echo service
-- Uses MCP_ECHO_URLS configuration from test_constants
+- Uses MCP_ECHO_STATELESS_URLS configuration from test_constants
 - Uses mcp-streamablehttp-client CLI tool via subprocess
 - Tests echo and printHeader tools with full protocol compliance
 """
@@ -16,8 +16,8 @@ import pytest
 
 from tests.test_constants import BASE_DOMAIN
 from tests.test_constants import MCP_CLIENT_ACCESS_TOKEN
-from tests.test_constants import MCP_ECHO_TESTS_ENABLED
-from tests.test_constants import MCP_ECHO_URLS
+from tests.test_constants import MCP_ECHO_STATELESS_TESTS_ENABLED
+from tests.test_constants import MCP_ECHO_STATELESS_URLS
 
 
 @pytest.fixture
@@ -29,11 +29,11 @@ def base_domain():
 @pytest.fixture
 def echo_url():
     """Full URL for echo service."""
-    if not MCP_ECHO_TESTS_ENABLED:
-        pytest.skip("MCP Echo tests are disabled. Set MCP_ECHO_TESTS_ENABLED=true to enable.")
-    if not MCP_ECHO_URLS:
-        pytest.skip("MCP_ECHO_URLS environment variable not set")
-    return MCP_ECHO_URLS[0]
+    if not MCP_ECHO_STATELESS_TESTS_ENABLED:
+        pytest.skip("MCP Echo stateless tests are disabled. Set MCP_ECHO_STATELESS_TESTS_ENABLED=true to enable.")
+    if not MCP_ECHO_STATELESS_URLS:
+        pytest.skip("MCP_ECHO_STATELESS_URLS environment variable not set")
+    return MCP_ECHO_STATELESS_URLS[0]
 
 
 @pytest.fixture
@@ -143,7 +143,7 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_echo_initialize(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test initialize method to establish connection with mcp-echo."""
         response = self.run_mcp_client(
@@ -168,7 +168,7 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_echo_list_tools(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test listing available tools from mcp-echo service."""
         # First initialize
@@ -233,7 +233,7 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_echo_tool_functionality(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test the echo tool returns the exact message provided."""
         # Initialize first
@@ -275,7 +275,7 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_print_header_tool_functionality(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test the printHeader tool shows HTTP headers including auth headers."""
         # Initialize first
@@ -326,7 +326,7 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_echo_tool_error_handling(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test error handling for invalid tool usage."""
         # Initialize first
@@ -374,7 +374,7 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_print_header_tool_error_handling(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test that printHeader tool handles extra arguments gracefully."""
         # Initialize first
@@ -410,7 +410,7 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_echo_stateless_behavior(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test that mcp-echo service is truly stateless - each request is independent."""
         # Test multiple independent tool calls without reinitializing
@@ -460,7 +460,7 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_echo_protocol_compliance(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test MCP protocol compliance with proper versioning."""
         # Test with different protocol versions to ensure compliance

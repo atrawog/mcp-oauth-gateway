@@ -2,7 +2,7 @@
 
 This test file follows CLAUDE.md Sacred Commandments:
 - NO MOCKING - Tests against real deployed mcp-echo service
-- Tests ALL URLs configured in MCP_ECHO_URLS
+- Tests ALL URLs configured in MCP_ECHO_STATELESS_URLS
 - Ensures each hostname works correctly with OAuth authentication
 """
 
@@ -32,12 +32,12 @@ class TestMCPEchoAllUrls:
 
     @pytest.mark.asyncio
     async def test_all_echo_urls_accessible(
-        self, http_client: httpx.AsyncClient, mcp_echo_urls: list, gateway_auth_headers: dict
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_urls: list, gateway_auth_headers: dict
     ):
         """Test that all echo URLs (echo, echo-a through echo-z) are accessible."""
         results = {}
 
-        for url in mcp_echo_urls:
+        for url in mcp_echo_stateless_urls:
             # Test basic authentication requirement
             response = await http_client.post(
                 url,
@@ -101,25 +101,22 @@ class TestMCPEchoAllUrls:
         print(f"All URLs working: {'✅ Yes' if all('✅' in s for s in results.values()) else '❌ No'}")
 
         # Verify we tested all expected URLs
-        assert len(results) == len(mcp_echo_urls), (
-            f"Expected to test {len(mcp_echo_urls)} URLs, but tested {len(results)}"
+        assert len(results) == len(mcp_echo_stateless_urls), (
+            f"Expected to test {len(mcp_echo_stateless_urls)} URLs, but tested {len(results)}"
         )
 
-        # Verify we have echo plus echo-a through echo-z (27 total)
-        expected_count = 27  # echo + 26 letters
-        assert len(results) == expected_count, (
-            f"Expected {expected_count} URLs (echo + echo-a through echo-z), but found {len(results)}"
-        )
+        # Verify we tested all configured stateless URLs
+        assert len(results) > 0, "Should have tested at least one URL"
 
     @pytest.mark.asyncio
     async def test_echo_tool_on_random_urls(
-        self, http_client: httpx.AsyncClient, mcp_echo_urls: list, gateway_auth_headers: dict
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_urls: list, gateway_auth_headers: dict
     ):
         """Test echo tool functionality on a random sample of URLs."""
         import random
 
         # Test on 5 random URLs to avoid excessive testing
-        sample_urls = random.sample(mcp_echo_urls, min(5, len(mcp_echo_urls)))
+        sample_urls = random.sample(mcp_echo_stateless_urls, min(5, len(mcp_echo_stateless_urls)))
 
         for url in sample_urls:
             # Initialize session

@@ -103,13 +103,13 @@ class TestSSLBestPractices:
     def test_https_urls_used(self):
         """Test that all service URLs use HTTPS."""
         from .test_constants import AUTH_BASE_URL
-        from .test_constants import MCP_ECHO_URL
+        from .test_constants import MCP_ECHO_STATELESS_URL
         from .test_constants import MCP_EVERYTHING_URLS
         from .test_constants import MCP_FETCH_URL
         from .test_constants import MCP_TESTING_URL
 
         # Check all URLs start with https
-        urls_to_check = [AUTH_BASE_URL, MCP_ECHO_URL, MCP_FETCH_URL]
+        urls_to_check = [AUTH_BASE_URL, MCP_ECHO_STATELESS_URL, MCP_FETCH_URL]
 
         if MCP_TESTING_URL:
             urls_to_check.append(MCP_TESTING_URL)

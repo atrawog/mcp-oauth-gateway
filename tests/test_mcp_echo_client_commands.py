@@ -2,7 +2,7 @@
 
 This test file follows CLAUDE.md Sacred Commandments:
 - NO MOCKING - Tests against real deployed mcp-echo service
-- Uses MCP_ECHO_URLS configuration from test_constants
+- Uses MCP_ECHO_STATELESS_URLS configuration from test_constants
 - Tests using --command and --list-tools interfaces
 - Complements test_mcp_echo_client_full.py with command-line testing
 """
@@ -15,8 +15,8 @@ from pathlib import Path
 import pytest
 
 from tests.test_constants import AUTH_BASE_URL
-from tests.test_constants import MCP_ECHO_TESTS_ENABLED
-from tests.test_constants import MCP_ECHO_URLS
+from tests.test_constants import MCP_ECHO_STATELESS_TESTS_ENABLED
+from tests.test_constants import MCP_ECHO_STATELESS_URLS
 
 
 # MCP Client tokens from environment - NO .env loading in tests!
@@ -29,10 +29,10 @@ MCP_CLIENT_SECRET = os.environ.get("MCP_CLIENT_SECRET")
 @pytest.fixture
 def temp_env_file(tmp_path):
     """Create a temporary .env file for mcp-streamablehttp-client."""
-    if not MCP_ECHO_URLS:
-        pytest.skip("MCP_ECHO_URLS environment variable not set")
+    if not MCP_ECHO_STATELESS_URLS:
+        pytest.skip("MCP_ECHO_STATELESS_URLS environment variable not set")
 
-    echo_url = MCP_ECHO_URLS[0]
+    echo_url = MCP_ECHO_STATELESS_URLS[0]
 
     env_content = f"""
 # MCP Server Configuration
@@ -78,7 +78,7 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_echo_list_tools_command(self, temp_env_file, mcp_client_env, _wait_for_services):
         """Test listing tools using --list-tools command."""
         # Set up environment with MCP_CLIENT_* variables
@@ -118,7 +118,7 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_echo_tool_command_simple(self, temp_env_file, mcp_client_env, _wait_for_services):
         """Test echo tool using --command interface with simple message."""
         # Set up environment with MCP_CLIENT_* variables
@@ -154,7 +154,7 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_echo_tool_command_json_args(self, temp_env_file, mcp_client_env, _wait_for_services):
         """Test echo tool using --command interface with JSON arguments."""
         # Set up environment with MCP_CLIENT_* variables
@@ -190,7 +190,7 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_echo_tool_command_multiline(self, temp_env_file, mcp_client_env, _wait_for_services):
         """Test echo tool with multiline message via command interface."""
         # Set up environment with MCP_CLIENT_* variables
@@ -226,7 +226,7 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_print_header_tool_command(self, temp_env_file, mcp_client_env, _wait_for_services):
         """Test printHeader tool using --command interface."""
         # Set up environment with MCP_CLIENT_* variables
@@ -265,7 +265,7 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_command_with_invalid_token(self, temp_env_file, _wait_for_services):
         """Test that command fails properly with invalid token."""
         env = os.environ.copy()
@@ -308,7 +308,7 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_invalid_tool_command(self, temp_env_file, mcp_client_env, _wait_for_services):
         """Test that invalid tool commands fail properly."""
         # Set up environment with MCP_CLIENT_* variables
@@ -343,7 +343,7 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_echo_stress_test_commands(self, temp_env_file, mcp_client_env, _wait_for_services):
         """Stress test echo tool with multiple rapid commands."""
         # Set up environment with MCP_CLIENT_* variables
@@ -376,14 +376,14 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_TESTS_ENABLED, reason="MCP Echo tests disabled")
+    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
     async def test_echo_multiple_urls(self, mcp_client_env, _wait_for_services):
         """Test echo command on multiple configured URLs."""
-        if not MCP_ECHO_URLS:
-            pytest.skip("MCP_ECHO_URLS environment variable not set")
+        if not MCP_ECHO_STATELESS_URLS:
+            pytest.skip("MCP_ECHO_STATELESS_URLS environment variable not set")
 
         # Test up to 5 URLs to avoid excessive testing time
-        urls_to_test = MCP_ECHO_URLS[:5]
+        urls_to_test = MCP_ECHO_STATELESS_URLS[:5]
 
         env = os.environ.copy()
         env.update(mcp_client_env)
