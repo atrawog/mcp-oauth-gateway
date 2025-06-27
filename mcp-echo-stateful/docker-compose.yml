@@ -20,7 +20,7 @@ services:
 
       # OAuth discovery route - Priority 10 (ABSOLUTE HIGHEST - must work without auth!)
       # Using Host rule for main domain only
-      - "traefik.http.routers.mcp-echo-stateful-oauth-discovery.rule=Host(`echo-stateful.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-echo-stateful-oauth-discovery.rule=(Host(`echo-stateful.${BASE_DOMAIN}`) || Host(`echo-stateful0.${BASE_DOMAIN}`) || Host(`echo-stateful1.${BASE_DOMAIN}`) || Host(`echo-stateful2.${BASE_DOMAIN}`) || Host(`echo-stateful3.${BASE_DOMAIN}`) || Host(`echo-stateful4.${BASE_DOMAIN}`) || Host(`echo-stateful5.${BASE_DOMAIN}`) || Host(`echo-stateful6.${BASE_DOMAIN}`) || Host(`echo-stateful7.${BASE_DOMAIN}`) || Host(`echo-stateful8.${BASE_DOMAIN}`) || Host(`echo-stateful9.${BASE_DOMAIN}`)) && PathPrefix(`/.well-known/oauth-authorization-server`)"
       - "traefik.http.routers.mcp-echo-stateful-oauth-discovery.priority=10"
       - "traefik.http.routers.mcp-echo-stateful-oauth-discovery.entrypoints=websecure"
       - "traefik.http.routers.mcp-echo-stateful-oauth-discovery.tls.certresolver=letsencrypt"
@@ -29,7 +29,7 @@ services:
       # No auth middleware - OAuth discovery must be public!
 
       # CORS preflight route (OPTIONS) - Priority 4 (HIGHEST for OPTIONS)
-      - "traefik.http.routers.mcp-echo-stateful-cors.rule=Host(`echo-stateful.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.mcp-echo-stateful-cors.rule=(Host(`echo-stateful.${BASE_DOMAIN}`) || Host(`echo-stateful0.${BASE_DOMAIN}`) || Host(`echo-stateful1.${BASE_DOMAIN}`) || Host(`echo-stateful2.${BASE_DOMAIN}`) || Host(`echo-stateful3.${BASE_DOMAIN}`) || Host(`echo-stateful4.${BASE_DOMAIN}`) || Host(`echo-stateful5.${BASE_DOMAIN}`) || Host(`echo-stateful6.${BASE_DOMAIN}`) || Host(`echo-stateful7.${BASE_DOMAIN}`) || Host(`echo-stateful8.${BASE_DOMAIN}`) || Host(`echo-stateful9.${BASE_DOMAIN}`)) && Method(`OPTIONS`)"
       - "traefik.http.routers.mcp-echo-stateful-cors.priority=4"
       - "traefik.http.routers.mcp-echo-stateful-cors.entrypoints=websecure"
       - "traefik.http.routers.mcp-echo-stateful-cors.tls.certresolver=letsencrypt"
@@ -39,7 +39,7 @@ services:
 
       # MCP route with auth - Priority 2
       # Use PathPrefix to handle both /mcp and /mcp/
-      - "traefik.http.routers.mcp-echo-stateful.rule=Host(`echo-stateful.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-echo-stateful.rule=(Host(`echo-stateful.${BASE_DOMAIN}`) || Host(`echo-stateful0.${BASE_DOMAIN}`) || Host(`echo-stateful1.${BASE_DOMAIN}`) || Host(`echo-stateful2.${BASE_DOMAIN}`) || Host(`echo-stateful3.${BASE_DOMAIN}`) || Host(`echo-stateful4.${BASE_DOMAIN}`) || Host(`echo-stateful5.${BASE_DOMAIN}`) || Host(`echo-stateful6.${BASE_DOMAIN}`) || Host(`echo-stateful7.${BASE_DOMAIN}`) || Host(`echo-stateful8.${BASE_DOMAIN}`) || Host(`echo-stateful9.${BASE_DOMAIN}`)) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.mcp-echo-stateful.priority=2"
       - "traefik.http.routers.mcp-echo-stateful.entrypoints=websecure"
       - "traefik.http.routers.mcp-echo-stateful.tls.certresolver=letsencrypt"
@@ -47,7 +47,7 @@ services:
       - "traefik.http.routers.mcp-echo-stateful.service=mcp-echo-stateful"
 
       # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
-      - "traefik.http.routers.mcp-echo-stateful-catchall.rule=Host(`echo-stateful.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-echo-stateful-catchall.rule=Host(`echo-stateful.${BASE_DOMAIN}`) || Host(`echo-stateful0.${BASE_DOMAIN}`) || Host(`echo-stateful1.${BASE_DOMAIN}`) || Host(`echo-stateful2.${BASE_DOMAIN}`) || Host(`echo-stateful3.${BASE_DOMAIN}`) || Host(`echo-stateful4.${BASE_DOMAIN}`) || Host(`echo-stateful5.${BASE_DOMAIN}`) || Host(`echo-stateful6.${BASE_DOMAIN}`) || Host(`echo-stateful7.${BASE_DOMAIN}`) || Host(`echo-stateful8.${BASE_DOMAIN}`) || Host(`echo-stateful9.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-echo-stateful-catchall.priority=1"
       - "traefik.http.routers.mcp-echo-stateful-catchall.entrypoints=websecure"
       - "traefik.http.routers.mcp-echo-stateful-catchall.tls.certresolver=letsencrypt"
@@ -55,7 +55,7 @@ services:
       - "traefik.http.routers.mcp-echo-stateful-catchall.service=mcp-echo-stateful"
 
       # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)
-      - "traefik.http.routers.mcp-echo-stateful-redirect.rule=Host(`echo-stateful.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.mcp-echo-stateful-redirect.rule=Host(`echo-stateful.${BASE_DOMAIN}`) || Host(`echo-stateful0.${BASE_DOMAIN}`) || Host(`echo-stateful1.${BASE_DOMAIN}`) || Host(`echo-stateful2.${BASE_DOMAIN}`) || Host(`echo-stateful3.${BASE_DOMAIN}`) || Host(`echo-stateful4.${BASE_DOMAIN}`) || Host(`echo-stateful5.${BASE_DOMAIN}`) || Host(`echo-stateful6.${BASE_DOMAIN}`) || Host(`echo-stateful7.${BASE_DOMAIN}`) || Host(`echo-stateful8.${BASE_DOMAIN}`) || Host(`echo-stateful9.${BASE_DOMAIN}`)"
       - "traefik.http.routers.mcp-echo-stateful-redirect.entrypoints=web"
       - "traefik.http.routers.mcp-echo-stateful-redirect.middlewares=redirect-to-https@file"
       - "traefik.http.routers.mcp-echo-stateful-redirect.priority=1"

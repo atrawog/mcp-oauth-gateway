@@ -101,20 +101,9 @@ lint:
     @echo "🔥 Running Divine Code Quality Checks ⚡"
     @echo "========================================"
     @echo ""
-    @echo "1️⃣ Ruff Linting..."
-    pixi run pre-commit run ruff --all-files
-    @echo "✅ Ruff linting passed!"
-    @echo ""
-    @echo "2️⃣ Code Formatting Check..."
-    pixi run pre-commit run ruff-format --all-files
-    @echo "✅ Code formatting check passed!"
-    @echo ""
-    @echo "3️⃣ Pre-commit Hooks..."
-    pixi run pre-commit run --all-files || true
-    @echo "✅ Pre-commit hooks completed!"
-    @echo ""
-    @echo "4️⃣ Pydantic Deprecation Hunt..."
-    pixi run python scripts/lint_pydantic_compliance.py
+    @echo "1️⃣ Running ALL Pre-commit Hooks..."
+    pixi run pre-commit run --all-files
+    @echo "✅ All pre-commit hooks passed!"
     @echo ""
     @echo "🏆 ALL QUALITY CHECKS COMPLETED! Divine compliance achieved! ⚡"
 
