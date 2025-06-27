@@ -9,7 +9,7 @@ import requests
 
 def test_vscode_session_flow():
     """Test the complete VS Code session flow with the stateful server."""
-    base_url = "http://mcp-echo:3000/mcp"
+    base_url = "http://mcp-echo-stateful:3000/mcp"
 
     print("🧪 Testing VS Code-like Session Flow with Stateful MCP Echo Server")
     print("=" * 70)

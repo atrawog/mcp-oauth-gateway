@@ -1,0 +1,71 @@
+services:
+  mcp-echo-stateless:
+    build:
+      context: ../
+      dockerfile: mcp-echo-stateless/Dockerfile
+    container_name: mcp-echo-stateless
+    restart: unless-stopped
+    networks:
+      - public
+    environment:
+      - MCP_ECHO_HOST=0.0.0.0
+      - MCP_ECHO_PORT=3000
+      - MCP_ECHO_DEBUG=true
+      - MCP_PROTOCOL_VERSION=2025-06-18  # This service supports this specific version
+      - MCP_PROTOCOL_VERSIONS_SUPPORTED=${MCP_PROTOCOL_VERSIONS_SUPPORTED}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.mcp-echo-stateless.loadbalancer.server.port=3000"
+
+      # OAuth discovery route - Priority 10 (ABSOLUTE HIGHEST - must work without auth!)
+      # Using HostRegexp to match echo-stateless and echo-stateless-[a-z] subdomains
+      - "traefik.http.routers.mcp-echo-stateless-oauth-discovery.rule=HostRegexp(`^echo-stateless(-[a-z])?[.]${BASE_DOMAIN}$`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+      - "traefik.http.routers.mcp-echo-stateless-oauth-discovery.priority=10"
+      - "traefik.http.routers.mcp-echo-stateless-oauth-discovery.entrypoints=websecure"
+      - "traefik.http.routers.mcp-echo-stateless-oauth-discovery.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-echo-stateless-oauth-discovery.middlewares=oauth-discovery-rewrite@file"
+      - "traefik.http.routers.mcp-echo-stateless-oauth-discovery.service=auth@docker"
+      # No auth middleware - OAuth discovery must be public!
+
+      # CORS preflight route (OPTIONS) - Priority 4 (HIGHEST for OPTIONS)
+      - "traefik.http.routers.mcp-echo-stateless-cors.rule=HostRegexp(`^echo-stateless-(-[a-z])?[.]${BASE_DOMAIN}$`) && Method(`OPTIONS`)"
+      - "traefik.http.routers.mcp-echo-stateless-cors.priority=4"
+      - "traefik.http.routers.mcp-echo-stateless-cors.entrypoints=websecure"
+      - "traefik.http.routers.mcp-echo-stateless-cors.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-echo-stateless-cors.middlewares=mcp-cors@file"
+      - "traefik.http.routers.mcp-echo-stateless-cors.service=mcp-echo-stateless"
+      # No auth middleware for CORS preflight, but CORS middleware is essential!
+
+      # MCP route with auth - Priority 2
+      # Use PathPrefix to handle both /mcp and /mcp/
+      - "traefik.http.routers.mcp-echo-stateless.rule=HostRegexp(`^echo-stateless-(-[a-z])?[.]${BASE_DOMAIN}$`) && PathPrefix(`/mcp`)"
+      - "traefik.http.routers.mcp-echo-stateless.priority=2"
+      - "traefik.http.routers.mcp-echo-stateless.entrypoints=websecure"
+      - "traefik.http.routers.mcp-echo-stateless.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-echo-stateless.middlewares=mcp-cors@file,mcp-auth@file"
+      - "traefik.http.routers.mcp-echo-stateless.service=mcp-echo-stateless"
+
+      # Catch-all route with auth - Priority 1 (LOWEST for HTTPS)
+      - "traefik.http.routers.mcp-echo-stateless-catchall.rule=HostRegexp(`^echo-stateless-(-[a-z])?[.]${BASE_DOMAIN}$`)"
+      - "traefik.http.routers.mcp-echo-stateless-catchall.priority=1"
+      - "traefik.http.routers.mcp-echo-stateless-catchall.entrypoints=websecure"
+      - "traefik.http.routers.mcp-echo-stateless-catchall.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.mcp-echo-stateless-catchall.middlewares=mcp-cors@file,mcp-auth@file"
+      - "traefik.http.routers.mcp-echo-stateless-catchall.service=mcp-echo-stateless"
+
+      # HTTP to HTTPS redirect for MCP service - Priority 1 (same as catchall but for HTTP)
+      - "traefik.http.routers.mcp-echo-stateless-redirect.rule=HostRegexp(`^echo-stateless-(-[a-z])?[.]${BASE_DOMAIN}$`)"
+      - "traefik.http.routers.mcp-echo-stateless-redirect.entrypoints=web"
+      - "traefik.http.routers.mcp-echo-stateless-redirect.middlewares=redirect-to-https@file"
+      - "traefik.http.routers.mcp-echo-stateless-redirect.priority=1"
+      - "traefik.http.routers.mcp-echo-stateless-redirect.service=mcp-echo-stateless"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d \"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"method\\\":\\\"initialize\\\",\\\"params\\\":{\\\"protocolVersion\\\":\\\"${MCP_PROTOCOL_VERSION}\\\",\\\"capabilities\\\":{},\\\"clientInfo\\\":{\\\"name\\\":\\\"healthcheck\\\",\\\"version\\\":\\\"1.0\\\"}},\\\"id\\\":1}\" | grep -q \"protocolVersion.*${MCP_PROTOCOL_VERSION}\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+networks:
+  public:
+    external: true

@@ -348,7 +348,8 @@ async def _ensure_services_ready():
         required_services = {"traefik", "auth", "redis"}
 
         # Only require service-specific containers if their tests are enabled
-        from .test_constants import MCP_ECHO_TESTS_ENABLED
+        from .test_constants import MCP_ECHO_STATEFULL_TESTS_ENABLED
+        from .test_constants import MCP_ECHO_STATELESS_TESTS_ENABLED
         from .test_constants import MCP_EVERYTHING_TESTS_ENABLED
         from .test_constants import MCP_FETCH_TESTS_ENABLED
         from .test_constants import MCP_FETCHS_TESTS_ENABLED
@@ -361,8 +362,10 @@ async def _ensure_services_ready():
         from .test_constants import MCP_TMUX_TESTS_ENABLED
 
         # Add service-specific requirements if enabled
-        if MCP_ECHO_TESTS_ENABLED and not MCP_TESTING_URL:
-            required_services.add("mcp-echo")
+        if MCP_ECHO_STATEFULL_TESTS_ENABLED and not MCP_TESTING_URL:
+            required_services.add("mcp-echo-stateful")
+        if MCP_ECHO_STATELESS_TESTS_ENABLED and not MCP_TESTING_URL:
+            required_services.add("mcp-echo-stateless")
         if MCP_FETCH_TESTS_ENABLED and not MCP_TESTING_URL:
             required_services.add("mcp-fetch")
         if MCP_FETCHS_TESTS_ENABLED and not MCP_TESTING_URL:
@@ -803,33 +806,63 @@ def gateway_auth_headers():
 
 
 @pytest.fixture
-def mcp_echo_url():
-    """Base URL for mcp-echo service, with test skip logic."""
-    from .test_constants import MCP_ECHO_TESTS_ENABLED
-    from .test_constants import MCP_ECHO_URLS
+def mcp_echo_statefull_url():
+    """Base URL for mcp-echo-stateful service, with test skip logic."""
+    from .test_constants import MCP_ECHO_STATEFULL_TESTS_ENABLED
+    from .test_constants import MCP_ECHO_STATEFULL_URLS
 
-    if not MCP_ECHO_TESTS_ENABLED:
-        pytest.skip("MCP Echo tests are disabled. Set MCP_ECHO_TESTS_ENABLED=true to enable.")
-    if not MCP_ECHO_URLS:
-        pytest.skip("MCP_ECHO_URLS environment variable not set")
+    if not MCP_ECHO_STATEFULL_TESTS_ENABLED:
+        pytest.skip("MCP Echo Statefull tests are disabled. Set MCP_ECHO_STATEFULL_TESTS_ENABLED=true to enable.")
+    if not MCP_ECHO_STATEFULL_URLS:
+        pytest.skip("MCP_ECHO_STATEFULL_URLS environment variable not set")
 
     # Return first URL from the list (including /mcp path)
-    return MCP_ECHO_URLS[0]
+    return MCP_ECHO_STATEFULL_URLS[0]
 
 
 @pytest.fixture
-def mcp_echo_urls():
-    """All URLs for mcp-echo service, with test skip logic."""
-    from .test_constants import MCP_ECHO_TESTS_ENABLED
-    from .test_constants import MCP_ECHO_URLS
+def mcp_echo_statefull_urls():
+    """All URLs for mcp-echo-stateful service, with test skip logic."""
+    from .test_constants import MCP_ECHO_STATEFULL_TESTS_ENABLED
+    from .test_constants import MCP_ECHO_STATEFULL_URLS
 
-    if not MCP_ECHO_TESTS_ENABLED:
-        pytest.skip("MCP Echo tests are disabled. Set MCP_ECHO_TESTS_ENABLED=true to enable.")
-    if not MCP_ECHO_URLS:
-        pytest.skip("MCP_ECHO_URLS environment variable not set")
+    if not MCP_ECHO_STATEFULL_TESTS_ENABLED:
+        pytest.skip("MCP Echo Statefull tests are disabled. Set MCP_ECHO_STATEFULL_TESTS_ENABLED=true to enable.")
+    if not MCP_ECHO_STATEFULL_URLS:
+        pytest.skip("MCP_ECHO_STATEFULL_URLS environment variable not set")
 
     # Return all URLs from the list
-    return MCP_ECHO_URLS
+    return MCP_ECHO_STATEFULL_URLS
+
+
+@pytest.fixture
+def mcp_echo_stateless_url():
+    """Base URL for mcp-echo-stateless service, with test skip logic."""
+    from .test_constants import MCP_ECHO_STATELESS_TESTS_ENABLED
+    from .test_constants import MCP_ECHO_STATELESS_URLS
+
+    if not MCP_ECHO_STATELESS_TESTS_ENABLED:
+        pytest.skip("MCP Echo Stateless tests are disabled. Set MCP_ECHO_STATELESS_TESTS_ENABLED=true to enable.")
+    if not MCP_ECHO_STATELESS_URLS:
+        pytest.skip("MCP_ECHO_STATELESS_URLS environment variable not set")
+
+    # Return first URL from the list (including /mcp path)
+    return MCP_ECHO_STATELESS_URLS[0]
+
+
+@pytest.fixture
+def mcp_echo_stateless_urls():
+    """All URLs for mcp-echo-stateless service, with test skip logic."""
+    from .test_constants import MCP_ECHO_STATELESS_TESTS_ENABLED
+    from .test_constants import MCP_ECHO_STATELESS_URLS
+
+    if not MCP_ECHO_STATELESS_TESTS_ENABLED:
+        pytest.skip("MCP Echo Stateless tests are disabled. Set MCP_ECHO_STATELESS_TESTS_ENABLED=true to enable.")
+    if not MCP_ECHO_STATELESS_URLS:
+        pytest.skip("MCP_ECHO_STATELESS_URLS environment variable not set")
+
+    # Return all URLs from the list
+    return MCP_ECHO_STATELESS_URLS
 
 
 @pytest.fixture

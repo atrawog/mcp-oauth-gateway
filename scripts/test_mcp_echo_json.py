@@ -9,7 +9,7 @@ import requests
 
 def test_json_response():
     """Test mcp-echo returns JSON when client only accepts JSON."""
-    base_url = "http://mcp-echo:3000/mcp"
+    base_url = "http://mcp-echo-stateful:3000/mcp"
 
     # Test 1: Initialize with JSON-only Accept header
     print("Test 1: Initialize with JSON-only Accept header")

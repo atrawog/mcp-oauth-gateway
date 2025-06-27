@@ -1,14 +1,14 @@
-# 🔥 CLAUDE.md - The MCP-Echo Service Divine Scripture! ⚡
+# 🔥 CLAUDE.md - The MCP-Echo-Stateful Service Divine Scripture! ⚡
 
-**🗣️ Behold! The Sacred MCP Echo Service Docker Container! 🗣️**
+**🗣️ Behold! The Sacred MCP Echo Stateful Service Docker Container! 🗣️**
 
-**⚡ This is the Docker service wrapping mcp-echo-streamablehttp-server-stateless! ⚡**
+**⚡ This is the Docker service wrapping mcp-echo-streamablehttp-server-stateful! ⚡**
 
 ## 🔱 The Sacred Purpose - Docker Service Wrapper!
 
-**This directory contains the Docker service configuration for mcp-echo-streamablehttp-server-stateless!**
+**This directory contains the Docker service configuration for mcp-echo-streamablehttp-server-stateful!**
 
-The actual server implementation lives in `../mcp-echo-streamablehttp-server-stateless/` - see its CLAUDE.md for implementation details.
+The actual server implementation lives in `../mcp-echo-streamablehttp-server-stateful/` - see its CLAUDE.md for implementation details.
 
 This directory provides:
 - **Docker container** wrapping the Python server
@@ -17,7 +17,7 @@ This directory provides:
 - **Health checks** using MCP protocol
 - **Test scripts** for service validation
 
-**⚡ MCP-Echo knows nothing of OAuth - pure protocol innocence maintained! ⚡**
+**⚡ MCP-Echo-Stateful knows nothing of OAuth - pure protocol innocence maintained! ⚡**
 
 ## 🐳 The Docker Manifestation - Container of Testing Purity!
 
@@ -26,7 +26,7 @@ This directory provides:
 FROM python:3.11-slim  # The blessed Python vessel!
 
 # Install the package from source
-COPY mcp-echo-streamablehttp-server-stateless/ ./
+COPY mcp-echo-streamablehttp-server-stateful/ ./
 
 # Debug mode enabled by divine decree!
 ENV MCP_ECHO_DEBUG=true
@@ -35,7 +35,7 @@ EXPOSE 3000  # The blessed MCP port!
 HEALTHCHECK  # Prove thy readiness via MCP protocol!
 
 # Launch the server directly
-CMD ["mcp-echo-streamablehttp-server-stateless"]
+CMD ["mcp-echo-stateful"]
 ```
 
 **⚡ Simple server + debug logging = Testing enlightenment! ⚡**
@@ -52,7 +52,7 @@ CMD ["mcp-echo-streamablehttp-server-stateless"]
 
 **Service Discovery:**
 - `BASE_DOMAIN` - For Traefik routing labels!
-- `SERVICE_NAME=mcp-echo` - Divine service identifier!
+- `SERVICE_NAME=mcp-echo-stateful` - Divine service identifier!
 
 **⚡ Configuration flows through docker-compose environment! ⚡**
 
@@ -61,34 +61,34 @@ CMD ["mcp-echo-streamablehttp-server-stateless"]
 ```yaml
 labels:
   # Basic routing - priority 2
-  - "traefik.http.routers.mcp-echo.rule=Host(`echo.${BASE_DOMAIN}`)"
-  - "traefik.http.routers.mcp-echo.priority=2"
+  - "traefik.http.routers.mcp-echo-stateful.rule=HostRegexp(`^echo-statefull(-[a-z])?[.]${BASE_DOMAIN}$`)"
+  - "traefik.http.routers.mcp-echo-stateful.priority=2"
 
   # ForwardAuth middleware - divine authentication
-  - "traefik.http.routers.mcp-echo.middlewares=mcp-auth@docker"
+  - "traefik.http.routers.mcp-echo-stateful.middlewares=mcp-auth@docker"
 
   # Service definition
-  - "traefik.http.services.mcp-echo.loadbalancer.server.port=3000"
+  - "traefik.http.services.mcp-echo-stateful.loadbalancer.server.port=3000"
 
   # OAuth discovery routing - priority 10
-  - "traefik.http.routers.mcp-echo-oauth-discovery.rule=..."
-  - "traefik.http.routers.mcp-echo-oauth-discovery.priority=10"
+  - "traefik.http.routers.mcp-echo-stateful-oauth-discovery.rule=..."
+  - "traefik.http.routers.mcp-echo-stateful-oauth-discovery.priority=10"
 ```
 
 **⚡ Priorities prevent the catch-all from devouring sacred paths! ⚡**
 
 ## 🔐 The Security Architecture - Divine Protection Through Layers!
 
-**The MCP-Echo service itself knows NO authentication!**
+**The MCP-Echo-Stateful service itself knows NO authentication!**
 
 Security is enforced by the sacred trinity:
 1. **Traefik** - Enforces Bearer token authentication!
 2. **Auth Service** - Validates tokens via ForwardAuth!
-3. **MCP-Echo** - Receives only pre-authenticated requests!
+3. **MCP-Echo-Stateful** - Receives only pre-authenticated requests!
 
 **⚡ This is the way of the trinity - separation brings security! ⚡**
 
-## 🧪 Testing the MCP-Echo Service - Divine Verification!
+## 🧪 Testing the MCP-Echo-Stateful Service - Divine Verification!
 
 ```bash
 # Run the test script
@@ -104,18 +104,18 @@ just test-integration
 just logs
 
 # Monitor health
-watch 'docker inspect mcp-echo | jq ".[0].State.Health"'
+watch 'docker inspect mcp-echo-stateful | jq ".[0].State.Health"'
 ```
 
 **⚡ Real services, real tests - no mocking in this realm! ⚡**
 
 ## 📜 The Integration Flow - How Requests Reach Echo!
 
-1. **Client Request** → `https://echo.domain.com/mcp`
+1. **Client Request** → `https://echo-statefull.domain.com/mcp`
 2. **Traefik Routes** → Checks authentication via ForwardAuth
 3. **Auth Validates** → Token verification at /verify endpoint
-4. **Request Forwarded** → Reaches MCP-Echo on port 3000
-5. **Server Processes** → Direct handling via mcp-echo-streamablehttp-server-stateless
+4. **Request Forwarded** → Reaches MCP-Echo-Stateful on port 3000
+5. **Server Processes** → Direct handling via mcp-echo-streamablehttp-server-stateful
 6. **Tool Executes** → One of 10 diagnostic tools runs
 7. **Response Returns** → StreamableHTTP SSE → client
 
@@ -124,7 +124,7 @@ watch 'docker inspect mcp-echo | jq ".[0].State.Health"'
 ## 🎯 The Divine Mission - Service Responsibilities!
 
 **What this Docker service MUST Do:**
-- Wrap mcp-echo-streamablehttp-server-stateless properly!
+- Wrap mcp-echo-streamablehttp-server-stateful properly!
 - Configure environment for debugging!
 - Integrate with Traefik routing!
 - Provide health checks via MCP protocol!
@@ -144,16 +144,16 @@ watch 'docker inspect mcp-echo | jq ".[0].State.Health"'
 just build
 
 # Run standalone for testing
-docker run -p 3000:3000 -e MCP_ECHO_DEBUG=true mcp-echo
+docker run -p 3000:3000 -e MCP_ECHO_DEBUG=true mcp-echo-stateful
 
 # Shell into container
-docker exec -it mcp-echo /bin/bash
+docker exec -it mcp-echo-stateful /bin/bash
 
 # Check health status
-docker inspect mcp-echo --format='{{.State.Health.Status}}'
+docker inspect mcp-echo-stateful --format='{{.State.Health.Status}}'
 
 # View environment
-docker exec mcp-echo env | grep MCP_
+docker exec mcp-echo-stateful env | grep MCP_
 ```
 
 ## 🔥 Common Docker Issues and Divine Solutions!
@@ -171,11 +171,11 @@ docker exec mcp-echo env | grep MCP_
 ### "Environment not loading" - Configuration problems!
 - Check .env file exists and is loaded
 - Verify docker-compose env_file directive
-- Use `docker exec mcp-echo env` to debug
+- Use `docker exec mcp-echo-stateful env` to debug
 
 ## 📚 Related Documentation
 
-- **Server Implementation**: See `../mcp-echo-streamablehttp-server-stateless/CLAUDE.md`
+- **Server Implementation**: See `../mcp-echo-streamablehttp-server-stateful/CLAUDE.md`
 - **OAuth Gateway**: See `../CLAUDE.md` for system architecture
 - **Testing Guide**: See `./tests/README.md` for test details
 

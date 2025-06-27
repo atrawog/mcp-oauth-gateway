@@ -513,10 +513,16 @@ check-ssl:
 		echo ""
 	fi
 
-	# MCP Echo service (special handling as it's not in the standard pattern)
-	if [ "${MCP_ECHO_ENABLED:-false}" = "true" ]; then
-		echo "MCP Echo:"
-		curl -I https://echo.${BASE_DOMAIN}/mcp 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: echo service"
+	# MCP Echo services (special handling as they're not in the standard pattern)
+	if [ "${MCP_ECHO_STATEFULL_ENABLED:-false}" = "true" ]; then
+		echo "MCP Echo Stateful:"
+		curl -I https://echo-statefull.${BASE_DOMAIN}/mcp 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: echo-statefull service"
+		echo ""
+	fi
+
+	if [ "${MCP_ECHO_STATELESS_ENABLED:-false}" = "true" ]; then
+		echo "MCP Echo Stateless:"
+		curl -I https://echo-stateless-.${BASE_DOMAIN}/mcp 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: echo-stateless service"
 		echo ""
 	fi
 

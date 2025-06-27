@@ -29,7 +29,8 @@ def is_service_disabled(service_name: str) -> tuple[bool, str]:
     # Map of service names to their enable environment variables
     service_env_map = {
         "mcp-fetch": "MCP_FETCH_ENABLED",
-        "mcp-echo": "MCP_ECHO_ENABLED",
+        "mcp-echo-stateful": "MCP_ECHO_STATEFULL_ENABLED",
+        "mcp-echo-stateless": "MCP_ECHO_STATELESS_ENABLED",
         "mcp-everything": "MCP_EVERYTHING_ENABLED",
         "mcp-fetchs": "MCP_FETCHS_ENABLED",
         "mcp-filesystem": "MCP_FILESYSTEM_ENABLED",
@@ -169,8 +170,12 @@ async def wait_for_services(max_wait: int = 60) -> bool:
         services_to_check.append("mcp-fetch")
 
     # Add mcp-echo if enabled
-    if os.getenv("MCP_ECHO_ENABLED", "false").lower() == "true":
-        services_to_check.append("mcp-echo")
+    if os.getenv("MCP_ECHO_STATEFULL_ENABLED", "false").lower() == "true":
+        services_to_check.append("mcp-echo-stateful")
+
+    # Add mcp-echo-stateless if enabled
+    if os.getenv("MCP_ECHO_STATELESS_ENABLED", "false").lower() == "true":
+        services_to_check.append("mcp-echo-stateless")
 
     # Add mcp-everything if enabled
     if os.getenv("MCP_EVERYTHING_ENABLED", "false").lower() == "true":
@@ -287,8 +292,10 @@ async def main():
     base_services = ["traefik", "auth", "redis"]
     if os.getenv("MCP_FETCH_ENABLED", "false").lower() == "true":
         base_services.append("mcp-fetch")
-    if os.getenv("MCP_ECHO_ENABLED", "false").lower() == "true":
-        base_services.append("mcp-echo")
+    if os.getenv("MCP_ECHO_STATEFULL_ENABLED", "false").lower() == "true":
+        base_services.append("mcp-echo-stateful")
+    if os.getenv("MCP_ECHO_STATELESS_ENABLED", "false").lower() == "true":
+        base_services.append("mcp-echo-stateless")
     if os.getenv("MCP_EVERYTHING_ENABLED", "false").lower() == "true":
         base_services.append("mcp-everything")
 
