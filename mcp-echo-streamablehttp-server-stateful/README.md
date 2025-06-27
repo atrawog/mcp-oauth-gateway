@@ -27,7 +27,6 @@ Unlike the stateless version, this server maintains:
 |---------|-----------|----------|
 | Session Management | ❌ None | ✅ Full session lifecycle |
 | Message Queuing | ❌ Direct response | ✅ Queued for polling |
-| VS Code Compatibility | ❌ Hangs on initialize | ✅ Full compatibility |
 | GET Request Handling | ❌ Simple keep-alive | ✅ Message retrieval |
 | Session Cleanup | ❌ N/A | ✅ Automatic background cleanup |
 | Memory Usage | ✅ Minimal | ⚠️  Grows with sessions |

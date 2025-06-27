@@ -36,4 +36,4 @@ ENV MCP_SESSION_TIMEOUT=3600
 ENV MCP_PROTOCOL_VERSIONS_SUPPORTED=2025-06-18,2025-03-26,2024-11-05
 
 # Run the server
-CMD ["mcp-echo-stateful"]
+CMD ["mcp-echo-streamablehttp-server-stateful"]

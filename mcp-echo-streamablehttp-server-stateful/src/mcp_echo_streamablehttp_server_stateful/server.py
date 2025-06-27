@@ -448,6 +448,11 @@ class MCPEchoServerStateful:
                 },
             },
             {
+                "name": "replayLastEcho",
+                "description": "Replay the last message that was echoed in this session",
+                "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+            },
+            {
                 "name": "printHeader",
                 "description": "Print all HTTP headers from the current request",
                 "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
@@ -544,6 +549,7 @@ class MCPEchoServerStateful:
         # Map tool names to their handler methods
         tool_handlers = {
             "echo": self._handle_echo_tool,
+            "replayLastEcho": self._handle_replay_last_echo,
             "printHeader": self._handle_print_header_tool,
             "bearerDecode": self._handle_bearer_decode,
             "authContext": self._handle_auth_context,
@@ -625,14 +631,50 @@ class MCPEchoServerStateful:
         if not isinstance(message, str):
             return self._error_response(request_id, -32602, "message must be a string")
 
+        original_message = message
+
         # Add session context if available
         if session_id:
             session = self.session_manager.get_session(session_id)
             if session:
                 client_name = session.get("client_info", {}).get("name", "unknown")
                 message = f"[Session {session_id[:8]}... from {client_name}] {message}"
+                # Store the last echo message in the session
+                session["last_echo_message"] = original_message
 
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": message}]}}
+
+    async def _handle_replay_last_echo(
+        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+    ) -> dict[str, Any]:
+        """Handle the replayLastEcho tool - repeats the last echo message."""
+        if not session_id:
+            return self._error_response(request_id, -32602, "Session required for replay functionality")
+
+        session = self.session_manager.get_session(session_id)
+        if not session:
+            return self._error_response(request_id, -32602, "Invalid session")
+
+        last_echo_message = session.get("last_echo_message")
+        if last_echo_message is None:
+            return {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "result": {
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "No previous echo message found in this session. Use the echo tool first!",
+                        }
+                    ]
+                },
+            }
+
+        # Format the replay message with session context
+        client_name = session.get("client_info", {}).get("name", "unknown")
+        replay_message = f"[REPLAY - Session {session_id[:8]}... from {client_name}] {last_echo_message}"
+
+        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": replay_message}]}}
 
     async def _handle_print_header_tool(
         self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
