@@ -46,10 +46,21 @@ def main():
     supported_versions = [v.strip() for v in supported_versions_str.split(",") if v.strip()]
 
     # Configure logging
-    logging.basicConfig(
-        level=logging.DEBUG if args.debug else logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
+    log_level = logging.DEBUG if args.debug else logging.INFO
+    log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+    # Configure root logger
+    handlers = [logging.StreamHandler(sys.stdout)]
+
+    # Add file handler if LOG_FILE is set
+    log_file = os.environ.get("LOG_FILE")
+    if log_file:
+        os.makedirs(os.path.dirname(log_file), exist_ok=True)
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setFormatter(logging.Formatter(log_format))
+        handlers.append(file_handler)
+
+    logging.basicConfig(level=log_level, format=log_format, handlers=handlers)
 
     if args.debug:
         logger.debug(f"Supported protocol versions: {', '.join(supported_versions)}")
@@ -58,7 +69,7 @@ def main():
     server = MCPEchoServer(debug=args.debug, supported_versions=supported_versions)
 
     try:
-        server.run(host=args.host, port=args.port)
+        server.run(host=args.host, port=args.port, log_file=log_file)
     except KeyboardInterrupt:
         if args.debug:
             logger.info("\nShutting down server...")

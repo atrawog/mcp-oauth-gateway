@@ -7,7 +7,10 @@ services:
     restart: unless-stopped
     networks:
       - public
+    volumes:
+      - ../logs/auth:/logs
     environment:
+      - LOG_FILE=/logs/auth.log
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
       - JWT_SECRET=${GATEWAY_JWT_SECRET}

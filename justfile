@@ -230,6 +230,89 @@ logs-purge:
     docker compose -f docker-compose.includes.yml up -d
     echo "✅ All container logs purged (services restarted)"
 
+# View file-based logs
+logs-files service="all":
+    #!/usr/bin/env bash
+    if [ "{{service}}" = "all" ]; then
+        echo "📜 Viewing all service logs from ./logs directory..."
+        tail -f logs/*/*.log 2>/dev/null || echo "No log files found yet. Services may still be starting."
+    else
+        echo "📜 Viewing logs for {{service}}..."
+        tail -f logs/{{service}}/*.log 2>/dev/null || echo "No log files found for {{service}}"
+    fi
+
+# Setup log rotation (requires sudo)
+logs-rotation-setup:
+    echo "🔄 Setting up log rotation..."
+    echo "⚠️  This requires sudo access to install system-wide logrotate config"
+    sudo bash scripts/setup_log_rotation.sh
+
+# Manually rotate logs
+logs-rotate:
+    echo "🔄 Manually rotating logs..."
+    sudo logrotate -f /etc/logrotate.d/mcp-oauth-gateway || echo "⚠️  Log rotation not set up. Run: just logs-rotation-setup"
+
+# Show log statistics
+logs-stats:
+    #!/usr/bin/env bash
+    echo "📊 Log Statistics"
+    echo "================"
+    echo ""
+    for dir in logs/*/; do
+        if [ -d "$dir" ]; then
+            service=$(basename "$dir")
+            size=$(du -sh "$dir" 2>/dev/null | cut -f1)
+            count=$(find "$dir" -name "*.log" -type f 2>/dev/null | wc -l)
+            echo "📁 $service: $size ($count log files)"
+        fi
+    done
+    echo ""
+    echo "Total size: $(du -sh logs/ 2>/dev/null | cut -f1)"
+
+# Clean logs - by default removes all logs, or keep last X days if specified
+logs-clean days="0":
+    #!/usr/bin/env bash
+    if [ "{{days}}" = "0" ]; then
+        # Check if running in CI or with FORCE_CLEAN env var
+        if [ -z "$CI" ] && [ -z "$FORCE_CLEAN" ]; then
+            echo "⚠️  WARNING: This will delete ALL log files!"
+            echo -n "Are you sure? (y/N): "
+            read -r response
+            if [ "$response" != "y" ] && [ "$response" != "Y" ]; then
+                echo "❌ Cancelled"
+                exit 0
+            fi
+        fi
+        echo "🧹 Cleaning ALL logs..."
+        find logs -name "*.log" -delete 2>/dev/null || true
+        find logs -name "*.log.gz" -delete 2>/dev/null || true
+        find logs -name "*.log.*" -delete 2>/dev/null || true
+        echo "✅ Removed all log files"
+    else
+        echo "🧹 Cleaning logs older than {{days}} days..."
+        find logs -name "*.log" -mtime +{{days}} -delete 2>/dev/null || true
+        find logs -name "*.log.gz" -mtime +{{days}} -delete 2>/dev/null || true
+        find logs -name "*.log.*" -mtime +{{days}} -delete 2>/dev/null || true
+        echo "✅ Removed logs older than {{days}} days"
+    fi
+
+    # Show remaining logs
+    remaining=$(find logs -name "*.log*" 2>/dev/null | wc -l)
+    if [ "$remaining" -gt 0 ]; then
+        echo "📊 Remaining log files: $remaining"
+        echo "📏 Total size: $(du -sh logs/ 2>/dev/null | cut -f1)"
+    else
+        echo "📭 No log files remaining"
+    fi
+
+# Test logging configuration
+logs-test:
+    pixi run python scripts/test_logging_configuration.py
+
+# Force clean all logs without confirmation
+logs-clean-force:
+    FORCE_CLEAN=1 just logs-clean
+
 # Project-specific commands
 
 # Generate JWT secret and save to .env

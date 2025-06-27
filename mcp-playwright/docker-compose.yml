@@ -8,11 +8,14 @@ services:
     networks:
       - public
     environment:
+      - LOG_FILE=/logs/server.log
       - MCP_CORS_ORIGINS=*
       - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
       # Playwright specific environment variables
       - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
       - PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+    volumes:
+      - ../logs/mcp-playwright:/logs
     labels:
       # OAuth Discovery Route (Priority 10 - Highest)
       - "traefik.enable=true"

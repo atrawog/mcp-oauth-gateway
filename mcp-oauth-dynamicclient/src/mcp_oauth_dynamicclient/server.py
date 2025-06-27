@@ -3,6 +3,9 @@ Main server module for MCP OAuth Dynamic Client
 """
 
 import logging
+
+# Configure logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -13,10 +16,22 @@ from .config import Settings
 from .redis_client import RedisManager
 from .routes import create_oauth_router
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+log_level = os.environ.get("LOG_LEVEL", "INFO")
+
+# Configure logging handlers
+handlers = []
+# Always log to console
+handlers.append(logging.StreamHandler())
+
+# Add file handler if LOG_FILE is specified
+log_file = os.environ.get("LOG_FILE")
+if log_file:
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+    file_handler = logging.FileHandler(log_file)
+    handlers.append(file_handler)
+
+logging.basicConfig(level=getattr(logging, log_level), format=log_format, handlers=handlers)
 
 
 def _is_browser_request(request: Request) -> bool:

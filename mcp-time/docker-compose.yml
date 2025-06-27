@@ -8,8 +8,11 @@ services:
     networks:
       - public
     environment:
+      - LOG_FILE=/logs/server.log
       - MCP_CORS_ORIGINS=*
       - MCP_PROTOCOL_VERSION=2025-03-26
+    volumes:
+      - ../logs/mcp-time:/logs
     labels:
       # OAuth Discovery Route - Priority 10 (Highest!)
       - "traefik.enable=true"

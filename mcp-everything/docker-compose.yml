@@ -10,8 +10,11 @@ services:
     expose:
       - "3000"
     environment:
+      - LOG_FILE=/logs/server.log
       - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION:-2025-06-18}
       - BASE_DOMAIN=${BASE_DOMAIN}
+    volumes:
+      - ../logs/mcp-everything:/logs
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.mcp-everything.loadbalancer.server.port=3000"

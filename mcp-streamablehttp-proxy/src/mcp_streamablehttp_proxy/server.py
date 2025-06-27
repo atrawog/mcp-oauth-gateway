@@ -28,7 +28,24 @@ def run_server(
         log_level: Logging level (default: info)
     """
     # Set up logging
-    logging.basicConfig(level=getattr(logging, log_level.upper()))
+    import os
+
+    log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    log_handlers = []
+
+    # Always log to console
+    log_handlers.append(logging.StreamHandler())
+
+    # Add file handler if LOG_FILE is specified
+    log_file = os.environ.get("LOG_FILE")
+    if log_file:
+        os.makedirs(os.path.dirname(log_file), exist_ok=True)
+        file_handler = logging.FileHandler(log_file)
+        log_handlers.append(file_handler)
+
+    logging.basicConfig(
+        level=getattr(logging, log_level.upper()), format=log_format, handlers=log_handlers
+    )
 
     logger.info(f"Starting MCP stdio-to-HTTP proxy for: {' '.join(server_command)}")
 

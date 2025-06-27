@@ -1124,17 +1124,64 @@ class MCPEchoServerStateful:
         async for chunk in self._sse_response_stream(response):
             yield chunk
 
-    def run(self, host: str = "127.0.0.1", port: int = 3000):
+    def run(self, host: str = "127.0.0.1", port: int = 3000, log_file: str | None = None):
         """Run the HTTP server.
 
         Args:
             host: Host to bind to
             port: Port to bind to
+            log_file: Optional log file path
         """
         if self.debug:
             logger.info(f"Starting MCP Echo Server Stateful (protocol {self.PROTOCOL_VERSION}) on {host}:{port}")
 
-        uvicorn.run(self.app, host=host, port=port, log_level="debug" if self.debug else "info")
+        # Configure uvicorn logging
+        log_config = None
+        if log_file:
+            log_config = {
+                "version": 1,
+                "disable_existing_loggers": False,
+                "formatters": {
+                    "default": {"fmt": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"},
+                    "access": {
+                        "fmt": '%(asctime)s - %(name)s - %(levelname)s - %(client_addr)s - "%(request_line)s" %(status_code)s'
+                    },
+                },
+                "handlers": {
+                    "default": {
+                        "formatter": "default",
+                        "class": "logging.StreamHandler",
+                        "stream": "ext://sys.stdout",
+                    },
+                    "file": {
+                        "formatter": "default",
+                        "class": "logging.FileHandler",
+                        "filename": log_file,
+                    },
+                    "access_file": {
+                        "formatter": "access",
+                        "class": "logging.FileHandler",
+                        "filename": log_file,
+                    },
+                },
+                "loggers": {
+                    "uvicorn": {
+                        "handlers": ["default", "file"],
+                        "level": "DEBUG" if self.debug else "INFO",
+                    },
+                    "uvicorn.error": {
+                        "handlers": ["default", "file"],
+                        "level": "DEBUG" if self.debug else "INFO",
+                    },
+                    "uvicorn.access": {
+                        "handlers": ["default", "access_file"],
+                        "level": "DEBUG" if self.debug else "INFO",
+                        "propagate": False,
+                    },
+                },
+            }
+
+        uvicorn.run(self.app, host=host, port=port, log_level="debug" if self.debug else "info", log_config=log_config)
 
 
 def create_app(debug: bool = False, supported_versions: list[str] | None = None, session_timeout: int = 3600):

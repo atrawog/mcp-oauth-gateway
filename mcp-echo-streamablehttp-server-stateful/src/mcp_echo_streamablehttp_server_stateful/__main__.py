@@ -1,6 +1,7 @@
 """Main entry point for MCP Echo StreamableHTTP Server - Stateful version."""
 
 import argparse
+import logging
 import os
 import sys
 
@@ -64,13 +65,30 @@ def main():
         print(f"Supported protocol versions: {supported_versions}")
         print(f"Session timeout: {args.session_timeout} seconds")
 
+    # Configure logging
+    log_level = logging.DEBUG if args.debug else logging.INFO
+    log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+    # Configure root logger
+    handlers = [logging.StreamHandler(sys.stdout)]
+
+    # Add file handler if LOG_FILE is set
+    log_file = os.environ.get("LOG_FILE")
+    if log_file:
+        os.makedirs(os.path.dirname(log_file), exist_ok=True)
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setFormatter(logging.Formatter(log_format))
+        handlers.append(file_handler)
+
+    logging.basicConfig(level=log_level, format=log_format, handlers=handlers)
+
     # Create and run server
     server = MCPEchoServerStateful(
         debug=args.debug, supported_versions=supported_versions, session_timeout=args.session_timeout
     )
 
     try:
-        server.run(host=args.host, port=args.port)
+        server.run(host=args.host, port=args.port, log_file=log_file)
     except KeyboardInterrupt:
         if args.debug:
             print("\nShutting down server...")

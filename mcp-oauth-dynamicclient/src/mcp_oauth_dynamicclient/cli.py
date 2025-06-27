@@ -27,6 +27,57 @@ def main():
     settings = Settings()
     app = create_app(settings)
 
+    # Configure uvicorn logging to use our handlers
+    import os
+
+    # Get the log file from environment
+    log_file = os.environ.get("LOG_FILE")
+    log_config = None
+
+    if log_file:
+        # Create custom log config that includes file handler
+        log_config = {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "default": {
+                    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                },
+            },
+            "handlers": {
+                "default": {
+                    "formatter": "default",
+                    "class": "logging.StreamHandler",
+                },
+                "file": {
+                    "formatter": "default",
+                    "class": "logging.FileHandler",
+                    "filename": log_file,
+                },
+            },
+            "root": {
+                "level": "INFO",
+                "handlers": ["default", "file"],
+            },
+            "loggers": {
+                "uvicorn": {
+                    "handlers": ["default", "file"],
+                    "level": "INFO",
+                    "propagate": False,
+                },
+                "uvicorn.error": {
+                    "handlers": ["default", "file"],
+                    "level": "INFO",
+                    "propagate": False,
+                },
+                "uvicorn.access": {
+                    "handlers": ["default", "file"],
+                    "level": "INFO",
+                    "propagate": False,
+                },
+            },
+        }
+
     # Run server
     if args.reload:
         # For reload, use the module path
@@ -36,10 +87,11 @@ def main():
             port=args.port,
             reload=True,
             factory=True,
+            log_config=log_config,
         )
     else:
         # For production, use the app instance
-        uvicorn.run(app, host=args.host, port=args.port, reload=False)
+        uvicorn.run(app, host=args.host, port=args.port, reload=False, log_config=log_config)
 
 
 if __name__ == "__main__":

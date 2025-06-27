@@ -8,8 +8,11 @@ services:
     networks:
       - public
     environment:
+      - LOG_FILE=/logs/server.log
       - MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}
       - MCP_PROTOCOL_VERSION=2025-03-26
+    volumes:
+      - ../logs/mcp-fetch:/logs
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"

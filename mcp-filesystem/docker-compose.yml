@@ -8,11 +8,13 @@ services:
     networks:
       - public
     environment:
+      - LOG_FILE=/logs/server.log
       - MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}
       - MCP_PROTOCOL_VERSION=2025-03-26
     volumes:
       # Mount workspace directory for filesystem access
       - ./workspace:/workspace:rw
+      - ../logs/mcp-filesystem:/logs
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.mcp-filesystem.loadbalancer.server.port=3000"

@@ -8,11 +8,13 @@ services:
     networks:
       - public
     environment:
+      - LOG_FILE=/logs/server.log
       - MCP_CORS_ORIGINS=*
       - MCP_PROTOCOL_VERSION=2024-11-05
       - MEMORY_FILE_PATH=/data/memory.json
     volumes:
       - mcp-memory-data:/data
+      - ../logs/mcp-memory:/logs
     labels:
       # OAuth Discovery Route - Priority 10 (Highest!)
       - "traefik.enable=true"

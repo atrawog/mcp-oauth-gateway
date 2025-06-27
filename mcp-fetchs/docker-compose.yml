@@ -6,6 +6,7 @@ services:
     container_name: mcp-fetchs
     restart: unless-stopped
     environment:
+      - LOG_FILE=/logs/server.log
       - HOST=0.0.0.0
       - PORT=3000
       - MCP_SERVER_NAME=mcp-fetch-streamablehttp
@@ -14,6 +15,8 @@ services:
       - MCP_FETCH_DEFAULT_USER_AGENT=ModelContextProtocol/1.0 (Fetch Server)
     networks:
       - public
+    volumes:
+      - ../logs/mcp-fetchs:/logs
     labels:
       # Basic router
       - "traefik.enable=true"
