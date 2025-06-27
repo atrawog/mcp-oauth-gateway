@@ -11,6 +11,7 @@ services:
       - MCP_ECHO_HOST=0.0.0.0
       - MCP_ECHO_PORT=3000
       - MCP_ECHO_DEBUG=true
+      - MCP_SESSION_TIMEOUT=3600  # Session timeout for stateful server
       - MCP_PROTOCOL_VERSION=2025-06-18  # This service supports this specific version
       - MCP_PROTOCOL_VERSIONS_SUPPORTED=${MCP_PROTOCOL_VERSIONS_SUPPORTED}
     labels:

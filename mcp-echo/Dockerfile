@@ -8,9 +8,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy package files from parent directory
-COPY mcp-echo-streamablehttp-server-stateless/pyproject.toml ./
-COPY mcp-echo-streamablehttp-server-stateless/src/ ./src/
-COPY mcp-echo-streamablehttp-server-stateless/README.md ./
+COPY mcp-echo-streamablehttp-server-stateful/pyproject.toml ./
+COPY mcp-echo-streamablehttp-server-stateful/src/ ./src/
+COPY mcp-echo-streamablehttp-server-stateful/README.md ./
 
 # Install the package
 RUN pip install --no-cache-dir -e .
@@ -22,6 +22,8 @@ EXPOSE 3000
 ENV MCP_ECHO_HOST=0.0.0.0
 ENV MCP_ECHO_PORT=3000
 ENV MCP_ECHO_DEBUG=true
+ENV MCP_SESSION_TIMEOUT=3600
+ENV MCP_PROTOCOL_VERSIONS_SUPPORTED=2025-06-18,2025-03-26,2024-11-05
 
 # Run the server
-CMD ["mcp-echo-streamablehttp-server-stateless"]
+CMD ["mcp-echo-stateful"]

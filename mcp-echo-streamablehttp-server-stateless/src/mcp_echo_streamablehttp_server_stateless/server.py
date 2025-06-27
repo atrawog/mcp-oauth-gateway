@@ -121,11 +121,19 @@ class MCPEchoServer:
                 status_code=400,
             )
 
-        # Validate Accept header
+        # Validate Accept header - client must accept at least one supported format
         accept = request.headers.get("accept", "")
-        if "application/json" not in accept or "text/event-stream" not in accept:
+        if not accept:
+            # If no Accept header, default to accepting JSON
+            accept = "application/json"
+
+        # Check if client accepts at least one of our supported formats
+        accepts_json = "application/json" in accept or "*/*" in accept
+        accepts_sse = "text/event-stream" in accept
+
+        if not accepts_json and not accepts_sse:
             return JSONResponse(
-                {"error": "Client must accept both application/json and text/event-stream"},
+                {"error": "Client must accept either application/json or text/event-stream"},
                 status_code=400,
             )
 
@@ -143,16 +151,27 @@ class MCPEchoServer:
 
     async def _process_json_rpc_request(self, request: Request) -> Response:
         """Process the JSON-RPC request and return appropriate response."""
+        # Determine response format based on Accept header
+        accept = request.headers.get("accept", "application/json")
+        # Prefer SSE if client explicitly accepts it, otherwise use JSON
+        use_sse = "text/event-stream" in accept
+
         try:
             body = await request.json()
         except Exception:
-            return StreamingResponse(
-                self._sse_error_stream(-32700, "Parse error"),
-                media_type="text/event-stream",
+            if use_sse:
+                return StreamingResponse(
+                    self._sse_error_stream(-32700, "Parse error"),
+                    media_type="text/event-stream",
+                )
+            return JSONResponse(
+                self._error_response(None, -32700, "Parse error"),
+                status_code=400,
             )
 
         if self.debug:
             logger.debug(f"Request: {body}")
+            logger.debug(f"Accept header: {accept}, Using SSE: {use_sse}")
 
         # Handle batch requests
         if isinstance(body, list):
@@ -171,11 +190,14 @@ class MCPEchoServer:
         if "id" not in body and "error" not in response:
             return Response(content="", status_code=202)
 
-        # Return SSE response
-        return StreamingResponse(
-            self._sse_response_stream(response),
-            media_type="text/event-stream",
-        )
+        # Return response in appropriate format
+        if use_sse:
+            return StreamingResponse(
+                self._sse_response_stream(response),
+                media_type="text/event-stream",
+            )
+        # Return direct JSON response
+        return JSONResponse(response)
 
     async def _handle_jsonrpc_request(self, request: dict[str, Any]) -> dict[str, Any]:
         """Handle a JSON-RPC 2.0 request according to MCP 2025-06-18."""
