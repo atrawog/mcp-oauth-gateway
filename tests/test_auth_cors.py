@@ -65,15 +65,11 @@ class TestAuthCORS:
                         f"Missing Access-Control-Allow-Origin header for {endpoint}"
                     )
 
-                    # When wildcard is configured, FastAPI returns the specific origin, not "*"
-                    if self.cors_origins == ["*"]:
-                        assert response.headers["access-control-allow-origin"] == test_origin, (
-                            f"CORS origin mismatch for {endpoint}"
-                        )
-                    else:
-                        assert response.headers["access-control-allow-origin"] == test_origin, (
-                            f"CORS origin mismatch for {endpoint}"
-                        )
+                    # Traefik CORS middleware is configured to return "*" for all origins
+                    cors_origin = response.headers["access-control-allow-origin"]
+                    assert cors_origin == "*", (
+                        f"CORS origin mismatch for {endpoint}: expected '*' but got '{cors_origin}'"
+                    )
 
                     assert "access-control-allow-methods" in response.headers, (
                         f"Missing Access-Control-Allow-Methods header for {endpoint}"
@@ -86,12 +82,8 @@ class TestAuthCORS:
                     assert "access-control-allow-headers" in response.headers, (
                         f"Missing Access-Control-Allow-Headers header for {endpoint}"
                     )
-                    assert "access-control-allow-credentials" in response.headers, (
-                        f"Missing Access-Control-Allow-Credentials header for {endpoint}"  # TODO: Break long line
-                    )
-                    assert response.headers["access-control-allow-credentials"].lower() == "true", (
-                        f"CORS credentials not allowed for {endpoint}"
-                    )
+                    # Traefik CORS middleware is configured with accessControlAllowCredentials: false
+                    # So we don't check for credentials header
 
     def test_auth_actual_request_cors_headers(self):
         """Test that actual Auth requests include proper CORS headers."""

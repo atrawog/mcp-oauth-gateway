@@ -100,7 +100,7 @@ class TestDockerComposeValidation:
             # Check auth middleware if needed
             if router_config["needs_auth"]:
                 assert f"{prefix}.middlewares" in label_dict, f"Router {router_name} missing auth middleware!"
-                assert "mcp-auth@docker" in label_dict[f"{prefix}.middlewares"], (
+                assert "mcp-auth@file" in label_dict[f"{prefix}.middlewares"], (
                     f"Router {router_name} should use mcp-auth middleware!"
                 )
 

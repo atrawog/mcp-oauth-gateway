@@ -267,7 +267,8 @@ class TestMCPCORS:
 
     def test_all_mcp_services_have_cors(self):
         """Test that all MCP services have CORS configured."""
-        from tests.test_constants import MCP_ECHO_TESTS_ENABLED
+        from tests.test_constants import MCP_ECHO_STATEFULL_TESTS_ENABLED
+        from tests.test_constants import MCP_ECHO_STATELESS_TESTS_ENABLED
         from tests.test_constants import MCP_FETCH_TESTS_ENABLED
         from tests.test_constants import MCP_FETCHS_TESTS_ENABLED
         from tests.test_constants import MCP_FILESYSTEM_TESTS_ENABLED
@@ -276,8 +277,10 @@ class TestMCPCORS:
         # Build list of enabled MCP services only
         mcp_services = []
 
-        if MCP_ECHO_TESTS_ENABLED:
-            mcp_services.append(f"echo.{self.base_domain}")
+        if MCP_ECHO_STATEFULL_TESTS_ENABLED:
+            mcp_services.append(f"echo-stateful.{self.base_domain}")
+        if MCP_ECHO_STATELESS_TESTS_ENABLED:
+            mcp_services.append(f"echo-stateless.{self.base_domain}")
         if MCP_FETCH_TESTS_ENABLED:
             mcp_services.append(f"fetch.{self.base_domain}")
         if MCP_FETCHS_TESTS_ENABLED:
