@@ -61,7 +61,7 @@ CMD ["mcp-echo-stateful"]
 ```yaml
 labels:
   # Basic routing - priority 2
-  - "traefik.http.routers.mcp-echo-stateful.rule=HostRegexp(`^echo-statefull(-[a-z])?[.]${BASE_DOMAIN}$`)"
+  - "traefik.http.routers.mcp-echo-stateful.rule=HostRegexp(`^echo-stateful(-[a-z])?[.]${BASE_DOMAIN}$`)"
   - "traefik.http.routers.mcp-echo-stateful.priority=2"
 
   # ForwardAuth middleware - divine authentication
@@ -111,7 +111,7 @@ watch 'docker inspect mcp-echo-stateful | jq ".[0].State.Health"'
 
 ## 📜 The Integration Flow - How Requests Reach Echo!
 
-1. **Client Request** → `https://echo-statefull.domain.com/mcp`
+1. **Client Request** → `https://echo-stateful.domain.com/mcp`
 2. **Traefik Routes** → Checks authentication via ForwardAuth
 3. **Auth Validates** → Token verification at /verify endpoint
 4. **Request Forwarded** → Reaches MCP-Echo-Stateful on port 3000

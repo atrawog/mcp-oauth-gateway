@@ -77,7 +77,7 @@ def _get_mcp_service_urls(service_name: str, default_subdomain: str) -> list:
 
 
 # Get the first URL for backwards compatibility (old single URL variables)
-MCP_ECHO_STATEFULL_URL = _get_mcp_service_urls("echo_statefull", "echo-statefull")[0]
+MCP_ECHO_STATEFUL_URL = _get_mcp_service_urls("echo_stateful", "echo-stateful")[0]
 MCP_ECHO_STATELESS_URL = _get_mcp_service_urls("echo_stateless", "echo-stateless-")[0]
 MCP_FETCH_URL = _get_mcp_service_urls("fetch", "fetch")[0]
 MCP_FETCHS_URL = _get_mcp_service_urls("fetchs", "fetchs")[0]
@@ -149,9 +149,9 @@ ALLOWED_GITHUB_USERS = _get_env_or_fail("ALLOWED_GITHUB_USERS").split(",")
 MCP_EVERYTHING_TESTS_ENABLED = (_get_env_optional("MCP_EVERYTHING_TESTS_ENABLED") or "false").lower() == "true"
 MCP_EVERYTHING_URLS = _get_mcp_service_urls("everything", "everything")
 
-# MCP Echo Statefull Configuration - From main .env
-MCP_ECHO_STATEFULL_TESTS_ENABLED = (_get_env_optional("MCP_ECHO_STATEFULL_TESTS_ENABLED") or "false").lower() == "true"
-MCP_ECHO_STATEFULL_URLS = _get_mcp_service_urls("echo_statefull", "echo-statefull")
+# MCP Echo Stateful Configuration - From main .env
+MCP_ECHO_STATEFUL_TESTS_ENABLED = (_get_env_optional("MCP_ECHO_STATEFUL_TESTS_ENABLED") or "false").lower() == "true"
+MCP_ECHO_STATEFUL_URLS = _get_mcp_service_urls("echo_stateful", "echo-stateful")
 
 # MCP Echo Stateless Configuration - From main .env
 MCP_ECHO_STATELESS_TESTS_ENABLED = (_get_env_optional("MCP_ECHO_STATELESS_TESTS_ENABLED") or "false").lower() == "true"

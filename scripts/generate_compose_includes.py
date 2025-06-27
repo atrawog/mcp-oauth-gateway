@@ -48,7 +48,7 @@ def main():
         includes.append("mcp-tmux/docker-compose.yml")
 
     # Conditionally add mcp-echo-stateful
-    if os.getenv("MCP_ECHO_STATEFULL_ENABLED", "false").lower() == "true":
+    if os.getenv("MCP_ECHO_STATEFUL_ENABLED", "false").lower() == "true":
         includes.append("mcp-echo-stateful/docker-compose.yml")
 
     # Conditionally add mcp-echo-stateless
@@ -118,7 +118,7 @@ def main():
     else:
         print("❌ mcp-tmux is DISABLED")
 
-    if os.getenv("MCP_ECHO_STATEFULL_ENABLED", "false").lower() == "true":
+    if os.getenv("MCP_ECHO_STATEFUL_ENABLED", "false").lower() == "true":
         print("✅ mcp-echo-stateful is ENABLED")
     else:
         print("❌ mcp-echo-stateful is DISABLED")
