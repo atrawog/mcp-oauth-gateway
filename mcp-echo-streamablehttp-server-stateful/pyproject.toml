@@ -1,17 +1,17 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "mcp-echo-streamablehttp-server-stateful"
 version = "0.1.0"
-description = "Stateful MCP Echo Server implementing MCP 2025-06-18 StreamableHTTP transport with session management"
+description = "A stateful diagnostic MCP echo server with 10 comprehensive tools for debugging OAuth flows, session management, and analyzing software engineering excellence"
 authors = [
-    {name = "MCP OAuth Gateway", email = "noreply@example.com"}
+    { name = "Andreas Trawoeger", email = "atrawog@gmail.com" }
 ]
-license = {text = "MIT"}
+license = "Apache-2.0"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = [
     "httpx>=0.27.0",
     "mcp>=1.3.0",
@@ -22,14 +22,13 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/example/mcp-echo-streamablehttp-server-stateful"
-Repository = "https://github.com/example/mcp-echo-streamablehttp-server-stateful"
+Homepage = "https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-echo-streamablehttp-server-stateful"
+Repository = "https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-echo-streamablehttp-server-stateful"
+Issues = "https://github.com/atrawog/mcp-oauth-gateway/issues"
+Documentation = "https://atrawog.github.io/mcp-oauth-gateway"
 
 [project.scripts]
-mcp-echo-stateful = "mcp_echo_streamablehttp_server_stateful.__main__:main"
+mcp-echo-streamablehttp-server-stateful = "mcp_echo_streamablehttp_server_stateful.__main__:main"
 
-[tool.setuptools.packages.find]
-where = ["src"]
-
-[tool.setuptools.package-dir]
-"" = "src"
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_echo_streamablehttp_server_stateful"]
