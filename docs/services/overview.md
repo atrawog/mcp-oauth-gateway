@@ -6,6 +6,8 @@ The MCP OAuth Gateway provides authenticated access to multiple MCP (Model Conte
 
 | Service | Description | Protocol Version | Status |
 |---------|-------------|------------------|---------|
+| [mcp-echo-stateful](#mcp-echo) | Diagnostic tools with session state | 2025-06-18 | Stable |
+| [mcp-echo-stateless](#mcp-echo) | Diagnostic tools without state | 2025-06-18 | Stable |
 | [mcp-fetch](#mcp-fetch) | Web content fetching | 2025-03-26 | Stable |
 | [mcp-fetchs](#mcp-fetchs) | Native fetch implementation | 2025-06-18 | Stable |
 | [mcp-filesystem](#mcp-filesystem) | File system operations | 2025-03-26 | Stable |
@@ -34,6 +36,18 @@ graph LR
 ### Core Services
 
 These provide fundamental capabilities commonly needed by AI assistants:
+
+#### mcp-echo-stateful & mcp-echo-stateless
+- **Purpose**: Diagnostic and debugging tools
+- **Implementation**: Native HTTP servers with two distinct services
+  - **mcp-echo-stateful**: With session management and message history
+  - **mcp-echo-stateless**: Lightweight without state
+- **Key Features**:
+  - OAuth flow debugging (bearer token decode, auth context)
+  - Protocol testing (version negotiation, CORS analysis)
+  - Performance monitoring (timing, health probes)
+  - Session testing (stateful variant only)
+- **Use Cases**: Debugging, testing, OAuth flow analysis, performance monitoring
 
 #### mcp-fetch
 - **Purpose**: Fetch content from web URLs
@@ -183,6 +197,8 @@ Services return standard JSON-RPC errors:
 Services can be enabled or disabled via environment variables:
 ```bash
 # Enable core services
+MCP_ECHO_STATEFUL_ENABLED=true
+MCP_ECHO_STATELESS_ENABLED=true
 MCP_FETCH_ENABLED=true
 MCP_FILESYSTEM_ENABLED=true
 MCP_MEMORY_ENABLED=true
@@ -286,6 +302,7 @@ In addition to MCP services, the gateway includes critical infrastructure:
 ## Next Steps
 
 ### MCP Services
+- [Echo Services](echo.md) - Diagnostic and debugging tools
 - [Fetch Service](fetch.md) - Web content fetching details
 - [Fetchs Service](fetchs.md) - Native fetch implementation
 - [Filesystem Service](filesystem.md) - File operations guide

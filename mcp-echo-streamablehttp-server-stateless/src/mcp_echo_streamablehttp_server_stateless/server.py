@@ -2,11 +2,13 @@
 
 import asyncio
 import base64
+import base64.binascii
 import json
 import logging
 import os
 import platform
 import time
+import uuid
 from datetime import UTC
 from datetime import datetime
 from typing import Any
@@ -19,6 +21,13 @@ from starlette.responses import JSONResponse
 from starlette.responses import Response
 from starlette.responses import StreamingResponse
 from starlette.routing import Route
+
+
+# Constants
+JWT_PARTS_COUNT = 3
+PERFORMANCE_EXCELLENT_THRESHOLD = 0.010  # 10ms
+PERFORMANCE_GOOD_THRESHOLD = 0.050  # 50ms
+PERFORMANCE_ACCEPTABLE_THRESHOLD = 0.100  # 100ms
 
 
 # Configure logging
@@ -64,14 +73,132 @@ class MCPEchoServer:
         # MCP services must maintain "pure protocol innocence" per CLAUDE.md
         # All CORS headers are set by Traefik, not by the service
 
+        # Log Traefik forwarded headers for debugging when debug mode is enabled
+        if self.debug:
+            start_time = time.time()
+
+            traefik_headers = {
+                "x-real-ip": request.headers.get("x-real-ip"),
+                "x-forwarded-for": request.headers.get("x-forwarded-for"),
+                "x-forwarded-host": request.headers.get("x-forwarded-host"),
+                "x-forwarded-proto": request.headers.get("x-forwarded-proto"),
+                "x-forwarded-port": request.headers.get("x-forwarded-port"),
+                "x-forwarded-server": request.headers.get("x-forwarded-server"),
+                "x-user-id": request.headers.get("x-user-id"),
+                "x-user-name": request.headers.get("x-user-name"),
+                "x-auth-token": "***redacted***" if request.headers.get("x-auth-token") else None,
+                "user-agent": request.headers.get("user-agent"),
+                "host": request.headers.get("host"),
+            }
+
+            # Filter out None values
+            traefik_headers = {k: v for k, v in traefik_headers.items() if v is not None}
+
+            # Create JSON data for request
+            request_data = {
+                "type": "mcp_echo_stateless_request",
+                "method": request.method,
+                "path": str(request.url.path),
+                "real_ip": traefik_headers.get("x-real-ip", "unknown"),
+                "forwarded_for": traefik_headers.get("x-forwarded-for", "unknown"),
+                "forwarded_host": traefik_headers.get("x-forwarded-host", "unknown"),
+                "host": traefik_headers.get("host", "unknown"),
+                "user_agent": traefik_headers.get("user-agent", "unknown"),
+                "user_id": traefik_headers.get("x-user-id", "unknown"),
+                "user_name": traefik_headers.get("x-user-name", "unknown"),
+                "forwarded_proto": traefik_headers.get("x-forwarded-proto", "unknown"),
+                "forwarded_port": traefik_headers.get("x-forwarded-port", "unknown"),
+                "timestamp": start_time,
+            }
+
+            # Store start time and request data in task context for response logging
+            task_id = id(asyncio.current_task())
+            if not hasattr(self, "_request_timing"):
+                self._request_timing = {}
+            self._request_timing[task_id] = {
+                "start_time": start_time,
+                "request_data": request_data,
+                "traefik_headers": traefik_headers,
+            }
+
+            # Log request with Traefik headers
+            logger.info(
+                "MCP-ECHO STATELESS REQUEST - Method: %s | "
+                "Path: %s | "
+                "Real-IP: %s | "
+                "Forwarded-For: %s | "
+                "User: %s | "
+                "Host: %s | "
+                "User-Agent: %s | "
+                "JSON: %s",
+                request.method,
+                request.url.path,
+                traefik_headers.get("x-real-ip", "unknown"),
+                traefik_headers.get("x-forwarded-for", "unknown"),
+                traefik_headers.get("x-user-name", "unknown"),
+                traefik_headers.get("x-forwarded-host", traefik_headers.get("host", "unknown")),
+                traefik_headers.get("user-agent", "unknown"),
+                json.dumps(request_data),
+            )
+
+        # Handle the request
         if request.method == "GET":
-            return self._handle_sse_stream()
+            response = self._handle_sse_stream(request)
+        else:
+            # POST method handling
+            response = await self._handle_post_request(request)
 
-        # POST method handling
-        return await self._handle_post_request(request)
+        # Log response if debug mode is enabled
+        if self.debug and hasattr(self, "_request_timing"):
+            task_id = id(asyncio.current_task())
+            timing_data = self._request_timing.get(task_id)
+            if timing_data:
+                end_time = time.time()
+                duration = round(end_time - timing_data["start_time"], 3)
 
-    def _handle_sse_stream(self) -> StreamingResponse:
+                # Create response data
+                response_data = {
+                    "type": "mcp_echo_stateless_response",
+                    "status": getattr(response, "status_code", 200),
+                    "duration_seconds": duration,
+                    "path": timing_data["request_data"]["path"],
+                    "real_ip": timing_data["request_data"]["real_ip"],
+                    "method": timing_data["request_data"]["method"],
+                    "user_name": timing_data["request_data"]["user_name"],
+                    "timestamp": end_time,
+                }
+
+                # Log response
+                logger.info(
+                    "MCP-ECHO STATELESS RESPONSE - Status: %s | "
+                    "Time: %ss | "
+                    "Path: %s | "
+                    "Real-IP: %s | "
+                    "User: %s | "
+                    "JSON: %s",
+                    getattr(response, "status_code", 200),
+                    duration,
+                    timing_data["request_data"]["path"],
+                    timing_data["request_data"]["real_ip"],
+                    timing_data["request_data"]["user_name"],
+                    json.dumps(response_data),
+                )
+
+                # Clean up timing data
+                del self._request_timing[task_id]
+
+        return response
+
+    def _handle_sse_stream(self, request: Request) -> StreamingResponse:
         """Handle GET requests for SSE streams."""
+        # Use client's session ID if provided, otherwise generate a new one
+        # Note: Starlette normalizes headers to lowercase
+        session_id = request.headers.get("mcp-session-id") or str(uuid.uuid4())
+
+        if self.debug:
+            logger.debug("GET request headers: %s", dict(request.headers))
+            logger.debug("Session ID from header: %s", request.headers.get("mcp-session-id"))
+            logger.debug("Using session ID: %s", session_id)
 
         async def sse_stream():
             # Send a keep-alive comment to establish the connection
@@ -82,6 +209,7 @@ class MCPEchoServer:
             sse_stream(),
             media_type="text/event-stream",
             headers={
+                "Mcp-Session-Id": session_id,
                 "Access-Control-Allow-Origin": "*",  # SSE endpoints typically allow all origins
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
@@ -142,7 +270,7 @@ class MCPEchoServer:
         if protocol_version and protocol_version not in self.supported_versions:
             return JSONResponse(
                 {
-                    "error": f"Unsupported protocol version: {protocol_version}. Supported versions: {', '.join(self.supported_versions)}"
+                    "error": f"Unsupported protocol version: {protocol_version}. Supported versions: {', '.join(self.supported_versions)}",
                 },
                 status_code=400,
             )
@@ -153,12 +281,13 @@ class MCPEchoServer:
         """Process the JSON-RPC request and return appropriate response."""
         # Determine response format based on Accept header
         accept = request.headers.get("accept", "application/json")
-        # Prefer SSE if client explicitly accepts it, otherwise use JSON
-        use_sse = "text/event-stream" in accept
+        # IMPORTANT: VS Code expects JSON responses for POST requests, even when it sends Accept: text/event-stream
+        # Only use SSE for GET requests (polling), never for POST requests (RPC calls)
+        use_sse = False  # Always use JSON for POST requests
 
         try:
             body = await request.json()
-        except Exception:
+        except (json.JSONDecodeError, ValueError, TypeError):
             if use_sse:
                 return StreamingResponse(
                     self._sse_error_stream(-32700, "Parse error"),
@@ -170,8 +299,26 @@ class MCPEchoServer:
             )
 
         if self.debug:
-            logger.debug(f"Request: {body}")
-            logger.debug(f"Accept header: {accept}, Using SSE: {use_sse}")
+            logger.debug("Request: %s", body)
+            logger.debug("Accept header received: '%s'", accept)
+
+            # Detailed SSE decision logging
+            accepts_json = "application/json" in accept or "*/*" in accept
+            accepts_sse = "text/event-stream" in accept
+
+            logger.debug("Client accepts JSON: %s", accepts_json)
+            logger.debug("Client accepts SSE (text/event-stream): %s", accepts_sse)
+            logger.debug("Using SSE: %s", use_sse)
+
+            if use_sse:
+                logger.debug(
+                    "DECISION: Using Server-Sent Events (SSE) format because client explicitly accepts 'text/event-stream'",
+                )
+                logger.debug(
+                    "NOTE: SSE responses use 'event: message\\ndata: {json}\\n\\n' format which some clients may not parse correctly",
+                )
+            else:
+                logger.debug("DECISION: Using standard JSON response format (client did not request SSE)")
 
         # Handle batch requests
         if isinstance(body, list):
@@ -184,20 +331,39 @@ class MCPEchoServer:
         response = await self._handle_jsonrpc_request(body)
 
         if self.debug:
-            logger.debug(f"Response: {response}")
+            logger.debug("Response: %s", response)
 
         # Check if this is a notification
         if "id" not in body and "error" not in response:
             return Response(content="", status_code=202)
 
+        # Use client's session ID if provided, otherwise generate a new one
+        # VS Code and other MCP clients expect this header even for stateless services
+        session_id = request.headers.get("mcp-session-id") or str(uuid.uuid4())
+
+        if self.debug:
+            logger.debug("POST request headers: %s", dict(request.headers))
+            logger.debug("Session ID from header: %s", request.headers.get("mcp-session-id"))
+            logger.debug("Using session ID: %s", session_id)
+
         # Return response in appropriate format
+        response_headers = {"Mcp-Session-Id": session_id}
+
         if use_sse:
+            if self.debug:
+                logger.debug("SENDING RESPONSE: Using SSE format (text/event-stream)")
+                logger.debug("Response will be formatted as: event: message\\ndata: <json>\\n\\n")
+                logger.debug("Including Mcp-Session-Id header: %s", session_id)
             return StreamingResponse(
                 self._sse_response_stream(response),
                 media_type="text/event-stream",
+                headers=response_headers,
             )
         # Return direct JSON response
-        return JSONResponse(response)
+        if self.debug:
+            logger.debug("SENDING RESPONSE: Using standard JSON format (application/json)")
+            logger.debug("Including Mcp-Session-Id header: %s", session_id)
+        return JSONResponse(response, headers=response_headers)
 
     async def _handle_jsonrpc_request(self, request: dict[str, Any]) -> dict[str, Any]:
         """Handle a JSON-RPC 2.0 request according to MCP 2025-06-18."""
@@ -274,7 +440,7 @@ class MCPEchoServer:
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "includeRaw": {"type": "boolean", "description": "Include raw token parts", "default": False}
+                        "includeRaw": {"type": "boolean", "description": "Include raw token parts", "default": False},
                     },
                     "additionalProperties": False,
                 },
@@ -295,7 +461,7 @@ class MCPEchoServer:
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "testVersion": {"type": "string", "description": "Test a specific protocol version"}
+                        "testVersion": {"type": "string", "description": "Test a specific protocol version"},
                     },
                     "additionalProperties": False,
                 },
@@ -315,7 +481,7 @@ class MCPEchoServer:
                             "type": "boolean",
                             "description": "Show first/last 4 chars of secrets",
                             "default": False,
-                        }
+                        },
                     },
                     "additionalProperties": False,
                 },
@@ -371,9 +537,9 @@ class MCPEchoServer:
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": message}]}}
 
     async def _handle_print_header_tool(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
-        """Handle the printHeader tool."""
+        """Handle the printHeader tool with Traefik header highlighting."""
         headers_text = "HTTP Headers:\n"
-        headers_text += "-" * 40 + "\n"
+        headers_text += "=" * 50 + "\n"
 
         # Get headers from the current task's context
         task_id = id(asyncio.current_task())
@@ -381,10 +547,65 @@ class MCPEchoServer:
         headers = context.get("headers", {})
 
         if headers:
-            for key, value in sorted(headers.items()):
-                headers_text += f"{key}: {value}\n"
+            # Separate Traefik headers from regular headers
+            traefik_headers = {}
+            auth_headers = {}
+            regular_headers = {}
+
+            for key, value in headers.items():
+                key_lower = key.lower()
+                if key_lower.startswith(("x-forwarded-", "x-real-", "x-original-")):
+                    traefik_headers[key] = value
+                elif key_lower.startswith(("x-user-", "x-auth-", "authorization")):
+                    auth_headers[key] = "***redacted***" if "token" in key_lower else value
+                else:
+                    regular_headers[key] = value
+
+            # Create JSON data for headers
+            headers_data = {
+                "type": "header_analysis",
+                "total_headers": len(headers),
+                "traefik_headers": traefik_headers,
+                "auth_headers": dict(auth_headers),
+                "regular_headers": regular_headers,
+                "counts": {"traefik": len(traefik_headers), "auth": len(auth_headers), "regular": len(regular_headers)},
+            }
+
+            # Display Traefik headers first with highlighting
+            if traefik_headers:
+                headers_text += "TRAEFIK FORWARDED HEADERS:\n"
+                headers_text += "-" * 30 + "\n"
+                for key, value in sorted(traefik_headers.items()):
+                    headers_text += f"  {key}: {value}\n"
+                headers_text += "\n"
+
+            # Display auth headers second with security note
+            if auth_headers:
+                headers_text += "AUTHENTICATION HEADERS:\n"
+                headers_text += "-" * 30 + "\n"
+                for key, value in sorted(auth_headers.items()):
+                    headers_text += f"  {key}: {value}\n"
+                headers_text += "\n"
+
+            # Display regular headers last
+            if regular_headers:
+                headers_text += "OTHER HEADERS:\n"
+                headers_text += "-" * 30 + "\n"
+                for key, value in sorted(regular_headers.items()):
+                    headers_text += f"  {key}: {value}\n"
+
+            # Add summary and JSON
+            headers_text += "\nSUMMARY:\n"
+            headers_text += f"  Total Headers: {len(headers)}\n"
+            headers_text += f"  Traefik Headers: {len(traefik_headers)}\n"
+            headers_text += f"  Auth Headers: {len(auth_headers)}\n"
+            headers_text += f"  Other Headers: {len(regular_headers)}\n"
+            headers_text += f"\nJSON: {json.dumps(headers_data)}\n"
+
         else:
             headers_text += "No headers available (headers are captured per request)\n"
+            headers_data = {"type": "header_analysis", "error": "no_headers_available"}
+            headers_text += f"JSON: {json.dumps(headers_data)}\n"
 
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": headers_text}]}}
 
@@ -418,8 +639,8 @@ class MCPEchoServer:
             try:
                 # Split JWT parts
                 parts = token.split(".")
-                if len(parts) != 3:
-                    result_text += f"❌ Invalid JWT format (expected 3 parts, got {len(parts)})\n"
+                if len(parts) != JWT_PARTS_COUNT:
+                    result_text += f"❌ Invalid JWT format (expected {JWT_PARTS_COUNT} parts, got {len(parts)})\n"
                 else:
                     # Decode header
                     header_data = parts[0]
@@ -503,7 +724,7 @@ class MCPEchoServer:
                         result_text += f"  Payload: {parts[1][:50]}...\n"
                         result_text += f"  Signature: {parts[2][:50]}...\n"
 
-            except Exception as e:
+            except (json.JSONDecodeError, ValueError, base64.binascii.Error) as e:
                 result_text += f"❌ Error decoding JWT: {e!s}\n"
                 result_text += f"Token preview: {token[:50]}...\n"
 
@@ -527,7 +748,7 @@ class MCPEchoServer:
                 # Try to decode
                 try:
                     parts = token.split(".")
-                    if len(parts) == 3:
+                    if len(parts) == JWT_PARTS_COUNT:
                         payload_padded = parts[1] + "=" * (4 - len(parts[1]) % 4)
                         payload_json = json.loads(base64.urlsafe_b64decode(payload_padded))
                         if "sub" in payload_json:
@@ -536,7 +757,7 @@ class MCPEchoServer:
                             result_text += f"  Client ID: {payload_json['client_id']}\n"
                 except (json.JSONDecodeError, ValueError, KeyError) as e:
                     # JWT decode errors are expected for invalid tokens - this is a diagnostic tool
-                    logging.debug(f"Failed to decode JWT payload: {e}")
+                    logging.debug("Failed to decode JWT payload: %s", e)
             else:
                 result_text += f"  ❌ Wrong type: {auth_header[:30]}...\n"
         else:
@@ -634,11 +855,11 @@ class MCPEchoServer:
 
         # Performance indicators
         result_text += "\nPerformance Indicators:\n"
-        if elapsed < 0.010:  # 10ms
+        if elapsed < PERFORMANCE_EXCELLENT_THRESHOLD:
             result_text += "  ⚡ Excellent (<10ms)\n"
-        elif elapsed < 0.050:  # 50ms
+        elif elapsed < PERFORMANCE_GOOD_THRESHOLD:
             result_text += "  ✅ Good (<50ms)\n"
-        elif elapsed < 0.100:  # 100ms
+        elif elapsed < PERFORMANCE_ACCEPTABLE_THRESHOLD:
             result_text += "  ⚠️  Acceptable (<100ms)\n"
         else:
             result_text += "  ❌ Slow (>100ms)\n"
@@ -889,7 +1110,7 @@ class MCPEchoServer:
             else:
                 result_text += "❌\n"
 
-        except Exception as e:
+        except (OSError, AttributeError) as e:
             result_text += f"  Error getting system metrics: {e!s}\n"
 
         # Process info
@@ -908,7 +1129,7 @@ class MCPEchoServer:
             else:
                 result_text += f"  Uptime: {uptime / 3600:.1f} hours\n"
 
-        except Exception as e:
+        except (psutil.NoSuchProcess, psutil.AccessDenied, OSError) as e:
             result_text += f"  Error getting process info: {e!s}\n"
 
         # Configuration health
@@ -956,7 +1177,7 @@ class MCPEchoServer:
             try:
                 # Decode JWT to get user info
                 parts = token.split(".")
-                if len(parts) != 3:
+                if len(parts) != JWT_PARTS_COUNT:
                     raise ValueError("Invalid JWT format")
 
                 # Decode payload
@@ -973,7 +1194,7 @@ class MCPEchoServer:
                 if name or username or email or sub:
                     found_user_info = True
 
-            except Exception as e:
+            except (json.JSONDecodeError, ValueError, KeyError, base64.binascii.Error) as e:
                 if self.debug:
                     result_text += f"⚠️  JWT decode warning: {e!s}\n\n"
 
@@ -1050,6 +1271,11 @@ class MCPEchoServer:
     async def _sse_response_stream(self, response: dict[str, Any]):
         """Generate SSE stream for a response."""
         # Format as SSE according to spec
+        if self.debug:
+            logger.debug("SSE STREAM: Sending SSE formatted response")
+            logger.debug("SSE STREAM: event: message")
+            logger.debug("SSE STREAM: data: %s", json.dumps(response))
+            logger.debug("SSE STREAM: (followed by blank line)")
         yield "event: message\n"
         yield f"data: {json.dumps(response)}\n\n"
 
@@ -1068,7 +1294,7 @@ class MCPEchoServer:
             log_file: Optional log file path
         """
         if self.debug:
-            logger.info(f"Starting MCP Echo Server (protocol {self.PROTOCOL_VERSION}) on {host}:{port}")
+            logger.info("Starting MCP Echo Server (protocol %s) on %s:%s", self.PROTOCOL_VERSION, host, port)
 
         # Configure uvicorn logging
         log_config = None
@@ -1079,7 +1305,7 @@ class MCPEchoServer:
                 "formatters": {
                     "default": {"fmt": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"},
                     "access": {
-                        "fmt": '%(asctime)s - %(name)s - %(levelname)s - %(client_addr)s - "%(request_line)s" %(status_code)s'
+                        "fmt": '%(asctime)s - %(name)s - %(levelname)s - %(client_addr)s - "%(request_line)s" %(status_code)s',
                     },
                 },
                 "handlers": {

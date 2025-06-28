@@ -131,7 +131,7 @@ def verify_mcp_gateway_response(response_text: str) -> bool:
         "OAuth Gateway",
         "mcp-oauth",
         "auth.atratest.org",  # Our auth service domain
-        "echo.atratest.org",  # Our echo service domain
+        "echo-stateless.atratest.org",  # Our echo service domain
         "authorization_endpoint",  # OAuth metadata
         "token_endpoint",  # OAuth metadata
         "registration_endpoint",  # OAuth metadata

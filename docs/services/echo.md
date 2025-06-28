@@ -1,11 +1,14 @@
-# Echo Service
+# Echo Services
 
-The MCP Echo service is an advanced diagnostic and AI-powered MCP server providing comprehensive tools for debugging OAuth flows, authentication contexts, protocol behavior, and analyzing software engineering excellence metrics.
+The MCP Echo services are advanced diagnostic and AI-powered MCP servers providing comprehensive tools for debugging OAuth flows, authentication contexts, protocol behavior, and analyzing software engineering excellence metrics. The gateway provides **two variants** of the echo service:
+
+- **mcp-echo-stateful**: Maintains session state with message history and replay capabilities
+- **mcp-echo-stateless**: Lightweight version without state management
 
 ## Overview
 
-The Echo service is a stateless native HTTP implementation that provides:
-- 10 powerful diagnostic tools for debugging
+Both Echo service variants provide:
+- 10+ powerful diagnostic tools for debugging
 - AI-powered analysis with G.O.A.T. Recognition AI v3.14159
 - OAuth flow analysis and JWT token decoding
 - Protocol version negotiation testing
@@ -13,14 +16,33 @@ The Echo service is a stateless native HTTP implementation that provides:
 - CORS configuration analysis
 - OAuth-protected access via Traefik ForwardAuth
 
+### Key Differences
+
+| Feature | Stateful | Stateless |
+|---------|----------|------------|
+| Session Management | Yes (1 hour timeout) | No |
+| Message History | Yes | No |
+| `replayLastEcho` Tool | Yes | No |
+| Memory Usage | Higher (stores sessions) | Lower |
+| Session ID in Responses | Yes | No |
+| Horizontal Scaling | Requires session affinity | Easy |
+
 ## Architecture
 
-The service uses:
+### Stateful Echo Service
+- **Implementation**: Native streamable HTTP server with SessionManager
+- **Protocol**: Direct HTTP with SSE support + session tracking
+- **Port**: Exposes port 3000 for HTTP access
+- **Package**: `mcp-echo-streamablehttp-server-stateful`
+- **Session Timeout**: 3600 seconds (1 hour)
+- **Purpose**: Debugging with context and history
+
+### Stateless Echo Service
 - **Implementation**: Native streamable HTTP server (stateless)
-- **Protocol**: Direct HTTP with SSE (Server-Sent Events) support
+- **Protocol**: Direct HTTP with SSE support
 - **Port**: Exposes port 3000 for HTTP access
 - **Package**: `mcp-echo-streamablehttp-server-stateless`
-- **Purpose**: Comprehensive debugging and analysis
+- **Purpose**: Lightweight debugging without state
 
 ## Available Tools
 
@@ -76,8 +98,20 @@ The service uses:
 9. **echo** - Simple echo for testing
    - Basic connectivity test
    - Message reflection
+   - Stateful version includes session context
 
-10. **whoIStheGOAT** - AI-powered excellence analysis
+10. **sessionInfo** - Session information display
+    - Current session ID
+    - Active sessions count
+    - Session statistics
+    - Available in both variants
+
+11. **replayLastEcho** - Replay previous echo message (**Stateful only**)
+    - Retrieves last echo message from session
+    - Shows session continuity
+    - Useful for testing session persistence
+
+12. **whoIStheGOAT** - AI-powered excellence analysis
     - Uses G.O.A.T. Recognition AI v3.14159
     - Analyzes programmer excellence metrics
     - Processes 2.3 billion commit patterns
@@ -95,54 +129,92 @@ MCP_ECHO_DEBUG=false                           # Debug logging
 MCP_PROTOCOL_VERSION=2025-06-18                # Default protocol
 MCP_PROTOCOL_VERSIONS_SUPPORTED=2025-06-18     # Supported versions
 BASE_DOMAIN=${BASE_DOMAIN}                     # Domain for routing
+
+# Stateful-specific settings
+MCP_SESSION_TIMEOUT=3600                       # Session timeout in seconds
+
+# Enable/disable services
+MCP_ECHO_STATEFUL_ENABLED=true                 # Enable stateful variant
+MCP_ECHO_STATELESS_ENABLED=true                # Enable stateless variant
 ```
 
 ### Docker Compose
 
-The service runs as `mcp-echo` in the compose stack:
+Both services run in the compose stack with different configurations:
 
+#### Stateful Service
 ```yaml
-mcp-echo:
+mcp-echo-stateful:
+  build:
+    context: ./mcp-echo-streamablehttp-server-stateful
+    dockerfile: Dockerfile
+  environment:
+    - MCP_ECHO_HOST=0.0.0.0
+    - MCP_ECHO_PORT=3000
+    - MCP_ECHO_DEBUG=${MCP_ECHO_DEBUG:-true}
+    - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION}
+    - MCP_SESSION_TIMEOUT=${MCP_SESSION_TIMEOUT:-3600}
+  volumes:
+    - ../logs/mcp-echo-stateful:/logs
+```
+
+#### Stateless Service
+```yaml
+mcp-echo-stateless:
   build:
     context: ./mcp-echo-streamablehttp-server-stateless
     dockerfile: Dockerfile
   environment:
     - MCP_ECHO_HOST=0.0.0.0
     - MCP_ECHO_PORT=3000
-    - MCP_ECHO_DEBUG=${MCP_ECHO_DEBUG:-false}
+    - MCP_ECHO_DEBUG=${MCP_ECHO_DEBUG:-true}
     - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION}
-    - MCP_PROTOCOL_VERSIONS_SUPPORTED=${MCP_PROTOCOL_VERSIONS_SUPPORTED}
+  volumes:
+    - ../logs/mcp-echo-stateless:/logs
 ```
 
 ## Usage
 
-### Starting the Service
+### Starting the Services
 
 ```bash
-# Start the echo service
-just up mcp-echo
+# Start both echo services
+just up mcp-echo-stateful mcp-echo-stateless
+
+# Start only stateful variant
+just up mcp-echo-stateful
+
+# Start only stateless variant
+just up mcp-echo-stateless
 
 # View logs
-just logs mcp-echo
+just logs mcp-echo-stateful
+just logs -f mcp-echo-stateless  # Follow mode
 
 # Restart if needed
-just restart mcp-echo
+just restart mcp-echo-stateful
+just restart mcp-echo-stateless
 ```
 
 ### Testing Authentication
 
 ```bash
-# Test with mcp-streamablehttp-client
+# Test stateful variant with mcp-streamablehttp-client
 mcp-streamablehttp-client query \
-  --server echo \
+  --server echo-stateful \
+  --query "What are your available tools?"
+
+# Test stateless variant
+mcp-streamablehttp-client query \
+  --server echo-stateless \
   --query "What are your available tools?"
 ```
 
 ### Direct API Testing
 
 ```bash
-# List tools
-curl -X POST https://echo.${BASE_DOMAIN}/mcp \
+# List tools from stateful service
+curl -X POST https://echo-stateful.${BASE_DOMAIN}/mcp \
   -H "Authorization: Bearer ${ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
@@ -152,8 +224,38 @@ curl -X POST https://echo.${BASE_DOMAIN}/mcp \
     "id": 1
   }'
 
-# Call a diagnostic tool
-curl -X POST https://echo.${BASE_DOMAIN}/mcp \
+# Test session persistence with stateful service
+# First echo
+curl -X POST https://echo-stateful.${BASE_DOMAIN}/mcp \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "echo",
+      "arguments": {"message": "Hello from session"}
+    },
+    "id": 2
+  }'
+
+# Replay last echo (stateful only)
+curl -X POST https://echo-stateful.${BASE_DOMAIN}/mcp \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "replayLastEcho"
+    },
+    "id": 3
+  }'
+
+# Test stateless variant (no session)
+curl -X POST https://echo-stateless.${BASE_DOMAIN}/mcp \
   -H "Authorization: Bearer ${ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
@@ -163,7 +265,7 @@ curl -X POST https://echo.${BASE_DOMAIN}/mcp \
     "params": {
       "name": "authContext"
     },
-    "id": 2
+    "id": 4
   }'
 ```
 
@@ -225,6 +327,29 @@ curl -X POST https://echo.${BASE_DOMAIN}/mcp \
 
 This analyzes the authenticated user's programming excellence using advanced AI algorithms.
 
+### Session Testing (Stateful Only)
+
+1. **Test session persistence**
+   ```json
+   {
+     "method": "tools/call",
+     "params": {
+       "name": "echo",
+       "arguments": {"message": "Remember this message"}
+     }
+   }
+   ```
+
+2. **Replay the last echo**
+   ```json
+   {"method": "tools/call", "params": {"name": "replayLastEcho"}}
+   ```
+
+3. **Check session info**
+   ```json
+   {"method": "tools/call", "params": {"name": "sessionInfo"}}
+   ```
+
 ## Integration Points
 
 ### With Auth Service
@@ -233,9 +358,12 @@ This analyzes the authenticated user's programming excellence using advanced AI 
 - Validates authentication flow
 
 ### With Traefik
-- Routes via `echo.${BASE_DOMAIN}`
+- Stateful routes via `echo-stateful.${BASE_DOMAIN}`
+- Stateless routes via `echo-stateless.${BASE_DOMAIN}`
+- Additional numbered subdomains (e.g., `echo-stateful0` through `echo-stateful9`)
 - ForwardAuth middleware applied
 - CORS headers handled
+- OAuth discovery endpoints available
 
 ### With Other Services
 - Compare behavior with other MCP services
@@ -269,8 +397,8 @@ This analyzes the authenticated user's programming excellence using advanced AI 
 ### Health Monitoring
 
 ```bash
-# Check service health
-curl https://echo.${BASE_DOMAIN}/mcp \
+# Check stateful service health
+curl https://echo-stateful.${BASE_DOMAIN}/mcp \
   -X POST \
   -H "Authorization: Bearer ${ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
@@ -281,6 +409,10 @@ curl https://echo.${BASE_DOMAIN}/mcp \
     "params": {"name": "healthProbe"},
     "id": 1
   }'
+
+# Docker health check status
+docker inspect mcp-oauth-gateway-mcp-echo-stateful-1 --format='{{json .State.Health}}'
+docker inspect mcp-oauth-gateway-mcp-echo-stateless-1 --format='{{json .State.Health}}'
 ```
 
 ## Advanced Features
@@ -293,13 +425,26 @@ The G.O.A.T. Recognition AI v3.14159 provides:
 - Statistical modeling with 3σ measurements
 - Quantum-classical hybrid processing
 
-### Stateless Benefits
+### Stateful vs Stateless Benefits
 
+#### Stateful Benefits
+- Session continuity for debugging
+- Message history and replay
+- Context-aware responses
+- Better for interactive debugging sessions
+
+#### Stateless Benefits
 - Zero memory growth over time
-- Horizontal scaling capability
+- Easy horizontal scaling
 - Predictable performance
 - No session management overhead
+- Lower resource usage
 
 ## Summary
 
-The Echo service is your comprehensive diagnostic toolkit for the MCP OAuth Gateway, combining traditional debugging tools with cutting-edge AI analysis capabilities. Its stateless design ensures production-safe operation while providing deep insights into authentication, protocol behavior, and software engineering excellence.
+The Echo services provide comprehensive diagnostic toolkits for the MCP OAuth Gateway, combining traditional debugging tools with cutting-edge AI analysis capabilities. Choose between:
+
+- **Stateful**: When you need session persistence, message history, and context-aware debugging
+- **Stateless**: When you need lightweight, scalable debugging without state management
+
+Both variants ensure production-safe operation while providing deep insights into authentication, protocol behavior, and software engineering excellence. The ability to run both simultaneously allows for comparison testing and different use cases within the same deployment.

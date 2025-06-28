@@ -14,7 +14,8 @@ graph TB
         O[mcp-oauth-dynamicclient]
         P[mcp-streamablehttp-proxy]
         F[mcp-fetch-streamablehttp-server]
-        E[mcp-echo-streamablehttp-server-stateless]
+        ES[mcp-echo-streamablehttp-server-stateless]
+        EST[mcp-echo-streamablehttp-server-stateful]
     end
 
     subgraph "External Dependencies"
@@ -26,7 +27,8 @@ graph TB
     C -->|HTTP + OAuth| O
     O -->|Authentication| P
     O -->|Authentication| F
-    O -->|Authentication| E
+    O -->|Authentication| ES
+    O -->|Authentication| EST
     P -->|stdio| MS
 
     classDef client fill:#9cf,stroke:#333,stroke-width:2px
@@ -36,7 +38,7 @@ graph TB
 
     class C client
     class O,P,F infra
-    class E diagnostic
+    class ES,EST diagnostic
     class MC,MS external
 ```
 
@@ -83,7 +85,7 @@ Demonstrates native streamable HTTP implementation:
 - Reference implementation for new servers
 
 ### [mcp-echo-streamablehttp-server-stateless](./mcp-echo-streamablehttp-server-stateless.md)
-**Advanced Diagnostic and AI-Powered MCP Server**
+**Advanced Diagnostic MCP Server (Stateless)**
 
 Comprehensive diagnostic toolkit with AI analysis:
 - 10 powerful diagnostic tools for debugging
@@ -91,6 +93,16 @@ Comprehensive diagnostic toolkit with AI analysis:
 - Stateless operation for scalability
 - OAuth flow analysis and JWT decoding
 - System health and performance monitoring
+
+### mcp-echo-streamablehttp-server-stateful
+**Advanced Diagnostic MCP Server (Stateful)**
+
+Enhanced diagnostic toolkit with session management:
+- All tools from stateless variant
+- Session-based message history
+- `replayLastEcho` tool for session continuity
+- 1-hour session timeout
+- Perfect for interactive debugging sessions
 
 ## Package Relationships
 
@@ -102,7 +114,8 @@ graph LR
         A[auth service] -->|uses| O[mcp-oauth-dynamicclient]
         F1[mcp-fetch] -->|uses| P[mcp-streamablehttp-proxy]
         F2[mcp-fetchs] -->|uses| FS[mcp-fetch-streamablehttp-server]
-        E1[mcp-echo] -->|uses| ES[mcp-echo-streamablehttp-server-stateless]
+        E1[mcp-echo-stateless] -->|uses| ES[mcp-echo-streamablehttp-server-stateless]
+        E2[mcp-echo-stateful] -->|uses| EST[mcp-echo-streamablehttp-server-stateful]
     end
 
     subgraph "Client Dependencies"

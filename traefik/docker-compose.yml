@@ -29,11 +29,19 @@ services:
       - "--log.level=INFO"
       - "--log.filePath=/logs/traefik.log"
       - "--log.format=json"
+
+      # Single comprehensive access log with ALL headers and backend details
       - "--accesslog=true"
-      - "--accesslog.filePath=/logs/access.log"
+      - "--accesslog.filePath=/logs/complete-access.log"
       - "--accesslog.format=json"
       - "--accesslog.fields.defaultmode=keep"
       - "--accesslog.fields.headers.defaultmode=keep"
+      - "--accesslog.fields.names.startUTC=keep"
+      - "--accesslog.fields.names.Duration=keep"
+      - "--accesslog.fields.names.RouterName=keep"
+      - "--accesslog.fields.names.ServiceName=keep"
+      - "--accesslog.fields.names.ServiceURL=keep"
+      - "--accesslog.fields.names.BackendURL=keep"
       - "--ping=true"
     labels:
       - "traefik.enable=true"

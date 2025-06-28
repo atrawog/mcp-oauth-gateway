@@ -2,6 +2,7 @@
 
 import asyncio
 import base64
+import base64.binascii
 import contextlib
 import json
 import logging
@@ -22,6 +23,14 @@ from starlette.responses import Response
 from starlette.responses import StreamingResponse
 from starlette.routing import Route
 
+
+# Constants
+MAX_MESSAGE_QUEUE_SIZE = 100
+MAX_DISPLAY_SESSIONS = 10
+JWT_PARTS_COUNT = 3
+PERFORMANCE_EXCELLENT_THRESHOLD = 0.010  # 10ms
+PERFORMANCE_GOOD_THRESHOLD = 0.050  # 50ms
+PERFORMANCE_ACCEPTABLE_THRESHOLD = 0.100  # 100ms
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -62,8 +71,8 @@ class SessionManager:
                 await self.cleanup_expired_sessions()
             except asyncio.CancelledError:
                 break
-            except Exception as e:
-                logger.error(f"Error in session cleanup: {e}")
+            except (KeyError, RuntimeError, OSError) as e:
+                logger.error("Error in session cleanup: %s", e)
 
     async def cleanup_expired_sessions(self):
         """Remove expired sessions."""
@@ -75,7 +84,7 @@ class SessionManager:
                 expired_sessions.append(session_id)
 
         for session_id in expired_sessions:
-            logger.info(f"Cleaning up expired session: {session_id}")
+            logger.info("Cleaning up expired session: %s", session_id)
             self.remove_session(session_id)
 
     def create_session(self) -> str:
@@ -88,7 +97,7 @@ class SessionManager:
             "protocol_version": None,
             "client_info": None,
         }
-        logger.info(f"Created new session: {session_id}")
+        logger.info("Created new session: %s", session_id)
         return session_id
 
     def get_session(self, session_id: str) -> dict[str, Any] | None:
@@ -110,7 +119,7 @@ class SessionManager:
         if session_id in self.sessions:
             self.message_queues[session_id].append(message)
             # Limit queue size to prevent memory issues
-            if len(self.message_queues[session_id]) > 100:
+            if len(self.message_queues[session_id]) > MAX_MESSAGE_QUEUE_SIZE:
                 self.message_queues[session_id].popleft()
 
     def get_queued_messages(self, session_id: str) -> list[dict[str, Any]]:
@@ -174,11 +183,128 @@ class MCPEchoServerStateful:
 
     async def handle_mcp_request(self, request: Request):
         """Handle MCP requests according to 2025-06-18 specification with session management."""
-        if request.method == "GET":
-            return await self._handle_get_request(request)
+        # Log Traefik forwarded headers for debugging when debug mode is enabled
+        if self.debug:
+            start_time = time.time()
 
-        # POST method handling
-        return await self._handle_post_request(request)
+            traefik_headers = {
+                "x-real-ip": request.headers.get("x-real-ip"),
+                "x-forwarded-for": request.headers.get("x-forwarded-for"),
+                "x-forwarded-host": request.headers.get("x-forwarded-host"),
+                "x-forwarded-proto": request.headers.get("x-forwarded-proto"),
+                "x-forwarded-port": request.headers.get("x-forwarded-port"),
+                "x-forwarded-server": request.headers.get("x-forwarded-server"),
+                "x-user-id": request.headers.get("x-user-id"),
+                "x-user-name": request.headers.get("x-user-name"),
+                "x-auth-token": "***redacted***" if request.headers.get("x-auth-token") else None,
+                "user-agent": request.headers.get("user-agent"),
+                "host": request.headers.get("host"),
+                "mcp-session-id": request.headers.get("mcp-session-id"),
+            }
+
+            # Filter out None values
+            traefik_headers = {k: v for k, v in traefik_headers.items() if v is not None}
+
+            # Create JSON data for request
+            request_data = {
+                "type": "mcp_echo_stateful_request",
+                "method": request.method,
+                "path": str(request.url.path),
+                "real_ip": traefik_headers.get("x-real-ip", "unknown"),
+                "forwarded_for": traefik_headers.get("x-forwarded-for", "unknown"),
+                "forwarded_host": traefik_headers.get("x-forwarded-host", "unknown"),
+                "host": traefik_headers.get("host", "unknown"),
+                "user_agent": traefik_headers.get("user-agent", "unknown"),
+                "user_id": traefik_headers.get("x-user-id", "unknown"),
+                "user_name": traefik_headers.get("x-user-name", "unknown"),
+                "session_id": traefik_headers.get("mcp-session-id", "none"),
+                "forwarded_proto": traefik_headers.get("x-forwarded-proto", "unknown"),
+                "forwarded_port": traefik_headers.get("x-forwarded-port", "unknown"),
+                "timestamp": start_time,
+            }
+
+            # Store start time and request data for response logging
+            if not hasattr(self, "_request_timing"):
+                self._request_timing = {}
+            task_id = id(asyncio.current_task())
+            self._request_timing[task_id] = {
+                "start_time": start_time,
+                "request_data": request_data,
+                "traefik_headers": traefik_headers,
+            }
+
+            # Log request with Traefik headers
+            logger.info(
+                "MCP-ECHO STATEFUL REQUEST - Method: %s | "
+                "Path: %s | "
+                "Real-IP: %s | "
+                "Forwarded-For: %s | "
+                "User: %s | "
+                "Session: %s | "
+                "Host: %s | "
+                "User-Agent: %s | "
+                "JSON: %s",
+                request.method,
+                request.url.path,
+                traefik_headers.get("x-real-ip", "unknown"),
+                traefik_headers.get("x-forwarded-for", "unknown"),
+                traefik_headers.get("x-user-name", "unknown"),
+                traefik_headers.get("mcp-session-id", "none"),
+                traefik_headers.get("x-forwarded-host", traefik_headers.get("host", "unknown")),
+                traefik_headers.get("user-agent", "unknown"),
+                json.dumps(request_data),
+            )
+
+        # Handle the request
+        if request.method == "GET":
+            response = await self._handle_get_request(request)
+        else:
+            # POST method handling
+            response = await self._handle_post_request(request)
+
+        # Log response if debug mode is enabled
+        if self.debug and hasattr(self, "_request_timing"):
+            task_id = id(asyncio.current_task())
+            timing_data = self._request_timing.get(task_id)
+            if timing_data:
+                end_time = time.time()
+                duration = round(end_time - timing_data["start_time"], 3)
+
+                # Create response data
+                response_data = {
+                    "type": "mcp_echo_stateful_response",
+                    "status": getattr(response, "status_code", 200),
+                    "duration_seconds": duration,
+                    "path": timing_data["request_data"]["path"],
+                    "real_ip": timing_data["request_data"]["real_ip"],
+                    "method": timing_data["request_data"]["method"],
+                    "user_name": timing_data["request_data"]["user_name"],
+                    "session_id": timing_data["request_data"]["session_id"],
+                    "timestamp": end_time,
+                }
+
+                # Log response
+                logger.info(
+                    "MCP-ECHO STATEFUL RESPONSE - Status: %s | "
+                    "Time: %ss | "
+                    "Path: %s | "
+                    "Real-IP: %s | "
+                    "User: %s | "
+                    "Session: %s | "
+                    "JSON: %s",
+                    getattr(response, "status_code", 200),
+                    duration,
+                    timing_data["request_data"]["path"],
+                    timing_data["request_data"]["real_ip"],
+                    timing_data["request_data"]["user_name"],
+                    timing_data["request_data"]["session_id"],
+                    json.dumps(response_data),
+                )
+
+                # Clean up timing data
+                del self._request_timing[task_id]
+
+        return response
 
     async def _handle_get_request(self, request: Request) -> Response:
         """Handle GET requests for polling messages from sessions."""
@@ -270,7 +396,7 @@ class MCPEchoServerStateful:
         if protocol_version and protocol_version not in self.supported_versions:
             return JSONResponse(
                 {
-                    "error": f"Unsupported protocol version: {protocol_version}. Supported versions: {', '.join(self.supported_versions)}"
+                    "error": f"Unsupported protocol version: {protocol_version}. Supported versions: {', '.join(self.supported_versions)}",
                 },
                 status_code=400,
             )
@@ -289,7 +415,7 @@ class MCPEchoServerStateful:
 
         try:
             body = await request.json()
-        except Exception:
+        except (json.JSONDecodeError, ValueError, TypeError):
             if use_sse:
                 return StreamingResponse(
                     self._sse_error_stream(-32700, "Parse error"),
@@ -301,9 +427,28 @@ class MCPEchoServerStateful:
             )
 
         if self.debug:
-            logger.debug(f"Request: {body}")
-            logger.debug(f"Accept header: {accept}, Using SSE: {use_sse}")
-            logger.debug(f"Session ID from header: {session_id}")
+            logger.debug("Request: %s", body)
+            logger.debug("Accept header received: '%s'", accept)
+
+            # Detailed SSE decision logging
+            accepts_json = "application/json" in accept or "*/*" in accept
+            accepts_sse = "text/event-stream" in accept
+
+            logger.debug("Client accepts JSON: %s", accepts_json)
+            logger.debug("Client accepts SSE (text/event-stream): %s", accepts_sse)
+            logger.debug("Using SSE: %s", use_sse)
+
+            if use_sse:
+                logger.debug(
+                    "DECISION: Using Server-Sent Events (SSE) format because client explicitly accepts 'text/event-stream'",
+                )
+                logger.debug(
+                    "NOTE: SSE responses use 'event: message\\ndata: {json}\\n\\n' format which some clients may not parse correctly",
+                )
+            else:
+                logger.debug("DECISION: Using standard JSON response format (client did not request SSE)")
+
+            logger.debug("Session ID from header: %s", session_id)
 
         # Handle batch requests
         if isinstance(body, list):
@@ -316,8 +461,8 @@ class MCPEchoServerStateful:
         response, new_session_id = await self._handle_jsonrpc_request(body, session_id)
 
         if self.debug:
-            logger.debug(f"Response: {response}")
-            logger.debug(f"Session ID: {new_session_id}")
+            logger.debug("Response: %s", response)
+            logger.debug("Session ID: %s", new_session_id)
 
         # Check if this is a notification
         if "id" not in body and "error" not in response:
@@ -329,18 +474,30 @@ class MCPEchoServerStateful:
             response_headers["Mcp-Session-Id"] = new_session_id
 
         if use_sse:
+            if self.debug:
+                logger.debug("SENDING RESPONSE: Using SSE format (text/event-stream)")
+                logger.debug("Response will be formatted as: event: message\\ndata: <json>\\n\\n")
+                if new_session_id:
+                    logger.debug("Queueing message for session: %s", new_session_id)
+
             # Queue the message and return session info
             if new_session_id:
                 self.session_manager.queue_message(new_session_id, response)
 
             return StreamingResponse(
-                self._sse_response_stream(response), media_type="text/event-stream", headers=response_headers
+                self._sse_response_stream(response),
+                media_type="text/event-stream",
+                headers=response_headers,
             )
         # Return direct JSON response (for non-session clients)
+        if self.debug:
+            logger.debug("SENDING RESPONSE: Using standard JSON format (application/json)")
         return JSONResponse(response, headers=response_headers)
 
     async def _handle_jsonrpc_request(
-        self, request: dict[str, Any], session_id: str | None = None
+        self,
+        request: dict[str, Any],
+        session_id: str | None = None,
     ) -> tuple[dict[str, Any], str | None]:
         """Handle a JSON-RPC 2.0 request according to MCP 2025-06-18.
 
@@ -373,7 +530,10 @@ class MCPEchoServerStateful:
         return self._error_response(request_id, -32601, f"Method not found: {method}"), session_id
 
     async def _handle_initialize(
-        self, params: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        params: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> tuple[dict[str, Any], str]:
         """Handle initialize request with session management."""
         client_protocol = params.get("protocolVersion", "")
@@ -403,11 +563,14 @@ class MCPEchoServerStateful:
                 "initialized": True,
                 "protocol_version": client_protocol,
                 "client_info": client_info,
-            }
+            },
         )
 
         logger.info(
-            f"Session {session_id} initialized with protocol {client_protocol} for client {client_info.get('name', 'unknown')}"
+            "Session %s initialized with protocol %s for client %s",
+            session_id,
+            client_protocol,
+            client_info.get("name", "unknown"),
         )
 
         # Use the client's requested version if supported
@@ -424,7 +587,10 @@ class MCPEchoServerStateful:
         return response, session_id
 
     async def _handle_tools_list(
-        self, params: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        params: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> tuple[dict[str, Any], str | None]:
         """Handle tools/list request."""
         # Validate session if provided
@@ -463,7 +629,7 @@ class MCPEchoServerStateful:
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "includeRaw": {"type": "boolean", "description": "Include raw token parts", "default": False}
+                        "includeRaw": {"type": "boolean", "description": "Include raw token parts", "default": False},
                     },
                     "additionalProperties": False,
                 },
@@ -484,7 +650,7 @@ class MCPEchoServerStateful:
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "testVersion": {"type": "string", "description": "Test a specific protocol version"}
+                        "testVersion": {"type": "string", "description": "Test a specific protocol version"},
                     },
                     "additionalProperties": False,
                 },
@@ -504,7 +670,7 @@ class MCPEchoServerStateful:
                             "type": "boolean",
                             "description": "Show first/last 4 chars of secrets",
                             "default": False,
-                        }
+                        },
                     },
                     "additionalProperties": False,
                 },
@@ -529,7 +695,10 @@ class MCPEchoServerStateful:
         return {"jsonrpc": "2.0", "id": request_id, "result": {"tools": tools}}, session_id
 
     async def _handle_tools_call(
-        self, params: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        params: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> tuple[dict[str, Any], str | None]:
         """Handle tools/call request."""
         # Validate session if provided
@@ -569,7 +738,10 @@ class MCPEchoServerStateful:
         return await handler(arguments, request_id, session_id), session_id
 
     async def _handle_session_info(
-        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        arguments: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Handle the sessionInfo tool."""
         result_text = "Session Information\n" + "=" * 40 + "\n\n"
@@ -617,14 +789,17 @@ class MCPEchoServerStateful:
                 client_name = sdata.get("client_info", {}).get("name", "unknown")
                 result_text += f"  {sid[:8]}... - {client_name} (age: {int(age)}s)\n"
 
-            if total_sessions > 10:
-                result_text += f"  ... and {total_sessions - 10} more sessions\n"
+            if total_sessions > MAX_DISPLAY_SESSIONS:
+                result_text += f"  ... and {total_sessions - MAX_DISPLAY_SESSIONS} more sessions\n"
 
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     # Copy tool implementations from stateless version but updated for stateful context
     async def _handle_echo_tool(
-        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        arguments: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Handle the echo tool."""
         message = arguments.get("message")
@@ -645,7 +820,10 @@ class MCPEchoServerStateful:
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": message}]}}
 
     async def _handle_replay_last_echo(
-        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        arguments: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Handle the replayLastEcho tool - repeats the last echo message."""
         if not session_id:
@@ -665,8 +843,8 @@ class MCPEchoServerStateful:
                         {
                             "type": "text",
                             "text": "No previous echo message found in this session. Use the echo tool first!",
-                        }
-                    ]
+                        },
+                    ],
                 },
             }
 
@@ -677,7 +855,10 @@ class MCPEchoServerStateful:
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": replay_message}]}}
 
     async def _handle_print_header_tool(
-        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        arguments: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Handle the printHeader tool."""
         headers_text = "HTTP Headers:\n"
@@ -705,7 +886,10 @@ class MCPEchoServerStateful:
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": headers_text}]}}
 
     async def _handle_bearer_decode(
-        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        arguments: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Decode JWT Bearer token from Authorization header."""
         include_raw = arguments.get("includeRaw", False)
@@ -731,8 +915,8 @@ class MCPEchoServerStateful:
             try:
                 # Split JWT parts
                 parts = token.split(".")
-                if len(parts) != 3:
-                    result_text += f"❌ Invalid JWT format (expected 3 parts, got {len(parts)})\n"
+                if len(parts) != JWT_PARTS_COUNT:
+                    result_text += f"❌ Invalid JWT format (expected {JWT_PARTS_COUNT} parts, got {len(parts)})\n"
                 else:
                     # Decode header
                     header_data = parts[0]
@@ -804,14 +988,17 @@ class MCPEchoServerStateful:
                         result_text += f"  Payload: {parts[1][:50]}...\n"
                         result_text += f"  Signature: {parts[2][:50]}...\n"
 
-            except Exception as e:
+            except (json.JSONDecodeError, ValueError, base64.binascii.Error) as e:
                 result_text += f"❌ Error decoding JWT: {e!s}\n"
                 result_text += f"Token preview: {token[:50]}...\n"
 
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_auth_context(
-        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        arguments: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Display complete authentication context."""
         task_id = id(asyncio.current_task())
@@ -832,7 +1019,7 @@ class MCPEchoServerStateful:
                 result_text += f"  ✅ Present (length: {len(token)})\n"
                 try:
                     parts = token.split(".")
-                    if len(parts) == 3:
+                    if len(parts) == JWT_PARTS_COUNT:
                         payload_padded = parts[1] + "=" * (4 - len(parts[1]) % 4)
                         payload_json = json.loads(base64.urlsafe_b64decode(payload_padded))
                         if "sub" in payload_json:
@@ -870,7 +1057,10 @@ class MCPEchoServerStateful:
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_request_timing(
-        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        arguments: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Show request timing metrics."""
         task_id = id(asyncio.current_task())
@@ -896,11 +1086,11 @@ class MCPEchoServerStateful:
 
         # Performance indicators
         result_text += "\nPerformance Indicators:\n"
-        if elapsed < 0.010:  # 10ms
+        if elapsed < PERFORMANCE_EXCELLENT_THRESHOLD:
             result_text += "  ⚡ Excellent (<10ms)\n"
-        elif elapsed < 0.050:  # 50ms
+        elif elapsed < PERFORMANCE_GOOD_THRESHOLD:
             result_text += "  ✅ Good (<50ms)\n"
-        elif elapsed < 0.100:  # 100ms
+        elif elapsed < PERFORMANCE_ACCEPTABLE_THRESHOLD:
             result_text += "  ⚠️  Acceptable (<100ms)\n"
         else:
             result_text += "  ❌ Slow (>100ms)\n"
@@ -908,7 +1098,10 @@ class MCPEchoServerStateful:
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_protocol_negotiation(
-        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        arguments: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Analyze protocol version negotiation."""
         task_id = id(asyncio.current_task())
@@ -934,7 +1127,10 @@ class MCPEchoServerStateful:
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_cors_analysis(
-        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        arguments: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Analyze CORS configuration."""
         task_id = id(asyncio.current_task())
@@ -962,7 +1158,10 @@ class MCPEchoServerStateful:
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_environment_dump(
-        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        arguments: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Display sanitized environment configuration."""
         show_secrets = arguments.get("showSecrets", False)
@@ -996,7 +1195,10 @@ class MCPEchoServerStateful:
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_health_probe(
-        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        arguments: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Perform deep health check."""
         result_text = "Service Health Check\n" + "=" * 40 + "\n\n"
@@ -1023,7 +1225,10 @@ class MCPEchoServerStateful:
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 
     async def _handle_who_is_the_goat(
-        self, arguments: dict[str, Any], request_id: Any, session_id: str | None = None
+        self,
+        arguments: dict[str, Any],
+        request_id: Any,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """Reveal who is the Greatest Of All Time programmer."""
         # Get headers and context
@@ -1053,7 +1258,7 @@ class MCPEchoServerStateful:
             token = auth_header[7:]
             try:
                 parts = token.split(".")
-                if len(parts) == 3:
+                if len(parts) == JWT_PARTS_COUNT:
                     payload_data = parts[1]
                     payload_padded = payload_data + "=" * (4 - len(payload_data) % 4)
                     payload_json = json.loads(base64.urlsafe_b64decode(payload_padded))
@@ -1063,8 +1268,8 @@ class MCPEchoServerStateful:
 
                     if name or username:
                         found_user_info = True
-            except Exception as e:
-                logger.debug(f"Failed to decode JWT token for user info: {e}")
+            except (json.JSONDecodeError, ValueError, KeyError, base64.binascii.Error) as e:
+                logger.debug("Failed to decode JWT token for user info: %s", e)
 
         # Check OAuth headers as fallback
         if not found_user_info:
@@ -1104,12 +1309,21 @@ class MCPEchoServerStateful:
 
     async def _sse_response_stream(self, response: dict[str, Any]):
         """Generate SSE stream for a response."""
+        if self.debug:
+            logger.debug("SSE STREAM: Sending SSE formatted response")
+            logger.debug("SSE STREAM: event: message")
+            logger.debug("SSE STREAM: data: %s", json.dumps(response))
+            logger.debug("SSE STREAM: (followed by blank line)")
         yield "event: message\n"
         yield f"data: {json.dumps(response)}\n\n"
 
     async def _sse_messages_stream(self, messages: list[dict[str, Any]]):
         """Generate SSE stream for multiple messages."""
-        for message in messages:
+        if self.debug and messages:
+            logger.debug("SSE STREAM: Sending %d messages via SSE", len(messages))
+        for i, message in enumerate(messages):
+            if self.debug:
+                logger.debug("SSE STREAM: Message %d/%d", i + 1, len(messages))
             yield "event: message\n"
             yield f"data: {json.dumps(message)}\n\n"
 
@@ -1133,7 +1347,7 @@ class MCPEchoServerStateful:
             log_file: Optional log file path
         """
         if self.debug:
-            logger.info(f"Starting MCP Echo Server Stateful (protocol {self.PROTOCOL_VERSION}) on {host}:{port}")
+            logger.info("Starting MCP Echo Server Stateful (protocol %s) on %s:%s", self.PROTOCOL_VERSION, host, port)
 
         # Configure uvicorn logging
         log_config = None
@@ -1144,7 +1358,7 @@ class MCPEchoServerStateful:
                 "formatters": {
                     "default": {"fmt": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"},
                     "access": {
-                        "fmt": '%(asctime)s - %(name)s - %(levelname)s - %(client_addr)s - "%(request_line)s" %(status_code)s'
+                        "fmt": '%(asctime)s - %(name)s - %(levelname)s - %(client_addr)s - "%(request_line)s" %(status_code)s',
                     },
                 },
                 "handlers": {

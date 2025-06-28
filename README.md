@@ -58,7 +58,8 @@ The MCP OAuth Gateway is a **zero-modification authentication layer** for MCP se
 │   (Layer 2: OAuth Authorization Server)   │    │    (Layer 3: Protocol Handlers)     │
 ├───────────────────────────────────────────┤    ├─────────────────────────────────────┤
 │ Container: auth:8000                      │    │ Containers:                         │
-│ Package: mcp-oauth-dynamicclient          │    │ • mcp-echo:3000                     │
+│ Package: mcp-oauth-dynamicclient          │    │ • mcp-echo-stateful:3000            │
+│                                           │    │ • mcp-echo-stateless:3000           │
 │                                           │    │ • mcp-fetch:3000                    │
 │ OAuth Endpoints:                          │    │ • mcp-memory:3000                   │
 │ • POST /register (RFC 7591)               │    │ • mcp-time:3000                     │
@@ -502,7 +503,10 @@ MCP_SEQUENTIALTHINKING_ENABLED=true # Structured problem solving
 MCP_TMUX_ENABLED=true               # Terminal multiplexer integration
 MCP_PLAYWRIGHT_ENABLED=false        # Browser automation (resource intensive)
 MCP_EVERYTHING_ENABLED=true         # Test server with all features
-MCP_ECHO_ENABLED=true               # Diagnostic and debugging tools
+
+# Echo Diagnostic Services (Choose one or both)
+MCP_ECHO_STATEFUL_ENABLED=true      # Echo with session state & replayLastEcho
+MCP_ECHO_STATELESS_ENABLED=true     # Echo without state management
 ```
 
 #### 5. Protocol Configuration
@@ -522,7 +526,8 @@ MCP_PROTOCOL_VERSION=2025-06-18
 
 | Service | Description | Protocol Version | Container Port |
 |---------|-------------|------------------|----------------|
-| mcp-echo | Diagnostic tools & OAuth debugging | 2025-06-18 | 3000 |
+| mcp-echo-stateful | Diagnostic tools with session state & memory | 2025-06-18 | 3000 |
+| mcp-echo-stateless | Diagnostic tools without state management | 2025-06-18 | 3000 |
 | mcp-fetch | Web content fetching (stdio wrapper) | 2025-03-26 | 3000 |
 | mcp-fetchs | Native Python fetch implementation | 2025-06-18 | 3000 |
 | mcp-filesystem | File system access (sandboxed) | 2025-03-26 | 3000 |
@@ -560,7 +565,8 @@ MCP_SEQUENTIALTHINKING_TESTS_ENABLED=false
 MCP_TIME_TESTS_ENABLED=false
 MCP_TMUX_TESTS_ENABLED=false
 MCP_EVERYTHING_TESTS_ENABLED=false
-MCP_ECHO_TESTS_ENABLED=false
+MCP_ECHO_STATEFUL_TESTS_ENABLED=false
+MCP_ECHO_STATELESS_TESTS_ENABLED=false
 
 # Test parameters
 TEST_HTTP_TIMEOUT=30.0

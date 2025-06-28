@@ -11,7 +11,7 @@ import httpx
 MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
 BASE_DOMAIN = os.getenv("BASE_DOMAIN", "atratest.org")
 MCP_PROTOCOL_VERSION = os.getenv("MCP_PROTOCOL_VERSION", "2025-06-18")
-MCP_TESTING_URL = f"https://echo.{BASE_DOMAIN}/mcp"
+MCP_TESTING_URL = f"https://echo-stateless.{BASE_DOMAIN}/mcp"
 
 
 async def test_request(description: str, headers: dict, json_data: dict):

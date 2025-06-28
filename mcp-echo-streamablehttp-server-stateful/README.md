@@ -131,7 +131,7 @@ This stateful server is specifically designed to work with VS Code MCP extension
       "command": "curl",
       "args": [
         "-X", "POST",
-        "https://echo.yourdomain.com/mcp",
+        "https://echo-stateful.yourdomain.com/mcp",
         "-H", "Content-Type: application/json",
         "-H", "Accept: application/json, text/event-stream",
         "-H", "Authorization: Bearer YOUR_TOKEN"

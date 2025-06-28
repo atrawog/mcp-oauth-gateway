@@ -2,10 +2,12 @@
 Main server module for MCP OAuth Dynamic Client
 """
 
+import json
 import logging
 
 # Configure logging
 import os
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -279,6 +281,84 @@ def create_app(settings: Settings = None) -> FastAPI:
 
     # CORS is handled by Traefik middleware - no need to configure here
     # This ensures CORS headers are set in only one place as required
+
+    # Add request logging middleware to capture Traefik forwarded headers
+    @app.middleware("http")
+    async def log_traefik_headers(request: Request, call_next):
+        """Log Traefik forwarded headers and request details for security monitoring."""
+        logger = logging.getLogger(__name__)
+        start_time = time.time()
+
+        # Extract Traefik forwarded headers
+        traefik_headers = {
+            "x-real-ip": request.headers.get("x-real-ip"),
+            "x-forwarded-for": request.headers.get("x-forwarded-for"),
+            "x-forwarded-host": request.headers.get("x-forwarded-host"),
+            "x-forwarded-proto": request.headers.get("x-forwarded-proto"),
+            "x-forwarded-port": request.headers.get("x-forwarded-port"),
+            "x-forwarded-server": request.headers.get("x-forwarded-server"),
+            "user-agent": request.headers.get("user-agent"),
+            "host": request.headers.get("host"),
+        }
+
+        # Filter out None values
+        traefik_headers = {k: v for k, v in traefik_headers.items() if v is not None}
+
+        # Log request with Traefik headers
+        request_data = {
+            "type": "auth_request",
+            "method": request.method,
+            "path": str(request.url.path),
+            "real_ip": traefik_headers.get("x-real-ip", "unknown"),
+            "forwarded_for": traefik_headers.get("x-forwarded-for", "unknown"),
+            "forwarded_host": traefik_headers.get("x-forwarded-host", "unknown"),
+            "host": traefik_headers.get("host", "unknown"),
+            "user_agent": traefik_headers.get("user-agent", "unknown"),
+            "forwarded_proto": traefik_headers.get("x-forwarded-proto", "unknown"),
+            "forwarded_port": traefik_headers.get("x-forwarded-port", "unknown"),
+        }
+        logger.info(
+            "AUTH REQUEST - Method: %s | "
+            "Path: %s | "
+            "Real-IP: %s | "
+            "Forwarded-For: %s | "
+            "Host: %s | "
+            "User-Agent: %s | "
+            "JSON: %s",
+            request.method,
+            request.url.path,
+            traefik_headers.get("x-real-ip", "unknown"),
+            traefik_headers.get("x-forwarded-for", "unknown"),
+            traefik_headers.get("x-forwarded-host", traefik_headers.get("host", "unknown")),
+            traefik_headers.get("user-agent", "unknown"),
+            json.dumps(request_data),
+        )
+
+        # Process the request
+        response = await call_next(request)
+
+        # Calculate response time
+        process_time = time.time() - start_time
+
+        # Log response with timing
+        response_data = {
+            "type": "auth_response",
+            "status": response.status_code,
+            "duration_seconds": round(process_time, 3),
+            "path": str(request.url.path),
+            "real_ip": traefik_headers.get("x-real-ip", "unknown"),
+            "method": request.method,
+        }
+        logger.info(
+            "AUTH RESPONSE - Status: %s | Time: %.3fs | Path: %s | Real-IP: %s | JSON: %s",
+            response.status_code,
+            process_time,
+            request.url.path,
+            traefik_headers.get("x-real-ip", "unknown"),
+            json.dumps(response_data),
+        )
+
+        return response
 
     # Include OAuth routes with Authlib ResourceProtector for enhanced security
     oauth_router = create_oauth_router(settings, redis_manager, auth_manager)

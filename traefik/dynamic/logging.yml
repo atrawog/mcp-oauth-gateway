@@ -1,0 +1,25 @@
+# Simple Traefik Logging Configuration
+# Adds clear markers to requests for easy log parsing
+
+http:
+  middlewares:
+    # Simple request marker for external requests
+    mark-external:
+      headers:
+        customRequestHeaders:
+          X-Request-Type: "external"
+          X-Request-Source: "client"
+
+    # Simple request marker for MCP service requests
+    mark-mcp-service:
+      headers:
+        customRequestHeaders:
+          X-Request-Type: "mcp-service"
+          X-Service-Type: "mcp"
+
+    # Simple request marker for auth service requests
+    mark-auth-service:
+      headers:
+        customRequestHeaders:
+          X-Request-Type: "auth-service"
+          X-Service-Type: "auth"

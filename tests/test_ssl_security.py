@@ -56,7 +56,8 @@ class TestSSLSecurity:
         assert context.verify_mode == ssl.CERT_REQUIRED, "SSL context must require certificates!"
 
     @pytest.mark.parametrize(
-        "url", [f"https://auth.{BASE_DOMAIN}", f"https://echo.{BASE_DOMAIN}", f"https://everything.{BASE_DOMAIN}"]
+        "url",
+        [f"https://auth.{BASE_DOMAIN}", f"https://echo-stateless.{BASE_DOMAIN}", f"https://everything.{BASE_DOMAIN}"],
     )
     def test_services_have_valid_certificates(self, url):
         """Test that all services have valid SSL certificates."""
