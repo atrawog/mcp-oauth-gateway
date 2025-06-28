@@ -36,6 +36,7 @@ class TestMCPEverythingSSESimple:
         """Test that SSE middleware headers are present on initialize."""
         response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -68,6 +69,7 @@ class TestMCPEverythingSSESimple:
         """Test that SSE format is preserved through the gateway."""
         response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -106,6 +108,7 @@ class TestMCPEverythingSSESimple:
 
         response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -143,6 +146,7 @@ class TestMCPEverythingSSESimple:
         # Send invalid request
         response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -170,6 +174,7 @@ class TestMCPEverythingSSESimple:
         """Test that CORS headers are properly set for claude.ai."""
         response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",

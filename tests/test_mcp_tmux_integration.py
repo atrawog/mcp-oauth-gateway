@@ -364,6 +364,7 @@ class TestMCPTmuxIntegration:
         response = requests.post(
             f"{mcp_tmux_url}",
             json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
+            timeout=30.0,
             headers={"Content-Type": "application/json"},
         )
 

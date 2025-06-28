@@ -13,6 +13,8 @@ load_dotenv()
 
 AUTH_BASE_URL = f"https://auth.{os.getenv('BASE_DOMAIN')}"
 ADMIN_TOKEN = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
+# Only disable SSL verification in development environments
+SSL_VERIFY = os.getenv("SSL_VERIFY", "true").lower() == "true"
 
 
 async def cleanup_registrations():
@@ -21,7 +23,7 @@ async def cleanup_registrations():
         print("❌ No GATEWAY_OAUTH_ACCESS_TOKEN found!")
         return
 
-    async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
+    async with httpx.AsyncClient(verify=SSL_VERIFY, timeout=30.0) as client:
         # Get all registrations
         response = await client.get(
             f"{AUTH_BASE_URL}/admin/clients",

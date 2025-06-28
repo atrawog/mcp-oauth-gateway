@@ -31,7 +31,7 @@ def test_mcp_echo():
     print()
 
     # Send POST request
-    response = requests.post(url, json=data, headers=headers, stream=True)
+    response = requests.post(url, json=data, headers=headers, stream=True, timeout=30.0)
 
     print(f"Response status: {response.status_code}")
     print(f"Response headers: {dict(response.headers)}")
@@ -49,7 +49,7 @@ def test_mcp_echo():
     print("\n" + "=" * 50 + "\n")
     print("Testing GET request...")
 
-    get_response = requests.get(url, headers={"Accept": "text/event-stream"}, stream=True)
+    get_response = requests.get(url, headers={"Accept": "text/event-stream"}, stream=True, timeout=30.0)
     print(f"GET Response status: {get_response.status_code}")
     print(f"GET Response headers: {dict(get_response.headers)}")
     print()

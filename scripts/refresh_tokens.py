@@ -69,6 +69,8 @@ async def refresh_oauth_token():
     client_id = os.getenv("GATEWAY_OAUTH_CLIENT_ID")
     client_secret = os.getenv("GATEWAY_OAUTH_CLIENT_SECRET")
     base_domain = os.getenv("BASE_DOMAIN")
+    # Only disable SSL verification in development environments
+    ssl_verify = os.getenv("SSL_VERIFY", "true").lower() == "true"
 
     if not all([client_id, client_secret, base_domain]):
         print("❌ Missing OAuth client credentials!")
@@ -77,7 +79,7 @@ async def refresh_oauth_token():
     token_url = f"https://auth.{base_domain}/token"
 
     try:
-        async with httpx.AsyncClient(timeout=30.0, verify=False) as client:
+        async with httpx.AsyncClient(timeout=30.0, verify=ssl_verify) as client:
             response = await client.post(
                 token_url,
                 data={

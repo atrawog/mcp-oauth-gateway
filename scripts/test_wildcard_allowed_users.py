@@ -20,8 +20,10 @@ async def test_wildcard_functionality():
         return False
 
     auth_url = f"https://auth.{base_domain}"
+    # Only disable SSL verification in development environments
+    ssl_verify = os.getenv("SSL_VERIFY", "true").lower() == "true"
 
-    async with httpx.AsyncClient(verify=False) as client:
+    async with httpx.AsyncClient(verify=ssl_verify) as client:
         print("1. Testing client registration (should work regardless of ALLOWED_GITHUB_USERS)...")
 
         # Register a test client

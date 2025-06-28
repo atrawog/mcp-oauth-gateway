@@ -7,6 +7,9 @@ import sys
 import httpx
 
 
+# Only disable SSL verification in development environments
+ssl_verify = os.getenv("SSL_VERIFY", "true").lower() == "true"
+
 # Get token from .env
 with open(".env") as f:
     for line in f:
@@ -48,7 +51,7 @@ headers = {
     "MCP-Protocol-Version": "2025-06-18",
 }
 
-response = httpx.post(url, json=init_request, headers=headers, verify=False)
+response = httpx.post(url, json=init_request, headers=headers, verify=ssl_verify)
 print(f"Status: {response.status_code}")
 print(f"Headers: {dict(response.headers)}")
 print(f"Response: {response.text}")
@@ -65,7 +68,7 @@ notif_headers = headers.copy()
 if session_id:
     notif_headers["Mcp-Session-Id"] = session_id
 
-response = httpx.post(url, json=notif_request, headers=notif_headers, verify=False)
+response = httpx.post(url, json=notif_request, headers=notif_headers, verify=ssl_verify)
 print(f"Status: {response.status_code}")
 print(f"Headers: {dict(response.headers)}")
 print(f"Response: {response.text}")
@@ -78,6 +81,6 @@ tools_headers = headers.copy()
 if session_id:
     tools_headers["Mcp-Session-Id"] = session_id
 
-response = httpx.post(url, json=tools_request, headers=tools_headers, verify=False)
+response = httpx.post(url, json=tools_request, headers=tools_headers, verify=ssl_verify)
 print(f"Status: {response.status_code}")
 print(f"Response: {response.text}")

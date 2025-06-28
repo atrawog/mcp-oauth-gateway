@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def run_server(
     server_command: List[str],
-    host: str = "0.0.0.0",
+    host: str = "127.0.0.1",
     port: int = 3000,
     session_timeout: int = 300,
     log_level: str = "info",
@@ -22,7 +22,7 @@ def run_server(
 
     Args:
         server_command: Command to run the MCP stdio server
-        host: Host to bind to (default: 0.0.0.0)
+        host: Host to bind to (default: 127.0.0.1)
         port: Port to bind to (default: 3000)
         session_timeout: Session timeout in seconds (default: 300)
         log_level: Logging level (default: info)

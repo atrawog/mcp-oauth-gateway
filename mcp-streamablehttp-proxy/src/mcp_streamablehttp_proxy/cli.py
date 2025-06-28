@@ -35,8 +35,8 @@ Examples:
 
     parser.add_argument(
         "--host",
-        default=os.getenv("MCP_BIND_HOST", "0.0.0.0"),
-        help="Host to bind to (default: 0.0.0.0, or MCP_BIND_HOST env var)",
+        default=os.getenv("MCP_BIND_HOST", "127.0.0.1"),
+        help="Host to bind to (default: 127.0.0.1, or MCP_BIND_HOST env var, use 0.0.0.0 for external access)",
     )
 
     parser.add_argument(

@@ -38,6 +38,7 @@ class TestMCPEverythingSSE:
         # Initialize session first
         init_response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -67,6 +68,7 @@ class TestMCPEverythingSSE:
         """Test that initialize returns proper SSE format response."""
         response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -117,6 +119,7 @@ class TestMCPEverythingSSE:
         # Step 1: Initialize the server
         init_response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -144,6 +147,7 @@ class TestMCPEverythingSSE:
         # Step 2: Send initialized notification (required!)
         requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -163,6 +167,7 @@ class TestMCPEverythingSSE:
         echo_message = "Hello from SSE test!"
         echo_response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -212,6 +217,7 @@ class TestMCPEverythingSSE:
 
         response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -249,6 +255,7 @@ class TestMCPEverythingSSE:
         # Step 1: Initialize the server
         init_response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -276,6 +283,7 @@ class TestMCPEverythingSSE:
         # Step 2: Send initialized notification (required!)
         requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -294,6 +302,7 @@ class TestMCPEverythingSSE:
         # Now list tools
         tools_response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -320,6 +329,7 @@ class TestMCPEverythingSSE:
         # Step 1: Initialize the server
         init_response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -347,6 +357,7 @@ class TestMCPEverythingSSE:
         # Step 2: Send initialized notification (required!)
         requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",
@@ -365,6 +376,7 @@ class TestMCPEverythingSSE:
         # Now try to call a non-existent tool (should error)
         response = requests.post(
             urljoin(base_url, "mcp"),
+            timeout=30.0,
             headers={
                 **auth_headers,
                 "Content-Type": "application/json",

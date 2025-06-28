@@ -36,7 +36,7 @@ def test_vscode_session_flow():
     }
 
     # Initialize session
-    response = requests.post(base_url, json=init_data, headers=headers)
+    response = requests.post(base_url, json=init_data, headers=headers, timeout=30.0)
     print(f"Status: {response.status_code}")
     print(f"Content-Type: {response.headers.get('Content-Type', 'Not specified')}")
 
@@ -69,7 +69,7 @@ def test_vscode_session_flow():
     poll_headers = {"Mcp-Session-Id": session_id, "Accept": "text/event-stream"}
 
     # First poll - should get any queued initialization response
-    response = requests.get(base_url, headers=poll_headers)
+    response = requests.get(base_url, headers=poll_headers, timeout=30.0)
     print(f"Poll Status: {response.status_code}")
     print(f"Content-Type: {response.headers.get('Content-Type', 'Not specified')}")
 
@@ -91,7 +91,7 @@ def test_vscode_session_flow():
 
     tools_data = {"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 2}
 
-    response = requests.post(base_url, json=tools_data, headers=tools_headers)
+    response = requests.post(base_url, json=tools_data, headers=tools_headers, timeout=30.0)
     print(f"Status: {response.status_code}")
     print(f"Content-Type: {response.headers.get('Content-Type', 'Not specified')}")
 
@@ -120,7 +120,7 @@ def test_vscode_session_flow():
         "id": 3,
     }
 
-    response = requests.post(base_url, json=session_info_data, headers=tools_headers)
+    response = requests.post(base_url, json=session_info_data, headers=tools_headers, timeout=30.0)
     print(f"Status: {response.status_code}")
 
     if response.headers.get("Content-Type", "").startswith("text/event-stream"):

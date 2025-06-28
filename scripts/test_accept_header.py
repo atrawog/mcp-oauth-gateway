@@ -7,6 +7,9 @@ import sys
 import httpx
 
 
+# Only disable SSL verification in development environments
+ssl_verify = os.getenv("SSL_VERIFY", "true").lower() == "true"
+
 # Get token from .env
 with open(".env") as f:
     for line in f:
@@ -44,13 +47,13 @@ headers = {
     "Content-Type": "application/json",
     "MCP-Protocol-Version": "2025-06-18",
 }
-response = httpx.post(url, json=data, headers=headers, verify=False)
+response = httpx.post(url, json=data, headers=headers, verify=ssl_verify)
 print(f"Status: {response.status_code}")
 print(f"Response: {response.text[:200]}\n")
 
 print("Testing WITH Accept header:")
 headers["Accept"] = "application/json, text/event-stream"
-response = httpx.post(url, json=data, headers=headers, verify=False)
+response = httpx.post(url, json=data, headers=headers, verify=ssl_verify)
 print(f"Status: {response.status_code}")
 print(f"Content-Type: {response.headers.get('content-type')}")
 print(f"Session ID: {response.headers.get('mcp-session-id')}")

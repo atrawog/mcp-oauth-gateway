@@ -32,7 +32,7 @@ def test_json_response():
         "id": 1,
     }
 
-    response = requests.post(base_url, json=data, headers=headers)
+    response = requests.post(base_url, json=data, headers=headers, timeout=30.0)
     print(f"Status Code: {response.status_code}")
     print(f"Content-Type: {response.headers.get('Content-Type', 'Not specified')}")
 
@@ -58,7 +58,7 @@ def test_json_response():
 
     headers["Accept"] = "application/json, text/event-stream"
 
-    response = requests.post(base_url, json=data, headers=headers)
+    response = requests.post(base_url, json=data, headers=headers, timeout=30.0)
     print(f"Status Code: {response.status_code}")
     print(f"Content-Type: {response.headers.get('Content-Type', 'Not specified')}")
 

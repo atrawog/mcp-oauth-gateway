@@ -13,8 +13,8 @@ def main():
     parser = argparse.ArgumentParser(description="MCP OAuth Dynamic Client Registration Server")
     parser.add_argument(
         "--host",
-        default="0.0.0.0",
-        help="Host to bind the server to (default: 0.0.0.0)",
+        default="127.0.0.1",
+        help="Host to bind the server to (default: 127.0.0.1, use 0.0.0.0 for external access)",
     )
     parser.add_argument(
         "--port",
