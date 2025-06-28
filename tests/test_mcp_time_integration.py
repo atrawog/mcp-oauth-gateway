@@ -64,7 +64,7 @@ class TestMCPTimeIntegration:
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"  # TODO: Break long line
+                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}",  # TODO: Break long line
             )
 
         # Parse the output - find the JSON response
@@ -213,7 +213,7 @@ class TestMCPTimeIntegration:
         if "error" in response:
             # Time server doesn't support resources - this is acceptable
             print(
-                f"Time server doesn't support resources/list: {response['error']['message']}"  # TODO: Break long line
+                f"Time server doesn't support resources/list: {response['error']['message']}",  # TODO: Break long line
             )
             assert response["error"]["code"] == -32601  # Method not found
         else:

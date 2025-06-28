@@ -64,7 +64,9 @@ class TestMCPProxyBasicFunctionality:
     async def test_mcp_endpoint_requires_auth(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
         """Test that the MCP endpoint requires authentication."""
         response = await http_client.post(
-            f"{MCP_ECHO_STATELESS_URL}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}, timeout=30.0
+            f"{MCP_ECHO_STATELESS_URL}",
+            json={"jsonrpc": "2.0", "method": "ping", "id": 1},
+            timeout=30.0,
         )
         assert response.status_code == HTTP_UNAUTHORIZED
         assert "WWW-Authenticate" in response.headers
@@ -100,12 +102,15 @@ class TestMCPProxyAuthentication:
 
     @pytest.mark.asyncio
     async def test_gateway_token_authentication(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_test_id,
     ):
         """Test authentication using gateway OAuth token."""
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
             pytest.fail(
-                "No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+                "No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!",
             )
 
         # Gateway token should work for authentication
@@ -136,7 +141,10 @@ class TestMCPProxyAuthentication:
 
     @pytest.mark.asyncio
     async def test_mcp_client_token_authentication(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_test_id,
     ):
         """Test authentication using MCP client token."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -482,7 +490,10 @@ class TestMCPProxyHeaders:
 
     @pytest.mark.asyncio
     async def test_mcp_protocol_version_header(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_test_id,
     ):
         """Test that MCP-Protocol-Version header is handled."""
         if not MCP_CLIENT_ACCESS_TOKEN:

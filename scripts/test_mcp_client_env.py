@@ -46,17 +46,17 @@ async def test_env_vars():
     print(
         f"  oauth_client_secret: {settings.oauth_client_secret[:10]}..."
         if settings.oauth_client_secret
-        else "  oauth_client_secret: None"
+        else "  oauth_client_secret: None",
     )
     print(
         f"  oauth_access_token: {settings.oauth_access_token[:20]}..."
         if settings.oauth_access_token
-        else "  oauth_access_token: None"
+        else "  oauth_access_token: None",
     )
     print(
         f"  oauth_refresh_token: {settings.oauth_refresh_token[:20]}..."
         if settings.oauth_refresh_token
-        else "  oauth_refresh_token: None"
+        else "  oauth_refresh_token: None",
     )
 
     # Test if credentials are valid

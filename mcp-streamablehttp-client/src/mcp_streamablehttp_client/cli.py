@@ -158,7 +158,7 @@ def main(
                 list_tools,
                 list_resources,
                 list_prompts,
-            )
+            ),
         )
 
     except Exception as e:
@@ -251,7 +251,7 @@ async def async_main(
                             server_info = response["result"].get("serverInfo", {})
                             console.print(
                                 f"[dim]Server: {server_info.get('name', 'Unknown')} "
-                                f"v{server_info.get('version', 'Unknown')}[/dim]"
+                                f"v{server_info.get('version', 'Unknown')}[/dim]",
                             )
 
             except Exception as e:
@@ -460,7 +460,7 @@ async def check_and_refresh_tokens(settings: Settings) -> None:
                 if server_info:
                     console.print(
                         f"[dim]  Server: {server_info.get('name', 'Unknown')} "
-                        f"v{server_info.get('version', 'Unknown')}[/dim]"
+                        f"v{server_info.get('version', 'Unknown')}[/dim]",
                     )
 
     except Exception as e:
@@ -771,7 +771,10 @@ def parse_tool_arguments(tool_name: str, arg_string: str) -> dict:
 
 
 async def handle_client_management(
-    settings: Settings, get_client_info: bool, update_client: str, delete_client: bool
+    settings: Settings,
+    get_client_info: bool,
+    update_client: str,
+    delete_client: bool,
 ) -> None:
     """Handle RFC 7592 client registration management commands."""
     console.print("\n[cyan]Client Registration Management (RFC 7592)[/cyan]")

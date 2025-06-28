@@ -329,7 +329,7 @@ class TestJWTTokenCreation:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 # 204 No Content is success, 404 is okay if already deleted

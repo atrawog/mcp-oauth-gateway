@@ -40,7 +40,7 @@ class TestGitHubCredentialsValid:
                 pytest.fail(
                     "GITHUB_PAT is invalid or expired! "
                     "Token refresh should have handled this. "
-                    "Run 'just generate-github-token' manually if needed."
+                    "Run 'just generate-github-token' manually if needed.",
                 )
             elif response.status_code == HTTP_FORBIDDEN:
                 # Check if it's rate limited
@@ -51,7 +51,7 @@ class TestGitHubCredentialsValid:
             elif response.status_code == HTTP_OK:
                 user_data = response.json()
                 print(
-                    f"✅ GITHUB_PAT is valid for user: {user_data.get('login', 'unknown')}"  # TODO: Break long line
+                    f"✅ GITHUB_PAT is valid for user: {user_data.get('login', 'unknown')}",  # TODO: Break long line
                 )
             else:
                 pytest.fail(f"Unexpected response: {response.status_code} - {response.text}")
@@ -64,7 +64,7 @@ class TestGitHubCredentialsValid:
 
         if not oauth_client_id or not oauth_client_secret:
             pytest.fail(
-                "GATEWAY_OAUTH_CLIENT_ID or GATEWAY_OAUTH_CLIENT_SECRET not set - skipping OAuth validation - TESTS MUST NOT BE SKIPPED!"
+                "GATEWAY_OAUTH_CLIENT_ID or GATEWAY_OAUTH_CLIENT_SECRET not set - skipping OAuth validation - TESTS MUST NOT BE SKIPPED!",
             )
 
         # These are our dynamically registered credentials - verify they work
@@ -75,19 +75,19 @@ class TestGitHubCredentialsValid:
         if not oauth_client_id.startswith("client_"):
             pytest.fail(
                 f"OAUTH_CLIENT_ID '{oauth_client_id}' doesn't match expected format. "
-                "Run 'just generate-github-token' to register a new client."
+                "Run 'just generate-github-token' to register a new client.",
             )
 
         # Client secret should be a reasonable length
         if len(oauth_client_secret) < 20:
             pytest.fail(
                 f"GATEWAY_OAUTH_CLIENT_SECRET seems too short ({len(oauth_client_secret)} chars). "  # TODO: Break long line
-                "Run 'just generate-github-token' to register a new client."
+                "Run 'just generate-github-token' to register a new client.",
             )
 
         print(f"✅ GATEWAY_OAUTH_CLIENT_ID format valid: {oauth_client_id}")
         print(
-            f"✅ GATEWAY_OAUTH_CLIENT_SECRET format valid: {len(oauth_client_secret)} chars"  # TODO: Break long line
+            f"✅ GATEWAY_OAUTH_CLIENT_SECRET format valid: {len(oauth_client_secret)} chars",  # TODO: Break long line
         )
 
     @pytest.mark.asyncio
@@ -115,7 +115,7 @@ class TestGitHubCredentialsValid:
                     pytest.fail(
                         f"GitHub OAuth app credentials are invalid! "
                         f"GITHUB_CLIENT_ID: {GITHUB_CLIENT_ID} is not recognized. "
-                        "Check your GitHub OAuth app settings."
+                        "Check your GitHub OAuth app settings.",
                     )
                 elif "error=" in location:
                     # Extract error
@@ -126,7 +126,7 @@ class TestGitHubCredentialsValid:
                     error = params.get("error", ["unknown"])[0]
                     error_desc = params.get("error_description", [""])[0]
                     pytest.fail(
-                        f"GitHub OAuth error: {error} - {error_desc}. Check your GitHub OAuth app configuration."
+                        f"GitHub OAuth error: {error} - {error_desc}. Check your GitHub OAuth app configuration.",
                     )
                 else:
                     # Should redirect to login or back to our callback
@@ -141,7 +141,7 @@ class TestGitHubCredentialsValid:
             else:
                 pytest.fail(
                     f"Unexpected response from GitHub: {response.status_code}. "
-                    "This might indicate invalid OAuth app credentials."
+                    "This might indicate invalid OAuth app credentials.",
                 )
 
     @pytest.mark.asyncio
@@ -161,7 +161,7 @@ class TestGitHubCredentialsValid:
             pytest.fail(
                 "Missing required credentials:\n"
                 + "\n".join(f"  - {m}" for m in missing)
-                + "\n\nSet these in your .env file or run 'just generate-github-token'"
+                + "\n\nSet these in your .env file or run 'just generate-github-token'",
             )
 
         print("✅ All required GitHub credentials are present")

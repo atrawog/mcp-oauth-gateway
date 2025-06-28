@@ -58,7 +58,7 @@ class TestMCPSequentialThinkingComprehensive:
 
         if result.returncode != 0:
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}"  # TODO: Break long line
+                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}",  # TODO: Break long line
             )
 
         # Parse the output to find the actual response
@@ -79,7 +79,11 @@ class TestMCPSequentialThinkingComprehensive:
         return {"raw_output": output, "stderr": result.stderr}
 
     def run_mcp_client_raw(
-        self, url: str, token: str, method: str, params: dict[str, Any] | None = None
+        self,
+        url: str,
+        token: str,
+        method: str,
+        params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Run mcp-streamablehttp-client with raw JSON-RPC and return the response."""
         # Set environment variables
@@ -116,7 +120,7 @@ class TestMCPSequentialThinkingComprehensive:
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}"  # TODO: Break long line
+                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}",  # TODO: Break long line
             )
 
         # Parse the output - find the JSON response
@@ -272,7 +276,10 @@ class TestMCPSequentialThinkingComprehensive:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_sequentialthinking_multi_step_process(
-        self, mcp_sequentialthinking_url, client_token, wait_for_services
+        self,
+        mcp_sequentialthinking_url,
+        client_token,
+        wait_for_services,
     ):
         """Test a multi-step thinking process."""
         # Initialize session
@@ -321,7 +328,10 @@ class TestMCPSequentialThinkingComprehensive:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_sequentialthinking_revision_process(
-        self, mcp_sequentialthinking_url, client_token, wait_for_services
+        self,
+        mcp_sequentialthinking_url,
+        client_token,
+        wait_for_services,
     ):
         """Test the revision capability of sequential thinking."""
         # Initialize session
@@ -370,7 +380,10 @@ class TestMCPSequentialThinkingComprehensive:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_sequentialthinking_branching_logic(
-        self, mcp_sequentialthinking_url, client_token, wait_for_services
+        self,
+        mcp_sequentialthinking_url,
+        client_token,
+        wait_for_services,
     ):
         """Test branching logic in sequential thinking."""
         # Initialize session
@@ -420,7 +433,10 @@ class TestMCPSequentialThinkingComprehensive:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_sequentialthinking_dynamic_scaling(
-        self, mcp_sequentialthinking_url, client_token, wait_for_services
+        self,
+        mcp_sequentialthinking_url,
+        client_token,
+        wait_for_services,
     ):
         """Test dynamic scaling of thought process."""
         # Initialize session
@@ -450,7 +466,10 @@ class TestMCPSequentialThinkingComprehensive:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_sequentialthinking_hypothesis_testing(
-        self, mcp_sequentialthinking_url, client_token, wait_for_services
+        self,
+        mcp_sequentialthinking_url,
+        client_token,
+        wait_for_services,
     ):
         """Test hypothesis generation and testing."""
         # Initialize session
@@ -536,7 +555,10 @@ class TestMCPSequentialThinkingComprehensive:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_sequentialthinking_complete_workflow(
-        self, mcp_sequentialthinking_url, client_token, wait_for_services
+        self,
+        mcp_sequentialthinking_url,
+        client_token,
+        wait_for_services,
     ):
         """Test a complete sequential thinking workflow from start to finish."""
         # Initialize session
@@ -561,7 +583,7 @@ class TestMCPSequentialThinkingComprehensive:
             },
         )
         print(
-            f"Step 1 - Problem identification: {'✅ Success' if 'result' in step1 else '❌ Error'}"  # TODO: Break long line
+            f"Step 1 - Problem identification: {'✅ Success' if 'result' in step1 else '❌ Error'}",  # TODO: Break long line
         )
 
         # Step 2: Analysis
@@ -599,7 +621,7 @@ class TestMCPSequentialThinkingComprehensive:
             },
         )
         print(
-            f"Step 3 - Solution exploration: {'✅ Success' if 'result' in step3 else '❌ Error'}"  # TODO: Break long line
+            f"Step 3 - Solution exploration: {'✅ Success' if 'result' in step3 else '❌ Error'}",  # TODO: Break long line
         )
 
         # Step 4: Refinement
@@ -637,7 +659,7 @@ class TestMCPSequentialThinkingComprehensive:
             },
         )
         print(
-            f"Step 5 - Final solution: {'✅ Success' if 'result' in step5 else '❌ Error'}"  # TODO: Break long line
+            f"Step 5 - Final solution: {'✅ Success' if 'result' in step5 else '❌ Error'}",  # TODO: Break long line
         )
 
         print("=== Sequential Thinking Workflow Complete ===\n")
@@ -650,7 +672,10 @@ class TestMCPSequentialThinkingComprehensive:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_sequentialthinking_protocol_compliance(
-        self, mcp_sequentialthinking_url, client_token, wait_for_services
+        self,
+        mcp_sequentialthinking_url,
+        client_token,
+        wait_for_services,
     ):
         """Test MCP protocol compliance for sequential thinking service."""
         # Test initialization

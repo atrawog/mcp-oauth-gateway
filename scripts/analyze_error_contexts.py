@@ -34,7 +34,7 @@ def find_error_contexts():
                                 "var": var_name,
                                 "line": i + 1,
                                 "usage": context_lines[:5],  # First 5 usages
-                            }
+                            },
                         )
 
     # Categorize the patterns

@@ -36,7 +36,7 @@ async def test_debug_mcp_fetch_with_real_oauth(http_client, _wait_for_services, 
             print(f"GET {endpoint}: Status {response.status_code}")
             if response.status_code != 404:
                 print(
-                    f"GET Response: {response.text[:200] if response.text else 'No body'}"  # TODO: Break long line
+                    f"GET Response: {response.text[:200] if response.text else 'No body'}",  # TODO: Break long line
                 )
         except Exception as e:
             print(f"GET {endpoint} failed: {e}")

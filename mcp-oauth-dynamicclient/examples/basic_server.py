@@ -1,6 +1,4 @@
-"""
-Basic example of running the MCP OAuth server
-"""
+"""Basic example of running the MCP OAuth server"""
 
 import asyncio
 

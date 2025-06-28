@@ -54,7 +54,7 @@ def search_file(file_path, pattern, results):
                             "line_num": line_num,
                             "line": line.strip(),
                             "vars": list(set(matches)),
-                        }
+                        },
                     )
     except Exception as e:
         print(f"Error reading {file_path}: {e}")
@@ -74,7 +74,7 @@ def print_results(results):
                         "file": file_path,
                         "line_num": occ["line_num"],
                         "line": occ["line"],
-                    }
+                    },
                 )
 
     # Print results

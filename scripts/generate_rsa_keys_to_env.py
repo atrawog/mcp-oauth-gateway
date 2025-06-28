@@ -22,6 +22,7 @@ def validate_existing_jwt_key(env_content):
 
     Returns:
         tuple: (is_valid: bool, key_value: str|None, reason: str)
+
     """
     # Extract JWT_PRIVATE_KEY_B64 value
     jwt_key_pattern = r"^JWT_PRIVATE_KEY_B64=(.*)$"

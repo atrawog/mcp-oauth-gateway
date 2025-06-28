@@ -62,7 +62,7 @@ class TestMCPFetchSimple:
                         "name": token_claims["name"],
                         "scope": token_claims["scope"],
                         "client_id": token_claims["client_id"],
-                    }
+                    },
                 ),
             )
 

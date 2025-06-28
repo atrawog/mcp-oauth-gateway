@@ -111,7 +111,9 @@ class TestClaudeIntegration:
             }
 
             auth_response = await http_client.get(
-                f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
+                f"{AUTH_BASE_URL}/authorize",
+                params=auth_params,
+                follow_redirects=False,
             )
 
             # Should redirect to GitHub
@@ -137,13 +139,13 @@ class TestClaudeIntegration:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client_creds['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client_creds['registration_access_token']}"  # TODO: Break long line
+                            "Authorization": f"Bearer {client_creds['registration_access_token']}",  # TODO: Break long line
                         },
                     )
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
-                            f"Warning: Failed to delete client {client_creds['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                            f"Warning: Failed to delete client {client_creds['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                         )
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")

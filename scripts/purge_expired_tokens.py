@@ -87,7 +87,7 @@ async def purge_expired_tokens(dry_run: bool = False):
 
     try:
         print(
-            f"{'[DRY RUN] ' if dry_run else ''}Starting token purge at {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}"
+            f"{'[DRY RUN] ' if dry_run else ''}Starting token purge at {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}",
         )
         print("=" * 60)
 
@@ -117,7 +117,7 @@ async def purge_expired_tokens(dry_run: bool = False):
                         await client.delete(key)
                     stats["access_tokens_expired"] += 1
                     print(
-                        f"{'Would delete' if dry_run else 'Deleted'} expired access token: {key} (expired: {datetime.fromtimestamp(expires_at, tz=UTC)})"
+                        f"{'Would delete' if dry_run else 'Deleted'} expired access token: {key} (expired: {datetime.fromtimestamp(expires_at, tz=UTC)})",
                     )
 
         # Check refresh tokens (they have TTL but let's verify)

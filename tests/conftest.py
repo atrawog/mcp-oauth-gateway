@@ -183,6 +183,39 @@ def pytest_configure(config):
         print("=" * 60, file=sys.stderr)
         pytest.exit("Token validation failed", returncode=1)
 
+    # Actually validate GitHub PAT against GitHub API
+    try:
+        import requests
+
+        github_response = requests.get(
+            "https://api.github.com/user",
+            headers={
+                "Authorization": f"token {github_pat}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+            timeout=10.0,
+        )
+
+        if github_response.status_code == 200:
+            user_data = github_response.json()
+            print(f"✅ GitHub PAT is valid for user: {user_data.get('login')}", file=sys.stderr)
+        elif github_response.status_code == 401:
+            print("❌ GitHub PAT is invalid or expired!", file=sys.stderr)
+            print(f"   Token prefix: {github_pat[:4]}...", file=sys.stderr)
+            print(f"   Response: {github_response.text}", file=sys.stderr)
+            print("   Run: just generate-github-token", file=sys.stderr)
+            print("=" * 60, file=sys.stderr)
+            pytest.exit("GitHub PAT validation failed", returncode=1)
+        else:
+            print(f"❌ GitHub API returned unexpected status: {github_response.status_code}", file=sys.stderr)
+            print(f"   Response: {github_response.text}", file=sys.stderr)
+            print("=" * 60, file=sys.stderr)
+            pytest.exit("GitHub PAT validation failed", returncode=1)
+    except (requests.exceptions.RequestException, ValueError) as e:
+        print(f"❌ Failed to validate GitHub PAT: {e}", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
+        pytest.exit("GitHub PAT validation failed", returncode=1)
+
     # Quick validation of other critical variables
     critical_vars = {
         "BASE_DOMAIN": "Base domain for services",
@@ -240,6 +273,9 @@ def pytest_configure(config):
     # Summary of validation status
     if token_valid:
         print("✅ All critical tokens and configuration validated!", file=sys.stderr)
+        print("   - Gateway OAuth token: Valid", file=sys.stderr)
+        print("   - GitHub PAT: Valid", file=sys.stderr)
+        print("   - Critical environment variables: Valid", file=sys.stderr)
         print("=" * 60, file=sys.stderr)
     else:
         # This should never be reached because we exit immediately on any token failure
@@ -470,7 +506,7 @@ async def _refresh_and_validate_tokens(_ensure_services_ready):
             print("⚠️  No valid refresh token available - cannot auto-refresh")
             if token_needs_refresh:
                 pytest.fail(
-                    "❌ Gateway token is invalid and no refresh token available! Run: just generate-github-token"
+                    "❌ Gateway token is invalid and no refresh token available! Run: just generate-github-token",
                 )
             else:
                 pytest.fail("❌ Gateway token expires soon and no refresh token! Run: just generate-github-token")
@@ -493,7 +529,7 @@ async def _refresh_and_validate_tokens(_ensure_services_ready):
                 update_env_file("GATEWAY_OAUTH_ACCESS_TOKEN", new_token)
                 os.environ["GATEWAY_OAUTH_ACCESS_TOKEN"] = new_token
 
-                if "refresh_token" in data:
+                if "refresh_token" in data and data["refresh_token"] is not None:
                     update_env_file("GATEWAY_OAUTH_REFRESH_TOKEN", data["refresh_token"])
                     os.environ["GATEWAY_OAUTH_REFRESH_TOKEN"] = data["refresh_token"]
 
@@ -553,7 +589,7 @@ async def _refresh_and_validate_tokens(_ensure_services_ready):
                     update_env_file("MCP_CLIENT_ACCESS_TOKEN", gateway_token)
                     os.environ["MCP_CLIENT_ACCESS_TOKEN"] = gateway_token
                     print(
-                        "✅ Updated MCP client token from gateway token (previous token not recognized by auth service)"
+                        "✅ Updated MCP client token from gateway token (previous token not recognized by auth service)",
                     )
         else:
             # Use gateway token as MCP client token
@@ -948,7 +984,7 @@ def mcp_sequentialthinking_url():
 
     if not MCP_SEQUENTIALTHINKING_TESTS_ENABLED:
         pytest.skip(
-            "MCP Sequential Thinking tests are disabled. Set MCP_SEQUENTIALTHINKING_TESTS_ENABLED=true to enable."
+            "MCP Sequential Thinking tests are disabled. Set MCP_SEQUENTIALTHINKING_TESTS_ENABLED=true to enable.",
         )
     if not MCP_SEQUENTIALTHINKING_URLS:
         pytest.skip("MCP_SEQUENTIALTHINKING_URLS environment variable not set")

@@ -27,7 +27,7 @@ async def list_tools(request: ListToolsRequest) -> ListToolsResult:
             name="test",
             description="Test tool",
             inputSchema={"type": "object", "properties": {}, "additionalProperties": False},
-        )
+        ),
     ]
 
     result = ListToolsResult(tools=tools)
@@ -39,7 +39,9 @@ async def test_protocol():
     """Test protocol handling."""
     # Create initialization options
     init_options = InitializationOptions(
-        server_name="debug-server", server_version="0.1.0", capabilities=ServerCapabilities(tools={})
+        server_name="debug-server",
+        server_version="0.1.0",
+        capabilities=ServerCapabilities(tools={}),
     )
 
     print(f"InitializationOptions: {init_options}")

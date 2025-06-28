@@ -38,7 +38,9 @@ class TestAdditionalCoverage:
 
         # Test with Authorization but no Bearer
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify", headers={"Authorization": "InvalidScheme token123"}, timeout=30.0
+            f"{AUTH_BASE_URL}/verify",
+            headers={"Authorization": "InvalidScheme token123"},
+            timeout=30.0,
         )
         assert response.status_code == HTTP_UNAUTHORIZED
 
@@ -113,14 +115,14 @@ class TestAdditionalCoverage:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
+                            "Authorization": f"Bearer {client['registration_access_token']}",  # TODO: Break long line
                         },
                         timeout=30.0,
                     )
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
-                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                         )
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
@@ -207,14 +209,14 @@ class TestAdditionalCoverage:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
+                            "Authorization": f"Bearer {client['registration_access_token']}",  # TODO: Break long line
                         },
                         timeout=30.0,
                     )
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
-                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                         )
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
@@ -244,7 +246,9 @@ class TestAdditionalCoverage:
 
         # Try to verify
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {invalid_token}"}, timeout=30.0
+            f"{AUTH_BASE_URL}/verify",
+            headers={"Authorization": f"Bearer {invalid_token}"},
+            timeout=30.0,
         )
 
         assert response.status_code == HTTP_UNAUTHORIZED

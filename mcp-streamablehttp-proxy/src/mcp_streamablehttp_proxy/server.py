@@ -26,6 +26,7 @@ def run_server(
         port: Port to bind to (default: 3000)
         session_timeout: Session timeout in seconds (default: 300)
         log_level: Logging level (default: info)
+
     """
     # Set up logging
     import os
@@ -44,7 +45,9 @@ def run_server(
         log_handlers.append(file_handler)
 
     logging.basicConfig(
-        level=getattr(logging, log_level.upper()), format=log_format, handlers=log_handlers
+        level=getattr(logging, log_level.upper()),
+        format=log_format,
+        handlers=log_handlers,
     )
 
     logger.info(f"Starting MCP stdio-to-HTTP proxy for: {' '.join(server_command)}")

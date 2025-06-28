@@ -34,7 +34,7 @@ class MCPSession:
     async def start_server(self):
         """Start the underlying MCP server process."""
         logger.info(
-            f"Starting MCP server for session {self.session_id}: {' '.join(self.server_command)}"  # TODO: Break long line
+            f"Starting MCP server for session {self.session_id}: {' '.join(self.server_command)}",  # TODO: Break long line
         )
 
         self.process = await asyncio.create_subprocess_exec(
@@ -66,13 +66,13 @@ class MCPSession:
                     await self._handle_response(response)
                 except json.JSONDecodeError:
                     logger.warning(
-                        f"Session {self.session_id}: Invalid JSON from server: {line}"
+                        f"Session {self.session_id}: Invalid JSON from server: {line}",
                     )  # TODO: Break long line
                     continue
 
             except Exception as e:
                 logger.error(
-                    f"Session {self.session_id}: Error reading from server: {e}"
+                    f"Session {self.session_id}: Error reading from server: {e}",
                 )  # TODO: Break long line
                 break
 
@@ -88,14 +88,14 @@ class MCPSession:
         else:
             # This might be a notification or unsolicited message
             logger.debug(
-                f"Session {self.session_id}: Received unsolicited message: {response}"
+                f"Session {self.session_id}: Received unsolicited message: {response}",
             )  # TODO: Break long line
 
     async def _send_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Send a request to the server and wait for response."""
         if not self.process or not self.process.stdin:
             raise RuntimeError(
-                f"Session {self.session_id}: Server process not available"
+                f"Session {self.session_id}: Server process not available",
             )  # TODO: Break long line
 
         # Update activity timestamp
@@ -139,14 +139,14 @@ class MCPSession:
 
         if "error" in response:
             logger.error(
-                f"Session {self.session_id}: Failed to list tools: {response['error']}"
+                f"Session {self.session_id}: Failed to list tools: {response['error']}",
             )  # TODO: Break long line
             return
 
         result = response.get("result", {})
         self.available_tools = result.get("tools", [])
         logger.info(
-            f"Session {self.session_id}: Available tools: {[t.get('name') for t in self.available_tools]}"  # TODO: Break long line
+            f"Session {self.session_id}: Available tools: {[t.get('name') for t in self.available_tools]}",  # TODO: Break long line
         )
 
     async def handle_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -156,13 +156,13 @@ class MCPSession:
             if not self.session_initialized:
                 # Log the incoming request for debugging
                 logger.info(
-                    f"Session {self.session_id}: Initialize request: {json.dumps(request_data, indent=2)}"  # TODO: Break long line
+                    f"Session {self.session_id}: Initialize request: {json.dumps(request_data, indent=2)}",  # TODO: Break long line
                 )
 
                 # Forward the initialize request to the underlying server
                 response = await self._send_request(request_data)
                 logger.info(
-                    f"Session {self.session_id}: Initialize response from server: {json.dumps(response, indent=2)}"  # TODO: Break long line
+                    f"Session {self.session_id}: Initialize response from server: {json.dumps(response, indent=2)}",  # TODO: Break long line
                 )
 
                 # If successful, complete the initialization process
@@ -198,7 +198,7 @@ class MCPSession:
             raise RuntimeError(f"Session {self.session_id} not initialized")
 
         logger.info(
-            f"Session {self.session_id}: Handling MCP request: {json.dumps(request_data, indent=2)}"  # TODO: Break long line
+            f"Session {self.session_id}: Handling MCP request: {json.dumps(request_data, indent=2)}",  # TODO: Break long line
         )
 
         # Update activity timestamp
@@ -211,7 +211,7 @@ class MCPSession:
 
         response = await self._send_request(request_data)
         logger.info(
-            f"Session {self.session_id}: MCP server response: {json.dumps(response, indent=2)}"  # TODO: Break long line
+            f"Session {self.session_id}: MCP server response: {json.dumps(response, indent=2)}",  # TODO: Break long line
         )
         return response
 
@@ -283,12 +283,14 @@ class MCPSessionManager:
         self.sessions[session_id] = session
 
         logger.info(
-            f"Created new session {session_id}. Total sessions: {len(self.sessions)}"
+            f"Created new session {session_id}. Total sessions: {len(self.sessions)}",
         )  # TODO: Break long line
         return session
 
     async def handle_request(
-        self, request_data: Dict[str, Any], session_id: Optional[str] = None
+        self,
+        request_data: Dict[str, Any],
+        session_id: Optional[str] = None,
     ) -> tuple[Dict[str, Any], str]:
         """Handle MCP request and return response with session ID."""
         method = request_data.get("method")
@@ -299,7 +301,7 @@ class MCPSessionManager:
             requested_version = request_data.get("params", {}).get("protocolVersion")
             if requested_version:
                 logger.info(
-                    f"Client requested protocol version: {requested_version}, forwarding to underlying MCP server"  # TODO: Break long line
+                    f"Client requested protocol version: {requested_version}, forwarding to underlying MCP server",  # TODO: Break long line
                 )
 
             # Don't allow re-initialization of existing sessions
@@ -321,7 +323,7 @@ class MCPSessionManager:
             # Store the session
             self.sessions[new_session_id] = session
             logger.info(
-                f"Created new session {new_session_id}. Total sessions: {len(self.sessions)}"  # TODO: Break long line
+                f"Created new session {new_session_id}. Total sessions: {len(self.sessions)}",  # TODO: Break long line
             )
 
             # Let the session handle the initialize request completely
@@ -430,11 +432,12 @@ def create_app(server_command: List[str], session_timeout: int = 300) -> FastAPI
                 logger.info("Initialize request received. Creating new session...")
             else:
                 logger.info(
-                    f"Request for method '{method}' with session ID: {session_id or 'MISSING'}"  # TODO: Break long line
+                    f"Request for method '{method}' with session ID: {session_id or 'MISSING'}",  # TODO: Break long line
                 )
 
             response, returned_session_id = await session_manager.handle_request(
-                request_data, session_id
+                request_data,
+                session_id,
             )
 
             # Create response with session ID header

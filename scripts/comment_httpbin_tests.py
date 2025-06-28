@@ -37,7 +37,7 @@ def comment_out_test_method(content, test_name):
         [
             f"{' ' * indent}# REMOVED: This test used httpbin.org which violates our testing principles.",
             f"{' ' * indent}# Per CLAUDE.md: Test against real deployed services (our own), not external ones.",
-        ]
+        ],
     )
 
     # Comment out each line

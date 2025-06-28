@@ -37,7 +37,7 @@ class TestCompletenessChecker(ast.NodeVisitor):
                         "function": self.current_function,
                         "line": node.lineno,
                         "issue": "Only checks status code - MUST verify actual functionality!",
-                    }
+                    },
                 )
 
             self.current_function = None

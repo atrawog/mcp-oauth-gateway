@@ -18,7 +18,7 @@ def parse_supported_versions(versions_str: str) -> list[str]:
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="MCP Echo StreamableHTTP Server - Stateful version with session management"
+        description="MCP Echo StreamableHTTP Server - Stateful version with session management",
     )
     parser.add_argument(
         "--host",
@@ -84,7 +84,9 @@ def main():
 
     # Create and run server
     server = MCPEchoServerStateful(
-        debug=args.debug, supported_versions=supported_versions, session_timeout=args.session_timeout
+        debug=args.debug,
+        supported_versions=supported_versions,
+        session_timeout=args.session_timeout,
     )
 
     try:

@@ -319,5 +319,5 @@ class TestMCPEverythingIntegration:
                 # CORS might not be configured on test environments
                 # This is acceptable for test servers
                 print(
-                    f"Note: CORS headers not present on {everything_base_url} - this is acceptable for test environments"  # TODO: Break long line
+                    f"Note: CORS headers not present on {everything_base_url} - this is acceptable for test environments",  # TODO: Break long line
                 )

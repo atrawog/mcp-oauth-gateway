@@ -30,7 +30,9 @@ class Settings(BaseSettings):
         alias="MCP_CLIENT_SECRET",
     )
     oauth_access_token: str | None = Field(
-        None, description="Current OAuth access token", alias="MCP_CLIENT_ACCESS_TOKEN"
+        None,
+        description="Current OAuth access token",
+        alias="MCP_CLIENT_ACCESS_TOKEN",
     )
     oauth_refresh_token: str | None = Field(
         None,
@@ -46,7 +48,8 @@ class Settings(BaseSettings):
     oauth_token_url: str | None = Field(None, description="OAuth token endpoint (discovered)")
     oauth_device_auth_url: str | None = Field(None, description="OAuth device authorization endpoint (discovered)")
     oauth_registration_url: str | None = Field(
-        None, description="OAuth dynamic client registration endpoint (discovered)"
+        None,
+        description="OAuth dynamic client registration endpoint (discovered)",
     )
     oauth_metadata_url: str | None = Field(None, description="OAuth server metadata discovery URL (discovered)")
 

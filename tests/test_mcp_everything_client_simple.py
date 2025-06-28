@@ -74,7 +74,9 @@ class TestMCPEverythingClientSimple:
         # The client automatically handles initialization
         # Let's use a simple echo command to test connection
         returncode, stdout, stderr = self.run_client_command(
-            url=everything_url, token=client_token, command="echo test"
+            url=everything_url,
+            token=client_token,
+            command="echo test",
         )
 
         print(f"Return code: {returncode}")
@@ -90,7 +92,10 @@ class TestMCPEverythingClientSimple:
     async def test_everything_list_tools(self, everything_url, client_token, wait_for_services):
         """Test listing available tools."""
         returncode, stdout, stderr = self.run_client_command(
-            url=everything_url, token=client_token, command="list_tools", timeout=45
+            url=everything_url,
+            token=client_token,
+            command="list_tools",
+            timeout=45,
         )
 
         print(f"Return code: {returncode}")
@@ -149,7 +154,10 @@ class TestMCPEverythingClientSimple:
         for command in test_commands:
             print(f"\nTrying command: {command}")
             returncode, stdout, stderr = self.run_client_command(
-                url=everything_url, token=client_token, command=command, timeout=30
+                url=everything_url,
+                token=client_token,
+                command=command,
+                timeout=30,
             )
 
             if stdout:

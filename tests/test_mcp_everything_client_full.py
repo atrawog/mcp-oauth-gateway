@@ -46,7 +46,12 @@ class TestMCPEverythingClientFull:
     """Comprehensive test of mcp-everything using mcp-streamablehttp-client."""
 
     def run_mcp_client(
-        self, url: str, token: str, method: str, params: dict[str, Any] | None = None, timeout: int = 20
+        self,
+        url: str,
+        token: str,
+        method: str,
+        params: dict[str, Any] | None = None,
+        timeout: int = 20,
     ) -> dict[str, Any]:
         """Run mcp-streamablehttp-client and return the response."""
         # Set environment variables
@@ -77,7 +82,12 @@ class TestMCPEverythingClientFull:
 
         # Run the command
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, timeout=timeout, env=env
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            env=env,
         )  # Configurable timeout for different operations
 
         if result.returncode != 0:
@@ -85,7 +95,7 @@ class TestMCPEverythingClientFull:
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}"  # TODO: Break long line
+                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}",  # TODO: Break long line
             )
 
         # Parse the output - find the JSON response
@@ -253,7 +263,11 @@ class TestMCPEverythingClientFull:
 
         # List prompts (prompts operations can be resource-intensive)
         response = self.run_mcp_client(
-            url=everything_url, token=client_token, method="prompts/list", params={}, timeout=30
+            url=everything_url,
+            token=client_token,
+            method="prompts/list",
+            params={},
+            timeout=30,
         )
 
         assert "result" in response
@@ -375,7 +389,11 @@ class TestMCPEverythingClientFull:
 
         # List prompts
         list_response = self.run_mcp_client(
-            url=everything_url, token=client_token, method="prompts/list", params={}, timeout=30
+            url=everything_url,
+            token=client_token,
+            method="prompts/list",
+            params={},
+            timeout=30,
         )
 
         prompts = list_response["result"]["prompts"]
@@ -428,7 +446,11 @@ class TestMCPEverythingClientFull:
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
     async def test_everything_protocol_compliance(
-        self, everything_url, client_token, wait_for_services, unique_test_id
+        self,
+        everything_url,
+        client_token,
+        wait_for_services,
+        unique_test_id,
     ):
         """Test protocol compliance and error handling."""
         # Test with unsupported method
@@ -502,14 +524,21 @@ class TestMCPEverythingClientFull:
 
         # List resources
         resources_response = self.run_mcp_client(
-            url=everything_url, token=client_token, method="resources/list", params={}
+            url=everything_url,
+            token=client_token,
+            method="resources/list",
+            params={},
         )
         resources = resources_response["result"]["resources"]
         print(f"Found {len(resources)} resources")
 
         # List prompts
         prompts_response = self.run_mcp_client(
-            url=everything_url, token=client_token, method="prompts/list", params={}, timeout=30
+            url=everything_url,
+            token=client_token,
+            method="prompts/list",
+            params={},
+            timeout=30,
         )
         prompts = prompts_response["result"]["prompts"]
         print(f"Found {len(prompts)} prompts")
@@ -540,7 +569,7 @@ class TestMCPEverythingClientFull:
                 params={"uri": resource["uri"]},
             )
             print(
-                f"Resource response: {'success' if 'result' in resource_response else 'error'}"  # TODO: Break long line
+                f"Resource response: {'success' if 'result' in resource_response else 'error'}",  # TODO: Break long line
             )
 
         print("\n=== Workflow test completed ===")
@@ -548,5 +577,5 @@ class TestMCPEverythingClientFull:
         # Verify we tested multiple capabilities
         assert len(tools) > 0 or len(resources) > 0 or len(prompts) > 0
         print(
-            f"Successfully tested everything server with {len(tools)} tools, {len(resources)} resources, {len(prompts)} prompts"  # TODO: Break long line
+            f"Successfully tested everything server with {len(tools)} tools, {len(resources)} resources, {len(prompts)} prompts",  # TODO: Break long line
         )

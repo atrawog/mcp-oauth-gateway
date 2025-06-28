@@ -197,7 +197,10 @@ class StreamableHTTPServer:
         return data, None
 
     async def _dispatch_method(
-        self, method: str, params: dict[str, Any], request_id: Any
+        self,
+        method: str,
+        params: dict[str, Any],
+        request_id: Any,
     ) -> dict[str, Any] | JSONResponse:
         """Dispatch method to appropriate handler."""
         if method == "initialize":
@@ -243,7 +246,7 @@ class StreamableHTTPServer:
         tools = self.fetch_handler.get_tools()
         # For now, return all tools (no pagination)
         return {
-            "tools": [tool.model_dump() for tool in tools]
+            "tools": [tool.model_dump() for tool in tools],
             # "nextCursor" would be included if we had more tools
         }
 
@@ -272,7 +275,7 @@ class StreamableHTTPServer:
                         {
                             "type": "text",
                             "text": f"Tool execution failed: {tool_error!s}",
-                        }
+                        },
                     ],
                     "isError": True,
                 }

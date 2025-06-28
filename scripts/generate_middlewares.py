@@ -11,6 +11,7 @@ def generate_cors_origins_yaml(origins_str: str) -> tuple[str, str]:
 
     Returns:
         tuple: (yaml_list, allow_credentials)
+
     """
     if not origins_str:
         # No CORS origins specified

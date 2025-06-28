@@ -171,7 +171,7 @@ def main():
             process_file(test_file)
 
     # Process source files
-    for src_dir in Path(".").glob("*/src"):
+    for src_dir in Path().glob("*/src"):
         for py_file in src_dir.rglob("*.py"):
             process_file(py_file)
 

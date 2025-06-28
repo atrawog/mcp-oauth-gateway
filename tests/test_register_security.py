@@ -42,7 +42,7 @@ class TestRegisterEndpointSecurity:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -78,7 +78,7 @@ class TestRegisterEndpointSecurity:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -124,7 +124,7 @@ class TestRegisterEndpointSecurity:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -162,7 +162,7 @@ class TestRegisterEndpointSecurity:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -246,7 +246,7 @@ class TestRegisterEndpointSecurity:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
+                            "Authorization": f"Bearer {client['registration_access_token']}",  # TODO: Break long line
                         },
                     )
                     assert delete_response.status_code in (204, 404)
@@ -259,7 +259,11 @@ class TestRegisterEndpointBootstrap:
 
     @pytest.mark.asyncio
     async def test_anyone_can_register_multiple_clients(
-        self, http_client, _wait_for_services, unique_client_name, unique_test_id
+        self,
+        http_client,
+        _wait_for_services,
+        unique_client_name,
+        unique_test_id,
     ):
         """Test that anyone can register multiple OAuth clients (public endpoint)."""
         # RFC 7591: Dynamic client registration is a public endpoint
@@ -305,7 +309,7 @@ class TestRegisterEndpointBootstrap:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
+                            "Authorization": f"Bearer {client['registration_access_token']}",  # TODO: Break long line
                         },
                     )
                     assert delete_response.status_code in (204, 404)

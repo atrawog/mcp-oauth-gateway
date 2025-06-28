@@ -47,7 +47,10 @@ Examples:
     )
 
     parser.add_argument(
-        "--timeout", type=int, default=300, help="Session timeout in seconds (default: 300)"
+        "--timeout",
+        type=int,
+        default=300,
+        help="Session timeout in seconds (default: 300)",
     )
 
     parser.add_argument(

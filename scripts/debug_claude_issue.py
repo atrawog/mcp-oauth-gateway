@@ -76,7 +76,7 @@ async def main():
                         client = json.loads(client_data)
                         # Check if it's Claude-related
                         if "claude" in client.get("client_name", "").lower() or "claude.ai" in str(
-                            client.get("redirect_uris", [])
+                            client.get("redirect_uris", []),
                         ):
                             client_id = key.split(":")[-1]
                             claude_clients.append(
@@ -85,7 +85,7 @@ async def main():
                                     "name": client.get("client_name"),
                                     "redirect_uris": client.get("redirect_uris"),
                                     "created": client.get("client_id_issued_at"),
-                                }
+                                },
                             )
                     except:
                         pass
@@ -127,7 +127,7 @@ async def main():
                                     "client_id": data.get("client_id"),
                                     "redirect_uri": data.get("redirect_uri"),
                                     "ttl": ttl,
-                                }
+                                },
                             )
                     except:
                         pass

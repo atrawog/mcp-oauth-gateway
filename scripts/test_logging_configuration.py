@@ -149,7 +149,10 @@ def main():
     # Check if services are running
     print("🐳 Checking if services are running...")
     result = subprocess.run(
-        ["docker", "ps", "--format", "table {{.Names}}\t{{.Status}}"], check=False, capture_output=True, text=True
+        ["docker", "ps", "--format", "table {{.Names}}\t{{.Status}}"],
+        check=False,
+        capture_output=True,
+        text=True,
     )
 
     if result.returncode == 0:

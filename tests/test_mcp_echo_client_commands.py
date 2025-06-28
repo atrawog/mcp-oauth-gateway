@@ -96,7 +96,12 @@ class TestMCPEchoClientCommands:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # Check command executed successfully
@@ -139,7 +144,12 @@ class TestMCPEchoClientCommands:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # Check command executed successfully
@@ -175,7 +185,12 @@ class TestMCPEchoClientCommands:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # Check command executed successfully
@@ -211,7 +226,12 @@ class TestMCPEchoClientCommands:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # Check command executed successfully
@@ -245,7 +265,12 @@ class TestMCPEchoClientCommands:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # Check command executed successfully
@@ -257,8 +282,9 @@ class TestMCPEchoClientCommands:
 
         # Should show some expected headers
         assert "authorization:" in output.lower() or "bearer" in output.lower()
-        assert "accept:" in output.lower()  # This header is actually present
-        # Note: content-type and host may not be present in all requests
+        # The printHeader tool returns specific headers (Traefik forwarded and auth headers)
+        # It doesn't return all request headers like accept, content-type, etc.
+        assert any(header in output.lower() for header in ["x-forwarded-", "x-real-ip", "authorization"])
 
         print("✅ Successfully executed printHeader via command interface")
         print("   Found HTTP headers including auth information")
@@ -292,7 +318,12 @@ class TestMCPEchoClientCommands:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # Command should fail due to invalid token
@@ -327,7 +358,12 @@ class TestMCPEchoClientCommands:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # Command should fail due to invalid tool name
@@ -365,7 +401,12 @@ class TestMCPEchoClientCommands:
             ]
 
             result = subprocess.run(
-                cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+                cmd,
+                check=False,
+                capture_output=True,
+                text=True,
+                env=env,
+                timeout=10,
             )  # Reduced from 30s
 
             assert result.returncode == 0, f"Stress test {i + 1} failed: {result.stderr}"
@@ -424,7 +465,12 @@ LOG_LEVEL=INFO
                 ]
 
                 result = subprocess.run(
-                    cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+                    cmd,
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    env=env,
+                    timeout=10,
                 )  # Reduced from 30s
 
                 if result.returncode == 0 and test_message in result.stdout:

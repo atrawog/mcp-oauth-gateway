@@ -24,7 +24,7 @@ class TestMCPFetchRealContent:
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
         if not oauth_token:
             pytest.fail(
-                "No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+                "No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!",
             )
 
         # Use local test URL instead of external example.com

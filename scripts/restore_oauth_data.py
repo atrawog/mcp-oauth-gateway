@@ -110,7 +110,7 @@ class OAuthRestore:
                         "tokens": data["metadata"]["total_tokens"],
                         "refresh_tokens": data["metadata"]["total_refresh_tokens"],
                         "sessions": data["metadata"]["total_sessions"],
-                    }
+                    },
                 )
             except Exception as e:
                 print(f"⚠️  Error reading {filepath.name}: {e}")
@@ -353,7 +353,7 @@ async def main():
             for backup in backups:
                 print(
                     f"{backup['index']:>3} {backup['filename']:<35} {backup['created']:<20} "
-                    f"{backup['registrations']:<6} {backup['tokens']:<8} {backup['size_mb']:.2f} MB"
+                    f"{backup['registrations']:<6} {backup['tokens']:<8} {backup['size_mb']:.2f} MB",
                 )
 
             if not args.list:

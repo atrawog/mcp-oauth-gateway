@@ -35,8 +35,8 @@ def create_mcp_config():
                     "type": "streamable-http",
                     "headers": {"Authorization": f"Bearer {oauth_access_token}"},
                 },
-            }
-        }
+            },
+        },
     }
 
     # Determine output path

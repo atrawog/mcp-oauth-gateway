@@ -1,5 +1,4 @@
-"""
-RFC 7592 - OAuth 2.0 Dynamic Client Registration Management Protocol
+"""RFC 7592 - OAuth 2.0 Dynamic Client Registration Management Protocol
 Implementation using Authlib's patterns
 """
 
@@ -15,8 +14,7 @@ from .config import Settings
 
 
 class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
-    """
-    Divine implementation of RFC 7592 using Authlib!
+    """Divine implementation of RFC 7592 using Authlib!
     Manages the lifecycle of dynamically registered OAuth clients.
     """
 
@@ -26,8 +24,7 @@ class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
         super().__init__()
 
     async def authenticate_token(self, request) -> Optional[str]:
-        """
-        Validate registration access token from Authorization header.
+        """Validate registration access token from Authorization header.
         RFC 7592 requires Bearer authentication for client management.
         """
         auth_header = request.headers.get("Authorization", "")
@@ -38,8 +35,7 @@ class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
         return token
 
     async def authenticate_client(self, request, client_id: str) -> Optional[OAuth2Client]:
-        """
-        Retrieve and authenticate client by client_id using Bearer token.
+        """Retrieve and authenticate client by client_id using Bearer token.
         RFC 7592 requires registration_access_token authentication.
         Returns None if authentication fails, raises ValueError if client not found.
         """
@@ -64,16 +60,14 @@ class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
         return OAuth2Client(client_data)
 
     async def check_permission(self, client: OAuth2Client, request) -> bool:
-        """
-        Verify client has permission to modify its registration.
+        """Verify client has permission to modify its registration.
         With Bearer token auth, permission is implicit from successful authentication.
         """
         # Client authenticated via registration_access_token has full permissions
         return True
 
     async def update_client(self, client: OAuth2Client, client_metadata: dict) -> OAuth2Client:
-        """
-        Update client metadata in Redis.
+        """Update client metadata in Redis.
         Returns updated client object.
         """
         client_id = client.get_client_id()
@@ -114,19 +108,21 @@ class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
         if self.settings.client_lifetime > 0:
             ttl = self.settings.client_lifetime
             await self.redis_client.setex(
-                f"oauth:client:{client_id}", ttl, json.dumps(existing_data)
+                f"oauth:client:{client_id}",
+                ttl,
+                json.dumps(existing_data),
             )
         else:
             # CLIENT_LIFETIME=0 means never expire
             await self.redis_client.set(
-                f"oauth:client:{client_id}", json.dumps(existing_data)
+                f"oauth:client:{client_id}",
+                json.dumps(existing_data),
             )  # TODO: Break long line
 
         return OAuth2Client(existing_data)
 
     async def delete_client(self, client: OAuth2Client):
-        """
-        Delete client registration from Redis.
+        """Delete client registration from Redis.
         Implements the divine banishment of clients!
         """
         client_id = client.get_client_id()
@@ -150,18 +146,14 @@ class DynamicClientConfigurationEndpoint(BaseClientConfigurationEndpoint):
                 break
 
     async def revoke_access_token(self, client: OAuth2Client, token: str):
-        """
-        Revoke all access tokens for this client.
+        """Revoke all access tokens for this client.
         Beyond RFC 7592 but useful for security.
         """
         # This would revoke all tokens issued to this client
         # Implementation depends on token storage strategy
-        pass
 
     def generate_client_configuration_response(self, client: OAuth2Client) -> dict:
-        """
-        Generate RFC 7592 compliant response for client configuration.
-        """
+        """Generate RFC 7592 compliant response for client configuration."""
         client_data = client._client_data
 
         response = {

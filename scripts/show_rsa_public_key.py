@@ -40,7 +40,9 @@ def show_rsa_public_key():
 
         current_key_pem = base64.b64decode(current_key_b64)
         current_private_key = serialization.load_pem_private_key(
-            current_key_pem, password=None, backend=default_backend()
+            current_key_pem,
+            password=None,
+            backend=default_backend(),
         )
         current_public_key = current_private_key.public_key()
         current_public_pem = current_public_key.public_bytes(

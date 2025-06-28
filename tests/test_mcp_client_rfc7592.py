@@ -166,7 +166,7 @@ async def test_mcp_client_rfc7592_field_validation():
                     "authorization_code",
                     "refresh_token",
                     "client_credentials",
-                ]
+                ],
             },
             {"response_types": ["code", "token"]},
         ]

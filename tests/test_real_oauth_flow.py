@@ -43,14 +43,14 @@ class TestRealOAuthFlow:
             pytest.fail(
                 "ERROR: GATEWAY_OAUTH_ACCESS_TOKEN not found in .env. "
                 "You must complete a real GitHub OAuth flow first and store the tokens. "
-                "Run: just generate-github-token"
+                "Run: just generate-github-token",
             )
 
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
             pytest.fail(
                 "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET not found in .env. "
                 "You must register a real OAuth client first. "
-                "Run: just generate-github-token"
+                "Run: just generate-github-token",
             )
 
         # Step 1: Verify our OAuth client exists in the system
@@ -64,7 +64,10 @@ class TestRealOAuthFlow:
         }
 
         auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0
+            f"{AUTH_BASE_URL}/authorize",
+            params=auth_params,
+            follow_redirects=False,
+            timeout=30.0,
         )
 
         if auth_response.status_code == HTTP_BAD_REQUEST:
@@ -72,7 +75,7 @@ class TestRealOAuthFlow:
             if error.get("error") == "invalid_client":
                 pytest.fail(
                     f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. "  # TODO: Break long line
-                    f"Run: just generate-github-token to register a new client."
+                    f"Run: just generate-github-token to register a new client.",
                 )
 
         # Should redirect to GitHub OAuth (proves client is valid)
@@ -98,7 +101,7 @@ class TestRealOAuthFlow:
                 pytest.fail(
                     f"ERROR: GitHub token is invalid (status: {user_response.status_code}). "  # TODO: Break long line
                     f"Response: {user_response.text}. "
-                    f"Token refresh should have handled this."
+                    f"Token refresh should have handled this.",
                 )
 
             user_info = user_response.json()
@@ -196,7 +199,7 @@ class TestRealPKCEFlow:
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
             pytest.fail(
                 "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET not found in .env. "
-                "Run: just generate-github-token to register a real client."
+                "Run: just generate-github-token to register a real client.",
             )
 
         # Create REAL PKCE challenge
@@ -215,14 +218,17 @@ class TestRealPKCEFlow:
         }
 
         auth_response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0
+            f"{AUTH_BASE_URL}/authorize",
+            params=auth_params,
+            follow_redirects=False,
+            timeout=30.0,
         )
 
         if auth_response.status_code == HTTP_BAD_REQUEST:
             error = auth_response.json()
             if error.get("error") == "invalid_client":
                 pytest.fail(
-                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered. Run: just generate-github-token"
+                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered. Run: just generate-github-token",
                 )
 
         # Should redirect to GitHub with PKCE parameters
@@ -251,7 +257,7 @@ class TestRealJWTTokens:
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
             pytest.fail(
                 "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET required. "
-                "Run: just generate-github-token"
+                "Run: just generate-github-token",
             )
 
         # Create a REAL JWT token with REAL claims
@@ -299,7 +305,9 @@ class TestRealJWTTokens:
         expired_token = jwt_encode(expired_claims, GATEWAY_JWT_SECRET, algorithm="HS256")
 
         verify_response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {expired_token}"}, timeout=30.0
+            f"{AUTH_BASE_URL}/verify",
+            headers={"Authorization": f"Bearer {expired_token}"},
+            timeout=30.0,
         )
 
         assert verify_response.status_code == HTTP_UNAUTHORIZED

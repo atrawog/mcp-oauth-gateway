@@ -64,7 +64,7 @@ class TestMCPSequentialThinkingIntegration:
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"  # TODO: Break long line
+                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}",  # TODO: Break long line
             )
 
         # Parse the output - find the JSON response
@@ -234,7 +234,7 @@ class TestMCPSequentialThinkingIntegration:
         if "error" in response:
             # Sequential thinking server doesn't support resources - this is acceptable
             print(
-                f"Sequential thinking server doesn't support resources/list: {response['error']['message']}"  # TODO: Break long line
+                f"Sequential thinking server doesn't support resources/list: {response['error']['message']}",  # TODO: Break long line
             )
             assert response["error"]["code"] == -32601  # Method not found
         else:
@@ -254,7 +254,10 @@ class TestMCPSequentialThinkingIntegration:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_sequentialthinking_basic_functionality(
-        self, mcp_sequentialthinking_url, client_token, wait_for_services
+        self,
+        mcp_sequentialthinking_url,
+        client_token,
+        wait_for_services,
     ):
         """Test basic sequential thinking functionality if tools are available."""
         sequentialthinking_url = f"{mcp_sequentialthinking_url}"
@@ -310,11 +313,11 @@ class TestMCPSequentialThinkingIntegration:
             if "result" in response:
                 assert "content" in response["result"]
                 print(
-                    f"Sequential thinking tool '{first_tool['name']}' executed successfully"  # TODO: Break long line
+                    f"Sequential thinking tool '{first_tool['name']}' executed successfully",  # TODO: Break long line
                 )
             else:
                 print(
-                    f"Sequential thinking tool '{first_tool['name']}' returned error (may be expected): {response['error']}"  # TODO: Break long line
+                    f"Sequential thinking tool '{first_tool['name']}' returned error (may be expected): {response['error']}",  # TODO: Break long line
                 )
 
     @pytest.mark.integration

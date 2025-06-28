@@ -34,7 +34,7 @@ class TestExistingOAuthCredentials:
         # Fail with clear error if credentials not available
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
             pytest.fail(
-                "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials from a previous registration."
+                "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials from a previous registration.",
             )
 
         # Test 1: Invalid grant with correct client credentials
@@ -58,7 +58,7 @@ class TestExistingOAuthCredentials:
             error = response.json()
             if error.get("error") == "invalid_client":
                 pytest.fail(
-                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials."  # TODO: Break long line
+                    f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials.",  # TODO: Break long line
                 )
 
         assert response.status_code == HTTP_BAD_REQUEST  # Should be invalid_grant
@@ -171,7 +171,7 @@ class TestExistingOAuthCredentials:
             else:
                 # PAT might be expired or invalid
                 pytest.fail(
-                    f"GitHub PAT is not valid (status: {user_response.status_code}). Token refresh should have handled this."  # TODO: Break long line
+                    f"GitHub PAT is not valid (status: {user_response.status_code}). Token refresh should have handled this.",  # TODO: Break long line
                 )
 
 
@@ -184,7 +184,7 @@ class TestCompleteFlowWithExistingClient:
         # Fail with clear error if credentials not available
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
             pytest.fail(
-                "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET must be set in .env for this test."
+                "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET must be set in .env for this test.",
             )
 
         # Start authorization with existing client
@@ -199,7 +199,10 @@ class TestCompleteFlowWithExistingClient:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0
+            f"{AUTH_BASE_URL}/authorize",
+            params=auth_params,
+            follow_redirects=False,
+            timeout=30.0,
         )
 
         # If client doesn't exist, fail with clear error
@@ -208,7 +211,7 @@ class TestCompleteFlowWithExistingClient:
             pytest.fail(
                 f"ERROR: Got 400 Bad Request. Error: {error.get('error')}, "
                 f"Description: {error.get('error_description')}. "
-                f"Client ID: {GATEWAY_OAUTH_CLIENT_ID}"
+                f"Client ID: {GATEWAY_OAUTH_CLIENT_ID}",
             )
 
         # Should redirect to GitHub
@@ -247,7 +250,9 @@ class TestJWTOperations:
         """Test different JWT error conditions."""
         # Test 1: Malformed JWT
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer not.a.valid.jwt"}, timeout=30.0
+            f"{AUTH_BASE_URL}/verify",
+            headers={"Authorization": "Bearer not.a.valid.jwt"},
+            timeout=30.0,
         )
 
         assert response.status_code == HTTP_UNAUTHORIZED
@@ -260,7 +265,9 @@ class TestJWTOperations:
         )
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {wrong_secret_token}"}, timeout=30.0
+            f"{AUTH_BASE_URL}/verify",
+            headers={"Authorization": f"Bearer {wrong_secret_token}"},
+            timeout=30.0,
         )
 
         assert response.status_code == HTTP_UNAUTHORIZED
@@ -273,7 +280,9 @@ class TestJWTOperations:
         )
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {no_jti_token}"}, timeout=30.0
+            f"{AUTH_BASE_URL}/verify",
+            headers={"Authorization": f"Bearer {no_jti_token}"},
+            timeout=30.0,
         )
 
         # Should fail without jti (jti is marked as essential in auth service)

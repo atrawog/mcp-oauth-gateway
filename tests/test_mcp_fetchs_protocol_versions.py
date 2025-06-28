@@ -190,7 +190,7 @@ class TestMCPProtocolVersions:
                     "method": "initialize",
                     "params": {
                         # No protocolVersion specified
-                        "capabilities": {}
+                        "capabilities": {},
                     },
                     "id": 1,
                 },

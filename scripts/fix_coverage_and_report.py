@@ -57,7 +57,7 @@ def map_and_analyze_coverage():
 
     # Path mappings
     path_map = {
-        "/usr/local/lib/python3.11/site-packages/mcp_oauth_dynamicclient/": "mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/"
+        "/usr/local/lib/python3.11/site-packages/mcp_oauth_dynamicclient/": "mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/",
     }
 
     results = []
@@ -91,7 +91,7 @@ def map_and_analyze_coverage():
                 "total_lines": total_lines,
                 "coverage_pct": coverage_pct,
                 "branches_covered": data.get("branches_covered", 0),
-            }
+            },
         )
 
     return results, total_lines_covered

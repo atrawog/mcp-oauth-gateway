@@ -1,5 +1,4 @@
-"""
-Authentication and token management module using Authlib
+"""Authentication and token management module using Authlib
 Following the divine commandments - NO AD-HOC IMPLEMENTATIONS!
 """
 
@@ -88,7 +87,6 @@ class AuthManager:
 
     async def create_jwt_token(self, claims: dict, redis_client: redis.Redis) -> str:
         """Creates a blessed JWT token using Authlib"""
-
         # Generate JTI for tracking
         jti = secrets.token_urlsafe(16)
 
@@ -121,9 +119,9 @@ class AuthManager:
                     **claims,
                     "created_at": int(now.timestamp()),
                     "expires_at": int(
-                        (now + timedelta(seconds=self.settings.access_token_lifetime)).timestamp()
+                        (now + timedelta(seconds=self.settings.access_token_lifetime)).timestamp(),
                     ),
-                }
+                },
             ),
         )
 
@@ -283,12 +281,16 @@ class AuthManager:
             if self.settings.jwt_algorithm == "RS256":
                 # RS256 - the blessed way!
                 claims = self.jwt.decode(
-                    token, self.key_manager.public_key, claims_options={"jti": {"essential": True}}
+                    token,
+                    self.key_manager.public_key,
+                    claims_options={"jti": {"essential": True}},
                 )
             else:
                 # HS256 fallback
                 claims = self.jwt.decode(
-                    token, self.settings.jwt_secret, claims_options={"jti": {"essential": True}}
+                    token,
+                    self.settings.jwt_secret,
+                    claims_options={"jti": {"essential": True}},
                 )
 
             jti = claims.get("jti")

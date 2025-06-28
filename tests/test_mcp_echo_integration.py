@@ -14,7 +14,10 @@ class TestMCPEchoIntegration:
 
     @pytest.mark.asyncio
     async def test_echo_requires_authentication(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        unique_test_id,
     ):
         """Test that Echo service REQUIRES OAuth authentication - no unauthorized access!"""
         # Test with no authentication
@@ -38,7 +41,11 @@ class TestMCPEchoIntegration:
 
     @pytest.mark.asyncio
     async def test_echo_protocol_initialization(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
+        unique_test_id,
     ):
         """Test MCP protocol initialization with Echo service."""
         response = await http_client.post(
@@ -73,7 +80,11 @@ class TestMCPEchoIntegration:
 
     @pytest.mark.asyncio
     async def test_echo_list_tools(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
+        unique_test_id,
     ):
         """Test listing available tools from Echo service."""
         # Initialize first
@@ -128,7 +139,11 @@ class TestMCPEchoIntegration:
 
     @pytest.mark.asyncio
     async def test_echo_tool_functionality(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
+        unique_test_id,
     ):
         """Test the echo tool returns the exact message."""
         # Initialize first
@@ -164,7 +179,11 @@ class TestMCPEchoIntegration:
 
     @pytest.mark.asyncio
     async def test_print_header_tool_functionality(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
+        unique_test_id,
     ):
         """Test the printHeader tool shows HTTP headers including auth headers."""
         # Initialize first
@@ -206,7 +225,11 @@ class TestMCPEchoIntegration:
 
     @pytest.mark.asyncio
     async def test_echo_error_handling_invalid_tool(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
+        unique_test_id,
     ):
         """Test error handling for invalid tool name."""
         # Initialize first
@@ -238,7 +261,11 @@ class TestMCPEchoIntegration:
 
     @pytest.mark.asyncio
     async def test_echo_error_handling_invalid_arguments(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
+        unique_test_id,
     ):
         """Test error handling for invalid tool arguments."""
         # Initialize first
@@ -292,7 +319,11 @@ class TestMCPEchoIntegration:
 
     @pytest.mark.asyncio
     async def test_echo_with_forwardauth_headers(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
+        unique_test_id,
     ):
         """Test that ForwardAuth headers are visible in printHeader output."""
         # Initialize first
@@ -325,7 +356,11 @@ class TestMCPEchoIntegration:
 
     @pytest.mark.asyncio
     async def test_echo_stateless_behavior(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
+        unique_test_id,
     ):
         """Test that Echo service is truly stateless - each request is independent."""
         # Make multiple independent requests
@@ -352,14 +387,25 @@ class TestMCPEchoIntegration:
 
     # Helper methods
     def _parse_sse_response(self, sse_text: str) -> dict:
-        """Parse SSE response to extract JSON data."""
-        for line in sse_text.strip().split("\n"):
-            if line.startswith("data: "):
-                return json.loads(line[6:])
-        raise ValueError("No data found in SSE response")
+        """Parse SSE or JSON response to extract JSON data."""
+        # Check if it's SSE format
+        if "data: " in sse_text:
+            for line in sse_text.strip().split("\n"):
+                if line.startswith("data: "):
+                    return json.loads(line[6:])
+            raise ValueError("No data found in SSE response")
+        # Try parsing as plain JSON
+        try:
+            return json.loads(sse_text)
+        except json.JSONDecodeError as err:
+            raise ValueError(f"Failed to parse response as JSON: {sse_text}") from err
 
     async def _initialize_session(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, auth_headers: dict, unique_test_id: str
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        auth_headers: dict,
+        unique_test_id: str,
     ):
         """Initialize MCP session with Echo service."""
         response = await http_client.post(

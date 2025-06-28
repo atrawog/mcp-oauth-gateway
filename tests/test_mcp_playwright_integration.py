@@ -137,7 +137,7 @@ class TestMCPPlaywrightIntegration:
         if "result" in response:
             assert "protocolVersion" in response["result"]
             print(
-                f"✅ MCP playwright service is healthy (protocol version: {response['result']['protocolVersion']})"  # TODO: Break long line
+                f"✅ MCP playwright service is healthy (protocol version: {response['result']['protocolVersion']})",  # TODO: Break long line
             )
 
     def test_playwright_oauth_discovery(self, unique_test_id):
@@ -218,7 +218,11 @@ class TestMCPPlaywrightIntegration:
         assert "content" in result
 
     def test_playwright_get_page_content(
-        self, mcp_playwright_url, mcp_client_token, _wait_for_services, unique_test_id
+        self,
+        mcp_playwright_url,
+        mcp_client_token,
+        _wait_for_services,
+        unique_test_id,
     ):
         """Test getting page content."""
         # First navigate to a page
@@ -299,7 +303,11 @@ class TestMCPPlaywrightIntegration:
         assert "content" in result
 
     def test_playwright_evaluate_javascript(
-        self, mcp_playwright_url, mcp_client_token, _wait_for_services, unique_test_id
+        self,
+        mcp_playwright_url,
+        mcp_client_token,
+        _wait_for_services,
+        unique_test_id,
     ):
         """Test executing JavaScript in the page."""
         # First navigate to a page
@@ -326,7 +334,11 @@ class TestMCPPlaywrightIntegration:
         assert "content" in result
 
     def test_playwright_wait_for_selector(
-        self, mcp_playwright_url, mcp_client_token, _wait_for_services, unique_test_id
+        self,
+        mcp_playwright_url,
+        mcp_client_token,
+        _wait_for_services,
+        unique_test_id,
     ):
         """Test waiting for an element to appear."""
         # First navigate to a page
@@ -399,7 +411,11 @@ class TestMCPPlaywrightIntegration:
             assert error["code"] == -32601  # Method not found
 
     def test_playwright_protocol_version_compliance(
-        self, mcp_playwright_url, mcp_client_token, _wait_for_services, unique_test_id
+        self,
+        mcp_playwright_url,
+        mcp_client_token,
+        _wait_for_services,
+        unique_test_id,
     ):
         """Test MCP protocol version compliance."""
         # Test with correct protocol version

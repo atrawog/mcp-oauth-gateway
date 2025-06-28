@@ -94,6 +94,7 @@ class OAuthClient:
 
         Returns:
             str: Valid access token
+
         """
         # NO CREDENTIAL FILES! Everything comes from .env as commanded!
 
@@ -143,7 +144,7 @@ class OAuthClient:
         if not self.settings.oauth_registration_url:
             raise ValueError(
                 "OAuth server does not support dynamic client registration. "
-                "Please register a client manually and provide credentials."
+                "Please register a client manually and provide credentials.",
             )
 
         registration_data = {
@@ -226,7 +227,7 @@ class OAuthClient:
                 f"[bold cyan]And enter code:[/bold cyan]\n[bold yellow]{user_code}[/bold yellow]",  # TODO: Break long line
                 title="Device Authorization",
                 border_style="cyan",
-            )
+            ),
         )
         console.print("\n")
 
@@ -315,7 +316,7 @@ class OAuthClient:
                 f"[bold cyan]Please visit this URL to authorize:[/bold cyan]\n\n{auth_url}",  # TODO: Break long line
                 title="Manual Authorization",
                 border_style="cyan",
-            )
+            ),
         )
 
         # Wait for user to paste authorization code
@@ -369,7 +370,7 @@ class OAuthClient:
         if not metadata_url:
             raise RuntimeError(
                 "Could not discover OAuth configuration. "
-                "Please check if the server supports OAuth 2.0 metadata discovery."
+                "Please check if the server supports OAuth 2.0 metadata discovery.",
             )
 
         # Fetch metadata
@@ -419,7 +420,7 @@ class OAuthClient:
                     [
                         f"{parsed.scheme}://{auth_domain}/.well-known/oauth-authorization-server",  # TODO: Break long line
                         f"{parsed.scheme}://{auth_domain}/.well-known/openid-configuration",  # TODO: Break long line
-                    ]
+                    ],
                 )
 
         for candidate in candidates:
@@ -444,10 +445,11 @@ class OAuthClient:
 
         Raises:
             RuntimeError: If operation fails or credentials missing
+
         """
         if not self.settings.registration_access_token or not self.settings.registration_client_uri:
             raise RuntimeError(
-                "Missing registration management credentials. Client must be registered with RFC 7592 support."
+                "Missing registration management credentials. Client must be registered with RFC 7592 support.",
             )
 
         try:
@@ -481,10 +483,11 @@ class OAuthClient:
 
         Raises:
             RuntimeError: If operation fails or credentials missing
+
         """
         if not self.settings.registration_access_token or not self.settings.registration_client_uri:
             raise RuntimeError(
-                "Missing registration management credentials. Client must be registered with RFC 7592 support."
+                "Missing registration management credentials. Client must be registered with RFC 7592 support.",
             )
 
         # Allowed update fields per RFC 7592
@@ -546,10 +549,11 @@ class OAuthClient:
 
         Raises:
             RuntimeError: If operation fails or credentials missing
+
         """
         if not self.settings.registration_access_token or not self.settings.registration_client_uri:
             raise RuntimeError(
-                "Missing registration management credentials. Client must be registered with RFC 7592 support."
+                "Missing registration management credentials. Client must be registered with RFC 7592 support.",
             )
 
         try:

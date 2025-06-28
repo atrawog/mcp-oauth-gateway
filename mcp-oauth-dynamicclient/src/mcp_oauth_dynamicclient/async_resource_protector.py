@@ -1,5 +1,4 @@
-"""
-Async-compatible ResourceProtector for FastAPI
+"""Async-compatible ResourceProtector for FastAPI
 Since Authlib's ResourceProtector doesn't support async natively,
 we create a wrapper that works with FastAPI's async handlers.
 """
@@ -15,8 +14,7 @@ from .resource_protector import JWTBearerTokenValidator
 
 
 class AsyncResourceProtector:
-    """
-    Async wrapper for Authlib's ResourceProtector that works with FastAPI.
+    """Async wrapper for Authlib's ResourceProtector that works with FastAPI.
     This maintains the security benefits of ResourceProtector while supporting async operations.
     """
 
@@ -27,14 +25,14 @@ class AsyncResourceProtector:
         self.validator = JWTBearerTokenValidator(settings, redis_client, key_manager)
 
     async def validate_request(self, request: Request) -> Optional[dict[str, Any]]:
-        """
-        Validate the request and extract token information.
+        """Validate the request and extract token information.
 
         Args:
             request: FastAPI Request object
 
         Returns:
             Token claims if valid, raises HTTPException if invalid
+
         """
         # Check if request is valid
         error = self.validator.request_invalid(request)
@@ -76,10 +74,11 @@ class AsyncResourceProtector:
 
 
 def create_async_resource_protector(
-    settings: Settings, redis_client: redis.Redis, key_manager: RSAKeyManager
+    settings: Settings,
+    redis_client: redis.Redis,
+    key_manager: RSAKeyManager,
 ) -> AsyncResourceProtector:
-    """
-    Create an async-compatible ResourceProtector instance.
+    """Create an async-compatible ResourceProtector instance.
 
     Args:
         settings: Application settings
@@ -88,5 +87,6 @@ def create_async_resource_protector(
 
     Returns:
         AsyncResourceProtector instance
+
     """
     return AsyncResourceProtector(settings, redis_client, key_manager)

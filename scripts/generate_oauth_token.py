@@ -93,7 +93,7 @@ async def register_oauth_client_with_user_token(base_url: str, user_jwt_token: s
     if not oauth_callback_url:
         raise Exception(
             "TEST_OAUTH_CALLBACK_URL must be set in .env\n"
-            "Example: TEST_OAUTH_CALLBACK_URL=https://auth.yourdomain.com/success"
+            "Example: TEST_OAUTH_CALLBACK_URL=https://auth.yourdomain.com/success",
         )
 
     # Always verify SSL - no exceptions for localhost per CLAUDE.md
@@ -227,7 +227,7 @@ async def complete_real_oauth_flow(auth_base_url: str, client_id: str, client_se
 
     # Wait for user to complete OAuth flow and provide authorization code
     print(
-        f"\n📝 After completing OAuth in the tab for Session {session_id}, copy the authorization code from the success page:"
+        f"\n📝 After completing OAuth in the tab for Session {session_id}, copy the authorization code from the success page:",
     )
     print("   (If you see an 'expired state' error, close that tab and run this command again)")
     auth_code = input("Authorization code: ").strip()

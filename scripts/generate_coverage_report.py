@@ -74,7 +74,7 @@ def main():
                 print(f"Copied {coverage_file} to {target}")
 
     # Look for coverage files in current directory
-    coverage_files = list(Path(".").glob(".coverage*"))
+    coverage_files = list(Path().glob(".coverage*"))
 
     if not coverage_files:
         print("❌ No coverage files found!")

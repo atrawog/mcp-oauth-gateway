@@ -119,7 +119,7 @@ async def list_registrations():
                         client_data.get("scope", "N/A"),
                         ", ".join(redirect_uris) if isinstance(redirect_uris, list) else str(redirect_uris),
                         format_timestamp(created_at),
-                    ]
+                    ],
                 )
 
         print("\n=== OAuth Client Registrations ===")
@@ -128,7 +128,7 @@ async def list_registrations():
                 registrations,
                 headers=["Client ID", "Name", "Scope", "Redirect URIs", "Created"],
                 tablefmt="grid",
-            )
+            ),
         )
         print(f"\nTotal registrations: {len(registrations)}")
 
@@ -190,7 +190,7 @@ async def list_tokens():
                             format_timestamp(issued_at),
                             format_timestamp(expires_at),
                             f"{ttl}s" if ttl > 0 else "No TTL",
-                        ]
+                        ],
                     )
 
         print("\n=== Active OAuth Tokens ===")
@@ -208,7 +208,7 @@ async def list_tokens():
                     "TTL",
                 ],
                 tablefmt="grid",
-            )
+            ),
         )
         print(f"\nTotal tokens: {len(tokens)}")
 

@@ -1,5 +1,4 @@
-"""
-OAuth 2.0 Resource Protection using Authlib's ResourceProtector
+"""OAuth 2.0 Resource Protection using Authlib's ResourceProtector
 Following security best practices - NO AD-HOC IMPLEMENTATIONS!
 """
 
@@ -18,8 +17,7 @@ from .keys import RSAKeyManager
 
 
 class JWTBearerTokenValidator(BearerTokenValidator):
-    """
-    JWT Bearer token validator for Authlib's ResourceProtector.
+    """JWT Bearer token validator for Authlib's ResourceProtector.
     This replaces the custom verify_jwt_token implementation with
     Authlib's battle-tested security framework.
     """
@@ -32,12 +30,12 @@ class JWTBearerTokenValidator(BearerTokenValidator):
         self.jwt = JsonWebToken(algorithms=[settings.jwt_algorithm])
 
     async def authenticate_token(self, token_string: str) -> Optional[dict[str, Any]]:
-        """
-        Authenticate the bearer token.
+        """Authenticate the bearer token.
         This method is called by ResourceProtector to validate tokens.
 
         Returns:
             Token claims if valid, None if invalid
+
         """
         try:
             # Decode and validate token using Authlib
@@ -93,8 +91,7 @@ class JWTBearerTokenValidator(BearerTokenValidator):
             return None
 
     def request_invalid(self, request) -> Optional[str]:
-        """
-        Check if the request is invalid.
+        """Check if the request is invalid.
         Returns an error message if invalid, None if valid.
         """
         # Get authorization header
@@ -110,8 +107,7 @@ class JWTBearerTokenValidator(BearerTokenValidator):
         return None
 
     def token_revoked(self, token: dict[str, Any]) -> bool:
-        """
-        Check if the token has been revoked.
+        """Check if the token has been revoked.
         Since we already check Redis in authenticate_token,
         we can return False here.
         """
@@ -119,15 +115,12 @@ class JWTBearerTokenValidator(BearerTokenValidator):
 
 
 class IntrospectionBearerTokenValidator(JWTBearerTokenValidator):
-    """
-    Extended validator for token introspection endpoint.
+    """Extended validator for token introspection endpoint.
     Allows introspection of expired tokens.
     """
 
     async def authenticate_token(self, token_string: str) -> Optional[dict[str, Any]]:
-        """
-        Authenticate token for introspection - allows expired tokens.
-        """
+        """Authenticate token for introspection - allows expired tokens."""
         try:
             # Decode without exp validation for introspection
             if self.settings.jwt_algorithm == "RS256":
@@ -175,10 +168,11 @@ class IntrospectionBearerTokenValidator(JWTBearerTokenValidator):
 
 
 def create_resource_protector(
-    settings: Settings, redis_client: redis.Redis, key_manager: RSAKeyManager
+    settings: Settings,
+    redis_client: redis.Redis,
+    key_manager: RSAKeyManager,
 ) -> ResourceProtector:
-    """
-    Create and configure a ResourceProtector instance.
+    """Create and configure a ResourceProtector instance.
     This replaces the manual token validation with Authlib's secure implementation.
     """
     # Create the resource protector
@@ -192,10 +186,11 @@ def create_resource_protector(
 
 
 def create_introspection_protector(
-    settings: Settings, redis_client: redis.Redis, key_manager: RSAKeyManager
+    settings: Settings,
+    redis_client: redis.Redis,
+    key_manager: RSAKeyManager,
 ) -> ResourceProtector:
-    """
-    Create a ResourceProtector specifically for token introspection.
+    """Create a ResourceProtector specifically for token introspection.
     This allows inspection of expired tokens.
     """
     # Create the resource protector
@@ -210,7 +205,5 @@ def create_introspection_protector(
 
 # Error handler for OAuth errors
 def handle_oauth_error(error: BearerTokenError) -> dict:
-    """
-    Convert Authlib OAuth errors to our error format.
-    """
+    """Convert Authlib OAuth errors to our error format."""
     return {"error": error.error, "error_description": error.description, "error_uri": error.uri}

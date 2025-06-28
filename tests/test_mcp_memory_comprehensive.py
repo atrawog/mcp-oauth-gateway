@@ -67,7 +67,12 @@ class TestMCPMemoryComprehensive:
 
         # Run the command
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, timeout=15, env=env
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            env=env,
         )  # 15s for comprehensive tests
 
         if result.returncode != 0:
@@ -75,7 +80,7 @@ class TestMCPMemoryComprehensive:
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
             pytest.fail(
-                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}"  # TODO: Break long line
+                f"mcp-streamablehttp-client failed: {result.stderr}\\nOutput: {result.stdout}",  # TODO: Break long line
             )
 
         # Parse the output - find the JSON response
@@ -159,7 +164,7 @@ class TestMCPMemoryComprehensive:
                 return tool
 
         pytest.fail(
-            f"Tool '{tool_name}' not found in available tools: {[t['name'] for t in tools]}"  # TODO: Break long line
+            f"Tool '{tool_name}' not found in available tools: {[t['name'] for t in tools]}",  # TODO: Break long line
         )
 
     @pytest.mark.integration
@@ -233,7 +238,7 @@ class TestMCPMemoryComprehensive:
                     "entities": [
                         {"name": "alice", "entityType": "person"},
                         {"name": "bob", "entityType": "person"},
-                    ]
+                    ],
                 },
             },
         )
@@ -289,7 +294,7 @@ class TestMCPMemoryComprehensive:
                     "Works remotely",
                     "Prefers async communication",
                 ],
-            }
+            },
         ]
 
         response = self.run_mcp_client(
@@ -359,8 +364,8 @@ class TestMCPMemoryComprehensive:
                             "name": "searchable_entity",
                             "entityType": "concept",
                             "observations": ["important test data"],
-                        }
-                    ]
+                        },
+                    ],
                 },
             },
         )
@@ -473,7 +478,7 @@ class TestMCPMemoryComprehensive:
                     "entities": [
                         {"name": "entity_a", "entityType": "person"},
                         {"name": "entity_b", "entityType": "person"},
-                    ]
+                    ],
                 },
             },
         )
@@ -490,8 +495,8 @@ class TestMCPMemoryComprehensive:
                             "from": "entity_a",
                             "to": "entity_b",
                             "relationType": "temporary_connection",
-                        }
-                    ]
+                        },
+                    ],
                 },
             },
         )
@@ -504,7 +509,7 @@ class TestMCPMemoryComprehensive:
             params={
                 "name": "delete_relations",
                 "arguments": {
-                    "relationIds": ["entity_a->entity_b"]  # This might need adjustment based on actual ID format
+                    "relationIds": ["entity_a->entity_b"],  # This might need adjustment based on actual ID format
                 },
             },
         )
@@ -538,8 +543,8 @@ class TestMCPMemoryComprehensive:
                             "name": "observed_entity",
                             "entityType": "person",
                             "observations": ["temporary observation"],
-                        }
-                    ]
+                        },
+                    ],
                 },
             },
         )
@@ -552,7 +557,7 @@ class TestMCPMemoryComprehensive:
             params={
                 "name": "delete_observations",
                 "arguments": {
-                    "observationIds": ["observed_entity_0"]  # This might need adjustment based on actual ID format
+                    "observationIds": ["observed_entity_0"],  # This might need adjustment based on actual ID format
                 },
             },
         )
@@ -607,7 +612,7 @@ class TestMCPMemoryComprehensive:
                                 "Knowledge graph testing",
                             ],
                         },
-                    ]
+                    ],
                 },
             },
         )
@@ -626,8 +631,8 @@ class TestMCPMemoryComprehensive:
                             "from": "workflow_user",
                             "to": "workflow_project",
                             "relationType": "works_on",
-                        }
-                    ]
+                        },
+                    ],
                 },
             },
         )
@@ -648,8 +653,8 @@ class TestMCPMemoryComprehensive:
                                 "Prefers thorough testing",
                                 "Values data integrity",
                             ],
-                        }
-                    ]
+                        },
+                    ],
                 },
             },
         )
@@ -693,7 +698,7 @@ class TestMCPMemoryComprehensive:
                 "result" in search_response,
                 "result" in open_response,
                 "result" in final_graph,
-            ]
+            ],
         )
 
         assert workflow_success, "Complete workflow failed - no operations succeeded"
@@ -713,7 +718,7 @@ class TestMCPMemoryComprehensive:
             params={
                 "name": "create_entities",
                 "arguments": {
-                    "entities": [{"invalid": "structure"}]  # Missing required fields
+                    "entities": [{"invalid": "structure"}],  # Missing required fields
                 },
             },
         )

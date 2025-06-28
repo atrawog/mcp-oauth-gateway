@@ -11,7 +11,10 @@ import requests
 
 
 def perform_mcp_healthcheck(
-    host: str = "localhost", port: int = 3000, protocol_version: str | None = None, timeout: int = 5
+    host: str = "localhost",
+    port: int = 3000,
+    protocol_version: str | None = None,
+    timeout: int = 5,
 ) -> bool:
     """Perform an MCP health check by sending an initialize request.
 
@@ -23,6 +26,7 @@ def perform_mcp_healthcheck(
 
     Returns:
         True if health check passes, False otherwise
+
     """
     if not protocol_version:
         raise ValueError("MCP_PROTOCOL_VERSION must be provided")

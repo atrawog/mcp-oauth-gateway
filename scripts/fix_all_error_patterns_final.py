@@ -57,7 +57,9 @@ def fix_all_patterns(content: str) -> str:
                 )
             elif '"error"' in full_pattern:
                 fixed = re.sub(
-                    r'error\.get\("detail", \{\}\)\.get\(\s*"error"[^)]*\)', 'error.get("error", "")', full_pattern
+                    r'error\.get\("detail", \{\}\)\.get\(\s*"error"[^)]*\)',
+                    'error.get("error", "")',
+                    full_pattern,
                 )
             else:
                 fixed = full_pattern

@@ -1,6 +1,4 @@
-"""
-Redis client management for OAuth state storage
-"""
+"""Redis client management for OAuth state storage"""
 
 from typing import Optional
 

@@ -88,10 +88,14 @@ def fix_test_file(filepath: Path, issue_types: list[str]) -> bool:
             # These are likely MCP protocol client info, not OAuth clients
             # Replace with unique names for these too
             content = re.sub(
-                r'("clientInfo":\s*\{[^}]*"name":\s*)"test-client"', r'\1f"test-{unique_test_id}"', content
+                r'("clientInfo":\s*\{[^}]*"name":\s*)"test-client"',
+                r'\1f"test-{unique_test_id}"',
+                content,
             )
             content = re.sub(
-                r"('clientInfo':\s*\{[^}]*'name':\s*)'test-client'", r"\1f'test-{unique_test_id}'", content
+                r"('clientInfo':\s*\{[^}]*'name':\s*)'test-client'",
+                r"\1f'test-{unique_test_id}'",
+                content,
             )
 
             # Check if we need to add unique_test_id to function parameters

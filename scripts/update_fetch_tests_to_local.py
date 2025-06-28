@@ -81,7 +81,9 @@ def update_fetch_test_file(file_path: Path) -> bool:
 
         # Update assertions looking for "Example Domain"
         content = re.sub(
-            r'assert\s+"Example\s+Domain"\s+in\s+(\w+)', r"assert verify_mcp_gateway_response(\1)", content
+            r'assert\s+"Example\s+Domain"\s+in\s+(\w+)',
+            r"assert verify_mcp_gateway_response(\1)",
+            content,
         )
 
         # Update print statements

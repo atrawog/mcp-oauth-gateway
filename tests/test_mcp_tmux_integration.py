@@ -133,7 +133,7 @@ class TestMCPTmuxIntegration:
         if "result" in response:
             assert "protocolVersion" in response["result"]
             print(
-                f"✅ MCP tmux service is healthy (protocol version: {response['result']['protocolVersion']})"  # TODO: Break long line
+                f"✅ MCP tmux service is healthy (protocol version: {response['result']['protocolVersion']})",  # TODO: Break long line
             )
 
     def test_tmux_oauth_discovery(self, unique_test_id):
@@ -230,7 +230,7 @@ class TestMCPTmuxIntegration:
             params={
                 "name": "capture-pane",
                 "arguments": {
-                    "target": "default:0.0"  # default session, window 0, pane 0
+                    "target": "default:0.0",  # default session, window 0, pane 0
                 },
             },
         )

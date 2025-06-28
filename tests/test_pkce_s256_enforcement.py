@@ -66,13 +66,13 @@ class TestPKCES256Enforcement:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
-                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                     )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -125,13 +125,13 @@ class TestPKCES256Enforcement:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
-                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                     )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")

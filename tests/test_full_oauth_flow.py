@@ -66,7 +66,7 @@ class TestFullOAuthFlow:
         # Fail with clear error if credentials not available
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
             pytest.fail(
-                "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials."
+                "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials.",
             )
 
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -96,7 +96,7 @@ class TestFullOAuthFlow:
                 pytest.fail(
                     f"ERROR: Got 400 Bad Request. Error: {error.get('error')}, "
                     f"Description: {error.get('error_description')}. "
-                    f"Client ID: {GATEWAY_OAUTH_CLIENT_ID}"
+                    f"Client ID: {GATEWAY_OAUTH_CLIENT_ID}",
                 )
 
             # Should redirect to GitHub OAuth (means client is valid)
@@ -110,7 +110,7 @@ class TestFullOAuthFlow:
         # Fail with clear error if credentials not available
         if not GATEWAY_OAUTH_CLIENT_ID or not GATEWAY_OAUTH_CLIENT_SECRET:
             pytest.fail(
-                "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials."
+                "ERROR: GATEWAY_OAUTH_CLIENT_ID and GATEWAY_OAUTH_CLIENT_SECRET must be set in .env for this test. These should contain valid OAuth client credentials.",
             )
 
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -131,7 +131,7 @@ class TestFullOAuthFlow:
                 error = response.json()
                 if error.get("error") == "invalid_client":
                     pytest.fail(
-                        f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials."  # TODO: Break long line
+                        f"ERROR: OAuth client {GATEWAY_OAUTH_CLIENT_ID} is not registered in the system. Run client registration first or update .env with valid credentials.",  # TODO: Break long line
                     )
 
             # Should get 400 Bad Request (invalid_grant) not 401 (invalid_client)

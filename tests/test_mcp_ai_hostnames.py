@@ -262,12 +262,12 @@ class TestMCPAIHostnames:
         assert len(configured) > 0, "Should have at least one AI hostname configured"
 
         print(
-            f"\n📈 Summary: {len(configured)} configured, {len(accessible)} accessible, {len(inaccessible)} not ready"  # TODO: Break long line
+            f"\n📈 Summary: {len(configured)} configured, {len(accessible)} accessible, {len(inaccessible)} not ready",  # TODO: Break long line
         )
 
         # At least some should be accessible
         if len(accessible) == 0:
             print(
-                "\n⚠️  No AI hostnames are accessible yet. This is expected if Let's Encrypt hasn't issued certificates."
+                "\n⚠️  No AI hostnames are accessible yet. This is expected if Let's Encrypt hasn't issued certificates.",
             )
             print("   The hostnames are properly configured in Traefik and will work once certificates are issued.")

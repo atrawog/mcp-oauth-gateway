@@ -82,7 +82,7 @@ class TestClientRegistrationErrors:
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "client_name": TEST_CLIENT_NAME
+                "client_name": TEST_CLIENT_NAME,
                 # Missing redirect_uris
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},

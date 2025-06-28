@@ -132,7 +132,7 @@ class TestMCPProtocolVersionStrict:
                         "name": token_claims["name"],
                         "scope": token_claims["scope"],
                         "client_id": token_claims["client_id"],
-                    }
+                    },
                 ),
             )
 
@@ -162,11 +162,11 @@ class TestMCPProtocolVersionStrict:
                 if response.status_code == HTTP_OK:
                     result = parse_sse_response(response)
                     print(
-                        f"⚠️  Server accepted request with wrong header version '{wrong_header}': {result}"  # TODO: Break long line
+                        f"⚠️  Server accepted request with wrong header version '{wrong_header}': {result}",  # TODO: Break long line
                     )
                 else:
                     print(
-                        f"✓ Server rejected wrong header version '{wrong_header}': {response.status_code}"  # TODO: Break long line
+                        f"✓ Server rejected wrong header version '{wrong_header}': {response.status_code}",  # TODO: Break long line
                     )
 
         finally:
@@ -185,6 +185,6 @@ class TestMCPProtocolVersionStrict:
         )
 
         print(
-            f"✓ MCP Protocol Version correctly set to {MCP_PROTOCOL_VERSION} (supported)"  # TODO: Break long line
+            f"✓ MCP Protocol Version correctly set to {MCP_PROTOCOL_VERSION} (supported)",  # TODO: Break long line
         )
         print(f"✓ Supported versions: {MCP_PROTOCOL_VERSIONS_SUPPORTED}")

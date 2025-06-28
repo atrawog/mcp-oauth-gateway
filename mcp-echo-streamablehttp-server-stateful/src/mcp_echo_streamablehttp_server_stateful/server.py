@@ -2,7 +2,7 @@
 
 import asyncio
 import base64
-import base64.binascii
+import binascii
 import contextlib
 import json
 import logging
@@ -44,6 +44,7 @@ class SessionManager:
 
         Args:
             session_timeout: Session timeout in seconds (default 1 hour)
+
         """
         self.sessions: dict[str, dict[str, Any]] = {}
         self.message_queues: dict[str, deque] = defaultdict(deque)
@@ -153,6 +154,7 @@ class MCPEchoServerStateful:
             debug: Enable debug logging for message tracing
             supported_versions: List of supported protocol versions (defaults to ["2025-06-18"])
             session_timeout: Session timeout in seconds (default 1 hour)
+
         """
         self.debug = debug
         self.supported_versions = supported_versions or [self.PROTOCOL_VERSION]
@@ -503,6 +505,7 @@ class MCPEchoServerStateful:
 
         Returns:
             Tuple of (response, session_id)
+
         """
         # Validate JSON-RPC structure
         if not isinstance(request, dict):
@@ -860,9 +863,9 @@ class MCPEchoServerStateful:
         request_id: Any,
         session_id: str | None = None,
     ) -> dict[str, Any]:
-        """Handle the printHeader tool."""
+        """Handle the printHeader tool - shows ALL HTTP headers from the request."""
         headers_text = "HTTP Headers:\n"
-        headers_text += "-" * 40 + "\n"
+        headers_text += "=" * 50 + "\n\n"
 
         # Get headers from the current task's context
         task_id = id(asyncio.current_task())
@@ -870,14 +873,63 @@ class MCPEchoServerStateful:
         headers = context.get("headers", {})
 
         if headers:
-            for key, value in sorted(headers.items()):
-                headers_text += f"{key}: {value}\n"
+            # Categorize headers for better organization
+            traefik_headers = {}
+            auth_headers = {}
+            regular_headers = {}
+
+            for key, value in headers.items():
+                key_lower = key.lower()
+                if key_lower.startswith(("x-forwarded-", "x-real-ip")):
+                    traefik_headers[key] = value
+                elif key_lower in ("authorization", "x-user-id", "x-user-name", "x-auth-token"):
+                    # Redact sensitive parts of auth tokens
+                    if key_lower in ("authorization", "x-auth-token") and value and len(value) > 40:
+                        redacted_value = value[:20] + "...[redacted]..." + value[-20:]
+                        auth_headers[key] = redacted_value
+                    else:
+                        auth_headers[key] = value
+                else:
+                    regular_headers[key] = value
+
+            # Display headers by category
+            if traefik_headers:
+                headers_text += "TRAEFIK FORWARDED HEADERS:\n"
+                headers_text += "-" * 30 + "\n"
+                for key, value in sorted(traefik_headers.items()):
+                    headers_text += f"  {key}: {value}\n"
+                headers_text += "\n"
+
+            if auth_headers:
+                headers_text += "AUTHENTICATION HEADERS:\n"
+                headers_text += "-" * 30 + "\n"
+                for key, value in sorted(auth_headers.items()):
+                    headers_text += f"  {key}: {value}\n"
+                headers_text += "\n"
+
+            if regular_headers:
+                headers_text += "REQUEST HEADERS:\n"
+                headers_text += "-" * 30 + "\n"
+                for key, value in sorted(regular_headers.items()):
+                    headers_text += f"  {key}: {value}\n"
+                headers_text += "\n"
+
+            # Add complete alphabetical list of ALL headers
+            headers_text += "ALL HEADERS (Alphabetical):\n"
+            headers_text += "-" * 30 + "\n"
+            all_headers = {}
+            all_headers.update(traefik_headers)
+            all_headers.update(auth_headers)
+            all_headers.update(regular_headers)
+            for key, value in sorted(all_headers.items()):
+                headers_text += f"  {key}: {value}\n"
         else:
             headers_text += "No headers available (headers are captured per request)\n"
 
         # Add session info if available
         if session_id:
             headers_text += "\nSession Context:\n"
+            headers_text += "-" * 30 + "\n"
             headers_text += f"Session ID: {session_id}\n"
             session = self.session_manager.get_session(session_id)
             if session:
@@ -988,7 +1040,7 @@ class MCPEchoServerStateful:
                         result_text += f"  Payload: {parts[1][:50]}...\n"
                         result_text += f"  Signature: {parts[2][:50]}...\n"
 
-            except (json.JSONDecodeError, ValueError, base64.binascii.Error) as e:
+            except (json.JSONDecodeError, ValueError, binascii.Error) as e:
                 result_text += f"❌ Error decoding JWT: {e!s}\n"
                 result_text += f"Token preview: {token[:50]}...\n"
 
@@ -1345,6 +1397,7 @@ class MCPEchoServerStateful:
             host: Host to bind to
             port: Port to bind to
             log_file: Optional log file path
+
         """
         if self.debug:
             logger.info("Starting MCP Echo Server Stateful (protocol %s) on %s:%s", self.PROTOCOL_VERSION, host, port)

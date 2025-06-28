@@ -257,7 +257,7 @@ class TestMCPFetchsProtocol:
                         "method": "tools/call",
                         "params": {"name": "nonexistent-tool", "arguments": {}},
                         "id": 1,
-                    }
+                    },
                 ),
                 "expected_code": -32602,
                 "expected_message_contains": "Invalid params",

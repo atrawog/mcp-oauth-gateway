@@ -11,7 +11,10 @@ class TestMCPEchoStatefulReplay:
 
     @pytest.mark.asyncio
     async def test_replay_last_echo_basic(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateful_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateful_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test basic replayLastEcho functionality."""
         test_message = f"Test message {uuid.uuid4()}"
@@ -69,7 +72,10 @@ class TestMCPEchoStatefulReplay:
 
     @pytest.mark.asyncio
     async def test_replay_without_prior_echo(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateful_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateful_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test replayLastEcho without calling echo first."""
         # Initialize session
@@ -110,7 +116,10 @@ class TestMCPEchoStatefulReplay:
 
     @pytest.mark.asyncio
     async def test_replay_without_session(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateful_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateful_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test replayLastEcho without a session ID."""
         # Try replay without session - should create a new session
@@ -130,7 +139,10 @@ class TestMCPEchoStatefulReplay:
 
     @pytest.mark.asyncio
     async def test_multiple_echo_replay(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateful_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateful_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that replay always returns the last echo message."""
         messages = [f"Message {i} - {uuid.uuid4()}" for i in range(3)]
@@ -189,7 +201,10 @@ class TestMCPEchoStatefulReplay:
 
     @pytest.mark.asyncio
     async def test_replay_preserves_session_context(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateful_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateful_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that replay includes session context information."""
         test_message = f"Context test {uuid.uuid4()}"

@@ -32,7 +32,10 @@ class TestMCPEchoAllUrls:
 
     @pytest.mark.asyncio
     async def test_all_echo_urls_accessible(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_urls: list, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_urls: list,
+        gateway_auth_headers: dict,
     ):
         """Test that all echo URLs (echo, echo-a through echo-z) are accessible."""
         results = {}
@@ -110,7 +113,10 @@ class TestMCPEchoAllUrls:
 
     @pytest.mark.asyncio
     async def test_echo_tool_on_random_urls(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_urls: list, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_urls: list,
+        gateway_auth_headers: dict,
     ):
         """Test echo tool functionality on a random sample of URLs."""
         import random

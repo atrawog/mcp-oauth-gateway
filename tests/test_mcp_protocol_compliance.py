@@ -326,7 +326,10 @@ class TestMCPLifecycleCompliance:
 
     @pytest.mark.asyncio
     async def test_initialization_required_fields(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        mcp_test_url,
     ):
         """Test that initialization response contains all required fields."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -364,7 +367,10 @@ class TestMCPLifecycleCompliance:
 
     @pytest.mark.asyncio
     async def test_operations_before_initialization(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        mcp_test_url,
     ):
         """Test that operations fail before initialization."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -449,10 +455,10 @@ class TestMCPTransportCompliance:
                         "clientInfo": {"name": "content-type-test", "version": "1.0.0"},
                     },
                     "id": 1,
-                }
+                },
             ),
             headers={
-                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}"
+                "Authorization": f"Bearer {MCP_CLIENT_ACCESS_TOKEN}",
                 # No Content-Type header
             },
             timeout=30.0,
@@ -494,7 +500,10 @@ class TestMCPTransportCompliance:
 
     @pytest.mark.asyncio
     async def test_authorization_header_required(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_test_url
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        mcp_test_url,
     ):
         """Test that Authorization header is required for protected endpoints."""
         # No auth header

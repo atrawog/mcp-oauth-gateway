@@ -2,7 +2,7 @@
 
 import asyncio
 import base64
-import base64.binascii
+import binascii
 import json
 import logging
 import os
@@ -47,6 +47,7 @@ class MCPEchoServer:
         Args:
             debug: Enable debug logging for message tracing
             supported_versions: List of supported protocol versions (defaults to ["2025-06-18"])
+
         """
         self.debug = debug
         self.supported_versions = supported_versions or [self.PROTOCOL_VERSION]
@@ -537,7 +538,7 @@ class MCPEchoServer:
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": message}]}}
 
     async def _handle_print_header_tool(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
-        """Handle the printHeader tool with Traefik header highlighting."""
+        """Handle the printHeader tool - shows ALL HTTP headers from the request."""
         headers_text = "HTTP Headers:\n"
         headers_text += "=" * 50 + "\n"
 
@@ -547,7 +548,7 @@ class MCPEchoServer:
         headers = context.get("headers", {})
 
         if headers:
-            # Separate Traefik headers from regular headers
+            # Separate headers into categories for better organization
             traefik_headers = {}
             auth_headers = {}
             regular_headers = {}
@@ -557,7 +558,13 @@ class MCPEchoServer:
                 if key_lower.startswith(("x-forwarded-", "x-real-", "x-original-")):
                     traefik_headers[key] = value
                 elif key_lower.startswith(("x-user-", "x-auth-", "authorization")):
-                    auth_headers[key] = "***redacted***" if "token" in key_lower else value
+                    # Only redact the value part of authorization headers, not x-auth-token header name
+                    if key_lower == "authorization" and value.lower().startswith("bearer "):
+                        auth_headers[key] = f"Bearer ***...{value[-10:]}" if len(value) > 17 else "Bearer ***"
+                    elif "token" in key_lower and key_lower != "x-auth-token":
+                        auth_headers[key] = "***redacted***"
+                    else:
+                        auth_headers[key] = value
                 else:
                     regular_headers[key] = value
 
@@ -571,7 +578,8 @@ class MCPEchoServer:
                 "counts": {"traefik": len(traefik_headers), "auth": len(auth_headers), "regular": len(regular_headers)},
             }
 
-            # Display Traefik headers first with highlighting
+            # Display ALL headers organized by category
+            # Display Traefik headers first
             if traefik_headers:
                 headers_text += "TRAEFIK FORWARDED HEADERS:\n"
                 headers_text += "-" * 30 + "\n"
@@ -579,7 +587,7 @@ class MCPEchoServer:
                     headers_text += f"  {key}: {value}\n"
                 headers_text += "\n"
 
-            # Display auth headers second with security note
+            # Display auth headers second
             if auth_headers:
                 headers_text += "AUTHENTICATION HEADERS:\n"
                 headers_text += "-" * 30 + "\n"
@@ -587,25 +595,39 @@ class MCPEchoServer:
                     headers_text += f"  {key}: {value}\n"
                 headers_text += "\n"
 
-            # Display regular headers last
+            # Display ALL other headers (including accept, content-type, etc.)
             if regular_headers:
-                headers_text += "OTHER HEADERS:\n"
+                headers_text += "REQUEST HEADERS:\n"
                 headers_text += "-" * 30 + "\n"
                 for key, value in sorted(regular_headers.items()):
                     headers_text += f"  {key}: {value}\n"
+                headers_text += "\n"
 
-            # Add summary and JSON
+            # Add complete alphabetical list of ALL headers
+            headers_text += "ALL HEADERS (Alphabetical):\n"
+            headers_text += "-" * 30 + "\n"
+            all_headers = {}
+            all_headers.update(traefik_headers)
+            all_headers.update(auth_headers)
+            all_headers.update(regular_headers)
+            for key, value in sorted(all_headers.items()):
+                headers_text += f"  {key}: {value}\n"
+
+            # Add summary
             headers_text += "\nSUMMARY:\n"
             headers_text += f"  Total Headers: {len(headers)}\n"
             headers_text += f"  Traefik Headers: {len(traefik_headers)}\n"
             headers_text += f"  Auth Headers: {len(auth_headers)}\n"
-            headers_text += f"  Other Headers: {len(regular_headers)}\n"
-            headers_text += f"\nJSON: {json.dumps(headers_data)}\n"
+            headers_text += f"  Request Headers: {len(regular_headers)}\n"
+
+            if self.debug:
+                headers_text += f"\nDEBUG JSON: {json.dumps(headers_data)}\n"
 
         else:
             headers_text += "No headers available (headers are captured per request)\n"
             headers_data = {"type": "header_analysis", "error": "no_headers_available"}
-            headers_text += f"JSON: {json.dumps(headers_data)}\n"
+            if self.debug:
+                headers_text += f"DEBUG JSON: {json.dumps(headers_data)}\n"
 
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": headers_text}]}}
 
@@ -724,7 +746,7 @@ class MCPEchoServer:
                         result_text += f"  Payload: {parts[1][:50]}...\n"
                         result_text += f"  Signature: {parts[2][:50]}...\n"
 
-            except (json.JSONDecodeError, ValueError, base64.binascii.Error) as e:
+            except (json.JSONDecodeError, ValueError, binascii.Error) as e:
                 result_text += f"❌ Error decoding JWT: {e!s}\n"
                 result_text += f"Token preview: {token[:50]}...\n"
 
@@ -1194,7 +1216,7 @@ class MCPEchoServer:
                 if name or username or email or sub:
                     found_user_info = True
 
-            except (json.JSONDecodeError, ValueError, KeyError, base64.binascii.Error) as e:
+            except (json.JSONDecodeError, ValueError, KeyError, binascii.Error) as e:
                 if self.debug:
                     result_text += f"⚠️  JWT decode warning: {e!s}\n\n"
 
@@ -1292,6 +1314,7 @@ class MCPEchoServer:
             host: Host to bind to
             port: Port to bind to
             log_file: Optional log file path
+
         """
         if self.debug:
             logger.info("Starting MCP Echo Server (protocol %s) on %s:%s", self.PROTOCOL_VERSION, host, port)

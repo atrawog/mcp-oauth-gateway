@@ -76,7 +76,7 @@ class PydanticDeprecationHunter(ast.NodeVisitor):
                             "message": f"🔥 DEPRECATED: 'class Config:' found in {node.name}! Use 'model_config = ConfigDict()' instead! ⚡",
                             "severity": "error",
                             "class_name": node.name,
-                        }
+                        },
                     )
 
             # Check if model_config is present when Config class is absent
@@ -99,7 +99,7 @@ class PydanticDeprecationHunter(ast.NodeVisitor):
                             "message": f"⚠️  PREVENTION: {node.name} uses Pydantic but doesn't import ConfigDict! Add 'from pydantic import ConfigDict' to prevent future config issues! ⚡",
                             "severity": "warning",
                             "class_name": node.name,
-                        }
+                        },
                     )
 
         self.generic_visit(node)
@@ -132,7 +132,7 @@ def hunt_deprecated_patterns_in_file(file_path: Path) -> list[dict[str, Any]]:
                 "message": f"❌ Parse error in {file_path}: {e}",
                 "severity": "error",
                 "class_name": "N/A",
-            }
+            },
         ]
 
 
@@ -153,7 +153,7 @@ def hunt_regex_patterns(content: str, file_path: Path) -> list[dict[str, Any]]:
                 "message": "🔥 REGEX CATCH: 'class Config:' pattern detected! Use 'model_config = ConfigDict()' instead! ⚡",
                 "severity": "error",
                 "class_name": "Unknown",
-            }
+            },
         )
 
     # Pattern 2: Check for Pydantic imports without ConfigDict
@@ -172,7 +172,7 @@ def hunt_regex_patterns(content: str, file_path: Path) -> list[dict[str, Any]]:
                         "message": "⚠️  REGEX PREVENTION: File uses Pydantic but doesn't import ConfigDict! Consider adding 'from pydantic import ConfigDict'! ⚡",
                         "severity": "warning",
                         "class_name": "N/A",
-                    }
+                    },
                 )
                 break
 

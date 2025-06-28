@@ -82,7 +82,12 @@ class TestMCPEchoClientFull:
 
         # Run the command
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, timeout=10, env=env
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            env=env,
         )  # Reduced from 30s
 
         if result.returncode != 0:

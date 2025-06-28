@@ -244,7 +244,7 @@ class OAuthBackup:
                     "tokens": data["metadata"]["total_tokens"],
                     "refresh_tokens": data["metadata"]["total_refresh_tokens"],
                     "sessions": data["metadata"]["total_sessions"],
-                }
+                },
             )
 
         return backups

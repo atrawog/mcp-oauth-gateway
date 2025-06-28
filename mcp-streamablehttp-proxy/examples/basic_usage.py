@@ -26,7 +26,9 @@ async def test_mcp_server():
         }
 
         response = await client.post(
-            f"{base_url}/mcp", json=init_request, headers={"Content-Type": "application/json"}
+            f"{base_url}/mcp",
+            json=init_request,
+            headers={"Content-Type": "application/json"},
         )
 
         print(f"Initialize response: {json.dumps(response.json(), indent=2)}")

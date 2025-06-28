@@ -1,6 +1,4 @@
-"""
-Example of registering a new OAuth client
-"""
+"""Example of registering a new OAuth client"""
 
 import asyncio
 import json

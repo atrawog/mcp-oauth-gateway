@@ -8,7 +8,7 @@ from .server import run_server
 __all__ = [
     "MCPSession",
     "MCPSessionManager",
+    "__version__",
     "create_app",
     "run_server",
-    "__version__",
 ]

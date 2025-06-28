@@ -34,7 +34,11 @@ class TestMCPClientOAuthRegistration:
 
     @pytest.mark.asyncio
     async def test_dynamic_client_registration(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_client_name,
+        unique_test_id,
     ):
         """Test that MCP clients can register dynamically per RFC 7591."""
         # Create unique client for this test
@@ -77,14 +81,14 @@ class TestMCPClientOAuthRegistration:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                     timeout=30.0,
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
-                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                     )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -93,7 +97,11 @@ class TestMCPClientOAuthRegistration:
 
     @pytest.mark.asyncio
     async def test_client_registration_with_auth_token(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_client_name,
+        unique_test_id,
     ):
         """Test client registration with bearer token (authenticated registration)."""
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "Need OAuth token for authenticated registration"
@@ -130,14 +138,14 @@ class TestMCPClientOAuthRegistration:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                     timeout=30.0,
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
-                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                     )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -150,7 +158,11 @@ class TestMCPClientOAuthFlows:
 
     @pytest.mark.asyncio
     async def test_authorization_code_flow_initiation(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_client_name,
+        unique_test_id,
     ):
         """Test starting the authorization code flow."""
         # First register a client
@@ -178,7 +190,10 @@ class TestMCPClientOAuthFlows:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0
+            f"{AUTH_BASE_URL}/authorize",
+            params=auth_params,
+            follow_redirects=False,
+            timeout=30.0,
         )
 
         # Should redirect to GitHub for authentication
@@ -204,14 +219,18 @@ class TestMCPClientOAuthFlows:
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
-                        f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                        f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                     )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
     async def test_pkce_flow_for_cli_clients(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_client_name,
+        unique_test_id,
     ):
         """Test PKCE flow commonly used by CLI MCP clients."""
         # Register a public client (no secret needed for PKCE)
@@ -247,7 +266,10 @@ class TestMCPClientOAuthFlows:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0
+            f"{AUTH_BASE_URL}/authorize",
+            params=auth_params,
+            follow_redirects=False,
+            timeout=30.0,
         )
 
         assert response.status_code == 307
@@ -268,14 +290,18 @@ class TestMCPClientOAuthFlows:
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
-                        f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                        f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                     )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
     async def test_token_refresh_flow(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_client_name,
+        unique_test_id,
     ):
         """Test token refresh flow used by long-running MCP clients."""
         # This test would need a valid refresh token from a completed OAuth flow
@@ -327,7 +353,7 @@ class TestMCPClientOAuthFlows:
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
-                        f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                        f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                     )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -384,7 +410,11 @@ class TestMCPClientTokenValidation:
 
     @pytest.mark.asyncio
     async def test_token_introspection(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_client_name,
+        unique_test_id,
     ):
         """Test token introspection for validity checking."""
         # First register a client
@@ -437,7 +467,7 @@ class TestMCPClientTokenValidation:
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
-                        f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                        f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                     )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")
@@ -448,7 +478,12 @@ class TestMCPClientCredentialStorage:
 
     @pytest.mark.asyncio
     async def test_credential_format(
-        self, http_client: httpx.AsyncClient, _wait_for_services, tmp_path, unique_client_name, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        tmp_path,
+        unique_client_name,
+        unique_test_id,
     ):
         """Test the credential storage format expected by MCP clients."""
         # Register a client
@@ -497,13 +532,13 @@ class TestMCPClientCredentialStorage:
                     delete_response = await cleanup_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
+                            "Authorization": f"Bearer {client['registration_access_token']}",  # TODO: Break long line
                         },
                     )
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
-                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                         )
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")
@@ -546,7 +581,10 @@ class TestMCPClientRealWorldScenarios:
 
     @pytest.mark.asyncio
     async def test_multiple_concurrent_requests(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_test_id,
     ):
         """Test handling multiple concurrent MCP requests with same token."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -592,7 +630,11 @@ class TestMCPClientRealWorldScenarios:
 
     @pytest.mark.asyncio
     async def test_client_reregistration(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_client_name,
+        unique_test_id,
     ):
         """Test re-registering a client (common when credentials are lost)."""
         client_name = unique_client_name
@@ -637,14 +679,14 @@ class TestMCPClientRealWorldScenarios:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
+                            "Authorization": f"Bearer {client['registration_access_token']}",  # TODO: Break long line
                         },
                         timeout=30.0,
                     )
                     # 204 No Content is success, 404 is okay if already deleted
                     if delete_response.status_code not in (204, 404):
                         print(
-                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                            f"Warning: Failed to delete client {client['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                         )
                 except Exception as e:
                     print(f"Warning: Error during client cleanup: {e}")

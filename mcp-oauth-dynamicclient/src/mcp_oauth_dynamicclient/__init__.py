@@ -1,5 +1,4 @@
-"""
-MCP OAuth Dynamic Client Registration Package
+"""MCP OAuth Dynamic Client Registration Package
 Following OAuth 2.1 and RFC 7591 divine specifications
 """
 
@@ -18,4 +17,4 @@ def __getattr__(name):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-__all__ = ["create_app", "Settings", "ClientRegistration", "TokenResponse", "ErrorResponse"]
+__all__ = ["ClientRegistration", "ErrorResponse", "Settings", "TokenResponse", "create_app"]

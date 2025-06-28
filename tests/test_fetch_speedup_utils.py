@@ -46,7 +46,7 @@ def get_mcp_gateway_test_content() -> dict:
 <p>If you see this, the authentication and routing are working correctly!</p>
 </body>
 </html>""",
-            }
+            },
         ],
         "mimeType": "text/html",
         "url": get_local_test_url(),

@@ -127,7 +127,9 @@ class TestClaudeAIRoutingScenario:
             else:
                 # GET request for other endpoints
                 response = await http_client.get(
-                    f"{MCP_TESTING_URL}{test['path']}", follow_redirects=True, timeout=30.0
+                    f"{MCP_TESTING_URL}{test['path']}",
+                    follow_redirects=True,
+                    timeout=30.0,
                 )
 
             assert response.status_code == test["expected"], (
@@ -143,7 +145,10 @@ class TestClaudeAIRoutingScenario:
 
         # Same for POST
         response = await http_client.post(
-            MCP_TESTING_URL, json={"test": "data"}, headers={"Content-Type": "application/json"}, timeout=30.0
+            MCP_TESTING_URL,
+            json={"test": "data"},
+            headers={"Content-Type": "application/json"},
+            timeout=30.0,
         )
         assert response.status_code == HTTP_UNAUTHORIZED
 

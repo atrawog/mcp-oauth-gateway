@@ -49,18 +49,32 @@ class TestMCPEchoDiagnosticTools:
             json=payload,
         )
 
-        # Parse SSE response
+        # Parse response (can be either SSE or JSON format)
         if response.status_code == 200:
-            # Extract JSON from SSE format
-            for line in response.text.split("\n"):
-                if line.startswith("data: "):
-                    data = json.loads(line[6:])
+            # Check if it's SSE format (contains "data: " lines)
+            if "data: " in response.text:
+                # Extract JSON from SSE format
+                for line in response.text.split("\n"):
+                    if line.startswith("data: "):
+                        data = json.loads(line[6:])
+                        if "result" in data:
+                            return data["result"]
+                        if "error" in data:
+                            pytest.fail(f"MCP error: {data['error']}")
+                # If no result found in SSE, fail
+                pytest.fail("No result found in SSE response")
+            else:
+                # Try parsing as plain JSON
+                try:
+                    data = json.loads(response.text)
                     if "result" in data:
                         return data["result"]
                     if "error" in data:
                         pytest.fail(f"MCP error: {data['error']}")
-            # If no result found, fail
-            pytest.fail("No result found in SSE response")
+                    # If neither result nor error, fail
+                    pytest.fail(f"Invalid JSON response: {response.text}")
+                except json.JSONDecodeError:
+                    pytest.fail(f"Failed to parse response as JSON: {response.text}")
         else:
             pytest.fail(f"HTTP {response.status_code}: {response.text}")
 
@@ -82,11 +96,21 @@ class TestMCPEchoDiagnosticTools:
         response = await http_client.post(mcp_echo_stateless_url, headers=headers, json=payload)
 
         if response.status_code == 200:
-            for line in response.text.split("\n"):
-                if line.startswith("data: "):
-                    data = json.loads(line[6:])
+            # Check if it's SSE format
+            if "data: " in response.text:
+                for line in response.text.split("\n"):
+                    if line.startswith("data: "):
+                        data = json.loads(line[6:])
+                        if "result" in data:
+                            return data["result"]["tools"]
+            else:
+                # Try parsing as plain JSON
+                try:
+                    data = json.loads(response.text)
                     if "result" in data:
                         return data["result"]["tools"]
+                except json.JSONDecodeError:
+                    pass
 
         return []
 
@@ -99,7 +123,11 @@ class TestMCPEchoDiagnosticTools:
     ):
         """Test the basic echo tool."""
         response = await self.call_mcp_tool(
-            http_client, mcp_echo_stateless_url, gateway_auth_headers, "echo", {"message": "Hello, MCP!"}
+            http_client,
+            mcp_echo_stateless_url,
+            gateway_auth_headers,
+            "echo",
+            {"message": "Hello, MCP!"},
         )
         assert response["content"][0]["text"] == "Hello, MCP!"
 
@@ -154,7 +182,11 @@ class TestMCPEchoDiagnosticTools:
         """Test bearerDecode with the existing valid token."""
         # Use the existing valid token to test decoding
         response = await self.call_mcp_tool(
-            http_client, mcp_echo_stateless_url, gateway_auth_headers, "bearerDecode", {"includeRaw": False}
+            http_client,
+            mcp_echo_stateless_url,
+            gateway_auth_headers,
+            "bearerDecode",
+            {"includeRaw": False},
         )
         text = response["content"][0]["text"]
 
@@ -269,7 +301,11 @@ class TestMCPEchoDiagnosticTools:
     ):
         """Test environmentDump tool."""
         response = await self.call_mcp_tool(
-            http_client, mcp_echo_stateless_url, gateway_auth_headers, "environmentDump", {"showSecrets": False}
+            http_client,
+            mcp_echo_stateless_url,
+            gateway_auth_headers,
+            "environmentDump",
+            {"showSecrets": False},
         )
         text = response["content"][0]["text"]
 
@@ -287,7 +323,11 @@ class TestMCPEchoDiagnosticTools:
     ):
         """Test environmentDump with partial secret display."""
         response = await self.call_mcp_tool(
-            http_client, mcp_echo_stateless_url, gateway_auth_headers, "environmentDump", {"showSecrets": True}
+            http_client,
+            mcp_echo_stateless_url,
+            gateway_auth_headers,
+            "environmentDump",
+            {"showSecrets": True},
         )
         text = response["content"][0]["text"]
 

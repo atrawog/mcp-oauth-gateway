@@ -23,7 +23,10 @@ class TestMCPSessionCreation:
 
     @pytest.mark.asyncio
     async def test_session_created_on_initialize(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        mcp_fetch_url,
     ):
         """Test that a session is created when client initializes."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -122,7 +125,10 @@ class TestMCPSessionPersistence:
 
     @pytest.mark.asyncio
     async def test_session_persists_between_requests(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        mcp_fetch_url,
     ):
         """Test that session state persists between requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -179,7 +185,10 @@ class TestMCPSessionPersistence:
 
     @pytest.mark.asyncio
     async def test_session_requires_initialization(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        mcp_fetch_url,
     ):
         """Test that operations fail without initialization."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -212,7 +221,10 @@ class TestMCPSessionTimeout:
     @pytest.mark.asyncio
     @pytest.mark.slow
     async def test_session_timeout_configuration(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        mcp_fetch_url,
     ):
         """Test that sessions respect timeout configuration."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -321,7 +333,10 @@ class TestMCPSessionConcurrency:
 
     @pytest.mark.asyncio
     async def test_concurrent_requests_same_session(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        mcp_fetch_url,
     ):
         """Test that concurrent requests to same session are handled properly."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -456,7 +471,10 @@ class TestMCPSessionCleanup:
 
     @pytest.mark.asyncio
     async def test_session_cleanup_on_client_disconnect(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        mcp_fetch_url,
     ):
         """Test that sessions are cleaned up when client disconnects."""
         if not MCP_CLIENT_ACCESS_TOKEN:

@@ -28,7 +28,7 @@ def parse_mcp_response(response):
     try:
         if not response.content:
             pytest.fail(
-                f"Empty response from MCP service. Status: {response.status_code}, Headers: {dict(response.headers)}"
+                f"Empty response from MCP service. Status: {response.status_code}, Headers: {dict(response.headers)}",
             )
 
         content_type = response.headers.get("content-type", "")
@@ -44,7 +44,7 @@ def parse_mcp_response(response):
             return response.json()
     except Exception as e:
         pytest.fail(
-            f"Failed to parse MCP response. Status: {response.status_code}, Content: {response.text[:200]}, Error: {e}"
+            f"Failed to parse MCP response. Status: {response.status_code}, Content: {response.text[:200]}, Error: {e}",
         )
 
 
@@ -68,7 +68,10 @@ class TestMCPClientProxyBasics:
 
         # First test: should get 401 without auth
         response = await http_client.post(
-            f"{MCP_ECHO_STATELESS_URL}", json=request_data, headers={"Content-Type": "application/json"}, timeout=30.0
+            f"{MCP_ECHO_STATELESS_URL}",
+            json=request_data,
+            headers={"Content-Type": "application/json"},
+            timeout=30.0,
         )
         assert response.status_code == HTTP_UNAUTHORIZED, "MCP endpoint should require authentication"
 
@@ -92,14 +95,17 @@ class TestMCPClientProxyBasics:
             if "result" in result:
                 assert "protocolVersion" in result["result"]
                 print(
-                    f"✅ MCP proxy service is healthy (protocol version: {result['result']['protocolVersion']})"  # TODO: Break long line
+                    f"✅ MCP proxy service is healthy (protocol version: {result['result']['protocolVersion']})",  # TODO: Break long line
                 )
         else:
             print("✅ MCP proxy service requires authentication (as expected)")
 
     @pytest.mark.asyncio
     async def test_proxy_requires_authentication(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_test_id,
     ):
         """Test that proxy endpoints require authentication."""
         # Try to access MCP endpoint without auth
@@ -237,7 +243,10 @@ class TestMCPProtocolHandling:
 
     @pytest.mark.asyncio
     async def test_protocol_version_negotiation(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_test_id,
     ):
         """Test protocol version negotiation."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -274,7 +283,7 @@ class TestMCPProtocolHandling:
                 print(f"✅ Requested {version}, negotiated: {negotiated_version}")
             else:
                 print(
-                    f"⚠️  Version {version} resulted in error: {result.get('error', {}).get('message')}"  # TODO: Break long line
+                    f"⚠️  Version {version} resulted in error: {result.get('error', {}).get('message')}",  # TODO: Break long line
                 )
 
 
@@ -408,7 +417,7 @@ class TestProxyRealWorldScenarios:
                 print(f"✅ Found {len(tools)} tools available")
                 for tool in tools[:3]:  # Show first 3
                     print(
-                        f"   - {tool.get('name', 'unknown')}: {tool.get('description', 'no description')[:50]}..."  # TODO: Break long line
+                        f"   - {tool.get('name', 'unknown')}: {tool.get('description', 'no description')[:50]}...",  # TODO: Break long line
                     )
             else:
                 print(f"⚠️  Tools listing failed: {result.get('error')}")
@@ -527,7 +536,10 @@ class TestProxyAuthenticationFlows:
 
     @pytest.mark.asyncio
     async def test_bearer_token_authentication(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_test_id,
     ):
         """Test Bearer token authentication."""
         if not MCP_CLIENT_ACCESS_TOKEN:
@@ -559,7 +571,10 @@ class TestProxyAuthenticationFlows:
 
     @pytest.mark.asyncio
     async def test_oauth_discovery_through_proxy(
-        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        unique_test_id,
     ):
         """Test OAuth discovery endpoint through proxy domain."""
         # This should be publicly accessible

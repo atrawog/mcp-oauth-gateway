@@ -145,7 +145,7 @@ class TestMCPOAuthDynamicClientPackage:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                     timeout=30.0,
                 )
@@ -221,7 +221,9 @@ class TestMCPOAuthDynamicClientPackage:
 
     @pytest.mark.asyncio
     async def test_authorization_endpoint_with_registered_client(
-        self, http_client: httpx.AsyncClient, _wait_for_services
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
     ):
         """Test authorization endpoint with a dynamically registered client."""
         # First register a client
@@ -255,7 +257,10 @@ class TestMCPOAuthDynamicClientPackage:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0
+            f"{AUTH_BASE_URL}/authorize",
+            params=auth_params,
+            follow_redirects=False,
+            timeout=30.0,
         )
 
         # Should redirect to GitHub for authentication
@@ -406,7 +411,10 @@ class TestMCPOAuthDynamicClientPackage:
         }
 
         response = await http_client.get(
-            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False, timeout=30.0
+            f"{AUTH_BASE_URL}/authorize",
+            params=auth_params,
+            follow_redirects=False,
+            timeout=30.0,
         )
 
         # Should redirect to GitHub
@@ -500,7 +508,7 @@ class TestMCPOAuthDynamicClientPackage:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client['registration_access_token']}"  # TODO: Break long line
+                            "Authorization": f"Bearer {client['registration_access_token']}",  # TODO: Break long line
                         },
                         timeout=30.0,
                     )
@@ -636,7 +644,9 @@ class TestMCPOAuthDynamicClientIntegration:
             client_data = response.json()  # Save for cleanup
             # Try a protected endpoint instead
             response = await http_client.get(
-                f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer invalid_token_12345"}, timeout=30.0
+                f"{AUTH_BASE_URL}/verify",
+                headers={"Authorization": "Bearer invalid_token_12345"},
+                timeout=30.0,
             )
             assert response.status_code == HTTP_UNAUTHORIZED
             print("✅ Auth service properly validates tokens on protected endpoints")
@@ -652,14 +662,14 @@ class TestMCPOAuthDynamicClientIntegration:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                     timeout=30.0,
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
                     print(
-                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}"  # TODO: Break long line
+                        f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}",  # TODO: Break long line
                     )
             except Exception as e:
                 print(f"Warning: Error during client cleanup: {e}")

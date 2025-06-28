@@ -84,7 +84,7 @@ class FetchHandler:
                     },
                     "required": ["url"],
                 },
-            )
+            ),
         ]
 
     async def handle_fetch(self, arguments: dict[str, Any]) -> list[TextContent | ImageContent]:
@@ -158,7 +158,10 @@ class FetchHandler:
                 raise ValueError(f"Request failed: {e!s}") from e
 
     def _process_image_response(
-        self, response: httpx.Response, content_type: str, max_length: int
+        self,
+        response: httpx.Response,
+        content_type: str,
+        max_length: int,
     ) -> list[ImageContent]:
         """Process image response."""
         image_data = response.content

@@ -27,7 +27,11 @@ class StreamableHTTPTransport:
         self._running = False
 
     async def handle_request(
-        self, method: str, path: str, headers: dict[str, str], body: bytes | None
+        self,
+        method: str,
+        path: str,
+        headers: dict[str, str],
+        body: bytes | None,
     ) -> tuple[int, dict[str, str], bytes]:
         """Handle HTTP request and return status, headers, body."""
         # Handle CORS preflight
@@ -55,7 +59,10 @@ class StreamableHTTPTransport:
         return 404, {}, json.dumps({"error": "Not found"}).encode()
 
     async def _handle_post_request(
-        self, headers: dict[str, str], body: bytes, session_id: str | None
+        self,
+        headers: dict[str, str],
+        body: bytes,
+        session_id: str | None,
     ) -> tuple[int, dict[str, str], bytes]:
         """Handle POST /mcp request."""
         # Validate content type
@@ -68,7 +75,7 @@ class StreamableHTTPTransport:
                     {
                         "error": "Invalid content type",
                         "message": "Content-Type must be application/json",
-                    }
+                    },
                 ).encode(),
             )
 
@@ -90,7 +97,7 @@ class StreamableHTTPTransport:
                                 "data": "Missing or invalid jsonrpc version",
                             },
                             "id": data.get("id"),
-                        }
+                        },
                     ).encode(),
                 )
 
@@ -110,7 +117,7 @@ class StreamableHTTPTransport:
                                 "data": "Missing method field",
                             },
                             "id": data.get("id"),
-                        }
+                        },
                     ).encode(),
                 )
 
@@ -127,7 +134,7 @@ class StreamableHTTPTransport:
                             "data": str(e),
                         },
                         "id": None,
-                    }
+                    },
                 ).encode(),
             )
         except Exception as e:
@@ -143,7 +150,7 @@ class StreamableHTTPTransport:
                             "data": str(e),
                         },
                         "id": data.get("id") if "data" in locals() else None,
-                    }
+                    },
                 ).encode(),
             )
 
@@ -163,7 +170,7 @@ class StreamableHTTPTransport:
                         "jsonrpc": "2.0",
                         "result": None,
                         "id": message.id if hasattr(message, "id") else None,
-                    }
+                    },
                 ).encode(),
             )
         return None
@@ -183,7 +190,7 @@ class StreamableHTTPTransport:
                 {
                     "error": "SSE not implemented",
                     "message": ("This transport currently only supports stateless POST requests"),
-                }
+                },
             ).encode(),
         )
 
@@ -197,7 +204,7 @@ class StreamableHTTPTransport:
                     {
                         "error": "Missing session ID",
                         "message": "Mcp-Session-Id header is required",
-                    }
+                    },
                 ).encode(),
             )
 
@@ -213,7 +220,7 @@ class StreamableHTTPTransport:
                 {
                     "error": "Session not found",
                     "message": f"Session {session_id} does not exist",
-                }
+                },
             ).encode(),
         )
 

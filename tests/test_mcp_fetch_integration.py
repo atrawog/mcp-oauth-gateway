@@ -21,7 +21,7 @@ class TestMCPFetchIntegration:
         oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
         if not oauth_token:
             pytest.fail(
-                "No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+                "No GATEWAY_OAUTH_ACCESS_TOKEN available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!",
             )
 
         # Test 1: Verify unauthenticated requests are rejected
@@ -44,7 +44,11 @@ class TestMCPFetchIntegration:
 
     @pytest.mark.asyncio
     async def test_mcp_fetch_security_validation(
-        self, http_client, _wait_for_services, registered_client, mcp_fetch_url
+        self,
+        http_client,
+        _wait_for_services,
+        registered_client,
+        mcp_fetch_url,
     ):
         """Test MCP fetch security - MUST reject all invalid auth attempts."""
         # This test verifies security by ensuring invalid tokens are rejected

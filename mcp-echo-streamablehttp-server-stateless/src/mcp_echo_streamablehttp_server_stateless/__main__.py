@@ -30,7 +30,10 @@ def main():
         help="Host to bind to (default: 127.0.0.1)",
     )
     parser.add_argument(
-        "--port", type=int, default=int(os.getenv("MCP_ECHO_PORT", "3000")), help="Port to bind to (default: 3000)"
+        "--port",
+        type=int,
+        default=int(os.getenv("MCP_ECHO_PORT", "3000")),
+        help="Port to bind to (default: 3000)",
     )
     parser.add_argument(
         "--debug",

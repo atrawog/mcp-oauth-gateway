@@ -1,5 +1,4 @@
-"""
-OAuth 2.1 and RFC 7591 compliant routes with Authlib ResourceProtector
+"""OAuth 2.1 and RFC 7591 compliant routes with Authlib ResourceProtector
 Using Authlib's security framework instead of custom implementations
 """
 
@@ -26,7 +25,6 @@ logger = logging.getLogger(__name__)
 
 def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthManager) -> APIRouter:
     """Create OAuth router with all endpoints using Authlib ResourceProtector"""
-
     router = APIRouter()
 
     # Create AsyncResourceProtector instance - defer Redis client access until runtime
@@ -43,7 +41,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         nonlocal require_oauth
         if require_oauth is None:
             require_oauth = create_async_resource_protector(
-                settings, redis_manager.client, auth_manager.key_manager
+                settings,
+                redis_manager.client,
+                auth_manager.key_manager,
             )
         # AsyncResourceProtector handles all validation and error raising
         token = await require_oauth.validate_request(request)
@@ -112,10 +112,10 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
     # Dynamic Client Registration endpoint (RFC 7591) - PUBLIC ACCESS
     @router.post("/register", status_code=201)
     async def register_client(
-        registration: ClientRegistration, redis_client: redis.Redis = Depends(get_redis)
+        registration: ClientRegistration,
+        redis_client: redis.Redis = Depends(get_redis),
     ):
         """The Divine Registration Portal - RFC 7591 compliant - PUBLIC ACCESS"""
-
         # Validate redirect URIs - RFC 7591 compliance
         if not registration.redirect_uris:
             raise HTTPException(
@@ -230,7 +230,6 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         redis_client: redis.Redis = Depends(get_redis),
     ):
         """Portal to authentication realm - initiates GitHub OAuth flow"""
-
         # Validate client
         client = await auth_manager.get_client(client_id, redis_client)
         if not client:
@@ -305,7 +304,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # Validate response_type
         if not client.check_response_type(response_type):
             return RedirectResponse(
-                url=f"{redirect_uri}?error=unsupported_response_type&state={state}"
+                url=f"{redirect_uri}?error=unsupported_response_type&state={state}",
             )
 
         # Validate PKCE method
@@ -330,10 +329,12 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         }
 
         await redis_client.setex(
-            f"oauth:state:{auth_state}", 300, json.dumps(auth_data)
+            f"oauth:state:{auth_state}",
+            300,
+            json.dumps(auth_data),
         )  # TODO: Break long line
         logger.info(
-            f"Created OAuth state: {auth_state} for client: {client_id}, original state: {state}"
+            f"Created OAuth state: {auth_state} for client: {client_id}, original state: {state}",
         )
 
         # Redirect to GitHub OAuth
@@ -362,10 +363,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         redis_client: redis.Redis = Depends(get_redis),
     ):
         """The blessed return path - handles GitHub OAuth callback"""
-
         # Retrieve authorization state
         logger.info(
-            f"Callback received with state: {state}, code: {code[:8]}..." if code else "no code"
+            f"Callback received with state: {state}, code: {code[:8]}..." if code else "no code",
         )
         auth_data_str = await redis_client.get(f"oauth:state:{state}")
         if not auth_data_str:
@@ -387,7 +387,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
 
         auth_data = json.loads(auth_data_str)
         logger.info(
-            f"State validated successfully: {state}, client_id: {auth_data.get('client_id')}"
+            f"State validated successfully: {state}, client_id: {auth_data.get('client_id')}",
         )
 
         # Exchange GitHub code
@@ -395,7 +395,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
 
         if not user_info:
             return RedirectResponse(
-                url=f"{auth_data['redirect_uri']}?error=server_error&state={auth_data['state']}"  # TODO: Break long line
+                url=f"{auth_data['redirect_uri']}?error=server_error&state={auth_data['state']}",  # TODO: Break long line
             )
 
         # Check if user is allowed
@@ -405,7 +405,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         # If ALLOWED_GITHUB_USERS is set to '*', allow any authenticated GitHub user
         if allowed_users and "*" not in allowed_users and user_info["login"] not in allowed_users:
             return RedirectResponse(
-                url=f"{auth_data['redirect_uri']}?error=access_denied&state={auth_data['state']}"  # TODO: Break long line
+                url=f"{auth_data['redirect_uri']}?error=access_denied&state={auth_data['state']}",  # TODO: Break long line
             )
 
         # Generate authorization code
@@ -421,7 +421,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         }
 
         await redis_client.setex(
-            f"oauth:code:{auth_code}", 31536000, json.dumps(code_data)
+            f"oauth:code:{auth_code}",
+            31536000,
+            json.dumps(code_data),
         )  # TODO: Break long line
 
         # Clean up state
@@ -464,7 +466,6 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         redis_client: redis.Redis = Depends(get_redis),
     ):
         """The transmutation chamber - exchanges codes for tokens"""
-
         # Validate client
         client = await auth_manager.get_client(client_id, redis_client)
         if not client:
@@ -540,7 +541,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     )
 
                 if not auth_manager.verify_pkce_challenge(
-                    code_verifier, code_data["code_challenge"], code_data["code_challenge_method"]
+                    code_verifier,
+                    code_data["code_challenge"],
+                    code_data["code_challenge_method"],
                 ):
                     raise HTTPException(
                         status_code=400,
@@ -658,7 +661,6 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         redis_client: redis.Redis = Depends(get_redis),
     ):
         """Token banishment altar - revokes tokens"""
-
         # Validate client
         client = await auth_manager.get_client(client_id, redis_client)
         if not client:
@@ -684,7 +686,6 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
         redis_client: redis.Redis = Depends(get_redis),
     ):
         """Token examination oracle - RFC 7662 compliant"""
-
         # Validate client
         client = await auth_manager.get_client(client_id, redis_client)
         if not client or (client_secret and not client.check_client_secret(client_secret)):
@@ -772,7 +773,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     <p>You can close this window.</p>
                 </body>
                 </html>
-                """
+                """,
             )
 
         if code:
@@ -792,7 +793,7 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                     <p>You can close this window.</p>
                 </body>
                 </html>
-                """
+                """,
             )
 
         return HTMLResponse(
@@ -806,13 +807,15 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 <p>You can close this window.</p>
             </body>
             </html>
-            """
+            """,
         )
 
     # RFC 7592 - Dynamic Client Registration Management Protocol
     @router.get("/register/{client_id}")
     async def get_client_registration(
-        client_id: str, request: Request, redis_client: redis.Redis = Depends(get_redis)
+        client_id: str,
+        request: Request,
+        redis_client: redis.Redis = Depends(get_redis),
     ):
         """Get client registration information - RFC 7592 compliant"""
         config_endpoint = DynamicClientConfigurationEndpoint(settings, redis_client)
@@ -838,7 +841,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 )
             else:
                 raise HTTPException(
-                    status_code=403, detail="Invalid or expired registration access token"
+                    status_code=403,
+                    detail="Invalid or expired registration access token",
                 )
 
         if not await config_endpoint.check_permission(client, request):
@@ -877,7 +881,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 )
             else:
                 raise HTTPException(
-                    status_code=403, detail="Invalid or expired registration access token"
+                    status_code=403,
+                    detail="Invalid or expired registration access token",
                 )
 
         if not await config_endpoint.check_permission(client, request):
@@ -933,7 +938,9 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
 
     @router.delete("/register/{client_id}")
     async def delete_client_registration(
-        client_id: str, request: Request, redis_client: redis.Redis = Depends(get_redis)
+        client_id: str,
+        request: Request,
+        redis_client: redis.Redis = Depends(get_redis),
     ):
         """Delete client registration - RFC 7592 compliant"""
         config_endpoint = DynamicClientConfigurationEndpoint(settings, redis_client)
@@ -959,7 +966,8 @@ def create_oauth_router(settings: Settings, redis_manager, auth_manager: AuthMan
                 )
             else:
                 raise HTTPException(
-                    status_code=403, detail="Invalid or expired registration access token"
+                    status_code=403,
+                    detail="Invalid or expired registration access token",
                 )
 
         if not await config_endpoint.check_permission(client, request):

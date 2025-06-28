@@ -86,7 +86,12 @@ class TestMCPStreamableHTTPClientCommand:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # Check command executed successfully
@@ -134,7 +139,12 @@ class TestMCPStreamableHTTPClientCommand:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # Debug output
@@ -154,7 +164,7 @@ class TestMCPStreamableHTTPClientCommand:
                 "invalid token" in output_combined.lower(),
                 "invalid_token" in output_combined,
                 "Token invalid" in output_combined,
-            ]
+            ],
         )
 
         # Check for success indicators that should NOT be present
@@ -187,7 +197,12 @@ class TestMCPStreamableHTTPClientCommand:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # Should succeed with valid credentials
@@ -213,7 +228,12 @@ class TestMCPStreamableHTTPClientCommand:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # Should show token status
@@ -244,7 +264,12 @@ class TestMCPStreamableHTTPClientCommand:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # The exact behavior depends on the MCP server
@@ -284,7 +309,12 @@ class TestMCPClientRealWorldUsage:
             ]
 
             result = subprocess.run(
-                cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+                cmd,
+                check=False,
+                capture_output=True,
+                text=True,
+                env=env,
+                timeout=10,
             )  # Reduced from 30s
 
             if result.returncode == 0:
@@ -311,7 +341,12 @@ class TestMCPClientRealWorldUsage:
         ]
 
         result = subprocess.run(
-            cmd, check=False, capture_output=True, text=True, env=env, timeout=10
+            cmd,
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=10,
         )  # Reduced from 30s
 
         # Should handle the error gracefully

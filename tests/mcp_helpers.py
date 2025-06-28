@@ -6,6 +6,22 @@ from typing import Any
 import httpx
 
 
+def parse_sse_response(response_text: str) -> dict[str, Any] | None:
+    """Parse Server-Sent Events response.
+
+    Args:
+        response_text: The SSE response text to parse
+
+    Returns:
+        Parsed JSON data from the SSE response, or None if not found
+
+    """
+    for line in response_text.strip().split("\n"):
+        if line.startswith("data: "):
+            return json.loads(line[6:])
+    return None
+
+
 async def initialize_mcp_session(
     http_client: httpx.AsyncClient,
     mcp_url: str,
@@ -16,6 +32,7 @@ async def initialize_mcp_session(
 
     Returns:
         (session_id, init_result) - The session ID and initialization result
+
     """
     # Step 1: Initialize the session
     init_request = {
@@ -136,7 +153,10 @@ async def call_mcp_tool(
 
 
 async def list_mcp_tools(
-    http_client: httpx.AsyncClient, mcp_url: str, auth_token: str, session_id: str | None
+    http_client: httpx.AsyncClient,
+    mcp_url: str,
+    auth_token: str,
+    session_id: str | None,
 ) -> dict[str, Any]:
     """List available MCP tools."""
     request = {"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "list-1"}

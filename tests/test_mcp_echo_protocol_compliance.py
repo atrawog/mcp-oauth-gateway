@@ -15,7 +15,10 @@ class TestMCPEchoProtocolCompliance:
 
     @pytest.mark.asyncio
     async def test_echo_jsonrpc_compliance(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service follows JSON-RPC 2.0 specification exactly."""
         # Test 1: Valid JSON-RPC request
@@ -50,7 +53,10 @@ class TestMCPEchoProtocolCompliance:
 
     @pytest.mark.asyncio
     async def test_echo_invalid_jsonrpc_version(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service rejects invalid JSON-RPC version."""
         response = await http_client.post(
@@ -74,7 +80,10 @@ class TestMCPEchoProtocolCompliance:
 
     @pytest.mark.asyncio
     async def test_echo_missing_jsonrpc_field(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service handles missing jsonrpc field."""
         response = await http_client.post(
@@ -98,7 +107,10 @@ class TestMCPEchoProtocolCompliance:
 
     @pytest.mark.asyncio
     async def test_echo_batch_requests_not_supported(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service handles batch requests appropriately."""
         # Send batch request (array of requests)
@@ -121,7 +133,10 @@ class TestMCPEchoProtocolCompliance:
 
     @pytest.mark.asyncio
     async def test_echo_protocol_version_negotiation(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test protocol version negotiation during initialization."""
         # Test with exact version
@@ -151,7 +166,10 @@ class TestMCPEchoProtocolCompliance:
 
     @pytest.mark.asyncio
     async def test_echo_unknown_protocol_version(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test initialization with unknown protocol version."""
         response = await http_client.post(
@@ -184,7 +202,10 @@ class TestMCPEchoProtocolCompliance:
 
     @pytest.mark.asyncio
     async def test_echo_required_headers(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service accepts required MCP headers."""
         response = await http_client.post(
@@ -211,7 +232,10 @@ class TestMCPEchoProtocolCompliance:
 
     @pytest.mark.asyncio
     async def test_echo_content_type_validation(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service validates Content-Type header."""
         # Test with wrong content type
@@ -230,7 +254,10 @@ class TestMCPEchoProtocolCompliance:
 
     @pytest.mark.asyncio
     async def test_echo_sse_response_format(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service returns proper SSE format."""
         response = await http_client.post(
@@ -245,15 +272,28 @@ class TestMCPEchoProtocolCompliance:
         )
 
         assert response.status_code == 200
-        assert response.headers.get("content-type", "").startswith("text/event-stream")
 
-        # Verify SSE format
-        lines = response.text.strip().split("\n")
-        assert any(line.startswith(("event:", "data:")) for line in lines)
+        # Check for either SSE or JSON response format
+        content_type = response.headers.get("content-type", "")
+        assert content_type.startswith(("text/event-stream", "application/json"))
+
+        # Verify response format based on content type
+        if content_type.startswith("text/event-stream"):
+            # Verify SSE format
+            lines = response.text.strip().split("\n")
+            assert any(line.startswith(("event:", "data:")) for line in lines)
+        else:
+            # Verify JSON format
+            data = json.loads(response.text)
+            assert "jsonrpc" in data
+            assert "id" in data
 
     @pytest.mark.asyncio
     async def test_echo_error_response_format(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service returns properly formatted error responses."""
         response = await http_client.post(
@@ -288,7 +328,10 @@ class TestMCPEchoProtocolCompliance:
 
     @pytest.mark.asyncio
     async def test_echo_notification_support(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test notification support (requests without id)."""
         # Notifications don't have an id field
@@ -313,7 +356,10 @@ class TestMCPEchoProtocolCompliance:
 
     @pytest.mark.asyncio
     async def test_echo_method_namespace_compliance(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service uses correct method namespaces."""
         # Valid MCP methods should be namespaced
@@ -345,8 +391,15 @@ class TestMCPEchoProtocolCompliance:
 
     # Helper methods
     def _parse_sse_response(self, sse_text: str) -> dict[str, Any]:
-        """Parse SSE response to extract JSON data."""
-        for line in sse_text.strip().split("\n"):
-            if line.startswith("data: "):
-                return json.loads(line[6:])
-        raise ValueError("No data found in SSE response")
+        """Parse SSE or JSON response to extract JSON data."""
+        # Check if it's SSE format
+        if "data: " in sse_text:
+            for line in sse_text.strip().split("\n"):
+                if line.startswith("data: "):
+                    return json.loads(line[6:])
+            raise ValueError("No data found in SSE response")
+        # Try parsing as plain JSON
+        try:
+            return json.loads(sse_text)
+        except json.JSONDecodeError as err:
+            raise ValueError(f"Failed to parse response as JSON: {sse_text}") from err

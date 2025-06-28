@@ -73,7 +73,9 @@ class TestSacredSealsCompliance:
             }
 
             auth_response = await http_client.get(
-                f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
+                f"{AUTH_BASE_URL}/authorize",
+                params=auth_params,
+                follow_redirects=False,
             )
             assert auth_response.status_code == 307  # Redirect to GitHub
 
@@ -141,7 +143,7 @@ class TestSacredSealsCompliance:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -229,7 +231,7 @@ class TestSacredSealsCompliance:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -291,7 +293,7 @@ class TestSacredSealsCompliance:
         assert ".env" in gitignore_content, ".env must be git-ignored!"
 
         # Verify no tests exist outside ./tests/
-        for py_file in Path(".").rglob("test_*.py"):
+        for py_file in Path().rglob("test_*.py"):
             # Skip non-test files (scripts that happen to start with test_)
             if "scripts" in str(py_file.parent):
                 continue  # These are simulation/debug scripts, not pytest tests

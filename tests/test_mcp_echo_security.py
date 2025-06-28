@@ -17,7 +17,9 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_rejects_all_unauthenticated_methods(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
     ):
         """Test that ALL MCP methods require authentication - no exceptions!"""
         methods = [
@@ -47,7 +49,9 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_rejects_invalid_bearer_tokens(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
     ):
         """Test that Echo service rejects various invalid token formats."""
         invalid_tokens = [
@@ -102,7 +106,10 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_validates_token_with_auth_service(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service properly validates tokens through ForwardAuth."""
         # Valid token should work
@@ -151,7 +158,10 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_header_injection_protection(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that the HTTP client prevents header injection attacks."""
         import httpx
@@ -193,7 +203,10 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_oauth_token_scopes(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service respects OAuth token scopes if present."""
         # This test assumes the gateway token has proper scopes
@@ -212,7 +225,10 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_rate_limiting_protection(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service is protected by rate limiting."""
         # Make many rapid requests
@@ -239,7 +255,10 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_large_payload_protection(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service handles large payloads safely."""
         # Create a large message (1MB)
@@ -267,7 +286,10 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_sql_injection_protection(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that Echo service is safe from injection attacks in tool arguments."""
         # Try various injection patterns
@@ -303,7 +325,10 @@ class TestMCPEchoSecurity:
 
     @pytest.mark.asyncio
     async def test_echo_forwardauth_header_validation(
-        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, gateway_auth_headers: dict
+        self,
+        http_client: httpx.AsyncClient,
+        mcp_echo_stateless_url: str,
+        gateway_auth_headers: dict,
     ):
         """Test that ForwardAuth headers are properly passed through."""
         response = await http_client.post(
@@ -333,8 +358,15 @@ class TestMCPEchoSecurity:
 
     # Helper methods
     def _parse_sse_response(self, sse_text: str) -> dict[str, Any]:
-        """Parse SSE response to extract JSON data."""
-        for line in sse_text.strip().split("\n"):
-            if line.startswith("data: "):
-                return json.loads(line[6:])
-        raise ValueError("No data found in SSE response")
+        """Parse SSE or JSON response to extract JSON data."""
+        # Check if it's SSE format
+        if "data: " in sse_text:
+            for line in sse_text.strip().split("\n"):
+                if line.startswith("data: "):
+                    return json.loads(line[6:])
+            raise ValueError("No data found in SSE response")
+        # Try parsing as plain JSON
+        try:
+            return json.loads(sse_text)
+        except json.JSONDecodeError as err:
+            raise ValueError(f"Failed to parse response as JSON: {sse_text}") from err

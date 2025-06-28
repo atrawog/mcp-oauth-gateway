@@ -84,7 +84,7 @@ class TestRegistrationPublicAccess:
                     delete_response = await http_client.delete(
                         f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                         headers={
-                            "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                            "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                         },
                     )
                     assert delete_response.status_code in (204, 404)
@@ -99,7 +99,7 @@ class TestRegistrationPublicAccess:
         # Skip if no auth token available
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
             pytest.fail(
-                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!",
             )
 
         # Register a client with valid authentication
@@ -131,7 +131,7 @@ class TestRegistrationPublicAccess:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -148,7 +148,7 @@ class TestTokenSecurityWithoutGitHub:
         # First register a client (requires auth in current implementation)
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
             pytest.fail(
-                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!",
             )
 
         # Register a test client
@@ -189,7 +189,7 @@ class TestTokenSecurityWithoutGitHub:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -202,7 +202,7 @@ class TestTokenSecurityWithoutGitHub:
         # Register a client first
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
             pytest.fail(
-                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!",
             )
 
         registration_response = await http_client.post(
@@ -248,7 +248,7 @@ class TestTokenSecurityWithoutGitHub:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -268,7 +268,7 @@ class TestAllowedUsersEnforcement:
         # Skip if no auth token
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
             pytest.fail(
-                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!",
             )
 
         # The actual user restriction is enforced after GitHub callback
@@ -306,7 +306,7 @@ class TestAllowedUsersEnforcement:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -329,7 +329,9 @@ class TestUnauthorizedUserAccess:
         }
 
         callback_response = await http_client.get(
-            f"{AUTH_BASE_URL}/callback", params=callback_params, follow_redirects=False
+            f"{AUTH_BASE_URL}/callback",
+            params=callback_params,
+            follow_redirects=False,
         )
 
         # Should handle the error appropriately
@@ -352,7 +354,7 @@ class TestUnauthorizedUserAccess:
         # Register a client first
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
             pytest.fail(
-                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!",
             )
 
         registration_response = await http_client.post(
@@ -391,7 +393,7 @@ class TestUnauthorizedUserAccess:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)
@@ -415,7 +417,7 @@ class TestSecurityModelValidation:
         # Skip if no auth token
         if not GATEWAY_OAUTH_ACCESS_TOKEN:
             pytest.fail(
-                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!"
+                "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token - TESTS MUST NOT BE SKIPPED!",
             )
 
         # Step 1: Register a client
@@ -467,7 +469,7 @@ class TestSecurityModelValidation:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
                     headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}"  # TODO: Break long line
+                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
                     },
                 )
                 assert delete_response.status_code in (204, 404)

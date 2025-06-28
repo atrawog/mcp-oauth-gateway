@@ -24,7 +24,10 @@ class TestMCPProxySessionIssues:
 
     @pytest.mark.asyncio
     async def test_session_not_maintained_across_requests(
-        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+        self,
+        http_client: httpx.AsyncClient,
+        _wait_for_services,
+        mcp_fetch_url,
     ):
         """ISSUE: The proxy creates a new session for each request.
 

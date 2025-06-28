@@ -1,6 +1,4 @@
-"""
-Main server module for MCP OAuth Dynamic Client
-"""
+"""Main server module for MCP OAuth Dynamic Client"""
 
 import json
 import logging
@@ -231,7 +229,6 @@ def _generate_gateway_error_html(error_description: str) -> str:
 
 def create_app(settings: Settings = None) -> FastAPI:
     """Create and configure the FastAPI application"""
-
     if settings is None:
         settings = Settings()
 

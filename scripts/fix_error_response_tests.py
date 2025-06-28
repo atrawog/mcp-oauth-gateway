@@ -27,7 +27,9 @@ def fix_error_checks(content: str) -> str:
 
     # Pattern 4: error.get("detail", {}).get("error_description") -> error.get("error_description")
     content = re.sub(
-        r'error\.get\("detail", \{\}\)\.get\("error_description"', 'error.get("error_description"', content
+        r'error\.get\("detail", \{\}\)\.get\("error_description"',
+        'error.get("error_description"',
+        content,
     )
 
     # Pattern 5: "detail" in error and ... error["detail"]["..."] checks
@@ -35,7 +37,9 @@ def fix_error_checks(content: str) -> str:
 
     # Pattern 6: assert error["detail"] == "..." -> assert error.get("error_description") == "..."
     content = re.sub(
-        r'assert error\["detail"\] == "([^"]+)"', r'assert error.get("error_description") == "\1"', content
+        r'assert error\["detail"\] == "([^"]+)"',
+        r'assert error.get("error_description") == "\1"',
+        content,
     )
 
     # Pattern 7: error_data["detail"]["error"] -> error_data["error"]
