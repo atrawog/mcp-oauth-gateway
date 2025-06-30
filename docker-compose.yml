@@ -43,7 +43,6 @@ include:
   - mcp-time/docker-compose.yml
   - mcp-tmux/docker-compose.yml
   - mcp-playwright/docker-compose.yml
-  - mcp-redis/docker-compose.yml
 
 # Services section removed - middleware now in Traefik dynamic config
 # Extension fields above provide common patterns for all services

@@ -191,9 +191,6 @@ MCP_TIME_URLS = _get_mcp_service_urls("time", "time")
 MCP_TMUX_TESTS_ENABLED = (_get_env_optional("MCP_TMUX_TESTS_ENABLED") or "false").lower() == "true"
 MCP_TMUX_URLS = _get_mcp_service_urls("tmux", "tmux")
 
-# MCP Redis Configuration - From main .env
-MCP_REDIS_TESTS_ENABLED = (_get_env_optional("MCP_REDIS_TESTS_ENABLED") or "false").lower() == "true"
-MCP_REDIS_URLS = _get_mcp_service_urls("redis", "redis")
 
 # HTTP Status Code Constants - Addresses PLR2004 magic number issues
 # Success statuses
