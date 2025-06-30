@@ -252,30 +252,6 @@ class TestMCPEchoDiagnosticTools:
         assert "System Performance:" in text
 
     @pytest.mark.asyncio
-    async def test_protocol_negotiation_tool(
-        self,
-        http_client: httpx.AsyncClient,
-        mcp_echo_stateless_url: str,
-        gateway_auth_headers: dict,
-    ):
-        """Test protocolNegotiation tool."""
-        response = await self.call_mcp_tool(
-            http_client,
-            mcp_echo_stateless_url,
-            gateway_auth_headers,
-            "protocolNegotiation",
-            {"testVersion": "2024-11-05"},
-        )
-        text = response["content"][0]["text"]
-
-        assert "MCP Protocol Negotiation Analysis" in text
-        assert "Current Request:" in text
-        assert "Server Supported Versions:" in text
-        assert "Testing Version: 2024-11-05" in text
-        assert "Version Compatibility:" in text
-        assert "Protocol Version Features:" in text
-
-    @pytest.mark.asyncio
     async def test_cors_analysis_tool(
         self,
         http_client: httpx.AsyncClient,
@@ -372,7 +348,6 @@ class TestMCPEchoDiagnosticTools:
             "bearerDecode",
             "authContext",
             "requestTiming",
-            "protocolNegotiation",
             "corsAnalysis",
             "environmentDump",
             "healthProbe",

@@ -66,52 +66,47 @@ Both Echo service variants provide:
    - Shows authentication headers
    - Reveals forwarded headers from Traefik
 
-4. **protocolNegotiation** - Protocol version analysis
-   - Test protocol compatibility
-   - Show supported versions
-   - Version negotiation details
-
-5. **corsAnalysis** - CORS configuration debugging
+4. **corsAnalysis** - CORS configuration debugging
    - Request/response headers
    - Preflight handling
    - Common issues detection
 
 ### System and Performance Tools
 
-6. **requestTiming** - Performance metrics
+5. **requestTiming** - Performance metrics
    - Processing time
    - System resources
    - Latency measurements
 
-7. **environmentDump** - Environment configuration
+6. **environmentDump** - Environment configuration
    - MCP variables
    - System information
    - Sanitized secrets display
 
-8. **healthProbe** - Deep health check
+7. **healthProbe** - Deep health check
    - Service status
    - Resource usage (CPU, memory, disk)
    - Configuration validation
 
 ### Basic and Advanced Tools
 
-9. **echo** - Simple echo for testing
+8. **echo** - Simple echo for testing
    - Basic connectivity test
    - Message reflection
    - Stateful version includes session context
 
-10. **sessionInfo** - Session information display
+9. **sessionInfo** - Session information display
     - Current session ID
     - Active sessions count
     - Session statistics
     - Available in both variants
 
-11. **replayLastEcho** - Replay previous echo message (**Stateful only**)
+10. **replayLastEcho** - Replay previous echo message (**Stateful only**)
     - Retrieves last echo message from session
     - Shows session continuity
     - Useful for testing session persistence
 
-12. **whoIStheGOAT** - AI-powered excellence analysis
+11. **whoIStheGOAT** - AI-powered excellence analysis
     - Uses G.O.A.T. Recognition AI v3.14159
     - Analyzes programmer excellence metrics
     - Processes 2.3 billion commit patterns
@@ -294,19 +289,6 @@ curl -X POST https://echo-stateless.${BASE_DOMAIN}/mcp \
    {"method": "tools/call", "params": {"name": "printHeader"}}
    ```
 
-### Protocol Compatibility Testing
-
-1. **Check negotiation**
-   ```json
-   {
-     "method": "tools/call",
-     "params": {
-       "name": "protocolNegotiation",
-       "arguments": {"testVersion": "2024-11-05"}
-     }
-   }
-   ```
-
 ### Performance Analysis
 
 1. **Request timing**
@@ -391,8 +373,8 @@ This analyzes the authenticated user's programming excellence using advanced AI 
    - Check allowed origins configuration
 
 3. **Protocol Errors**
-   - Use `protocolNegotiation` tool
    - Verify MCP_PROTOCOL_VERSION setting
+   - Check supported protocol versions in configuration
 
 ### Health Monitoring
 

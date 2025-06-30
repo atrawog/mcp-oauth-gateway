@@ -110,7 +110,7 @@ class TestMCPEchoIntegration:
         assert "result" in data
 
         tools = data["result"]["tools"]
-        assert len(tools) == 10  # Now we have 10 tools including diagnostic tools
+        assert len(tools) == 9  # Now we have 9 tools including diagnostic tools
 
         # Check echo tool
         echo_tool = next(t for t in tools if t["name"] == "echo")
@@ -128,7 +128,6 @@ class TestMCPEchoIntegration:
             "bearerDecode",
             "authContext",
             "requestTiming",
-            "protocolNegotiation",
             "corsAnalysis",
             "environmentDump",
             "healthProbe",

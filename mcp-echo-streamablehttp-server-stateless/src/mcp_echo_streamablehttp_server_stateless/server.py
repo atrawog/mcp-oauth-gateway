@@ -457,17 +457,6 @@ class MCPEchoServer:
                 "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
             },
             {
-                "name": "protocolNegotiation",
-                "description": "Analyze MCP protocol version negotiation",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "testVersion": {"type": "string", "description": "Test a specific protocol version"},
-                    },
-                    "additionalProperties": False,
-                },
-            },
-            {
                 "name": "corsAnalysis",
                 "description": "Analyze CORS configuration and requirements",
                 "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
@@ -516,7 +505,6 @@ class MCPEchoServer:
             "bearerDecode": self._handle_bearer_decode,
             "authContext": self._handle_auth_context,
             "requestTiming": self._handle_request_timing,
-            "protocolNegotiation": self._handle_protocol_negotiation,
             "corsAnalysis": self._handle_cors_analysis,
             "environmentDump": self._handle_environment_dump,
             "healthProbe": self._handle_health_probe,
@@ -896,91 +884,6 @@ class MCPEchoServer:
             result_text += f"  Available Memory: {memory.available / 1024 / 1024 / 1024:.2f}GB\n"
         except:
             result_text += "  Unable to get system metrics\n"
-
-        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
-
-    async def _handle_protocol_negotiation(self, arguments: dict[str, Any], request_id: Any) -> dict[str, Any]:
-        """Analyze protocol version negotiation."""
-        test_version = arguments.get("testVersion", "")
-
-        task_id = id(asyncio.current_task())
-        context = self._request_context.get(task_id, {})
-        headers = context.get("headers", {})
-
-        result_text = "MCP Protocol Negotiation Analysis\n" + "=" * 40 + "\n\n"
-
-        # Current request info
-        result_text += "Current Request:\n"
-        mcp_header = headers.get("mcp-protocol-version", None)
-        client_version = mcp_header if mcp_header is not None else "not specified"
-        result_text += f"  MCP-Protocol-Version Header: {client_version}\n"
-        if mcp_header:
-            result_text += "  Header Present: ✅ Yes\n"
-        else:
-            result_text += "  Header Present: ❌ No\n"
-        result_text += f"  Server Supported Versions: {', '.join(self.supported_versions)}\n"
-        result_text += f"  Server Default Version: {self.PROTOCOL_VERSION}\n"
-
-        result_text += "\n"
-
-        # All MCP-related headers
-        result_text += "MCP-Related Headers in Request:\n"
-        mcp_headers_found = False
-        for header_name, header_value in headers.items():
-            if "mcp" in header_name.lower():
-                result_text += f"  {header_name}: {header_value}\n"
-                mcp_headers_found = True
-        if not mcp_headers_found:
-            result_text += "  No MCP-related headers found\n"
-
-        result_text += "\n"
-
-        # Negotiation result
-        result_text += "Negotiation Result:\n"
-        if client_version == "not specified":
-            result_text += "  ⚠️  No protocol version specified by client\n"
-            result_text += f"  Server would use default: {self.PROTOCOL_VERSION}\n"
-            result_text += "  Note: Actual negotiation happens during 'initialize' request\n"
-        elif client_version in self.supported_versions:
-            result_text += f"  ✅ Compatible - Client requesting version: {client_version}\n"
-            result_text += "  This version would be used if negotiated during 'initialize'\n"
-        else:
-            result_text += f"  ❌ Incompatible - Client version not supported: {client_version}\n"
-            result_text += "  Server would reject this during 'initialize' request\n"
-
-        result_text += "\n"
-
-        # Test specific version
-        if test_version:
-            result_text += f"Testing Version: {test_version}\n"
-            if test_version in self.supported_versions:
-                result_text += "  ✅ This version is supported\n"
-            else:
-                result_text += "  ❌ This version is NOT supported\n"
-            result_text += "\n"
-
-        # Version compatibility matrix
-        result_text += "Version Compatibility:\n"
-        known_versions = ["2024-11-05", "2025-03-26", "2025-06-18"]
-        for version in known_versions:
-            if version in self.supported_versions:
-                result_text += f"  {version}: ✅ Supported\n"
-            else:
-                result_text += f"  {version}: ❌ Not supported\n"
-
-        result_text += "\n"
-
-        # Feature differences
-        result_text += "Protocol Version Features:\n"
-        result_text += "  2024-11-05: Original MCP specification\n"
-        result_text += "  2025-03-26: Enhanced transport options\n"
-        result_text += "  2025-06-18: StreamableHTTP transport, SSE support\n"
-
-        result_text += "\n"
-
-        # How negotiation works
-        result_text += "  Note: This is a stateless server, so each request is independent.\n"
-        result_text += "  The MCP-Protocol-Version header should match what was negotiated.\n"
 
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 

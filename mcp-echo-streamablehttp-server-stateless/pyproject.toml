@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "mcp-echo-streamablehttp-server-stateless"
 version = "0.1.0"
-description = "An advanced stateless diagnostic MCP echo server with 10 comprehensive tools for debugging OAuth flows and analyzing software engineering excellence"
+description = "An advanced stateless diagnostic MCP echo server with 9 comprehensive tools for debugging OAuth flows and analyzing software engineering excellence"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"

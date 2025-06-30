@@ -1,0 +1,1164 @@
+
+============================================================
+🔐 PRE-TEST TOKEN VALIDATION
+============================================================
+✅ Gateway token valid for 23.9 hours and recognized by auth service
+✅ GitHub PAT is valid for user: atrawog
+✅ All critical tokens and configuration validated!
+   - Gateway OAuth token: Valid
+   - GitHub PAT: Valid
+   - Critical environment variables: Valid
+============================================================
+============================= test session starts ==============================
+platform linux -- Python 3.12.11, pytest-7.4.4, pluggy-1.6.0 -- /home/atrawog/mcp-oauth-gateway/.pixi/envs/default/bin/python3.12
+cachedir: .pytest_cache
+rootdir: /home/atrawog/mcp-oauth-gateway
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-4.1.0, asyncio-0.23.8, anyio-4.9.0, timeout-2.4.0, xdist-3.7.0
+asyncio: mode=Mode.AUTO
+created: 4/4 workers
+4 workers [566 items]
+
+scheduling tests via LoadScheduling
+
+tests/test_claude_ai_routing_scenario.py::TestClaudeAIRoutingScenario::test_exact_claude_ai_error_scenario
+tests/test_additional_coverage.py::TestAdditionalCoverage::test_missing_authorization_header_formats
+tests/test_existing_oauth_credentials.py::TestJWTOperations::test_verify_various_jwt_errors
+tests/test_coverage_improvements.py::TestAuthAuthlibErrorHandling::test_verify_jwt_token_unexpected_error
+[gw2] [  0%] PASSED tests/test_coverage_improvements.py::TestAuthAuthlibErrorHandling::test_verify_jwt_token_unexpected_error
+tests/test_coverage_improvements.py::TestAuthAuthlibErrorHandling::test_create_refresh_token
+[gw3] [  0%] PASSED tests/test_existing_oauth_credentials.py::TestJWTOperations::test_verify_various_jwt_errors
+tests/test_existing_oauth_credentials.py::TestJWTOperations::test_introspect_expired_token
+[gw1] [  0%] PASSED tests/test_claude_ai_routing_scenario.py::TestClaudeAIRoutingScenario::test_exact_claude_ai_error_scenario
+[gw0] [  0%] PASSED tests/test_additional_coverage.py::TestAdditionalCoverage::test_missing_authorization_header_formats
+tests/test_claude_integration.py::TestClaudeIntegration::test_claude_nine_sacred_steps
+tests/test_additional_coverage.py::TestAdditionalCoverage::test_token_endpoint_missing_client_credentials
+[gw2] [  0%] SKIPPED tests/test_coverage_improvements.py::TestAuthAuthlibErrorHandling::test_create_refresh_token
+tests/test_coverage_improvements.py::TestAuthAuthlibErrorHandling::test_exchange_github_code_error_scenarios
+[gw3] [  1%] PASSED tests/test_existing_oauth_credentials.py::TestJWTOperations::test_introspect_expired_token
+tests/test_full_oauth_flow.py::TestFullOAuthFlow::test_authenticated_mcp_access
+[gw1] [  1%] PASSED tests/test_claude_integration.py::TestClaudeIntegration::test_claude_nine_sacred_steps
+[gw2] [  1%] SKIPPED tests/test_coverage_improvements.py::TestAuthAuthlibErrorHandling::test_exchange_github_code_error_scenarios
+[gw0] [  1%] PASSED tests/test_additional_coverage.py::TestAdditionalCoverage::test_token_endpoint_missing_client_credentials
+tests/test_claude_integration.py::TestClaudeIntegration::test_claude_auth_discovery_flow
+tests/test_coverage_improvements.py::TestResourceProtectorErrorHandling::test_bearer_token_validator_missing_token
+tests/test_additional_coverage.py::TestAdditionalCoverage::test_introspect_with_malformed_token
+[gw3] [  1%] PASSED tests/test_full_oauth_flow.py::TestFullOAuthFlow::test_authenticated_mcp_access
+tests/test_full_oauth_flow.py::TestFullOAuthFlow::test_client_credentials_validity
+[gw2] [  1%] PASSED tests/test_coverage_improvements.py::TestResourceProtectorErrorHandling::test_bearer_token_validator_missing_token
+[gw3] [  2%] PASSED tests/test_full_oauth_flow.py::TestFullOAuthFlow::test_client_credentials_validity
+[gw1] [  2%] PASSED tests/test_claude_integration.py::TestClaudeIntegration::test_claude_auth_discovery_flow
+tests/test_coverage_improvements.py::TestResourceProtectorErrorHandling::test_bearer_token_validator_invalid_format
+tests/test_full_oauth_flow.py::TestFullOAuthFlow::test_token_endpoint_with_client_auth
+tests/test_claude_integration.py::TestClaudeIntegration::test_claude_token_persistence
+[gw0] [  2%] PASSED tests/test_additional_coverage.py::TestAdditionalCoverage::test_introspect_with_malformed_token
+tests/test_additional_coverage.py::TestAdditionalCoverage::test_registration_with_minimal_data
+[gw3] [  2%] PASSED tests/test_full_oauth_flow.py::TestFullOAuthFlow::test_token_endpoint_with_client_auth
+tests/test_full_oauth_flow.py::TestFullOAuthFlow::test_forwardauth_with_bearer_token
+[gw2] [  2%] PASSED tests/test_coverage_improvements.py::TestResourceProtectorErrorHandling::test_bearer_token_validator_invalid_format
+tests/test_coverage_improvements.py::TestResourceProtectorErrorHandling::test_bearer_token_validator_expired_token
+[gw1] [  3%] PASSED tests/test_claude_integration.py::TestClaudeIntegration::test_claude_token_persistence
+[gw3] [  3%] PASSED tests/test_full_oauth_flow.py::TestFullOAuthFlow::test_forwardauth_with_bearer_token
+tests/test_github_credentials_valid.py::TestGitHubCredentialsValid::test_github_pat_valid
+tests/test_claude_integration.py::TestClaudeIntegration::test_claude_mcp_streaming
+[gw0] [  3%] PASSED tests/test_additional_coverage.py::TestAdditionalCoverage::test_registration_with_minimal_data
+tests/test_additional_coverage.py::TestAdditionalCoverage::test_jwt_with_invalid_signature
+[gw1] [  3%] PASSED tests/test_claude_integration.py::TestClaudeIntegration::test_claude_mcp_streaming
+tests/test_claude_integration.py::TestClaudeIntegration::test_claude_error_handling
+[gw0] [  3%] PASSED tests/test_additional_coverage.py::TestAdditionalCoverage::test_jwt_with_invalid_signature
+tests/test_additional_coverage.py::TestAdditionalCoverage::test_authorize_endpoint_missing_parameters
+[gw1] [  3%] PASSED tests/test_claude_integration.py::TestClaudeIntegration::test_claude_error_handling
+tests/test_claude_integration.py::TestClaudeIntegration::test_claude_session_management
+[gw0] [  4%] PASSED tests/test_additional_coverage.py::TestAdditionalCoverage::test_authorize_endpoint_missing_parameters
+tests/test_auth_cors.py::TestAuthCORS::test_cors_origins_configured
+[gw0] [  4%] PASSED tests/test_auth_cors.py::TestAuthCORS::test_cors_origins_configured
+[gw2] [  4%] PASSED tests/test_coverage_improvements.py::TestResourceProtectorErrorHandling::test_bearer_token_validator_expired_token
+tests/test_auth_cors.py::TestAuthCORS::test_auth_preflight_cors_headers
+tests/test_coverage_improvements.py::TestResourceProtectorErrorHandling::test_bearer_token_validator_revoked_token
+[gw1] [  4%] PASSED tests/test_claude_integration.py::TestClaudeIntegration::test_claude_session_management
+[gw0] [  4%] PASSED tests/test_auth_cors.py::TestAuthCORS::test_auth_preflight_cors_headers
+tests/test_coverage_gaps.py::TestCoverageGaps::test_oauth_discovery_as_health_check
+tests/test_auth_cors.py::TestAuthCORS::test_auth_actual_request_cors_headers
+[gw0] [  4%] PASSED tests/test_auth_cors.py::TestAuthCORS::test_auth_actual_request_cors_headers
+tests/test_auth_cors.py::TestAuthCORS::test_auth_health_endpoint_cors
+[gw1] [  5%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_oauth_discovery_as_health_check
+tests/test_coverage_gaps.py::TestCoverageGaps::test_client_registration_missing_redirect_uris
+[gw0] [  5%] PASSED tests/test_auth_cors.py::TestAuthCORS::test_auth_health_endpoint_cors
+tests/test_auth_cors.py::TestAuthCORS::test_cors_headers_without_origin
+[gw0] [  5%] PASSED tests/test_auth_cors.py::TestAuthCORS::test_cors_headers_without_origin
+tests/test_auth_cors.py::TestAuthCORS::test_cors_blocks_unauthorized_origins
+[gw0] [  5%] SKIPPED tests/test_auth_cors.py::TestAuthCORS::test_cors_blocks_unauthorized_origins
+[gw3] [  5%] PASSED tests/test_github_credentials_valid.py::TestGitHubCredentialsValid::test_github_pat_valid
+tests/test_auth_error_paths.py::TestHealthCheckErrors::test_oauth_discovery_health_check
+tests/test_github_credentials_valid.py::TestGitHubCredentialsValid::test_oauth_client_credentials_valid
+[gw1] [  6%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_client_registration_missing_redirect_uris
+[gw3] [  6%] PASSED tests/test_github_credentials_valid.py::TestGitHubCredentialsValid::test_oauth_client_credentials_valid
+tests/test_coverage_gaps.py::TestCoverageGaps::test_authorize_unsupported_response_type
+tests/test_github_credentials_valid.py::TestGitHubCredentialsValid::test_github_oauth_app_valid
+[gw2] [  6%] PASSED tests/test_coverage_improvements.py::TestResourceProtectorErrorHandling::test_bearer_token_validator_revoked_token
+tests/test_coverage_improvements.py::TestRoutesErrorHandling::test_callback_missing_state
+[gw0] [  6%] PASSED tests/test_auth_error_paths.py::TestHealthCheckErrors::test_oauth_discovery_health_check
+tests/test_auth_error_paths.py::TestSuccessEndpoint::test_success_endpoint_with_code
+[gw0] [  6%] PASSED tests/test_auth_error_paths.py::TestSuccessEndpoint::test_success_endpoint_with_code
+[gw1] [  6%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_authorize_unsupported_response_type
+tests/test_auth_error_paths.py::TestSuccessEndpoint::test_success_endpoint_with_error
+tests/test_coverage_gaps.py::TestCoverageGaps::test_token_endpoint_client_secret_validation
+[gw2] [  7%] PASSED tests/test_coverage_improvements.py::TestRoutesErrorHandling::test_callback_missing_state
+tests/test_coverage_improvements.py::TestRoutesErrorHandling::test_callback_invalid_state
+[gw0] [  7%] PASSED tests/test_auth_error_paths.py::TestSuccessEndpoint::test_success_endpoint_with_error
+tests/test_auth_error_paths.py::TestSuccessEndpoint::test_success_endpoint_no_params
+[gw1] [  7%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_token_endpoint_client_secret_validation
+[gw2] [  7%] PASSED tests/test_coverage_improvements.py::TestRoutesErrorHandling::test_callback_invalid_state
+[gw0] [  7%] PASSED tests/test_auth_error_paths.py::TestSuccessEndpoint::test_success_endpoint_no_params
+tests/test_coverage_improvements.py::TestRoutesErrorHandling::test_callback_github_error
+tests/test_auth_error_paths.py::TestClientRegistrationErrors::test_registration_empty_redirect_uris
+tests/test_coverage_gaps.py::TestCoverageGaps::test_token_endpoint_missing_code
+[gw0] [  7%] PASSED tests/test_auth_error_paths.py::TestClientRegistrationErrors::test_registration_empty_redirect_uris
+tests/test_auth_error_paths.py::TestTokenEndpointEdgeCases::test_token_refresh_grant_missing_token
+[gw2] [  8%] PASSED tests/test_coverage_improvements.py::TestRoutesErrorHandling::test_callback_github_error
+tests/test_coverage_improvements.py::TestRoutesErrorHandling::test_introspect_malformed_token
+[gw1] [  8%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_token_endpoint_missing_code
+tests/test_coverage_gaps.py::TestCoverageGaps::test_token_endpoint_unsupported_grant_type
+[gw0] [  8%] PASSED tests/test_auth_error_paths.py::TestTokenEndpointEdgeCases::test_token_refresh_grant_missing_token
+tests/test_auth_error_paths.py::TestTokenEndpointEdgeCases::test_token_refresh_grant_invalid_token
+[gw3] [  8%] PASSED tests/test_github_credentials_valid.py::TestGitHubCredentialsValid::test_github_oauth_app_valid
+tests/test_github_credentials_valid.py::TestGitHubCredentialsValid::test_all_required_credentials_present
+[gw3] [  8%] PASSED tests/test_github_credentials_valid.py::TestGitHubCredentialsValid::test_all_required_credentials_present
+tests/test_github_credentials_valid.py::TestGitHubCredentialsValid::test_run_this_first
+[gw3] [  9%] PASSED tests/test_github_credentials_valid.py::TestGitHubCredentialsValid::test_run_this_first
+tests/test_github_integration_errors.py::TestGitHubCallbackErrors::test_callback_with_invalid_state
+[gw0] [  9%] PASSED tests/test_auth_error_paths.py::TestTokenEndpointEdgeCases::test_token_refresh_grant_invalid_token
+[gw2] [  9%] PASSED tests/test_coverage_improvements.py::TestRoutesErrorHandling::test_introspect_malformed_token
+tests/test_auth_error_paths.py::TestTokenEndpointEdgeCases::test_token_with_redirect_uri_mismatch
+tests/test_coverage_improvements.py::TestRoutesErrorHandling::test_introspect_token_not_in_redis
+[gw1] [  9%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_token_endpoint_unsupported_grant_type
+tests/test_coverage_gaps.py::TestCoverageGaps::test_refresh_token_grant_type
+[gw3] [  9%] PASSED tests/test_github_integration_errors.py::TestGitHubCallbackErrors::test_callback_with_invalid_state
+[gw0] [  9%] PASSED tests/test_auth_error_paths.py::TestTokenEndpointEdgeCases::test_token_with_redirect_uri_mismatch
+tests/test_github_integration_errors.py::TestRealOAuthFlowErrors::test_complete_flow_with_valid_client
+tests/test_auth_error_paths.py::TestPKCEVerification::test_pkce_missing_verifier_error
+[gw3] [ 10%] PASSED tests/test_github_integration_errors.py::TestRealOAuthFlowErrors::test_complete_flow_with_valid_client
+[gw0] [ 10%] PASSED tests/test_auth_error_paths.py::TestPKCEVerification::test_pkce_missing_verifier_error
+tests/test_github_integration_errors.py::TestRealOAuthFlowErrors::test_token_exchange_with_expired_code
+tests/test_auth_error_paths.py::TestTokenRevocationEdgeCases::test_revoke_with_wrong_client_secret
+[gw1] [ 10%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_refresh_token_grant_type
+tests/test_coverage_gaps.py::TestCoverageGaps::test_verify_endpoint_revoked_token
+[gw3] [ 10%] PASSED tests/test_github_integration_errors.py::TestRealOAuthFlowErrors::test_token_exchange_with_expired_code
+tests/test_github_integration_errors.py::TestPKCEWithRealFlow::test_pkce_missing_verifier
+[gw0] [ 10%] PASSED tests/test_auth_error_paths.py::TestTokenRevocationEdgeCases::test_revoke_with_wrong_client_secret
+tests/test_auth_error_paths.py::TestTokenRevocationEdgeCases::test_revoke_refresh_token
+[gw3] [ 10%] PASSED tests/test_github_integration_errors.py::TestPKCEWithRealFlow::test_pkce_missing_verifier
+tests/test_github_integration_errors.py::TestRefreshTokenErrors::test_refresh_token_invalid
+[gw0] [ 11%] PASSED tests/test_auth_error_paths.py::TestTokenRevocationEdgeCases::test_revoke_refresh_token
+[gw1] [ 11%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_verify_endpoint_revoked_token
+tests/test_coverage_gaps.py::TestCoverageGaps::test_revoke_endpoint_invalid_client
+tests/test_auth_error_paths.py::TestTokenIntrospectionEdgeCases::test_introspect_token_not_in_redis
+[gw2] [ 11%] PASSED tests/test_coverage_improvements.py::TestRoutesErrorHandling::test_introspect_token_not_in_redis
+tests/test_coverage_improvements.py::TestKeysModuleCoverage::test_rs256_key_generation
+[gw2] [ 11%] SKIPPED tests/test_coverage_improvements.py::TestKeysModuleCoverage::test_rs256_key_generation
+[gw3] [ 11%] PASSED tests/test_github_integration_errors.py::TestRefreshTokenErrors::test_refresh_token_invalid
+tests/test_coverage_improvements.py::TestKeysModuleCoverage::test_rs256_key_loading_from_env
+[gw2] [ 12%] SKIPPED tests/test_coverage_improvements.py::TestKeysModuleCoverage::test_rs256_key_loading_from_env
+tests/test_mcp_ai_hostnames.py::TestMCPAIHostnames::test_hostname_connectivity
+[gw3] [ 12%] SKIPPED tests/test_mcp_ai_hostnames.py::TestMCPAIHostnames::test_hostname_connectivity
+tests/test_mcp_ai_hostnames.py::TestMCPAIHostnames::test_health_endpoints
+[gw3] [ 12%] SKIPPED tests/test_mcp_ai_hostnames.py::TestMCPAIHostnames::test_health_endpoints
+tests/test_mcp_ai_hostnames.py::TestMCPAIHostnames::test_oauth_discovery_endpoints
+[gw0] [ 12%] PASSED tests/test_auth_error_paths.py::TestTokenIntrospectionEdgeCases::test_introspect_token_not_in_redis
+tests/test_coverage_improvements.py::TestKeysModuleCoverage::test_rs256_key_file_operations
+[gw3] [ 12%] SKIPPED tests/test_mcp_ai_hostnames.py::TestMCPAIHostnames::test_oauth_discovery_endpoints
+tests/test_mcp_ai_hostnames.py::TestMCPAIHostnames::test_fetch_through_ai_hostname
+[gw3] [ 12%] SKIPPED tests/test_mcp_ai_hostnames.py::TestMCPAIHostnames::test_fetch_through_ai_hostname
+tests/test_mcp_ai_hostnames.py::TestMCPAIHostnames::test_all_hostnames_summary
+[gw3] [ 13%] SKIPPED tests/test_mcp_ai_hostnames.py::TestMCPAIHostnames::test_all_hostnames_summary
+[gw2] [ 13%] SKIPPED tests/test_coverage_improvements.py::TestKeysModuleCoverage::test_rs256_key_file_operations
+tests/test_mcp_auth_working.py::TestMCPAuthWorking::test_mcp_requires_authentication
+tests/test_auth_error_paths.py::TestTokenIntrospectionEdgeCases::test_introspect_refresh_token_type
+tests/test_coverage_improvements.py::TestRFC7592ErrorHandling::test_update_client_not_found
+[gw1] [ 13%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_revoke_endpoint_invalid_client
+tests/test_coverage_gaps.py::TestCoverageGaps::test_revoke_endpoint_jwt_processing
+[gw0] [ 13%] PASSED tests/test_auth_error_paths.py::TestTokenIntrospectionEdgeCases::test_introspect_refresh_token_type
+tests/test_auth_error_paths.py::TestJWTTokenCreation::test_create_token_with_user_tracking
+[gw3] [ 13%] SKIPPED tests/test_mcp_auth_working.py::TestMCPAuthWorking::test_mcp_requires_authentication
+tests/test_mcp_client_oauth.py::TestMCPClientOAuthRegistration::test_dynamic_client_registration
+[gw2] [ 13%] PASSED tests/test_coverage_improvements.py::TestRFC7592ErrorHandling::test_update_client_not_found
+tests/test_coverage_improvements.py::TestRFC7592ErrorHandling::test_update_client_invalid_token
+[gw0] [ 14%] PASSED tests/test_auth_error_paths.py::TestJWTTokenCreation::test_create_token_with_user_tracking
+tests/test_auth_error_paths.py::TestAuthorizationEndpointErrors::test_authorize_with_unknown_client
+[gw1] [ 14%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_revoke_endpoint_jwt_processing
+tests/test_coverage_gaps.py::TestCoverageGaps::test_introspect_invalid_client_secret
+[gw2] [ 14%] PASSED tests/test_coverage_improvements.py::TestRFC7592ErrorHandling::test_update_client_invalid_token
+[gw3] [ 14%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientOAuthRegistration::test_dynamic_client_registration
+tests/test_coverage_improvements.py::TestRFC7592ErrorHandling::test_delete_client_not_found
+tests/test_mcp_client_oauth.py::TestMCPClientOAuthRegistration::test_client_registration_with_auth_token
+[gw0] [ 14%] PASSED tests/test_auth_error_paths.py::TestAuthorizationEndpointErrors::test_authorize_with_unknown_client
+tests/test_auth_error_paths.py::TestAuthorizationEndpointErrors::test_authorize_with_unregistered_redirect_uri
+[gw0] [ 15%] PASSED tests/test_auth_error_paths.py::TestAuthorizationEndpointErrors::test_authorize_with_unregistered_redirect_uri
+tests/test_auth_error_paths.py::TestShutdownHandler::test_app_lifecycle
+[gw1] [ 15%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_introspect_invalid_client_secret
+[gw2] [ 15%] PASSED tests/test_coverage_improvements.py::TestRFC7592ErrorHandling::test_delete_client_not_found
+tests/test_coverage_gaps.py::TestCoverageGaps::test_introspect_token_not_in_redis
+tests/test_coverage_improvements.py::TestRFC7592ErrorHandling::test_get_client_with_expired_secret
+[gw3] [ 15%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientOAuthRegistration::test_client_registration_with_auth_token
+tests/test_mcp_client_oauth.py::TestMCPClientOAuthFlows::test_authorization_code_flow_initiation
+[gw0] [ 15%] PASSED tests/test_auth_error_paths.py::TestShutdownHandler::test_app_lifecycle
+tests/test_basic_health.py::test_auth_oauth_discovery_health
+[gw0] [ 15%] PASSED tests/test_basic_health.py::test_auth_oauth_discovery_health
+tests/test_basic_health.py::test_auth_metadata_basic
+[gw2] [ 16%] PASSED tests/test_coverage_improvements.py::TestRFC7592ErrorHandling::test_get_client_with_expired_secret
+[gw1] [ 16%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_introspect_token_not_in_redis
+tests/test_coverage_improvements.py::TestMainModuleIntegration::test_cli_module_help
+tests/test_coverage_gaps.py::TestCoverageGaps::test_introspect_refresh_token
+[gw3] [ 16%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientOAuthFlows::test_authorization_code_flow_initiation
+tests/test_mcp_client_oauth.py::TestMCPClientOAuthFlows::test_pkce_flow_for_cli_clients
+[gw0] [ 16%] PASSED tests/test_basic_health.py::test_auth_metadata_basic
+tests/test_claude_ai_routing_scenario.py::TestClaudeAIRoutingScenario::test_claude_ai_mcp_endpoint_discovery
+[gw1] [ 16%] PASSED tests/test_coverage_gaps.py::TestCoverageGaps::test_introspect_refresh_token
+[gw3] [ 16%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientOAuthFlows::test_pkce_flow_for_cli_clients
+tests/test_coverage_gaps.py::TestCallbackEndpoint::test_callback_invalid_state
+tests/test_mcp_client_oauth.py::TestMCPClientOAuthFlows::test_token_refresh_flow
+[gw0] [ 17%] PASSED tests/test_claude_ai_routing_scenario.py::TestClaudeAIRoutingScenario::test_claude_ai_mcp_endpoint_discovery
+tests/test_claude_ai_routing_scenario.py::TestClaudeAIRoutingScenario::test_mcp_path_accessible_with_and_without_trailing_slash
+[gw1] [ 17%] PASSED tests/test_coverage_gaps.py::TestCallbackEndpoint::test_callback_invalid_state
+tests/test_coverage_gaps.py::TestCallbackEndpoint::test_callback_github_exchange_simulation
+[gw3] [ 17%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientOAuthFlows::test_token_refresh_flow
+tests/test_mcp_client_oauth.py::TestMCPClientTokenValidation::test_access_token_validation
+[gw0] [ 17%] PASSED tests/test_claude_ai_routing_scenario.py::TestClaudeAIRoutingScenario::test_mcp_path_accessible_with_and_without_trailing_slash
+tests/test_claude_ai_routing_scenario.py::TestClaudeAIRoutingScenario::test_traefik_path_routing_exists
+[gw3] [ 17%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientTokenValidation::test_access_token_validation
+tests/test_mcp_client_oauth.py::TestMCPClientTokenValidation::test_expired_token_handling
+[gw0] [ 18%] PASSED tests/test_claude_ai_routing_scenario.py::TestClaudeAIRoutingScenario::test_traefik_path_routing_exists
+tests/test_claude_ai_routing_scenario.py::TestClaudeAIRoutingScenario::test_base_domain_without_path_requires_auth
+[gw3] [ 18%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientTokenValidation::test_expired_token_handling
+tests/test_mcp_client_oauth.py::TestMCPClientTokenValidation::test_token_introspection
+[gw0] [ 18%] PASSED tests/test_claude_ai_routing_scenario.py::TestClaudeAIRoutingScenario::test_base_domain_without_path_requires_auth
+tests/test_mcp_client_proxy.py::TestMCPClientProxyBasics::test_proxy_health_check
+[gw3] [ 18%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientTokenValidation::test_token_introspection
+tests/test_mcp_client_oauth.py::TestMCPClientCredentialStorage::test_credential_format
+[gw0] [ 18%] PASSED tests/test_mcp_client_proxy.py::TestMCPClientProxyBasics::test_proxy_health_check
+tests/test_mcp_client_proxy.py::TestMCPClientProxyBasics::test_proxy_requires_authentication
+[gw3] [ 18%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientCredentialStorage::test_credential_format
+[gw0] [ 19%] PASSED tests/test_mcp_client_proxy.py::TestMCPClientProxyBasics::test_proxy_requires_authentication
+tests/test_mcp_client_oauth.py::TestMCPClientErrorScenarios::test_network_error_handling
+tests/test_mcp_client_proxy.py::TestMCPProtocolHandling::test_initialize_request
+[gw1] [ 19%] PASSED tests/test_coverage_gaps.py::TestCallbackEndpoint::test_callback_github_exchange_simulation
+tests/test_coverage_gaps.py::TestPKCEVerification::test_pkce_missing_verifier
+[gw0] [ 19%] PASSED tests/test_mcp_client_proxy.py::TestMCPProtocolHandling::test_initialize_request
+tests/test_mcp_client_proxy.py::TestMCPProtocolHandling::test_session_management
+[gw1] [ 19%] PASSED tests/test_coverage_gaps.py::TestPKCEVerification::test_pkce_missing_verifier
+tests/test_coverage_gaps_specific.py::TestHealthCheckErrors::test_oauth_discovery_health_status
+[gw0] [ 19%] PASSED tests/test_mcp_client_proxy.py::TestMCPProtocolHandling::test_session_management
+tests/test_mcp_client_proxy.py::TestMCPProtocolHandling::test_protocol_version_negotiation
+[gw1] [ 19%] PASSED tests/test_coverage_gaps_specific.py::TestHealthCheckErrors::test_oauth_discovery_health_status
+tests/test_coverage_gaps_specific.py::TestWellKnownMetadata::test_oauth_authorization_server_metadata
+[gw3] [ 20%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientErrorScenarios::test_network_error_handling
+tests/test_mcp_client_oauth.py::TestMCPClientErrorScenarios::test_oauth_discovery_endpoint
+[gw1] [ 20%] PASSED tests/test_coverage_gaps_specific.py::TestWellKnownMetadata::test_oauth_authorization_server_metadata
+[gw0] [ 20%] PASSED tests/test_mcp_client_proxy.py::TestMCPProtocolHandling::test_protocol_version_negotiation
+tests/test_coverage_gaps_specific.py::TestClientRegistrationErrors::test_registration_with_invalid_data
+tests/test_mcp_client_proxy.py::TestProxyErrorHandling::test_invalid_json_rpc_request
+[gw3] [ 20%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientErrorScenarios::test_oauth_discovery_endpoint
+tests/test_mcp_client_oauth.py::TestMCPClientRealWorldScenarios::test_multiple_concurrent_requests
+[gw1] [ 20%] PASSED tests/test_coverage_gaps_specific.py::TestClientRegistrationErrors::test_registration_with_invalid_data
+tests/test_coverage_gaps_specific.py::TestAuthorizationErrors::test_authorize_with_invalid_client
+[gw0] [ 21%] PASSED tests/test_mcp_client_proxy.py::TestProxyErrorHandling::test_invalid_json_rpc_request
+tests/test_mcp_client_proxy.py::TestProxyErrorHandling::test_method_not_found
+[gw3] [ 21%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientRealWorldScenarios::test_multiple_concurrent_requests
+tests/test_mcp_client_oauth.py::TestMCPClientRealWorldScenarios::test_client_reregistration
+[gw1] [ 21%] PASSED tests/test_coverage_gaps_specific.py::TestAuthorizationErrors::test_authorize_with_invalid_client
+tests/test_coverage_gaps_specific.py::TestAuthorizationErrors::test_authorize_with_mismatched_redirect_uri
+[gw0] [ 21%] PASSED tests/test_mcp_client_proxy.py::TestProxyErrorHandling::test_method_not_found
+tests/test_mcp_client_proxy.py::TestProxyErrorHandling::test_expired_token_handling
+[gw3] [ 21%] PASSED tests/test_mcp_client_oauth.py::TestMCPClientRealWorldScenarios::test_client_reregistration
+tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_environment_dump_with_secrets
+[gw1] [ 21%] PASSED tests/test_coverage_gaps_specific.py::TestAuthorizationErrors::test_authorize_with_mismatched_redirect_uri
+tests/test_coverage_gaps_specific.py::TestTokenEndpointErrors::test_token_endpoint_comprehensive_errors
+[gw0] [ 22%] PASSED tests/test_mcp_client_proxy.py::TestProxyErrorHandling::test_expired_token_handling
+tests/test_mcp_client_proxy.py::TestProxyRealWorldScenarios::test_tools_listing
+[gw3] [ 22%] PASSED tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_environment_dump_with_secrets
+tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_health_probe_tool
+[gw1] [ 22%] PASSED tests/test_coverage_gaps_specific.py::TestTokenEndpointErrors::test_token_endpoint_comprehensive_errors
+tests/test_coverage_gaps_specific.py::TestVerifyEndpointErrors::test_verify_with_malformed_tokens
+[gw1] [ 22%] PASSED tests/test_coverage_gaps_specific.py::TestVerifyEndpointErrors::test_verify_with_malformed_tokens
+tests/test_coverage_gaps_specific.py::TestRevokeEndpointEdgeCases::test_revoke_comprehensive_scenarios
+[gw1] [ 22%] PASSED tests/test_coverage_gaps_specific.py::TestRevokeEndpointEdgeCases::test_revoke_comprehensive_scenarios
+[gw3] [ 22%] PASSED tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_health_probe_tool
+tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_tools_list
+[gw0] [ 23%] PASSED tests/test_mcp_client_proxy.py::TestProxyRealWorldScenarios::test_tools_listing
+tests/test_coverage_gaps_specific.py::TestIntrospectEdgeCases::test_introspect_comprehensive_scenarios
+tests/test_mcp_client_proxy.py::TestProxyRealWorldScenarios::test_concurrent_sessions
+[gw3] [ 23%] PASSED tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_tools_list
+tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_requires_authentication
+[gw3] [ 23%] PASSED tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_requires_authentication
+tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_protocol_initialization
+[gw1] [ 23%] PASSED tests/test_coverage_gaps_specific.py::TestIntrospectEdgeCases::test_introspect_comprehensive_scenarios
+[gw0] [ 23%] PASSED tests/test_mcp_client_proxy.py::TestProxyRealWorldScenarios::test_concurrent_sessions
+tests/test_mcp_client_proxy.py::TestProxyRealWorldScenarios::test_large_request_handling
+tests/test_coverage_gaps_specific.py::TestCallbackEdgeCases::test_callback_error_scenarios
+[gw3] [ 24%] PASSED tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_protocol_initialization
+tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_list_tools
+[gw1] [ 24%] PASSED tests/test_coverage_gaps_specific.py::TestCallbackEdgeCases::test_callback_error_scenarios
+tests/test_coverage_gaps_specific.py::TestComplexTokenScenarios::test_token_with_redis_operations
+[gw0] [ 24%] PASSED tests/test_mcp_client_proxy.py::TestProxyRealWorldScenarios::test_large_request_handling
+[gw3] [ 24%] PASSED tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_list_tools
+tests/test_mcp_client_proxy.py::TestProxyAuthenticationFlows::test_bearer_token_authentication
+tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_tool_functionality
+[gw2] [ 24%] PASSED tests/test_coverage_improvements.py::TestMainModuleIntegration::test_cli_module_help
+tests/test_coverage_improvements.py::TestEdgeCasesAndBranches::test_token_refresh_with_invalid_refresh_token
+[gw3] [ 24%] PASSED tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_tool_functionality
+tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_print_header_tool_functionality
+[gw1] [ 25%] PASSED tests/test_coverage_gaps_specific.py::TestComplexTokenScenarios::test_token_with_redis_operations
+[gw0] [ 25%] PASSED tests/test_mcp_client_proxy.py::TestProxyAuthenticationFlows::test_bearer_token_authentication
+tests/test_mcp_client_proxy.py::TestProxyAuthenticationFlows::test_oauth_discovery_through_proxy
+tests/test_coverage_improvements.py::TestAuthAuthlibErrorHandling::test_verify_jwt_token_invalid_signature
+[gw3] [ 25%] PASSED tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_print_header_tool_functionality
+tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_error_handling_invalid_tool
+[gw2] [ 25%] PASSED tests/test_coverage_improvements.py::TestEdgeCasesAndBranches::test_token_refresh_with_invalid_refresh_token
+tests/test_coverage_improvements.py::TestEdgeCasesAndBranches::test_authorize_with_unsupported_response_type
+[gw0] [ 25%] PASSED tests/test_mcp_client_proxy.py::TestProxyAuthenticationFlows::test_oauth_discovery_through_proxy
+tests/test_mcp_client_proxy.py::TestProxyAuthenticationFlows::test_auth_error_details
+[gw3] [ 25%] PASSED tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_error_handling_invalid_tool
+tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_error_handling_invalid_arguments
+[gw2] [ 26%] PASSED tests/test_coverage_improvements.py::TestEdgeCasesAndBranches::test_authorize_with_unsupported_response_type
+tests/test_coverage_improvements.py::TestEdgeCasesAndBranches::test_concurrent_token_operations
+[gw3] [ 26%] PASSED tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_error_handling_invalid_arguments
+tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_cors_headers
+[gw0] [ 26%] PASSED tests/test_mcp_client_proxy.py::TestProxyAuthenticationFlows::test_auth_error_details
+tests/test_mcp_client_proxy.py::TestProxyPerformance::test_response_times
+[gw3] [ 26%] PASSED tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_cors_headers
+tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_with_forwardauth_headers
+[gw2] [ 26%] PASSED tests/test_coverage_improvements.py::TestEdgeCasesAndBranches::test_concurrent_token_operations
+tests/test_coverage_improvements.py::TestEdgeCasesAndBranches::test_error_response_formats
+[gw0] [ 27%] PASSED tests/test_mcp_client_proxy.py::TestProxyPerformance::test_response_times
+tests/test_mcp_client_proxy.py::TestProxyPerformance::test_connection_reuse
+[gw3] [ 27%] PASSED tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_with_forwardauth_headers
+[gw1] [ 27%] PASSED tests/test_coverage_improvements.py::TestAuthAuthlibErrorHandling::test_verify_jwt_token_invalid_signature
+tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_stateless_behavior
+tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_echo_list_tools_command
+[gw2] [ 27%] PASSED tests/test_coverage_improvements.py::TestEdgeCasesAndBranches::test_error_response_formats
+tests/test_coverage_improvements.py::TestEdgeCasesAndBranches::test_server_lifecycle
+[gw2] [ 27%] PASSED tests/test_coverage_improvements.py::TestEdgeCasesAndBranches::test_server_lifecycle
+tests/test_docker_compose_validation.py::TestDockerComposeValidation::test_mcp_fetch_traefik_labels_complete
+[gw3] [ 27%] PASSED tests/test_mcp_echo_integration.py::TestMCPEchoIntegration::test_echo_stateless_behavior
+[gw0] [ 28%] PASSED tests/test_mcp_client_proxy.py::TestProxyPerformance::test_connection_reuse
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_jsonrpc_compliance
+[gw2] [ 28%] PASSED tests/test_docker_compose_validation.py::TestDockerComposeValidation::test_mcp_fetch_traefik_labels_complete
+tests/test_mcp_client_rfc7592.py::test_mcp_client_rfc7592_lifecycle
+tests/test_docker_compose_validation.py::TestDockerComposeValidation::test_all_services_have_traefik_configuration
+[gw2] [ 28%] PASSED tests/test_docker_compose_validation.py::TestDockerComposeValidation::test_all_services_have_traefik_configuration
+tests/test_docker_compose_validation.py::TestDockerComposeValidation::test_routing_priorities_are_correct
+[gw2] [ 28%] PASSED tests/test_docker_compose_validation.py::TestDockerComposeValidation::test_routing_priorities_are_correct
+tests/test_eternal_client.py::test_client_lifetime_from_env
+[gw3] [ 28%] PASSED tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_jsonrpc_compliance
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_invalid_jsonrpc_version
+[gw3] [ 28%] PASSED tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_invalid_jsonrpc_version
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_missing_jsonrpc_field
+[gw2] [ 29%] PASSED tests/test_eternal_client.py::test_client_lifetime_from_env
+tests/test_eternal_client.py::test_rfc7592_update_client
+[gw0] [ 29%] PASSED tests/test_mcp_client_rfc7592.py::test_mcp_client_rfc7592_lifecycle
+tests/test_mcp_client_rfc7592.py::test_mcp_client_rfc7592_field_validation
+[gw3] [ 29%] PASSED tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_missing_jsonrpc_field
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_batch_requests_not_supported
+[gw2] [ 29%] PASSED tests/test_eternal_client.py::test_rfc7592_update_client
+tests/test_existing_oauth_credentials.py::TestExistingOAuthCredentials::test_token_endpoint_with_existing_client
+[gw3] [ 29%] PASSED tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_batch_requests_not_supported
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_protocol_version_negotiation
+[gw2] [ 30%] PASSED tests/test_existing_oauth_credentials.py::TestExistingOAuthCredentials::test_token_endpoint_with_existing_client
+tests/test_existing_oauth_credentials.py::TestExistingOAuthCredentials::test_introspect_with_existing_client
+[gw3] [ 30%] PASSED tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_protocol_version_negotiation
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_unknown_protocol_version
+[gw3] [ 30%] PASSED tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_unknown_protocol_version
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_required_headers
+[gw0] [ 30%] PASSED tests/test_mcp_client_rfc7592.py::test_mcp_client_rfc7592_field_validation
+tests/test_mcp_cors.py::TestMCPCORS::test_cors_origins_configured
+[gw2] [ 30%] PASSED tests/test_existing_oauth_credentials.py::TestExistingOAuthCredentials::test_introspect_with_existing_client
+[gw0] [ 30%] PASSED tests/test_mcp_cors.py::TestMCPCORS::test_cors_origins_configured
+tests/test_existing_oauth_credentials.py::TestExistingOAuthCredentials::test_revoke_with_existing_client
+tests/test_mcp_cors.py::TestMCPCORS::test_mcp_preflight_cors_headers
+[gw3] [ 31%] PASSED tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_required_headers
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_content_type_validation
+[gw0] [ 31%] PASSED tests/test_mcp_cors.py::TestMCPCORS::test_mcp_preflight_cors_headers
+tests/test_mcp_cors.py::TestMCPCORS::test_mcp_actual_request_cors_headers
+[gw2] [ 31%] PASSED tests/test_existing_oauth_credentials.py::TestExistingOAuthCredentials::test_revoke_with_existing_client
+tests/test_existing_oauth_credentials.py::TestExistingOAuthCredentials::test_github_pat_usage
+[gw3] [ 31%] PASSED tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_content_type_validation
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_sse_response_format
+[gw0] [ 31%] PASSED tests/test_mcp_cors.py::TestMCPCORS::test_mcp_actual_request_cors_headers
+tests/test_mcp_cors.py::TestMCPCORS::test_mcp_health_endpoint_cors
+[gw3] [ 31%] PASSED tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_sse_response_format
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_error_response_format
+[gw0] [ 32%] PASSED tests/test_mcp_cors.py::TestMCPCORS::test_mcp_health_endpoint_cors
+tests/test_mcp_cors.py::TestMCPCORS::test_cors_headers_without_origin
+[gw3] [ 32%] PASSED tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_error_response_format
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_notification_support
+[gw0] [ 32%] PASSED tests/test_mcp_cors.py::TestMCPCORS::test_cors_headers_without_origin
+tests/test_mcp_cors.py::TestMCPCORS::test_cors_blocks_unauthorized_origins
+[gw0] [ 32%] SKIPPED tests/test_mcp_cors.py::TestMCPCORS::test_cors_blocks_unauthorized_origins
+tests/test_mcp_cors.py::TestMCPCORS::test_all_mcp_services_have_cors
+[gw3] [ 32%] PASSED tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_notification_support
+tests/test_mcp_everything_sse.py::TestMCPEverythingSSE::test_error_response_in_sse_format
+[gw3] [ 33%] SKIPPED tests/test_mcp_everything_sse.py::TestMCPEverythingSSE::test_error_response_in_sse_format
+tests/test_mcp_everything_sse_simple.py::TestMCPEverythingSSESimple::test_sse_headers_on_initialize
+[gw3] [ 33%] SKIPPED tests/test_mcp_everything_sse_simple.py::TestMCPEverythingSSESimple::test_sse_headers_on_initialize
+tests/test_mcp_everything_sse_simple.py::TestMCPEverythingSSESimple::test_sse_format_preserved
+[gw3] [ 33%] SKIPPED tests/test_mcp_everything_sse_simple.py::TestMCPEverythingSSESimple::test_sse_format_preserved
+tests/test_mcp_everything_sse_simple.py::TestMCPEverythingSSESimple::test_no_buffering_delay
+[gw3] [ 33%] SKIPPED tests/test_mcp_everything_sse_simple.py::TestMCPEverythingSSESimple::test_no_buffering_delay
+tests/test_mcp_everything_sse_simple.py::TestMCPEverythingSSESimple::test_json_error_handling
+[gw3] [ 33%] SKIPPED tests/test_mcp_everything_sse_simple.py::TestMCPEverythingSSESimple::test_json_error_handling
+tests/test_mcp_everything_sse_simple.py::TestMCPEverythingSSESimple::test_cors_headers_present
+[gw3] [ 33%] SKIPPED tests/test_mcp_everything_sse_simple.py::TestMCPEverythingSSESimple::test_cors_headers_present
+[gw0] [ 34%] PASSED tests/test_mcp_cors.py::TestMCPCORS::test_all_mcp_services_have_cors
+tests/test_mcp_everything_tools.py::test_echo_tool
+tests/test_mcp_debug.py::test_simple_initialize
+[gw3] [ 34%] SKIPPED tests/test_mcp_everything_tools.py::test_echo_tool
+tests/test_mcp_fetch_integration.py::TestMCPFetchIntegration::test_fetch_requires_real_oauth_token
+[gw3] [ 34%] SKIPPED tests/test_mcp_fetch_integration.py::TestMCPFetchIntegration::test_fetch_requires_real_oauth_token
+tests/test_mcp_fetch_integration.py::TestMCPFetchIntegration::test_mcp_fetch_security_validation
+[gw0] [ 34%] SKIPPED tests/test_mcp_debug.py::test_simple_initialize
+tests/test_mcp_echo_all_urls.py::TestMCPEchoAllUrls::test_all_echo_urls_accessible
+[gw3] [ 34%] SKIPPED tests/test_mcp_fetch_integration.py::TestMCPFetchIntegration::test_mcp_fetch_security_validation
+[gw2] [ 34%] PASSED tests/test_existing_oauth_credentials.py::TestExistingOAuthCredentials::test_github_pat_usage
+tests/test_existing_oauth_credentials.py::TestCompleteFlowWithExistingClient::test_authorization_to_token_flow
+tests/test_mcp_fetch_integration.py::TestMCPFetchIntegration::test_mcp_fetch_endpoint_validation
+[gw3] [ 35%] SKIPPED tests/test_mcp_fetch_integration.py::TestMCPFetchIntegration::test_mcp_fetch_endpoint_validation
+tests/test_mcp_fetch_integration.py::TestMCPFetchIntegration::test_mcp_fetch_http_methods
+[gw3] [ 35%] SKIPPED tests/test_mcp_fetch_integration.py::TestMCPFetchIntegration::test_mcp_fetch_http_methods
+tests/test_mcp_fetch_oauth_debug.py::test_debug_mcp_fetch_with_real_oauth
+[gw3] [ 35%] SKIPPED tests/test_mcp_fetch_oauth_debug.py::test_debug_mcp_fetch_with_real_oauth
+tests/test_mcp_fetch_real_content.py::TestMCPFetchRealContent::test_fetch_example_com_content
+[gw3] [ 35%] SKIPPED tests/test_mcp_fetch_real_content.py::TestMCPFetchRealContent::test_fetch_example_com_content
+[gw2] [ 35%] PASSED tests/test_existing_oauth_credentials.py::TestCompleteFlowWithExistingClient::test_authorization_to_token_flow
+tests/test_mcp_fetch_real_content.py::TestMCPFetchRealContent::test_mcp_fetch_without_token
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_method_namespace_compliance
+[gw3] [ 36%] SKIPPED tests/test_mcp_fetch_real_content.py::TestMCPFetchRealContent::test_mcp_fetch_without_token
+tests/test_mcp_fetch_simple.py::TestMCPFetchSimple::test_mcp_fetch_auth_works
+[gw2] [ 36%] PASSED tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_method_namespace_compliance
+tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_rejects_all_unauthenticated_methods
+[gw0] [ 36%] PASSED tests/test_mcp_echo_all_urls.py::TestMCPEchoAllUrls::test_all_echo_urls_accessible
+tests/test_mcp_echo_all_urls.py::TestMCPEchoAllUrls::test_echo_tool_on_random_urls
+[gw2] [ 36%] PASSED tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_rejects_all_unauthenticated_methods
+tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_rejects_invalid_bearer_tokens
+[gw3] [ 36%] SKIPPED tests/test_mcp_fetch_simple.py::TestMCPFetchSimple::test_mcp_fetch_auth_works
+[gw1] [ 36%] PASSED tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_echo_list_tools_command
+tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_health_check
+tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_echo_tool_command_simple
+[gw3] [ 37%] SKIPPED tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_health_check
+tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_requires_auth
+[gw3] [ 37%] SKIPPED tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_requires_auth
+tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_cors_preflight
+[gw3] [ 37%] SKIPPED tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_cors_preflight
+tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_initialize
+[gw3] [ 37%] SKIPPED tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_initialize
+tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_list_tools
+[gw3] [ 37%] SKIPPED tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_list_tools
+tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_call_tool_fetch
+[gw3] [ 37%] SKIPPED tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_call_tool_fetch
+tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_invalid_json_rpc
+[gw3] [ 38%] SKIPPED tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_invalid_json_rpc
+[gw2] [ 38%] PASSED tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_rejects_invalid_bearer_tokens
+tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_unknown_method
+[gw3] [ 38%] SKIPPED tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_unknown_method
+tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_rejects_expired_tokens
+tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_oauth_discovery
+[gw2] [ 38%] PASSED tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_rejects_expired_tokens
+tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_validates_token_with_auth_service
+[gw3] [ 38%] SKIPPED tests/test_mcp_fetch_streamablehttp_integration.py::test_fetch_native_oauth_discovery
+tests/test_mcp_fetchs_complete.py::TestMCPFetchsComplete::test_fetchs_complete_oauth_flow_integration
+[gw3] [ 39%] SKIPPED tests/test_mcp_fetchs_complete.py::TestMCPFetchsComplete::test_fetchs_complete_oauth_flow_integration
+tests/test_mcp_fetchs_complete.py::TestMCPFetchsComplete::test_fetchs_url_parameter_validation
+[gw3] [ 39%] SKIPPED tests/test_mcp_fetchs_complete.py::TestMCPFetchsComplete::test_fetchs_url_parameter_validation
+tests/test_mcp_fetchs_complete.py::TestMCPFetchsComplete::test_fetchs_protocol_version_negotiation
+[gw3] [ 39%] SKIPPED tests/test_mcp_fetchs_complete.py::TestMCPFetchsComplete::test_fetchs_protocol_version_negotiation
+tests/test_mcp_fetchs_complete.py::TestMCPFetchsComplete::test_fetchs_session_management
+[gw3] [ 39%] SKIPPED tests/test_mcp_fetchs_complete.py::TestMCPFetchsComplete::test_fetchs_session_management
+[gw2] [ 39%] PASSED tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_validates_token_with_auth_service
+tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_json_rpc_compliance
+tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_cors_security
+[gw3] [ 39%] SKIPPED tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_json_rpc_compliance
+tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_method_routing
+[gw3] [ 40%] SKIPPED tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_method_routing
+tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_session_handling
+[gw3] [ 40%] SKIPPED tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_session_handling
+tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_protocol_headers
+[gw3] [ 40%] SKIPPED tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_protocol_headers
+tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_error_response_format
+[gw3] [ 40%] SKIPPED tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_error_response_format
+tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_content_type_handling
+[gw3] [ 40%] SKIPPED tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_content_type_handling
+tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_request_id_handling
+[gw3] [ 40%] SKIPPED tests/test_mcp_fetchs_protocol.py::TestMCPFetchsProtocol::test_fetchs_request_id_handling
+tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_supported_version_in_params
+[gw2] [ 41%] PASSED tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_cors_security
+[gw3] [ 41%] SKIPPED tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_supported_version_in_params
+tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_header_injection_protection
+tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_supported_version_in_header
+[gw3] [ 41%] SKIPPED tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_supported_version_in_header
+tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_unsupported_versions_rejected
+[gw3] [ 41%] SKIPPED tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_unsupported_versions_rejected
+tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_response_headers_include_version
+[gw3] [ 41%] SKIPPED tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_response_headers_include_version
+tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_version_negotiation
+[gw3] [ 42%] SKIPPED tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_version_negotiation
+tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_case_sensitivity
+[gw3] [ 42%] SKIPPED tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_case_sensitivity
+tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_version_in_error_responses
+[gw3] [ 42%] SKIPPED tests/test_mcp_fetchs_protocol_versions.py::TestMCPProtocolVersions::test_version_in_error_responses
+tests/test_mcp_fetchs_real_content.py::TestMCPFetchsRealContent::test_fetchs_example_com_content
+[gw3] [ 42%] SKIPPED tests/test_mcp_fetchs_real_content.py::TestMCPFetchsRealContent::test_fetchs_example_com_content
+[gw0] [ 42%] PASSED tests/test_mcp_echo_all_urls.py::TestMCPEchoAllUrls::test_echo_tool_on_random_urls
+tests/test_mcp_fetchs_real_content.py::TestMCPFetchsRealContent::test_fetchs_auth_service_health
+[gw3] [ 42%] SKIPPED tests/test_mcp_fetchs_real_content.py::TestMCPFetchsRealContent::test_fetchs_auth_service_health
+tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_get_prompt
+[gw0] [ 43%] SKIPPED tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_get_prompt
+tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_logging
+tests/test_mcp_fetchs_security.py::TestMCPFetchsSecurity::test_fetchs_auth_schemes
+[gw0] [ 43%] SKIPPED tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_logging
+tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_protocol_compliance
+[gw0] [ 43%] SKIPPED tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_protocol_compliance
+[gw3] [ 43%] SKIPPED tests/test_mcp_fetchs_security.py::TestMCPFetchsSecurity::test_fetchs_auth_schemes
+tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_full_workflow
+[gw0] [ 43%] SKIPPED tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_full_workflow
+tests/test_mcp_everything_client_simple.py::TestMCPEverythingClientSimple::test_everything_test_connection
+[gw0] [ 43%] SKIPPED tests/test_mcp_everything_client_simple.py::TestMCPEverythingClientSimple::test_everything_test_connection
+tests/test_mcp_everything_client_simple.py::TestMCPEverythingClientSimple::test_everything_list_tools
+tests/test_mcp_fetchs_security.py::TestMCPFetchsSecurity::test_fetchs_token_validation
+[gw3] [ 44%] SKIPPED tests/test_mcp_fetchs_security.py::TestMCPFetchsSecurity::test_fetchs_token_validation
+[gw0] [ 44%] SKIPPED tests/test_mcp_everything_client_simple.py::TestMCPEverythingClientSimple::test_everything_list_tools
+tests/test_mcp_everything_client_simple.py::TestMCPEverythingClientSimple::test_everything_help_command
+[gw0] [ 44%] SKIPPED tests/test_mcp_everything_client_simple.py::TestMCPEverythingClientSimple::test_everything_help_command
+tests/test_mcp_everything_client_simple.py::TestMCPEverythingClientSimple::test_everything_unknown_command
+[gw0] [ 44%] SKIPPED tests/test_mcp_everything_client_simple.py::TestMCPEverythingClientSimple::test_everything_unknown_command
+tests/test_mcp_everything_client_simple.py::TestMCPEverythingClientSimple::test_everything_available_features
+tests/test_mcp_fetchs_security.py::TestMCPFetchsSecurity::test_fetchs_endpoint_auth_requirements
+[gw0] [ 44%] SKIPPED tests/test_mcp_everything_client_simple.py::TestMCPEverythingClientSimple::test_everything_available_features
+[gw3] [ 45%] SKIPPED tests/test_mcp_fetchs_security.py::TestMCPFetchsSecurity::test_fetchs_endpoint_auth_requirements
+tests/test_mcp_everything_direct.py::TestMCPEverythingDirect::test_everything_server_capabilities
+[gw0] [ 45%] SKIPPED tests/test_mcp_everything_direct.py::TestMCPEverythingDirect::test_everything_server_capabilities
+tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_reachable_no_auth
+[gw2] [ 45%] PASSED tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_header_injection_protection
+[gw0] [ 45%] SKIPPED tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_reachable_no_auth
+tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_requires_auth
+tests/test_mcp_fetchs_security.py::TestMCPFetchsSecurity::test_fetchs_prevents_ssrf
+[gw0] [ 45%] SKIPPED tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_requires_auth
+tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_initialize
+[gw3] [ 45%] SKIPPED tests/test_mcp_fetchs_security.py::TestMCPFetchsSecurity::test_fetchs_prevents_ssrf
+[gw0] [ 46%] SKIPPED tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_initialize
+tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_oauth_token_scopes
+tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_list_tools
+[gw0] [ 46%] SKIPPED tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_list_tools
+tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_echo_tool
+[gw0] [ 46%] SKIPPED tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_echo_tool
+tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_oauth_discovery
+tests/test_mcp_fetchs_security.py::TestMCPFetchsSecurity::test_fetchs_rate_limiting_behavior
+[gw0] [ 46%] SKIPPED tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_oauth_discovery
+tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_cors_preflight
+[gw3] [ 46%] SKIPPED tests/test_mcp_fetchs_security.py::TestMCPFetchsSecurity::test_fetchs_rate_limiting_behavior
+[gw0] [ 46%] SKIPPED tests/test_mcp_everything_integration.py::TestMCPEverythingIntegration::test_everything_cors_preflight
+tests/test_mcp_everything_sse.py::TestMCPEverythingSSE::test_sse_headers_present
+[gw0] [ 47%] SKIPPED tests/test_mcp_everything_sse.py::TestMCPEverythingSSE::test_sse_headers_present
+tests/test_mcp_fetchs_security.py::TestMCPFetchsSecurity::test_fetchs_oauth_discovery_security
+tests/test_mcp_everything_sse.py::TestMCPEverythingSSE::test_initialize_returns_sse_format
+[gw0] [ 47%] SKIPPED tests/test_mcp_everything_sse.py::TestMCPEverythingSSE::test_initialize_returns_sse_format
+tests/test_mcp_everything_sse.py::TestMCPEverythingSSE::test_echo_tool_with_sse_response
+[gw0] [ 47%] SKIPPED tests/test_mcp_everything_sse.py::TestMCPEverythingSSE::test_echo_tool_with_sse_response
+tests/test_mcp_everything_sse.py::TestMCPEverythingSSE::test_sse_streaming_not_buffered
+[gw0] [ 47%] SKIPPED tests/test_mcp_everything_sse.py::TestMCPEverythingSSE::test_sse_streaming_not_buffered
+tests/test_mcp_everything_sse.py::TestMCPEverythingSSE::test_multiple_tools_list_sse
+[gw0] [ 47%] SKIPPED tests/test_mcp_everything_sse.py::TestMCPEverythingSSE::test_multiple_tools_list_sse
+tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_redis_integration
+[gw2] [ 48%] PASSED tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_oauth_token_scopes
+tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_rate_limiting_protection
+[gw3] [ 48%] SKIPPED tests/test_mcp_fetchs_security.py::TestMCPFetchsSecurity::test_fetchs_oauth_discovery_security
+tests/test_mcp_filesystem_integration.py::TestMCPFilesystemIntegration::test_filesystem_health_check_no_auth
+[gw0] [ 48%] PASSED tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_redis_integration
+tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_pkce_support
+[gw3] [ 48%] SKIPPED tests/test_mcp_filesystem_integration.py::TestMCPFilesystemIntegration::test_filesystem_health_check_no_auth
+tests/test_mcp_filesystem_integration.py::TestMCPFilesystemIntegration::test_filesystem_requires_auth
+[gw3] [ 48%] SKIPPED tests/test_mcp_filesystem_integration.py::TestMCPFilesystemIntegration::test_filesystem_requires_auth
+tests/test_mcp_filesystem_integration.py::TestMCPFilesystemIntegration::test_filesystem_list_directory
+[gw3] [ 48%] SKIPPED tests/test_mcp_filesystem_integration.py::TestMCPFilesystemIntegration::test_filesystem_list_directory
+tests/test_mcp_filesystem_integration.py::TestMCPFilesystemIntegration::test_filesystem_read_file
+[gw0] [ 49%] PASSED tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_pkce_support
+tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_concurrent_client_registrations
+[gw3] [ 49%] SKIPPED tests/test_mcp_filesystem_integration.py::TestMCPFilesystemIntegration::test_filesystem_read_file
+[gw2] [ 49%] PASSED tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_rate_limiting_protection
+tests/test_mcp_filesystem_integration.py::TestMCPFilesystemIntegration::test_filesystem_oauth_discovery
+tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_large_payload_protection
+[gw3] [ 49%] SKIPPED tests/test_mcp_filesystem_integration.py::TestMCPFilesystemIntegration::test_filesystem_oauth_discovery
+tests/test_mcp_filesystem_integration.py::TestMCPFilesystemIntegration::test_filesystem_cors_preflight
+[gw3] [ 49%] SKIPPED tests/test_mcp_filesystem_integration.py::TestMCPFilesystemIntegration::test_filesystem_cors_preflight
+tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_create_entities
+[gw3] [ 50%] SKIPPED tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_create_entities
+tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_create_relations
+[gw3] [ 50%] SKIPPED tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_create_relations
+tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_add_observations
+[gw3] [ 50%] SKIPPED tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_add_observations
+tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_read_graph
+[gw3] [ 50%] SKIPPED tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_read_graph
+tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_search_nodes
+[gw3] [ 50%] SKIPPED tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_search_nodes
+tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_open_nodes
+[gw3] [ 50%] SKIPPED tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_open_nodes
+tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_delete_entities
+[gw3] [ 51%] SKIPPED tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_delete_entities
+tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_delete_relations
+[gw3] [ 51%] SKIPPED tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_delete_relations
+tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_delete_observations
+[gw3] [ 51%] SKIPPED tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_delete_observations
+tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_complete_workflow
+[gw3] [ 51%] SKIPPED tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_complete_workflow
+tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_error_handling
+[gw3] [ 51%] SKIPPED tests/test_mcp_memory_comprehensive.py::TestMCPMemoryComprehensive::test_memory_error_handling
+[gw2] [ 51%] PASSED tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_large_payload_protection
+tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_auth_service_is_running
+tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_sql_injection_protection
+[gw0] [ 52%] PASSED tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_concurrent_client_registrations
+tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_invalid_grant_types
+[gw3] [ 52%] PASSED tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_auth_service_is_running
+tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_oauth_metadata_endpoint
+[gw2] [ 52%] PASSED tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_sql_injection_protection
+tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_forwardauth_header_validation
+[gw0] [ 52%] PASSED tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_invalid_grant_types
+tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientIntegration::test_full_oauth_flow_with_mcp_client
+[gw2] [ 52%] PASSED tests/test_mcp_echo_security.py::TestMCPEchoSecurity::test_echo_forwardauth_header_validation
+tests/test_mcp_echo_stateful_replay.py::TestMCPEchoStatefulReplay::test_replay_last_echo_basic
+[gw3] [ 53%] PASSED tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_oauth_metadata_endpoint
+tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_dynamic_client_registration_rfc7591
+[gw0] [ 53%] PASSED tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientIntegration::test_full_oauth_flow_with_mcp_client
+tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientIntegration::test_auth_service_handles_invalid_tokens
+[gw2] [ 53%] PASSED tests/test_mcp_echo_stateful_replay.py::TestMCPEchoStatefulReplay::test_replay_last_echo_basic
+tests/test_mcp_echo_stateful_replay.py::TestMCPEchoStatefulReplay::test_replay_without_prior_echo
+[gw3] [ 53%] PASSED tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_dynamic_client_registration_rfc7591
+tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_client_registration_validation
+[gw0] [ 53%] PASSED tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientIntegration::test_auth_service_handles_invalid_tokens
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_service_health
+[gw2] [ 53%] PASSED tests/test_mcp_echo_stateful_replay.py::TestMCPEchoStatefulReplay::test_replay_without_prior_echo
+[gw0] [ 54%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_service_health
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_oauth_discovery
+[gw0] [ 54%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_oauth_discovery
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_mcp_initialize
+[gw0] [ 54%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_mcp_initialize
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_list_tools
+[gw0] [ 54%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_list_tools
+tests/test_mcp_echo_stateful_replay.py::TestMCPEchoStatefulReplay::test_replay_without_session
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_navigate
+[gw0] [ 54%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_navigate
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_get_page_content
+[gw3] [ 54%] PASSED tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_client_registration_validation
+[gw0] [ 55%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_get_page_content
+tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_authorization_endpoint_with_registered_client
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_get_text
+[gw0] [ 55%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_get_text
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_screenshot
+[gw0] [ 55%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_screenshot
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_evaluate_javascript
+[gw0] [ 55%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_evaluate_javascript
+tests/test_mcp_protocol_compliance.py::TestMCPProtocolVersionNegotiation::test_protocol_version_negotiation
+[gw2] [ 55%] PASSED tests/test_mcp_echo_stateful_replay.py::TestMCPEchoStatefulReplay::test_replay_without_session
+tests/test_mcp_echo_stateful_replay.py::TestMCPEchoStatefulReplay::test_multiple_echo_replay
+[gw3] [ 56%] PASSED tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_authorization_endpoint_with_registered_client
+tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_token_endpoint_error_handling
+[gw0] [ 56%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPProtocolVersionNegotiation::test_protocol_version_negotiation
+[gw2] [ 56%] PASSED tests/test_mcp_echo_stateful_replay.py::TestMCPEchoStatefulReplay::test_multiple_echo_replay
+tests/test_mcp_echo_stateful_replay.py::TestMCPEchoStatefulReplay::test_replay_preserves_session_context
+tests/test_mcp_protocol_compliance.py::TestMCPProtocolVersionNegotiation::test_unsupported_protocol_version
+[gw3] [ 56%] PASSED tests/test_mcp_oauth_dynamicclient.py::TestMCPOAuthDynamicClientPackage::test_token_endpoint_error_handling
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_wait_for_selector
+[gw3] [ 56%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_wait_for_selector
+[gw2] [ 56%] PASSED tests/test_mcp_echo_stateful_replay.py::TestMCPEchoStatefulReplay::test_replay_preserves_session_context
+[gw0] [ 57%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPProtocolVersionNegotiation::test_unsupported_protocol_version
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_get_attribute
+tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_initialize
+[gw2] [ 57%] SKIPPED tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_initialize
+tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_list_tools
+[gw2] [ 57%] SKIPPED tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_list_tools
+tests/test_mcp_protocol_compliance.py::TestMCPJSONRPCCompliance::test_json_rpc_request_format
+tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_list_resources
+[gw2] [ 57%] SKIPPED tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_list_resources
+tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_list_prompts
+[gw3] [ 57%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_get_attribute
+[gw2] [ 57%] SKIPPED tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_list_prompts
+tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_call_tool
+[gw2] [ 58%] SKIPPED tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_call_tool
+tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_read_resource
+[gw2] [ 58%] SKIPPED tests/test_mcp_everything_client_full.py::TestMCPEverythingClientFull::test_everything_read_resource
+tests/test_mcp_protocol_compliance.py::TestMCPSecurityCompliance::test_secure_session_ids
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_list_resources
+[gw3] [ 58%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_list_resources
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_protocol_version_compliance
+[gw3] [ 58%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_protocol_version_compliance
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_error_handling
+[gw3] [ 58%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_error_handling
+tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_authentication_required
+[gw3] [ 59%] SKIPPED tests/test_mcp_playwright_integration.py::TestMCPPlaywrightIntegration::test_playwright_authentication_required
+tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_endpoint_requires_auth
+[gw0] [ 59%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPJSONRPCCompliance::test_json_rpc_request_format
+tests/test_mcp_protocol_compliance.py::TestMCPJSONRPCCompliance::test_json_rpc_error_format
+[gw3] [ 59%] SKIPPED tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_endpoint_requires_auth
+tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_json_rpc_format
+[gw1] [ 59%] PASSED tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_echo_tool_command_simple
+tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_echo_tool_command_json_args
+[gw0] [ 59%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPJSONRPCCompliance::test_json_rpc_error_format
+[gw3] [ 59%] SKIPPED tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_json_rpc_format
+tests/test_mcp_protocol_compliance.py::TestMCPJSONRPCCompliance::test_json_rpc_notification
+tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_streamable_http_headers
+[gw2] [ 60%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPSecurityCompliance::test_secure_session_ids
+tests/test_mcp_protocol_compliance.py::TestMCPErrorHandling::test_standard_error_codes
+[gw3] [ 60%] SKIPPED tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_streamable_http_headers
+tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_session_management
+[gw0] [ 60%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPJSONRPCCompliance::test_json_rpc_notification
+tests/test_mcp_protocol_compliance.py::TestMCPJSONRPCCompliance::test_json_rpc_id_types
+[gw2] [ 60%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPErrorHandling::test_standard_error_codes
+tests/test_mcp_protocol_compliance.py::TestMCPErrorHandling::test_graceful_error_recovery
+[gw3] [ 60%] SKIPPED tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_session_management
+tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_protocol_version
+[gw0] [ 60%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPJSONRPCCompliance::test_json_rpc_id_types
+tests/test_mcp_protocol_compliance.py::TestMCPLifecycleCompliance::test_initialization_required_fields
+[gw3] [ 61%] SKIPPED tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_protocol_version
+[gw2] [ 61%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPErrorHandling::test_graceful_error_recovery
+tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_error_response_format
+tests/test_mcp_protocol_version_strict.py::TestMCPProtocolVersionStrict::test_mcp_protocol_version_must_match_env_exactly
+[gw3] [ 61%] SKIPPED tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_error_response_format
+tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_batch_request_support
+[gw0] [ 61%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPLifecycleCompliance::test_initialization_required_fields
+tests/test_mcp_protocol_compliance.py::TestMCPLifecycleCompliance::test_operations_before_initialization
+[gw2] [ 61%] PASSED tests/test_mcp_protocol_version_strict.py::TestMCPProtocolVersionStrict::test_mcp_protocol_version_must_match_env_exactly
+tests/test_mcp_protocol_version_strict.py::TestMCPProtocolVersionStrict::test_mcp_version_header_must_match_env
+[gw3] [ 62%] SKIPPED tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_batch_request_support
+tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_http_methods
+[gw0] [ 62%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPLifecycleCompliance::test_operations_before_initialization
+[gw2] [ 62%] PASSED tests/test_mcp_protocol_version_strict.py::TestMCPProtocolVersionStrict::test_mcp_version_header_must_match_env
+tests/test_mcp_protocol_compliance.py::TestMCPLifecycleCompliance::test_capability_negotiation
+[gw3] [ 62%] SKIPPED tests/test_mcp_protocol.py::TestMCPProtocol::test_mcp_http_methods
+tests/test_mcp_proxy.py::TestMCPProtocolInitialization::test_initialized_notification
+tests/test_mcp_protocol_version_strict.py::TestMCPProtocolVersionStrict::test_env_mcp_version_is_supported
+[gw2] [ 62%] PASSED tests/test_mcp_protocol_version_strict.py::TestMCPProtocolVersionStrict::test_env_mcp_version_is_supported
+tests/test_mcp_proxy.py::TestMCPProxyBasicFunctionality::test_health_endpoint_accessible
+[gw0] [ 62%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPLifecycleCompliance::test_capability_negotiation
+tests/test_mcp_protocol_compliance.py::TestMCPTransportCompliance::test_content_type_header
+[gw3] [ 63%] PASSED tests/test_mcp_proxy.py::TestMCPProtocolInitialization::test_initialized_notification
+tests/test_mcp_proxy.py::TestMCPFetchCapabilities::test_fetch_capability_available
+[gw2] [ 63%] PASSED tests/test_mcp_proxy.py::TestMCPProxyBasicFunctionality::test_health_endpoint_accessible
+tests/test_mcp_proxy.py::TestMCPProxyBasicFunctionality::test_mcp_endpoint_requires_auth
+[gw0] [ 63%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPTransportCompliance::test_content_type_header
+[gw3] [ 63%] PASSED tests/test_mcp_proxy.py::TestMCPFetchCapabilities::test_fetch_capability_available
+tests/test_mcp_protocol_compliance.py::TestMCPTransportCompliance::test_mcp_protocol_version_header
+tests/test_mcp_proxy.py::TestMCPFetchCapabilities::test_list_tools
+[gw2] [ 63%] PASSED tests/test_mcp_proxy.py::TestMCPProxyBasicFunctionality::test_mcp_endpoint_requires_auth
+tests/test_mcp_proxy.py::TestMCPProxyBasicFunctionality::test_invalid_json_rpc_request
+[gw0] [ 63%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPTransportCompliance::test_mcp_protocol_version_header
+tests/test_mcp_protocol_compliance.py::TestMCPTransportCompliance::test_authorization_header_required
+[gw3] [ 64%] PASSED tests/test_mcp_proxy.py::TestMCPFetchCapabilities::test_list_tools
+[gw2] [ 64%] PASSED tests/test_mcp_proxy.py::TestMCPProxyBasicFunctionality::test_invalid_json_rpc_request
+tests/test_mcp_proxy.py::TestMCPProxyErrorHandling::test_method_not_found
+tests/test_mcp_proxy.py::TestMCPProxyAuthentication::test_gateway_token_authentication
+[gw0] [ 64%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPTransportCompliance::test_authorization_header_required
+tests/test_mcp_protocol_compliance.py::TestMCPSecurityCompliance::test_origin_header_validation
+[gw2] [ 64%] PASSED tests/test_mcp_proxy.py::TestMCPProxyAuthentication::test_gateway_token_authentication
+[gw3] [ 64%] PASSED tests/test_mcp_proxy.py::TestMCPProxyErrorHandling::test_method_not_found
+tests/test_mcp_proxy.py::TestMCPProxyAuthentication::test_mcp_client_token_authentication
+tests/test_mcp_proxy.py::TestMCPProxyErrorHandling::test_invalid_params
+[gw0] [ 65%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPSecurityCompliance::test_origin_header_validation
+tests/test_mcp_protocol_compliance.py::TestMCPSecurityCompliance::test_token_validation
+[gw2] [ 65%] PASSED tests/test_mcp_proxy.py::TestMCPProxyAuthentication::test_mcp_client_token_authentication
+tests/test_mcp_proxy.py::TestMCPProxyAuthentication::test_invalid_token_rejected
+[gw3] [ 65%] PASSED tests/test_mcp_proxy.py::TestMCPProxyErrorHandling::test_invalid_params
+tests/test_mcp_proxy.py::TestMCPProxyHeaders::test_mcp_protocol_version_header
+[gw0] [ 65%] PASSED tests/test_mcp_protocol_compliance.py::TestMCPSecurityCompliance::test_token_validation
+[gw2] [ 65%] PASSED tests/test_mcp_proxy.py::TestMCPProxyAuthentication::test_invalid_token_rejected
+tests/test_mcp_proxy_fixed.py::TestMCPSessionIsolation::test_sessions_are_isolated
+[gw3] [ 65%] PASSED tests/test_mcp_proxy.py::TestMCPProxyHeaders::test_mcp_protocol_version_header
+tests/test_mcp_proxy.py::TestMCPProtocolInitialization::test_initialize_request
+tests/test_mcp_proxy.py::TestMCPProxyHeaders::test_cors_headers_on_options
+[gw0] [ 66%] SKIPPED tests/test_mcp_proxy_fixed.py::TestMCPSessionIsolation::test_sessions_are_isolated
+tests/test_mcp_proxy_fixed.py::TestMCPWithHelper::test_complete_flow_with_helper
+[gw3] [ 66%] PASSED tests/test_mcp_proxy.py::TestMCPProxyHeaders::test_cors_headers_on_options
+tests/test_mcp_proxy_fixed.py::TestMCPProxyWithSessionHandling::test_initialize_returns_session_id
+[gw2] [ 66%] PASSED tests/test_mcp_proxy.py::TestMCPProtocolInitialization::test_initialize_request
+tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_hypothesis_testing
+[gw2] [ 66%] SKIPPED tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_hypothesis_testing
+tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_error_handling
+[gw2] [ 66%] SKIPPED tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_error_handling
+tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_complete_workflow
+[gw2] [ 66%] SKIPPED tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_complete_workflow
+tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_protocol_compliance
+[gw2] [ 67%] SKIPPED tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_protocol_compliance
+tests/test_mcp_sequentialthinking_integration.py::TestMCPSequentialThinkingIntegration::test_sequentialthinking_initialize
+[gw2] [ 67%] SKIPPED tests/test_mcp_sequentialthinking_integration.py::TestMCPSequentialThinkingIntegration::test_sequentialthinking_initialize
+tests/test_mcp_sequentialthinking_integration.py::TestMCPSequentialThinkingIntegration::test_sequentialthinking_list_tools
+[gw2] [ 67%] SKIPPED tests/test_mcp_sequentialthinking_integration.py::TestMCPSequentialThinkingIntegration::test_sequentialthinking_list_tools
+tests/test_mcp_sequentialthinking_integration.py::TestMCPSequentialThinkingIntegration::test_sequentialthinking_list_resources
+[gw2] [ 67%] SKIPPED tests/test_mcp_sequentialthinking_integration.py::TestMCPSequentialThinkingIntegration::test_sequentialthinking_list_resources
+[gw0] [ 67%] SKIPPED tests/test_mcp_proxy_fixed.py::TestMCPWithHelper::test_complete_flow_with_helper
+tests/test_mcp_sequentialthinking_integration.py::TestMCPSequentialThinkingIntegration::test_sequentialthinking_basic_functionality
+[gw2] [ 68%] SKIPPED tests/test_mcp_sequentialthinking_integration.py::TestMCPSequentialThinkingIntegration::test_sequentialthinking_basic_functionality
+tests/test_mcp_proxy_issues.py::TestMCPProxySessionIssues::test_session_not_maintained_across_requests
+[gw3] [ 68%] SKIPPED tests/test_mcp_proxy_fixed.py::TestMCPProxyWithSessionHandling::test_initialize_returns_session_id
+tests/test_mcp_sequentialthinking_integration.py::TestMCPSequentialThinkingIntegration::test_sequentialthinking_health_check
+[gw2] [ 68%] SKIPPED tests/test_mcp_sequentialthinking_integration.py::TestMCPSequentialThinkingIntegration::test_sequentialthinking_health_check
+tests/test_mcp_proxy_fixed.py::TestMCPProxyWithSessionHandling::test_session_persists_with_header
+tests/test_mcp_session_management.py::TestMCPSessionCreation::test_session_created_on_initialize
+[gw0] [ 68%] SKIPPED tests/test_mcp_proxy_issues.py::TestMCPProxySessionIssues::test_session_not_maintained_across_requests
+[gw3] [ 68%] SKIPPED tests/test_mcp_proxy_fixed.py::TestMCPProxyWithSessionHandling::test_session_persists_with_header
+tests/test_mcp_proxy_issues.py::TestMCPProxySessionIssues::test_session_id_header_missing
+tests/test_mcp_proxy_fixed.py::TestMCPProxyWithSessionHandling::test_request_without_session_id_fails
+[gw2] [ 68%] SKIPPED tests/test_mcp_session_management.py::TestMCPSessionCreation::test_session_created_on_initialize
+tests/test_mcp_streamablehttp_client_integration.py::TestMCPStreamableHTTPClientCommand::test_command_with_invalid_token
+[gw2] [ 69%] SKIPPED tests/test_mcp_streamablehttp_client_integration.py::TestMCPStreamableHTTPClientCommand::test_command_with_invalid_token
+tests/test_mcp_streamablehttp_client_integration.py::TestMCPStreamableHTTPClientCommand::test_test_auth_command
+[gw2] [ 69%] SKIPPED tests/test_mcp_streamablehttp_client_integration.py::TestMCPStreamableHTTPClientCommand::test_test_auth_command
+tests/test_mcp_streamablehttp_client_integration.py::TestMCPStreamableHTTPClientCommand::test_token_status_command
+[gw2] [ 69%] SKIPPED tests/test_mcp_streamablehttp_client_integration.py::TestMCPStreamableHTTPClientCommand::test_token_status_command
+tests/test_mcp_streamablehttp_client_integration.py::TestMCPStreamableHTTPClientCommand::test_command_with_complex_parameters
+[gw2] [ 69%] SKIPPED tests/test_mcp_streamablehttp_client_integration.py::TestMCPStreamableHTTPClientCommand::test_command_with_complex_parameters
+tests/test_mcp_streamablehttp_client_integration.py::TestMCPClientRealWorldUsage::test_consecutive_commands
+[gw2] [ 69%] SKIPPED tests/test_mcp_streamablehttp_client_integration.py::TestMCPClientRealWorldUsage::test_consecutive_commands
+tests/test_mcp_streamablehttp_client_integration.py::TestMCPClientRealWorldUsage::test_command_error_handling
+[gw2] [ 69%] SKIPPED tests/test_mcp_streamablehttp_client_integration.py::TestMCPClientRealWorldUsage::test_command_error_handling
+tests/test_mcp_time_integration.py::TestMCPTimeIntegration::test_time_initialize
+[gw0] [ 70%] SKIPPED tests/test_mcp_proxy_issues.py::TestMCPProxySessionIssues::test_session_id_header_missing
+[gw3] [ 70%] SKIPPED tests/test_mcp_proxy_fixed.py::TestMCPProxyWithSessionHandling::test_request_without_session_id_fails
+[gw2] [ 70%] SKIPPED tests/test_mcp_time_integration.py::TestMCPTimeIntegration::test_time_initialize
+tests/test_mcp_time_integration.py::TestMCPTimeIntegration::test_time_list_tools
+tests/test_mcp_proxy_fixed.py::TestMCPProxyWithSessionHandling::test_invalid_session_id_rejected
+tests/test_mcp_proxy_issues.py::TestMCPProxyWorkarounds::test_initialize_before_each_operation
+[gw2] [ 70%] SKIPPED tests/test_mcp_time_integration.py::TestMCPTimeIntegration::test_time_list_tools
+tests/test_mcp_time_integration.py::TestMCPTimeIntegration::test_time_list_resources
+[gw2] [ 70%] SKIPPED tests/test_mcp_time_integration.py::TestMCPTimeIntegration::test_time_list_resources
+tests/test_mcp_time_integration.py::TestMCPTimeIntegration::test_time_health_check
+[gw2] [ 71%] SKIPPED tests/test_mcp_time_integration.py::TestMCPTimeIntegration::test_time_health_check
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_session_lifecycle
+[gw2] [ 71%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_session_lifecycle
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_session_search
+[gw2] [ 71%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_session_search
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_window_operations
+[gw2] [ 71%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_window_operations
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_window_creation
+[gw2] [ 71%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_window_creation
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_pane_operations
+[gw2] [ 71%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_pane_operations
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_pane_content_capture
+[gw2] [ 72%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_pane_content_capture
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_pane_splitting
+[gw2] [ 72%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_pane_splitting
+[gw3] [ 72%] SKIPPED tests/test_mcp_proxy_fixed.py::TestMCPProxyWithSessionHandling::test_invalid_session_id_rejected
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_command_execution_simple
+[gw2] [ 72%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_command_execution_simple
+[gw0] [ 72%] SKIPPED tests/test_mcp_proxy_issues.py::TestMCPProxyWorkarounds::test_initialize_before_each_operation
+tests/test_mcp_proxy_fixed.py::TestMCPProtocolFlowWithSessions::test_complete_mcp_flow
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_command_execution_with_output
+tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_tool_discovery
+[gw2] [ 72%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_command_execution_with_output
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_key_sending
+[gw0] [ 73%] SKIPPED tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_tool_discovery
+[gw2] [ 73%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_key_sending
+tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_simple_problem
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_shell_command_execution
+[gw2] [ 73%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_shell_command_execution
+[gw0] [ 73%] SKIPPED tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_simple_problem
+tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_multi_step_process
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_sessions_resource
+[gw2] [ 73%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_sessions_resource
+[gw0] [ 74%] SKIPPED tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_multi_step_process
+tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_revision_process
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_specific_session_resource
+[gw2] [ 74%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_specific_session_resource
+[gw0] [ 74%] SKIPPED tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_revision_process
+tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_branching_logic
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_pane_resource
+[gw0] [ 74%] SKIPPED tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_branching_logic
+[gw2] [ 74%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_pane_resource
+[gw1] [ 74%] PASSED tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_echo_tool_command_json_args
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_invalid_session_operations
+tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_dynamic_scaling
+tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_echo_tool_command_multiline
+[gw0] [ 75%] SKIPPED tests/test_mcp_sequentialthinking_comprehensive.py::TestMCPSequentialThinkingComprehensive::test_sequentialthinking_dynamic_scaling
+[gw2] [ 75%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_invalid_session_operations
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_invalid_pane_operations
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_malformed_commands
+[gw2] [ 75%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_invalid_pane_operations
+[gw0] [ 75%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_malformed_commands
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_service_health
+[gw2] [ 75%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_service_health
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_oauth_discovery
+[gw2] [ 75%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_oauth_discovery
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_multiple_session_operations
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_mcp_initialize
+[gw2] [ 76%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_mcp_initialize
+[gw0] [ 76%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_multiple_session_operations
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_list_tools
+[gw2] [ 76%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_list_tools
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_list_sessions
+[gw2] [ 76%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_list_sessions
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_capture_pane
+[gw2] [ 76%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_capture_pane
+[gw3] [ 77%] SKIPPED tests/test_mcp_proxy_fixed.py::TestMCPProtocolFlowWithSessions::test_complete_mcp_flow
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_rapid_command_execution
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_execute_command
+[gw2] [ 77%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_execute_command
+[gw0] [ 77%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_rapid_command_execution
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_new_session
+[gw2] [ 77%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_new_session
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_list_resources
+[gw2] [ 77%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_list_resources
+tests/test_mcp_session_management.py::TestMCPSessionCreation::test_multiple_sessions_isolated
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_tmux_version_compatibility
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_read_sessions_resource
+[gw2] [ 77%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_read_sessions_resource
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_send_keys
+[gw0] [ 78%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_tmux_version_compatibility
+[gw2] [ 78%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_send_keys
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_protocol_version_compliance
+[gw2] [ 78%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_protocol_version_compliance
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_error_handling
+[gw2] [ 78%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_error_handling
+tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_authentication_required
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_environment_variables
+[gw2] [ 78%] SKIPPED tests/test_mcp_tmux_integration.py::TestMCPTmuxIntegration::test_tmux_authentication_required
+[gw0] [ 78%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_environment_variables
+tests/test_oauth_flow.py::TestOAuthFlow::test_server_metadata
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_long_running_processes
+[gw0] [ 79%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_long_running_processes
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_unicode_and_special_characters
+[gw0] [ 79%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_unicode_and_special_characters
+tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_tool_parameter_validation
+[gw0] [ 79%] SKIPPED tests/test_mcp_tmux_comprehensive.py::TestMCPTmuxComprehensive::test_tool_parameter_validation
+tests/test_oauth_flow.py::TestOAuthFlow::test_token_revocation
+[gw3] [ 79%] SKIPPED tests/test_mcp_session_management.py::TestMCPSessionCreation::test_multiple_sessions_isolated
+[gw2] [ 79%] PASSED tests/test_oauth_flow.py::TestOAuthFlow::test_server_metadata
+tests/test_mcp_session_management.py::TestMCPSessionPersistence::test_session_persists_between_requests
+tests/test_oauth_flow.py::TestOAuthFlow::test_client_registration_rfc7591
+[gw0] [ 80%] PASSED tests/test_oauth_flow.py::TestOAuthFlow::test_token_revocation
+tests/test_oauth_flow.py::TestOAuthFlow::test_forwardauth_verification
+[gw3] [ 80%] SKIPPED tests/test_mcp_session_management.py::TestMCPSessionPersistence::test_session_persists_between_requests
+tests/test_mcp_session_management.py::TestMCPSessionPersistence::test_session_requires_initialization
+[gw0] [ 80%] PASSED tests/test_oauth_flow.py::TestOAuthFlow::test_forwardauth_verification
+[gw2] [ 80%] PASSED tests/test_oauth_flow.py::TestOAuthFlow::test_client_registration_rfc7591
+tests/test_pkce_s256_enforcement.py::TestPKCES256Enforcement::test_pkce_plain_method_rejected
+tests/test_oauth_flow.py::TestOAuthFlow::test_authorization_endpoint_validation
+[gw3] [ 80%] SKIPPED tests/test_mcp_session_management.py::TestMCPSessionPersistence::test_session_requires_initialization
+tests/test_mcp_session_management.py::TestMCPSessionTimeout::test_session_timeout_configuration
+[gw2] [ 80%] PASSED tests/test_oauth_flow.py::TestOAuthFlow::test_authorization_endpoint_validation
+[gw0] [ 81%] PASSED tests/test_pkce_s256_enforcement.py::TestPKCES256Enforcement::test_pkce_plain_method_rejected
+tests/test_pkce_s256_enforcement.py::TestPKCES256Enforcement::test_pkce_s256_proper_validation
+tests/test_oauth_flow.py::TestOAuthFlow::test_pkce_flow
+[gw3] [ 81%] SKIPPED tests/test_mcp_session_management.py::TestMCPSessionTimeout::test_session_timeout_configuration
+tests/test_mcp_session_management.py::TestMCPSessionTimeout::test_session_activity_updates
+[gw0] [ 81%] PASSED tests/test_pkce_s256_enforcement.py::TestPKCES256Enforcement::test_pkce_s256_proper_validation
+[gw2] [ 81%] PASSED tests/test_oauth_flow.py::TestOAuthFlow::test_pkce_flow
+tests/test_pkce_s256_enforcement.py::TestPKCES256Enforcement::test_pkce_s256_wrong_verifier_rejected
+tests/test_oauth_flow.py::TestOAuthFlow::test_token_endpoint_errors
+[gw3] [ 81%] SKIPPED tests/test_mcp_session_management.py::TestMCPSessionTimeout::test_session_activity_updates
+tests/test_mcp_session_management.py::TestMCPSessionConcurrency::test_concurrent_requests_same_session
+[gw0] [ 81%] PASSED tests/test_pkce_s256_enforcement.py::TestPKCES256Enforcement::test_pkce_s256_wrong_verifier_rejected
+tests/test_pkce_s256_enforcement.py::TestPKCES256Enforcement::test_server_metadata_only_advertises_s256
+[gw2] [ 82%] PASSED tests/test_oauth_flow.py::TestOAuthFlow::test_token_endpoint_errors
+tests/test_oauth_flow.py::TestOAuthFlow::test_token_introspection
+[gw3] [ 82%] SKIPPED tests/test_mcp_session_management.py::TestMCPSessionConcurrency::test_concurrent_requests_same_session
+tests/test_mcp_session_management.py::TestMCPSessionConcurrency::test_request_id_uniqueness
+[gw0] [ 82%] PASSED tests/test_pkce_s256_enforcement.py::TestPKCES256Enforcement::test_server_metadata_only_advertises_s256
+tests/test_pkce_validation.py::TestPKCEValidation::test_pkce_plain_method_rejected
+[gw2] [ 82%] PASSED tests/test_oauth_flow.py::TestOAuthFlow::test_token_introspection
+[gw3] [ 82%] SKIPPED tests/test_mcp_session_management.py::TestMCPSessionConcurrency::test_request_id_uniqueness
+tests/test_mcp_session_management.py::TestMCPSessionCleanup::test_session_cleanup_on_client_disconnect
+tests/test_real_oauth_flow.py::TestRealPKCEFlow::test_pkce_with_real_client
+[gw0] [ 83%] PASSED tests/test_pkce_validation.py::TestPKCEValidation::test_pkce_plain_method_rejected
+tests/test_pkce_validation.py::TestPKCEValidation::test_pkce_s256_verification_fixed
+[gw3] [ 83%] SKIPPED tests/test_mcp_session_management.py::TestMCPSessionCleanup::test_session_cleanup_on_client_disconnect
+tests/test_mcp_stdio_http_package.py::test_mcp_fetch_uses_package
+[gw2] [ 83%] PASSED tests/test_real_oauth_flow.py::TestRealPKCEFlow::test_pkce_with_real_client
+[gw3] [ 83%] SKIPPED tests/test_mcp_stdio_http_package.py::test_mcp_fetch_uses_package
+tests/test_real_oauth_flow.py::TestRealJWTTokens::test_real_jwt_token_operations
+tests/test_mcp_streamablehttp_client_integration.py::TestMCPStreamableHTTPClientCommand::test_fetch_example_com
+[gw3] [ 83%] SKIPPED tests/test_mcp_streamablehttp_client_integration.py::TestMCPStreamableHTTPClientCommand::test_fetch_example_com
+tests/test_register_security.py::TestRegisterEndpointSecurity::test_register_with_valid_token_still_succeeds
+[gw0] [ 83%] PASSED tests/test_pkce_validation.py::TestPKCEValidation::test_pkce_s256_verification_fixed
+tests/test_pkce_validation.py::TestPKCEValidation::test_verify_pkce_challenge_implementation
+[gw0] [ 84%] PASSED tests/test_pkce_validation.py::TestPKCEValidation::test_verify_pkce_challenge_implementation
+[gw3] [ 84%] PASSED tests/test_register_security.py::TestRegisterEndpointSecurity::test_register_with_valid_token_still_succeeds
+tests/test_pkce_validation.py::TestPKCEValidation::test_pkce_verifier_wrong_value
+[gw2] [ 84%] PASSED tests/test_real_oauth_flow.py::TestRealJWTTokens::test_real_jwt_token_operations
+tests/test_register_security.py::TestRegisterEndpointSecurity::test_token_endpoint_requires_authentication
+tests/test_register_security.py::TestRegisterEndpointSecurity::test_register_is_public_endpoint
+[gw0] [ 84%] PASSED tests/test_pkce_validation.py::TestPKCEValidation::test_pkce_verifier_wrong_value
+[gw2] [ 84%] PASSED tests/test_register_security.py::TestRegisterEndpointSecurity::test_register_is_public_endpoint
+tests/test_real_oauth_flow.py::TestRealOAuthFlow::test_complete_github_oauth_flow
+tests/test_register_security.py::TestRegisterEndpointSecurity::test_register_ignores_authorization_headers
+[gw3] [ 84%] PASSED tests/test_register_security.py::TestRegisterEndpointSecurity::test_token_endpoint_requires_authentication
+tests/test_register_security.py::TestRegisterEndpointSecurity::test_multiple_clients_can_register_publicly
+[gw2] [ 85%] PASSED tests/test_register_security.py::TestRegisterEndpointSecurity::test_register_ignores_authorization_headers
+tests/test_register_security.py::TestRegisterEndpointSecurity::test_security_enforced_at_authorization_stage
+[gw3] [ 85%] PASSED tests/test_register_security.py::TestRegisterEndpointSecurity::test_multiple_clients_can_register_publicly
+tests/test_register_security.py::TestRegisterEndpointBootstrap::test_anyone_can_register_multiple_clients
+[gw2] [ 85%] PASSED tests/test_register_security.py::TestRegisterEndpointSecurity::test_security_enforced_at_authorization_stage
+tests/test_registration_security.py::TestUnauthorizedUserAccess::test_token_exchange_without_valid_code
+[gw3] [ 85%] PASSED tests/test_register_security.py::TestRegisterEndpointBootstrap::test_anyone_can_register_multiple_clients
+tests/test_registration_security.py::TestRegistrationPublicAccess::test_register_endpoint_is_public
+[gw2] [ 85%] PASSED tests/test_registration_security.py::TestUnauthorizedUserAccess::test_token_exchange_without_valid_code
+tests/test_registration_security.py::TestSecurityModelValidation::test_complete_security_flow
+[gw2] [ 86%] SKIPPED tests/test_registration_security.py::TestSecurityModelValidation::test_complete_security_flow
+tests/test_registration_security.py::TestSecurityModelValidation::test_oauth_discovery_is_public
+[gw2] [ 86%] SKIPPED tests/test_registration_security.py::TestSecurityModelValidation::test_oauth_discovery_is_public
+tests/test_rfc7592_compliance.py::test_rfc7592_get_client_configuration
+[gw3] [ 86%] PASSED tests/test_registration_security.py::TestRegistrationPublicAccess::test_register_endpoint_is_public
+tests/test_rfc7592_compliance.py::test_rfc7592_put_update_client
+[gw2] [ 86%] PASSED tests/test_rfc7592_compliance.py::test_rfc7592_get_client_configuration
+tests/test_rfc7592_compliance.py::test_rfc7592_malformed_requests
+[gw3] [ 86%] PASSED tests/test_rfc7592_compliance.py::test_rfc7592_put_update_client
+tests/test_rfc7592_compliance.py::test_rfc7592_delete_client
+[gw0] [ 86%] PASSED tests/test_real_oauth_flow.py::TestRealOAuthFlow::test_complete_github_oauth_flow
+tests/test_registration_security.py::TestRegistrationPublicAccess::test_anyone_can_register_with_auth
+[gw3] [ 87%] PASSED tests/test_rfc7592_compliance.py::test_rfc7592_delete_client
+[gw2] [ 87%] PASSED tests/test_rfc7592_compliance.py::test_rfc7592_malformed_requests
+tests/test_rfc7592_compliance.py::test_rfc7592_requires_correct_bearer_token
+tests/test_rfc7592_compliance.py::test_rfc7592_concurrent_updates
+[gw1] [ 87%] PASSED tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_echo_tool_command_multiline
+tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_print_header_tool_command
+[gw0] [ 87%] PASSED tests/test_registration_security.py::TestRegistrationPublicAccess::test_anyone_can_register_with_auth
+tests/test_registration_security.py::TestTokenSecurityWithoutGitHub::test_registered_client_cannot_get_token_without_github_auth
+[gw3] [ 87%] PASSED tests/test_rfc7592_compliance.py::test_rfc7592_requires_correct_bearer_token
+tests/test_rfc7592_compliance.py::test_rfc7592_client_isolation
+[gw2] [ 87%] PASSED tests/test_rfc7592_compliance.py::test_rfc7592_concurrent_updates
+tests/test_rfc7592_compliance.py::test_rfc7592_client_lifetime_handling
+[gw0] [ 88%] PASSED tests/test_registration_security.py::TestTokenSecurityWithoutGitHub::test_registered_client_cannot_get_token_without_github_auth
+tests/test_registration_security.py::TestTokenSecurityWithoutGitHub::test_authorization_requires_github_login
+[gw2] [ 88%] PASSED tests/test_rfc7592_compliance.py::test_rfc7592_client_lifetime_handling
+tests/test_rfc7592_security.py::test_rfc7592_rejects_oauth_bearer_tokens
+[gw3] [ 88%] PASSED tests/test_rfc7592_compliance.py::test_rfc7592_client_isolation
+tests/test_rfc7592_security.py::test_rfc7592_authentication_edge_cases
+[gw0] [ 88%] PASSED tests/test_registration_security.py::TestTokenSecurityWithoutGitHub::test_authorization_requires_github_login
+tests/test_registration_security.py::TestAllowedUsersEnforcement::test_oauth_flow_checks_allowed_users
+[gw2] [ 88%] PASSED tests/test_rfc7592_security.py::test_rfc7592_rejects_oauth_bearer_tokens
+tests/test_rfc7592_security.py::test_rfc7592_rate_limiting
+[gw3] [ 89%] PASSED tests/test_rfc7592_security.py::test_rfc7592_authentication_edge_cases
+tests/test_rfc7592_security.py::test_rfc7592_cross_client_access_forbidden
+[gw0] [ 89%] PASSED tests/test_registration_security.py::TestAllowedUsersEnforcement::test_oauth_flow_checks_allowed_users
+tests/test_registration_security.py::TestUnauthorizedUserAccess::test_invalid_github_callback_handling
+[gw0] [ 89%] PASSED tests/test_registration_security.py::TestUnauthorizedUserAccess::test_invalid_github_callback_handling
+tests/test_rfc_compliance.py::TestRFCCompliance::test_token_invalid_client_rfc6749_compliance
+[gw2] [ 89%] PASSED tests/test_rfc7592_security.py::test_rfc7592_rate_limiting
+tests/test_rfc7592_security.py::test_rfc7592_sql_injection_attempts
+[gw0] [ 89%] PASSED tests/test_rfc_compliance.py::TestRFCCompliance::test_token_invalid_client_rfc6749_compliance
+tests/test_rfc_compliance.py::TestRFCCompliance::test_oauth_discovery_includes_registration_endpoint
+[gw3] [ 89%] PASSED tests/test_rfc7592_security.py::test_rfc7592_cross_client_access_forbidden
+tests/test_rfc7592_security.py::test_rfc7592_timing_attack_resistance
+[gw0] [ 90%] PASSED tests/test_rfc_compliance.py::TestRFCCompliance::test_oauth_discovery_includes_registration_endpoint
+tests/test_rfc_compliance.py::TestRFCCompliance::test_registration_invalid_redirect_uri_rfc7591
+[gw0] [ 90%] PASSED tests/test_rfc_compliance.py::TestRFCCompliance::test_registration_invalid_redirect_uri_rfc7591
+tests/test_routing_bug_regression.py::TestRoutingBugRegression::test_mcp_path_without_host_only_routing_returns_401_not_404
+[gw0] [ 90%] SKIPPED tests/test_routing_bug_regression.py::TestRoutingBugRegression::test_mcp_path_without_host_only_routing_returns_401_not_404
+tests/test_routing_bug_regression.py::TestRoutingBugRegression::test_traefik_labels_include_path_routing
+[gw0] [ 90%] SKIPPED tests/test_routing_bug_regression.py::TestRoutingBugRegression::test_traefik_labels_include_path_routing
+tests/test_routing_bug_regression.py::TestRoutingBugRegression::test_all_required_routes_configured
+[gw0] [ 90%] SKIPPED tests/test_routing_bug_regression.py::TestRoutingBugRegression::test_all_required_routes_configured
+tests/test_routing_bug_regression.py::TestRoutingBugRegression::test_routing_priorities_correct
+[gw0] [ 90%] SKIPPED tests/test_routing_bug_regression.py::TestRoutingBugRegression::test_routing_priorities_correct
+tests/test_sacred_seals_compliance.py::TestSacredSealsCompliance::test_redis_key_patterns_and_ttls
+[gw2] [ 91%] PASSED tests/test_rfc7592_security.py::test_rfc7592_sql_injection_attempts
+tests/test_rfc_compliance.py::TestRFCCompliance::test_authorize_invalid_client_rfc6749_compliance
+[gw3] [ 91%] PASSED tests/test_rfc7592_security.py::test_rfc7592_timing_attack_resistance
+tests/test_rfc_compliance.py::TestRFCCompliance::test_registration_valid_redirect_uris_rfc7591
+[gw2] [ 91%] PASSED tests/test_rfc_compliance.py::TestRFCCompliance::test_authorize_invalid_client_rfc6749_compliance
+tests/test_sacred_seals_compliance.py::TestSacredSealsCompliance::test_sacred_directory_structure
+[gw3] [ 91%] PASSED tests/test_rfc_compliance.py::TestRFCCompliance::test_registration_valid_redirect_uris_rfc7591
+tests/test_rfc_compliance.py::TestRFCCompliance::test_registration_missing_redirect_uris_rfc7591
+[gw3] [ 91%] PASSED tests/test_rfc_compliance.py::TestRFCCompliance::test_registration_missing_redirect_uris_rfc7591
+tests/test_sacred_seals_compliance.py::TestSacredSealsCompliance::test_documentation_build
+[gw3] [ 92%] PASSED tests/test_sacred_seals_compliance.py::TestSacredSealsCompliance::test_documentation_build
+tests/test_ssl_security.py::TestSSLSecurity::test_ssl_verification_enabled_globally
+[gw0] [ 92%] PASSED tests/test_sacred_seals_compliance.py::TestSacredSealsCompliance::test_redis_key_patterns_and_ttls
+tests/test_sacred_seals_compliance.py::TestSacredSealsCompliance::test_dual_realms_architecture
+[gw3] [ 92%] PASSED tests/test_ssl_security.py::TestSSLSecurity::test_ssl_verification_enabled_globally
+tests/test_ssl_security.py::TestSSLSecurity::test_no_insecure_warnings_allowed
+[gw3] [ 92%] PASSED tests/test_ssl_security.py::TestSSLSecurity::test_no_insecure_warnings_allowed
+tests/test_ssl_security.py::TestSSLSecurity::test_services_have_valid_certificates[https://auth.atratest.org]
+[gw3] [ 92%] PASSED tests/test_ssl_security.py::TestSSLSecurity::test_services_have_valid_certificates[https://auth.atratest.org]
+tests/test_ssl_security.py::TestSSLSecurity::test_services_have_valid_certificates[https://echo-stateless.atratest.org]
+[gw3] [ 92%] PASSED tests/test_ssl_security.py::TestSSLSecurity::test_services_have_valid_certificates[https://echo-stateless.atratest.org]
+tests/test_ssl_security.py::TestSSLSecurity::test_services_have_valid_certificates[https://everything.atratest.org]
+[gw0] [ 93%] PASSED tests/test_sacred_seals_compliance.py::TestSacredSealsCompliance::test_dual_realms_architecture
+tests/test_ssl_security.py::TestSSLSecurity::test_ssl_context_uses_certifi
+[gw0] [ 93%] PASSED tests/test_ssl_security.py::TestSSLSecurity::test_ssl_context_uses_certifi
+[gw3] [ 93%] PASSED tests/test_ssl_security.py::TestSSLSecurity::test_services_have_valid_certificates[https://everything.atratest.org]
+tests/test_ssl_security.py::TestSSLSecurity::test_no_verify_false_in_codebase
+tests/test_ssl_security.py::TestSSLSecurity::test_enforced_ssl_in_conftest
+[gw2] [ 93%] PASSED tests/test_sacred_seals_compliance.py::TestSacredSealsCompliance::test_sacred_directory_structure
+[gw0] [ 93%] PASSED tests/test_ssl_security.py::TestSSLSecurity::test_no_verify_false_in_codebase
+tests/test_sacred_seals_compliance.py::TestSacredSealsCompliance::test_sidecar_coverage_collection
+[gw2] [ 93%] PASSED tests/test_sacred_seals_compliance.py::TestSacredSealsCompliance::test_sidecar_coverage_collection
+tests/test_ssl_security.py::TestSSLBestPractices::test_https_urls_used
+[gw0] [ 94%] PASSED tests/test_ssl_security.py::TestSSLBestPractices::test_https_urls_used
+tests/test_traefik_routing.py::TestTraefikRouting::test_auth_service_routing
+[gw2] [ 94%] SKIPPED tests/test_traefik_routing.py::TestTraefikRouting::test_auth_service_routing
+tests/test_traefik_routing.py::TestTraefikRouting::test_mcp_fetch_path_routing_without_auth
+[gw2] [ 94%] SKIPPED tests/test_traefik_routing.py::TestTraefikRouting::test_mcp_fetch_path_routing_without_auth
+tests/test_traefik_routing.py::TestTraefikRouting::test_mcp_fetch_root_requires_auth
+[gw0] [ 94%] SKIPPED tests/test_traefik_routing.py::TestTraefikRouting::test_mcp_fetch_root_requires_auth
+tests/test_traefik_routing.py::TestTraefikRouting::test_mcp_fetch_trailing_slash_redirect
+[gw2] [ 94%] SKIPPED tests/test_traefik_routing.py::TestTraefikRouting::test_mcp_fetch_trailing_slash_redirect
+tests/test_traefik_routing.py::TestTraefikRouting::test_all_mcp_paths_require_auth
+[gw3] [ 95%] PASSED tests/test_ssl_security.py::TestSSLSecurity::test_enforced_ssl_in_conftest
+[gw0] [ 95%] SKIPPED tests/test_traefik_routing.py::TestTraefikRouting::test_all_mcp_paths_require_auth
+tests/test_traefik_routing.py::TestTraefikRouting::test_routing_priority_order
+[gw2] [ 95%] SKIPPED tests/test_traefik_routing.py::TestTraefikRouting::test_routing_priority_order
+tests/test_traefik_routing.py::TestTraefikRouting::test_cross_domain_routing
+[gw0] [ 95%] SKIPPED tests/test_traefik_routing.py::TestTraefikRouting::test_cross_domain_routing
+tests/test_traefik_routing.py::TestTraefikRouting::test_invalid_paths_return_404_or_401
+[gw2] [ 95%] SKIPPED tests/test_traefik_routing.py::TestTraefikRouting::test_invalid_paths_return_404_or_401
+tests/test_traefik_routing.py::TestTraefikRouting::test_http_to_https_redirect
+[gw0] [ 95%] SKIPPED tests/test_traefik_routing.py::TestTraefikRouting::test_http_to_https_redirect
+tests/test_ssl_security.py::TestSSLBestPractices::test_certificate_validation_errors_helpful
+[gw1] [ 96%] PASSED tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_print_header_tool_command
+tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_command_with_invalid_token
+[gw3] [ 96%] PASSED tests/test_ssl_security.py::TestSSLBestPractices::test_certificate_validation_errors_helpful
+[gw1] [ 96%] PASSED tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_command_with_invalid_token
+tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_invalid_tool_command
+[gw1] [ 96%] PASSED tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_invalid_tool_command
+tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_echo_stress_test_commands
+[gw1] [ 96%] PASSED tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_echo_stress_test_commands
+tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_echo_multiple_urls
+[gw1] [ 96%] PASSED tests/test_mcp_echo_client_commands.py::TestMCPEchoClientCommands::test_echo_multiple_urls
+tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_echo_initialize
+[gw1] [ 97%] PASSED tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_echo_initialize
+tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_echo_list_tools
+[gw1] [ 97%] PASSED tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_echo_list_tools
+tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_echo_tool_functionality
+[gw1] [ 97%] PASSED tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_echo_tool_functionality
+tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_print_header_tool_functionality
+[gw1] [ 97%] PASSED tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_print_header_tool_functionality
+tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_echo_tool_error_handling
+[gw1] [ 97%] PASSED tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_echo_tool_error_handling
+tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_print_header_tool_error_handling
+[gw1] [ 98%] PASSED tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_print_header_tool_error_handling
+tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_echo_stateless_behavior
+[gw1] [ 98%] PASSED tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_echo_stateless_behavior
+tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_echo_protocol_compliance
+[gw1] [ 98%] PASSED tests/test_mcp_echo_client_full.py::TestMCPEchoClientFull::test_echo_protocol_compliance
+tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_echo_tool
+[gw1] [ 98%] PASSED tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_echo_tool
+tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_print_header_tool
+[gw1] [ 98%] PASSED tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_print_header_tool
+tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_bearer_decode_tool_no_token
+[gw1] [ 98%] PASSED tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_bearer_decode_tool_no_token
+tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_bearer_decode_tool_with_token
+[gw1] [ 99%] PASSED tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_bearer_decode_tool_with_token
+tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_auth_context_tool
+[gw1] [ 99%] PASSED tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_auth_context_tool
+tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_who_is_the_goat_tool
+[gw1] [ 99%] PASSED tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_who_is_the_goat_tool
+tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_request_timing_tool
+[gw1] [ 99%] PASSED tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_request_timing_tool
+tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_cors_analysis_tool
+[gw1] [ 99%] PASSED tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_cors_analysis_tool
+tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_environment_dump_tool
+[gw1] [100%] PASSED tests/test_mcp_echo_diagnostic_tools.py::TestMCPEchoDiagnosticTools::test_environment_dump_tool
+
+=============================== warnings summary ===============================
+tests/test_mcp_echo_protocol_compliance.py::TestMCPEchoProtocolCompliance::test_echo_content_type_validation
+  /home/atrawog/mcp-oauth-gateway/.pixi/envs/default/lib/python3.12/site-packages/httpx/_models.py:408: DeprecationWarning: Use 'content=<...>' to upload raw bytes/text content.
+    headers, stream = encode_request(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================= 335 passed, 231 skipped, 1 warning in 30.90s =================

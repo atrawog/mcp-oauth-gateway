@@ -199,11 +199,20 @@ rebuild *services: network-create volumes-create generate-includes generate-midd
     #!/usr/bin/env bash
     if [ -z "{{services}}" ]; then
         echo "Rebuilding all services from scratch..."
+        echo "Stopping all services..."
+        docker compose -f docker-compose.includes.yml down
+        echo "Building all services with no cache..."
         docker compose -f docker-compose.includes.yml build --no-cache
+        echo "Starting all services..."
         docker compose -f docker-compose.includes.yml up -d
     else
         echo "Rebuilding: {{services}}"
+        echo "Stopping services: {{services}}"
+        docker compose -f docker-compose.includes.yml stop {{services}}
+        docker compose -f docker-compose.includes.yml rm -f {{services}}
+        echo "Building services with no cache: {{services}}"
         docker compose -f docker-compose.includes.yml build --no-cache {{services}}
+        echo "Starting services: {{services}}"
         docker compose -f docker-compose.includes.yml up -d {{services}}
     fi
     echo "✅ Rebuild completed"

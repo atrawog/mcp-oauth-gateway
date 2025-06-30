@@ -648,17 +648,6 @@ class MCPEchoServerStateful:
                 "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
             },
             {
-                "name": "protocolNegotiation",
-                "description": "Analyze MCP protocol version negotiation",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "testVersion": {"type": "string", "description": "Test a specific protocol version"},
-                    },
-                    "additionalProperties": False,
-                },
-            },
-            {
                 "name": "corsAnalysis",
                 "description": "Analyze CORS configuration and requirements",
                 "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
@@ -726,7 +715,6 @@ class MCPEchoServerStateful:
             "bearerDecode": self._handle_bearer_decode,
             "authContext": self._handle_auth_context,
             "requestTiming": self._handle_request_timing,
-            "protocolNegotiation": self._handle_protocol_negotiation,
             "corsAnalysis": self._handle_cors_analysis,
             "environmentDump": self._handle_environment_dump,
             "healthProbe": self._handle_health_probe,
@@ -1146,35 +1134,6 @@ class MCPEchoServerStateful:
             result_text += "  ⚠️  Acceptable (<100ms)\n"
         else:
             result_text += "  ❌ Slow (>100ms)\n"
-
-        return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
-
-    async def _handle_protocol_negotiation(
-        self,
-        arguments: dict[str, Any],
-        request_id: Any,
-        session_id: str | None = None,
-    ) -> dict[str, Any]:
-        """Analyze protocol version negotiation."""
-        task_id = id(asyncio.current_task())
-        context = self._request_context.get(task_id, {})
-        headers = context.get("headers", {})
-
-        result_text = "MCP Protocol Negotiation Analysis\n" + "=" * 40 + "\n\n"
-
-        if session_id:
-            result_text += f"Session: {session_id[:8]}...\n"
-            session = self.session_manager.get_session(session_id)
-            if session:
-                result_text += f"Session Protocol: {session.get('protocol_version', 'Not set')}\n\n"
-
-        # Current request info
-        result_text += "Current Request:\n"
-        mcp_header = headers.get("mcp-protocol-version", None)
-        client_version = mcp_header if mcp_header is not None else "not specified"
-        result_text += f"  MCP-Protocol-Version Header: {client_version}\n"
-        result_text += f"  Server Supported Versions: {', '.join(self.supported_versions)}\n"
-        result_text += f"  Server Default Version: {self.PROTOCOL_VERSION}\n"
 
         return {"jsonrpc": "2.0", "id": request_id, "result": {"content": [{"type": "text", "text": result_text}]}}
 

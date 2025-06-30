@@ -194,7 +194,7 @@ class TestMCPEchoClientFull:
         assert "result" in response
         tools = response["result"]["tools"]
         assert isinstance(tools, list)
-        assert len(tools) == 10  # Now we have 10 tools including diagnostic tools
+        assert len(tools) == 9  # Now we have 9 tools including diagnostic tools
 
         # Check tool structure
         tool_names = []
@@ -213,7 +213,6 @@ class TestMCPEchoClientFull:
             "bearerDecode",
             "authContext",
             "requestTiming",
-            "protocolNegotiation",
             "corsAnalysis",
             "environmentDump",
             "healthProbe",

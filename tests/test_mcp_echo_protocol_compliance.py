@@ -241,7 +241,7 @@ class TestMCPEchoProtocolCompliance:
         # Test with wrong content type
         response = await http_client.post(
             mcp_echo_stateless_url,
-            data="not json",  # Send as text
+            content="not json",  # Send as text
             headers={
                 **gateway_auth_headers,
                 "Content-Type": "text/plain",  # Wrong content type

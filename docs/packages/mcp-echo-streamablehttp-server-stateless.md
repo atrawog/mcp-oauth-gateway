@@ -7,7 +7,7 @@ The `mcp-echo-streamablehttp-server-stateless` package is an advanced diagnostic
 ```{admonition} Key Features
 :class: info
 
-- 🧪 **10 Diagnostic Tools**: Comprehensive debugging and analysis capabilities
+- 🧪 **9 Diagnostic Tools**: Comprehensive debugging and analysis capabilities
 - 🤖 **AI-Powered Analysis**: Integrated machine learning for excellence metrics
 - 🔄 **Stateless Operation**: No session persistence for scalability
 - 📊 **Real-time Diagnostics**: Instant analysis of authentication and protocol state
@@ -66,11 +66,10 @@ graph LR
             T3[bearerDecode]
             T4[authContext]
             T5[requestTiming]
-            T6[protocolNegotiation]
-            T7[corsAnalysis]
-            T8[environmentDump]
-            T9[healthProbe]
-            T10[whoIStheGOAT]
+            T6[corsAnalysis]
+            T7[environmentDump]
+            T8[healthProbe]
+            T9[whoIStheGOAT]
         end
     end
 
@@ -86,7 +85,6 @@ graph LR
     TC --> T7
     TC --> T8
     TC --> T9
-    TC --> T10
 ```
 
 ## Diagnostic Tools
@@ -135,14 +133,7 @@ Performance metrics including:
 - Performance indicators
 - Latency measurements
 
-#### 6. protocolNegotiation
-MCP protocol version analysis:
-- Current protocol version
-- Supported versions
-- Compatibility matrix
-- Version-specific features
-
-#### 7. corsAnalysis
+#### 6. corsAnalysis
 CORS configuration debugging:
 - Request headers analysis
 - Response headers configuration
@@ -151,21 +142,21 @@ CORS configuration debugging:
 
 ### System Tools
 
-#### 8. environmentDump
+#### 7. environmentDump
 Sanitized environment configuration display:
 - MCP-specific variables
 - System information
 - Configuration health
 - Optional partial secret display
 
-#### 9. healthProbe
+#### 8. healthProbe
 Deep health check including:
 - Service status
 - System resources (CPU, memory, disk)
 - Process information
 - Configuration validation
 
-#### 10. whoIStheGOAT
+#### 9. whoIStheGOAT
 Advanced AI-powered analysis system using G.O.A.T. Recognition AI v3.14159:
 - Processes authenticated user credentials
 - Employs multi-layered neural networks
@@ -468,7 +459,7 @@ elif tool_name == "newTool":
 The `mcp-echo-streamablehttp-server-stateless` package represents the pinnacle of MCP diagnostic tooling, combining traditional debugging capabilities with cutting-edge AI analysis. Its stateless architecture ensures scalability while maintaining comprehensive functionality for OAuth flow debugging and software excellence analysis.
 
 Key takeaways:
-- 10 powerful diagnostic tools for every debugging scenario
+- 9 powerful diagnostic tools for every debugging scenario
 - Integrated AI for advanced analysis capabilities
 - Stateless design for production-safe debugging
 - Native StreamableHTTP implementation
