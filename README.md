@@ -125,11 +125,6 @@ NETWORK TOPOLOGY:
 
 #### Token Types and Scopes
 - **registration_access_token**: Bearer token for client management only (RFC 7592)
-  - Format: `reg-{32-byte-random-token}` using `secrets.token_urlsafe(32)`
-  - Lifetime: Matches client lifetime (90 days default, eternal if CLIENT_LIFETIME=0)
-  - Storage: Part of client data in Redis at `oauth:client:{client_id}`
-  - **CRITICAL**: Cannot be recovered if lost - client becomes unmanageable
-  - **SECURITY**: Completely separate from OAuth access tokens - cannot be interchanged
 - **access_token**: JWT containing user identity + client_id for MCP access
 - **refresh_token**: Opaque token for obtaining new access tokens
 - **authorization_code**: One-time code binding user to client
@@ -161,6 +156,8 @@ NETWORK TOPOLOGY:
 
 ### OAuth Architecture: Client Credentials + User Authentication
 
+The gateway implements a **multi-layered OAuth 2.1 authorization system** that integrates **client credential authentication** with **GitHub OAuth identity federation**:
+
 The gateway implements a **sophisticated OAuth 2.1 system** with **three distinct authentication flows**:
 
 1. **GitHub Device Flow (RFC 8628)** - For command-line/browserless scenarios
@@ -190,7 +187,7 @@ Need Authentication?
         - JWT issued with user+client identity
 ```
 
-The gateway implements this sophisticated system that combines client credential authentication with GitHub user authentication:
+The gateway implementation combines client credential authentication with GitHub user authentication:
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════════════════╗
@@ -289,12 +286,11 @@ The gateway implements this sophisticated system that combines client credential
 ╚═══════════════════════════════════════════════════════════════════════════════════╝
 ```
 
-🔑 KEY POINTS:
-• client_id + client_secret authenticate the OAuth CLIENT (e.g., Claude.ai)
-• GitHub OAuth authenticates the human USER
-• The final access_token combines BOTH: which client AND which user
-• registration_access_token is ONLY for client management, NOT resource access
-
+🔑 **ARCHITECTURAL PRINCIPLES:**
+• `client_id` + `client_secret` establish OAuth client identity (e.g., Claude.ai application)
+• GitHub OAuth provides user identity federation and authentication
+• The resultant `access_token` JWT encapsulates both client and user identity claims
+• `registration_access_token` is scoped exclusively to client lifecycle management operations
 
 ### OAuth Roles
 
@@ -330,13 +326,12 @@ The gateway implements this sophisticated system that combines client credential
 
 ### Infrastructure Requirements
 
-- **Public IP address and properly configured DNS** (MANDATORY - no exceptions!)
+- **Public IP address and properly configured DNS** (MANDATORY)
   - All subdomains must resolve to your server:
     - `auth.your-domain.com` - OAuth authorization server
     - `service.your-domain.com` - Each MCP service subdomain
   - Ports 80 and 443 must be accessible from the internet
-  - Let's Encrypt certificate provisioning requires public access
-  - **NO LOCALHOST DEPLOYMENTS** - The gateway requires real domains
+
 
 ### GitHub OAuth App
 
@@ -547,10 +542,7 @@ The gateway adds several features not specified in the MCP protocol:
 
 - **RFC 7592 Client Management**: Complete client lifecycle management (GET/PUT/DELETE operations)
 - **GitHub OAuth Integration**: User authentication through GitHub as Identity Provider
-- **Dynamic Service Configuration**: Enable/disable services via environment variables
-- **Bearer Token Authentication**: JWT-based API access with user identity claims
-- **Automatic HTTPS**: Let's Encrypt certificates for all subdomains
-- **Session Persistence**: Redis-backed state management for OAuth flows
+
 
 #### 6. Test Configuration
 
@@ -566,7 +558,7 @@ MCP_TIME_TESTS_ENABLED=false
 MCP_TMUX_TESTS_ENABLED=false
 MCP_EVERYTHING_TESTS_ENABLED=false
 MCP_ECHO_STATEFUL_TESTS_ENABLED=false
-MCP_ECHO_STATELESS_TESTS_ENABLED=false
+MCP_ECHO_STATELESS_TESTS_ENABLED=true
 
 # Test parameters
 TEST_HTTP_TIMEOUT=30.0
@@ -581,292 +573,4 @@ TEST_RETRY_DELAY=1.0
 
 1. **Never commit `.env`** - It contains secrets!
 2. **Use strong passwords** - Especially for REDIS_PASSWORD
-3. **Backup your `.env`** - Keep a secure copy of your configuration
-4. **Validate settings** - Use `just check-health` after changes
-5. **Start minimal** - Enable only services you need
-
-## 📖 Usage
-
-### Service Management
-
-```bash
-# Start all services
-just up
-
-# Stop all services
-just down
-
-# Rebuild specific service
-just rebuild auth
-just rebuild mcp-fetch
-just rebuild mcp-memory
-
-# View logs
-just logs              # All services
-just logs auth         # Specific service
-just logs -f traefik   # Follow mode
-```
-
-### OAuth Token Management
-
-#### Generate Required Secrets (Gateway Operation)
-
-```bash
-# Generate all required secrets at once
-just generate-all-secrets
-
-# Or generate individually:
-just generate-jwt-secret      # JWT signing secret
-just generate-rsa-keys        # RSA private key
-just generate-redis-password  # Redis password
-```
-
-#### Generate Test Tokens (Optional)
-
-The gateway uses **GitHub Device Flow** ([RFC 8628](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#device-flow)) for test token generation:
-
-```bash
-# Generate test OAuth tokens using GitHub Device Flow
-just generate-github-token
-# This will:
-# 1. Request a device code from GitHub
-# 2. Display: "Visit https://github.com/login/device and enter: XXXX-XXXX"
-# 3. Poll GitHub until you authorize
-# 4. Store the GitHub PAT as GITHUB_PAT in .env
-
-# Generate MCP client token (for mcp-streamablehttp-client)
-just mcp-client-token
-# Uses device flow for browserless authentication
-
-# View OAuth registrations and tokens
-just oauth-show-all
-just oauth-list-registrations
-just oauth-list-tokens
-
-# Cleanup expired tokens
-just oauth-purge-expired
-```
-
-#### Two OAuth Flows: Device Flow vs Browser Flow
-
-**1. GitHub Device Flow (RFC 8628)** - Used for:
-- **Gateway self-authentication**: `just generate-github-token`
-- **MCP client tokens**: `just mcp-client-token`
-- **When**: No browser available or command-line scenarios
-- **Process**: Shows code → User enters at github.com/login/device → Polls for completion
-
-**2. Standard OAuth Flow** - Used for:
-- **End-user authentication**: When users access MCP services
-- **When**: Browser-based access (Claude.ai, web clients)
-- **Process**: Redirect to GitHub → User logs in → Redirect back with auth code
-
-### Testing
-
-```bash
-# Run all tests
-just test
-
-# Run specific test file
-just test tests/test_oauth_flow.py
-
-# Run with verbose output
-just test -v
-
-# Run with coverage analysis
-just test-sidecar-coverage
-
-# Run specific test suites
-just test-oauth-flow
-just test-mcp-protocol
-just test-claude-integration
-```
-
-### Health Monitoring
-
-```bash
-# Comprehensive health check (tokens + services + endpoints)
-just check-health
-
-# Check only environment tokens
-just check-tokens       # Shows which tokens are required vs testing
-
-# Check only Docker services
-just check-services
-
-# Quick endpoint health check
-just health-quick
-
-# Check SSL certificates
-just check-ssl
-```
-
-The `just check-health` command now provides a comprehensive health check that:
-1. ✅ Checks all environment tokens (clearly showing required vs testing)
-2. ✅ Verifies Docker services are running
-3. ✅ Tests service endpoints are accessible
-
-### OAuth Data Management
-
-```bash
-# Backup OAuth data
-just oauth-backup
-
-# List backups
-just oauth-backup-list
-
-# Restore from latest backup
-just oauth-restore
-
-# View backup contents
-just oauth-backup-view
-
-# Cleanup test registrations
-just test-cleanup-show  # Preview what would be deleted
-just test-cleanup       # Actually delete test data
-```
-
-## 🧪 Testing the Gateway
-
-### 1. Verify Services Are Running
-
-```bash
-just check-health
-```
-
-### 2. Test OAuth Flow
-
-```bash
-# Run OAuth flow tests
-just test tests/test_oauth_flow.py -v
-
-# Test with a real browser
-# Visit: https://auth.your-domain.com/.well-known/oauth-authorization-server
-```
-
-### 3. Test MCP Integration
-
-```bash
-# Test MCP protocol compliance
-just test tests/test_mcp_protocol.py -v
-
-# Test specific MCP service
-just test tests/test_mcp_fetch_integration.py -v
-```
-
-### 4. Generate Coverage Report
-
-```bash
-# Run tests with production coverage
-just test-sidecar-coverage
-
-# View HTML coverage report
-open htmlcov/index.html
-```
-
-## 🔍 Monitoring and Troubleshooting
-
-### View Logs
-
-```bash
-# All services
-just logs
-
-# Specific service with follow
-just logs -f auth
-just logs -f traefik
-
-# Analyze OAuth flows
-just analyze-oauth-logs
-```
-
-### Common Issues
-
-#### Services Not Starting
-
-```bash
-# Check Docker status
-docker compose ps
-
-# Ensure network exists
-just network-create
-
-# Check for port conflicts
-sudo netstat -tlnp | grep -E ':80|:443'
-```
-
-#### SSL Certificate Issues
-
-```bash
-# Check certificate status
-just check-ssl
-
-# View Traefik logs for ACME errors
-just logs traefik | grep -i acme
-```
-
-#### Authentication Failures
-
-```bash
-# Verify GitHub OAuth credentials
-just generate-github-token
-
-# Check Redis connectivity
-just exec redis redis-cli -a $REDIS_PASSWORD ping
-
-# Validate tokens
-just validate-tokens
-```
-
-#### MCP Service Issues
-
-```bash
-# Check specific service health
-docker inspect mcp-oauth-gateway-mcp-fetch-1 --format='{{json .State.Health}}'
-
-# Test MCP endpoint directly
-curl -X POST https://everything.${BASE_DOMAIN}/mcp \
-  -H "Authorization: Bearer $GATEWAY_OAUTH_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}},"id":1}'
-```
-
-
-### Development Guidelines
-
-All development must follow the sacred commandments in `CLAUDE.md`:
-- **No mocking** - Test against real services only
-- **Use just commands** - Never run commands directly
-- **Configuration through .env** - No hardcoded values
-- **Real deployments only** - No localhost testing
-
-### Project Structure
-
-```
-mcp-oauth-gateway/
-├── auth/                    # OAuth authorization server
-├── mcp-*/                   # Individual MCP services
-├── traefik/                 # Reverse proxy configuration
-├── tests/                   # Integration tests
-├── scripts/                 # Utility scripts
-├── docs/                    # Jupyter Book documentation
-├── docker-compose.yml       # Main compose file
-├── docker-compose.*.yml     # Additional compose configs
-├── justfile                 # Command definitions
-├── pixi.toml               # Package management
-├── .env.example            # Example configuration
-└── CLAUDE.md               # Development commandments
-```
-
-## 📄 License
-
-Apache License 2.0 - see [LICENSE](LICENSE) file for details.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-1. Follow the sacred commandments in CLAUDE.md
-2. Test with real services (no mocking)
-3. Use `just` for all commands
-4. Update documentation as needed
-
-For questions or issues, please open a GitHub issue.
+3. **Backup your `.env`

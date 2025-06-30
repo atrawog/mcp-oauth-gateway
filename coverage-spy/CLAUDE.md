@@ -10,10 +10,11 @@
 
 This sacred technique channels these divine powers:
 - **Zero Code Modification** - Production containers remain pure and untouched!
-- **Sidecar Pattern Glory** - Parallel containers for measurement isolation!
-- **Python Site Customization** - sitecustomize.py divine interception!
-- **Real Service Testing** - Measure actual production behavior!
-- **Clean Separation** - Coverage code never touches production!
+- **Docker Compose Overlay** - Coverage added via compose overlay file!
+- **coverage.py Subprocess Support** - Uses coverage.process_startup() divine magic!
+- **PYTHONPATH Injection** - sitecustomize.py loaded automatically by Python!
+- **Coverage Harvester Container** - Separate container collects and reports metrics!
+- **Clean Separation** - Coverage code never touches production images!
 
 **⚡ The ONLY way to measure production coverage righteously! ⚡**
 
@@ -39,180 +40,172 @@ Coverage Architecture
 
 ## 📖 The Sacred Implementation - sitecustomize.py Magic!
 
-### The Divine sitecustomize.py
+### The Divine sitecustomize.py - Minimal and Powerful!
 ```python
+"""Sacred Coverage Spy - Subprocess coverage tracking for production containers.
+
+This file is injected via PYTHONPATH to enable coverage in all Python processes.
 """
-Sacred coverage interceptor - loaded automatically by Python!
-This file is placed in the Python path to enable coverage.
-"""
 
-import os
-import sys
-import atexit
+import coverage
 
-# Only activate if COVERAGE_ENABLE is set
-if os.environ.get('COVERAGE_ENABLE') == 'true':
-    try:
-        import coverage
 
-        # Configure coverage with divine settings
-        cov = coverage.Coverage(
-            data_file='/coverage/.coverage',
-            source=['/app'],
-            omit=[
-                '*/tests/*',
-                '*/test_*',
-                '*/__pycache__/*',
-                '*/site-packages/*'
-            ]
-        )
+# Start coverage tracking for all subprocesses
+# This is critical for uvicorn workers and async processes
+coverage.process_startup()
 
-        # Start coverage measurement
-        cov.start()
-
-        # Register cleanup on exit
-        def save_coverage():
-            cov.stop()
-            cov.save()
-            print("Coverage data saved to /coverage/.coverage")
-
-        atexit.register(save_coverage)
-
-    except ImportError:
-        # Coverage not installed - fail silently
-        pass
+# The COVERAGE_PROCESS_START environment variable must point to .coveragerc
+# This enables automatic coverage collection in production containers
 ```
 
-**⚡ Automatically loaded by Python on interpreter startup! ⚡**
+**⚡ The divine simplicity! coverage.process_startup() handles EVERYTHING! ⚡**
 
-## 🐳 The Docker Implementation - Parallel Container Pattern!
+**The Sacred Environment Variables Required:**
+- `PYTHONPATH=/coverage-spy:/app:${PYTHONPATH:-}` - Injects sitecustomize.py!
+- `COVERAGE_PROCESS_START=/coverage-config/.coveragerc` - Points to config!
+- `COVERAGE_FILE=/coverage-data/.coverage` - Where data is written!
 
-### Dockerfile.coverage - The Sidecar Vessel
-```dockerfile
-# Start from the same base as production
-FROM python:3.11-slim AS base
+**⚡ coverage.py's subprocess feature does all the heavy lifting! ⚡**
 
-# Install dependencies including coverage
-RUN pixi add coverage pytest-cov
+## 🐳 The Docker Implementation - Overlay Pattern Divine Glory!
 
-# Copy application code
-COPY . /app
-WORKDIR /app
+### The Sacred Truth: NO SEPARATE DOCKERFILES NEEDED!
+**⚡ Use docker-compose.coverage.yml overlay - Production images untouched! ⚡**
 
-# CRITICAL: Add coverage-spy to Python path
-ENV PYTHONPATH="/coverage-spy:$PYTHONPATH"
-COPY coverage-spy/sitecustomize.py /coverage-spy/
-
-# Enable coverage collection
-ENV COVERAGE_ENABLE=true
-
-# Mount point for coverage data
-VOLUME /coverage
-
-# Same command as production
-CMD ["python", "-m", "your_app"]
-```
-
-### docker-compose.coverage.yml - The Orchestration
+### docker-compose.coverage.yml - The Divine Overlay
 ```yaml
+# Sacred Coverage Overlay - Production coverage without contamination!
+# This overlay adds coverage tracking to production containers
+
 services:
-  auth-coverage:
-    build:
-      context: ./auth
-      dockerfile: Dockerfile.coverage
+  auth:
+    # Run as root for coverage data writing
+    user: root
     environment:
-      - COVERAGE_ENABLE=true
-      - COVERAGE_FILE=/coverage/.coverage.auth
+      # All production env vars PLUS coverage magic:
+      - PYTHONPATH=/coverage-spy:/app:${PYTHONPATH:-}
+      - COVERAGE_PROCESS_START=/coverage-config/.coveragerc
+      - COVERAGE_FILE=/coverage-data/.coverage
     volumes:
-      - ./coverage-data:/coverage
-    # All other settings same as production
+      - ./coverage-spy:/coverage-spy:ro
+      - ./coverage-spy/.coveragerc:/coverage-config/.coveragerc:ro
+      - coverage-data:/coverage-data:rw
+    # Ensure graceful shutdown for coverage collection
+    stop_grace_period: 10s
 
-  mcp-fetch-coverage:
-    build:
-      context: ./mcp-fetch
-      dockerfile: Dockerfile.coverage
-    environment:
-      - COVERAGE_ENABLE=true
-      - COVERAGE_FILE=/coverage/.coverage.mcp-fetch
+  # Coverage harvester - collects and combines coverage data
+  coverage-harvester:
+    image: python:3.11-slim
+    container_name: coverage-harvester
     volumes:
-      - ./coverage-data:/coverage
+      - ./mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient:/app:ro
+      - coverage-data:/coverage-data:rw
+      - ./htmlcov:/htmlcov:rw
+      - ./coverage-spy/.coveragerc:/.coveragerc:ro
+      - ./scripts:/scripts:ro
+      - .:/workspace:ro
+    working_dir: /workspace
+    environment:
+      - COVERAGE_FILE=/coverage-data/.coverage
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        pip install coverage
+        python /scripts/wait_for_coverage.py
+        # Process coverage data and generate reports
+        coverage combine || true
+        coverage report --omit="*/auth.py" --skip-covered --skip-empty
+        coverage html --omit="*/auth.py" || true
+    depends_on:
+      - auth
+
+volumes:
+  coverage-data:
+    external: true
 ```
 
-**⚡ Each service gets its own coverage sidecar! ⚡**
+**⚡ The overlay pattern adds coverage WITHOUT modifying production! ⚡**
 
-## 🔧 The Sacred Configuration - Environment Control!
+## 🔧 The Sacred Configuration - The Divine .coveragerc!
 
-### Coverage Control Variables
+### The Sacred Environment Variables (Set in docker-compose.coverage.yml)
 ```bash
-# Enable/disable coverage collection
-COVERAGE_ENABLE=true|false
+# CRITICAL: Points coverage.py to configuration file
+COVERAGE_PROCESS_START=/coverage-config/.coveragerc
 
-# Coverage data file location
-COVERAGE_FILE=/coverage/.coverage
+# Where coverage data is written
+COVERAGE_FILE=/coverage-data/.coverage
 
-# Source directories to measure
-COVERAGE_SOURCE=/app
-
-# Patterns to omit from coverage
-COVERAGE_OMIT=*/tests/*,*/migrations/*
+# Inject coverage-spy into Python path
+PYTHONPATH=/coverage-spy:/app:${PYTHONPATH:-}
 ```
 
-### The Coverage Configuration (.coveragerc)
+### The Divine .coveragerc Configuration
 ```ini
 [run]
-source = /app
-omit =
-    */tests/*
-    */migrations/*
-    */__pycache__/*
-    */site-packages/*
+concurrency = thread,multiprocessing  # Handle async and subprocess coverage!
+parallel = true                       # Support parallel test runs!
+sigterm = true                        # Save on SIGTERM for graceful shutdown!
+data_file = /coverage-data/.coverage  # Shared volume location!
+source = /app                         # Source code location in container!
 
 [report]
 exclude_lines =
     pragma: no cover
     def __repr__
+    if self.debug:
+    if settings.DEBUG
     raise AssertionError
     raise NotImplementedError
+    if 0:
     if __name__ == .__main__.:
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod
+
+[paths]
+source =
+    /app          # Container path
+    ./auth        # Local path for reporting
 
 [html]
-directory = /coverage/htmlcov
+directory = /app/htmlcov
 ```
 
-## 🚀 Using the Coverage-Spy Pattern!
+**⚡ The [paths] section maps container paths to local paths for reporting! ⚡**
 
-### 1. Enable Coverage Testing
+## 🚀 Using the Coverage-Spy Pattern - The Divine Command!
+
+### The One Sacred Command: `just test-sidecar-coverage`
+
+**⚡ This blessed command orchestrates the entire coverage ritual! ⚡**
+
 ```bash
-# Start coverage sidecars
-just up-coverage
-
-# Run your test suite
-just test-with-coverage
-
-# Stop and collect data
-just down-coverage
+# The complete coverage ceremony in ONE command!
+just test-sidecar-coverage
 ```
 
-### 2. Generate Reports
+**What this divine incantation does:**
+1. **Stops existing services** - `docker compose down --remove-orphans`
+2. **Starts with coverage overlay** - Uses both compose files together!
+3. **Waits for readiness** - Runs `check_services_ready.py` script!
+4. **Runs test suite** - `pixi run pytest tests/ -v`
+5. **Triggers graceful shutdown** - Stops auth service to save coverage!
+6. **Waits for harvester** - Coverage-harvester processes the data!
+7. **Shows report** - Extracts coverage report from harvester logs!
+
+### Manual Steps (if needed)
 ```bash
-# Combine coverage data
-just coverage-combine
+# Create the coverage volume first
+docker volume create coverage-data
 
-# Generate HTML report
-just coverage-html
+# View coverage report after tests
+docker logs coverage-harvester
 
-# View results
+# Access HTML report
 open htmlcov/index.html
 ```
 
-### 3. Extract Metrics
-```bash
-# Generate JSON summary
-just coverage-json
-
-# Parse and analyze
-just analyze-coverage
-```
+**⚡ One command to rule them all! ⚡**
 
 ## 🔐 The Security Considerations - Divine Safety!
 
@@ -246,23 +239,46 @@ just analyze-coverage
 5. **Combine data** from all services
 6. **Generate reports** for divine insight
 
-### Example Test Run
-```bash
-# Start everything with coverage
-docker-compose -f docker-compose.yml \
-              -f docker-compose.coverage.yml \
-              up -d
+### The Sacred wait_for_coverage.py Script
+```python
+#!/usr/bin/env python3
+"""Wait for coverage data to be written by monitoring the coverage volume."""
 
-# Wait for services
-just ensure-services-ready
+import os
+import sys
+import time
 
-# Run comprehensive tests
-just test-all
 
-# Collect coverage data
-docker-compose down
-just coverage-report
+COVERAGE_DIR = "/coverage-data"
+MAX_WAIT = 60  # Maximum wait time in seconds
+CHECK_INTERVAL = 2
+
+
+def check_coverage_files():
+    """Check if coverage files exist."""
+    if not os.path.exists(COVERAGE_DIR):
+        return False
+
+    coverage_files = [f for f in os.listdir(COVERAGE_DIR) if f.startswith(".coverage")]
+    return len(coverage_files) > 0
+
+
+def main():
+    print(f"Waiting for coverage data in {COVERAGE_DIR}...")
+
+    start_time = time.time()
+    while time.time() - start_time < MAX_WAIT:
+        if check_coverage_files():
+            print("Coverage data found!")
+            return 0
+
+        time.sleep(CHECK_INTERVAL)
+
+    print(f"No coverage data found after {MAX_WAIT} seconds")
+    return 1
 ```
+
+**⚡ This divine script ensures coverage data is written before processing! ⚡**
 
 ## 🔥 Common Issues and Divine Solutions!
 
@@ -290,116 +306,160 @@ just coverage-report
 - Verify all services measured!
 - Review omit patterns!
 
-## 📊 Advanced Patterns - Divine Coverage Mastery!
+## 📊 The Divine Architecture Explained!
 
-### Parallel Coverage Collection
-```python
-# In sitecustomize.py for parallel safety
-cov = coverage.Coverage(
-    data_file=f'/coverage/.coverage.{os.getpid()}',
-    parallel=True
-)
-```
+### Why This Pattern Works - The Sacred Truths!
 
-### Dynamic Coverage Control
-```python
-# Toggle coverage at runtime
-if os.environ.get('COVERAGE_PAUSE'):
-    cov.stop()
-else:
-    cov.start()
-```
+**1. coverage.process_startup() Magic**
+- Automatically handles subprocess coverage (uvicorn workers!)!
+- Reads config from COVERAGE_PROCESS_START env var!
+- Saves data on process exit automatically!
+- No manual start/stop needed!
 
-### Coverage Webhooks
-```python
-# Send coverage data on completion
-def upload_coverage():
-    cov.stop()
-    cov.save()
+**2. Docker Compose Overlay Pattern**
+- Production images remain unchanged!
+- Coverage added only via compose overlay!
+- Same container, different environment!
+- Zero production contamination!
 
-    # Upload to coverage service
-    requests.post('http://coverage-server/upload',
-                  files={'coverage': open('.coverage', 'rb')})
-```
+**3. Coverage Harvester Container**
+- Separate container for processing!
+- Waits for data to be written!
+- Combines parallel coverage files!
+- Generates reports independently!
 
-## 🎯 The Divine Mission - Coverage-Spy Purpose!
+**4. Volume Sharing Strategy**
+- coverage-data volume shared between containers!
+- Auth service writes coverage data!
+- Harvester reads and processes!
+- Clean separation of concerns!
 
-**What Coverage-Spy MUST Do:**
-- Measure production code coverage accurately!
-- Maintain complete separation from production!
-- Work with any Python application seamlessly!
-- Provide actionable coverage metrics!
-- Support parallel test execution!
+**⚡ The pattern leverages coverage.py's built-in subprocess support! ⚡**
 
-**What Coverage-Spy MUST NOT Do:**
-- Modify production code or images!
-- Impact production performance!
-- Require code changes for measurement!
-- Store sensitive data in reports!
-- Break existing functionality!
-
-**⚡ Pure measurement without contamination! ⚡**
-
-## 🔱 Why This Pattern is Divine!
+## 🔱 The Divine Mission - Why Coverage-Spy Exists!
 
 ### The Problem with Traditional Coverage
-- Requires code modification!
-- Mixes test code with production!
-- Can't measure real deployments!
-- Impacts performance always!
+**Traditional approaches contaminate production:**
+- Installing coverage in production images!
+- Modifying application code for coverage!
+- Running different code in test vs production!
+- Performance overhead always present!
 
 ### The Coverage-Spy Solution
-- Zero production changes!
-- Parallel measurement containers!
-- Real deployment testing!
-- Optional performance impact!
+**Divine separation through overlay pattern:**
+- Production images remain untouched!
+- Coverage added only via compose overlay!
+- Same container code, different environment!
+- Coverage only when explicitly enabled!
+- Harvester container handles all processing!
 
-**⚡ The ONLY way to measure production truthfully! ⚡**
+**⚡ Measure production behavior without production contamination! ⚡**
+
+## 🏆 Key Benefits of This Pattern!
+
+1. **Production Purity** - No coverage code in production images!
+2. **Simple Implementation** - Just coverage.process_startup()!
+3. **Subprocess Coverage** - Handles uvicorn workers automatically!
+4. **Parallel Safety** - Built-in support for concurrent tests!
+5. **Easy Activation** - One command: `just test-sidecar-coverage`!
+6. **Clean Reports** - Harvester generates all metrics separately!
+
+**⚡ The divine balance of simplicity and power! ⚡**
 
 ## 📜 Integration with CI/CD - Automated Divine Metrics!
 
-### GitHub Actions Example
+### GitHub Actions Integration
 ```yaml
-- name: Start services with coverage
+- name: Create coverage volume
+  run: docker volume create coverage-data
+
+- name: Run tests with sidecar coverage
+  run: just test-sidecar-coverage
+
+- name: Extract coverage report
   run: |
-    docker-compose -f docker-compose.yml \
-                   -f docker-compose.coverage.yml \
-                   up -d
+    # Extract coverage percentage from harvester logs
+    docker logs coverage-harvester | grep "TOTAL" | awk '{print $NF}'
 
-- name: Run integration tests
-  run: just test-integration
-
-- name: Collect coverage data
-  run: |
-    docker-compose down
-    just coverage-combine
-    just coverage-xml
-
-- name: Upload to Codecov
-  uses: codecov/codecov-action@v3
+- name: Upload HTML report
+  uses: actions/upload-artifact@v3
   with:
-    file: ./coverage.xml
+    name: coverage-report
+    path: htmlcov/
 ```
 
-## 🛠️ Debugging Coverage Issues!
+### The Sacred Truth About CI/CD Coverage
+**⚡ The same pattern works everywhere! ⚡**
+- Local development: `just test-sidecar-coverage`
+- CI/CD pipeline: `just test-sidecar-coverage`
+- Production testing: `just test-sidecar-coverage`
 
+**One command, consistent coverage everywhere!**
+
+## 🛠️ Debugging Coverage Issues - Divine Troubleshooting!
+
+### Verify Coverage Setup
 ```bash
-# Verify sitecustomize loading
-docker exec service-coverage python -c "import sys; print(sys.path)"
+# Check if coverage-spy is in PYTHONPATH
+docker compose -f docker-compose.yml -f docker-compose.coverage.yml exec auth \
+  python -c "import sys; print('\n'.join(sys.path))"
 
-# Check coverage is active
-docker exec service-coverage python -c "import coverage; print(coverage.__version__)"
+# Verify sitecustomize.py is loaded
+docker compose -f docker-compose.yml -f docker-compose.coverage.yml exec auth \
+  python -c "import sitecustomize; print('sitecustomize loaded!')"
 
-# View coverage data
-docker exec service-coverage coverage report
+# Check COVERAGE_PROCESS_START is set
+docker compose -f docker-compose.yml -f docker-compose.coverage.yml exec auth \
+  printenv | grep COVERAGE
 
-# Debug data file location
-docker exec service-coverage ls -la /coverage/
+# View coverage data files
+docker run --rm -v coverage-data:/data alpine ls -la /data/
 
-# Monitor coverage in real-time
-docker exec service-coverage coverage run --help
+# Check harvester logs for issues
+docker logs coverage-harvester
+```
+
+### Common Issues and Solutions
+
+**"No coverage data found"**
+- Ensure `coverage-data` volume exists: `docker volume create coverage-data`
+- Check auth service has write permissions (runs as root in overlay)
+- Verify graceful shutdown: `stop_grace_period: 10s` is set
+- Check .coveragerc path is correct in compose file
+
+**"Coverage not measuring my code"**
+- Verify source path in .coveragerc matches container path
+- Check [paths] section maps container → local paths correctly
+- Ensure code is under /app in container
+- Review omit patterns aren't excluding your code
+
+**⚡ The harvester logs contain the truth! Always check them! ⚡**
+
+## 🌟 Summary - The Coverage-Spy Enlightenment!
+
+**The Sacred Implementation in Brief:**
+1. **sitecustomize.py** - Contains only `coverage.process_startup()`
+2. **docker-compose.coverage.yml** - Overlay that adds coverage env vars
+3. **coverage-harvester** - Separate container that processes data
+4. **.coveragerc** - Configuration with parallel and subprocess support
+5. **just test-sidecar-coverage** - One command to rule them all
+
+**The Divine Benefits:**
+- ✓ Zero production image modifications!
+- ✓ Automatic subprocess coverage (uvicorn workers!)!
+- ✓ Clean separation of concerns!
+- ✓ Simple one-command execution!
+- ✓ Works with any Python application!
+
+**The Sacred Environment Variables:**
+```bash
+PYTHONPATH=/coverage-spy:/app:${PYTHONPATH:-}
+COVERAGE_PROCESS_START=/coverage-config/.coveragerc
+COVERAGE_FILE=/coverage-data/.coverage
 ```
 
 ---
 
 **🔥 May your coverage be complete, your production pure, and your metrics forever truthful! ⚡**
+
+**Remember: Simplicity is divine! coverage.process_startup() does all the magic!**

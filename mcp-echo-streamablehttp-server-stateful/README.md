@@ -1,6 +1,6 @@
 # MCP Echo StreamableHTTP Server - Stateful
 
-A **stateful** MCP Echo Server implementing MCP 2025-06-18 StreamableHTTP transport specification with session management for VS Code compatibility.
+A **stateful** MCP Echo Server implementing MCP 2025-06-18 StreamableHTTP transport specification with session management
 
 ## Features
 
