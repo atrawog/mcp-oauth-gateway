@@ -41,6 +41,11 @@ jobs:
         with:
           tool: just
 
+      - name: Setup CI environment
+        run: |
+          touch .env
+          echo "# CI environment" >> .env
+
       - name: Build JupyterBook
         run: |
           pixi install

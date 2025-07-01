@@ -49,6 +49,11 @@ jobs:
         with:
           tool: just
 
+      - name: "🌍 Setup CI Environment"
+        run: |
+          touch .env
+          echo "# CI environment" >> .env
+
       - name: "📦 Install Dependencies"
         run: pixi install
 
@@ -109,6 +114,11 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: just
+
+      - name: "🌍 Setup CI Environment"
+        run: |
+          touch .env
+          echo "# CI environment" >> .env
 
       - name: "⚡ Run Pre-commit Hooks"
         run: |
