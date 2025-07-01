@@ -293,7 +293,7 @@ volumes:
 │  • Routes MCP paths → MCP Services (after auth blessing!)   │
 │  • Enforces authentication via ForwardAuth divine wrath!    │
 │  • Provides HTTPS with Let's Encrypt certificate miracles!  │
-│  • The only system component that knows routing commandments!      │
+│  • The only system component that knows routing commandments│
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -302,11 +302,11 @@ volumes:
 │  • Validates tokens via /verify for ForwardAuth judgment!   │
 │  • Integrates with GitHub OAuth for user sanctification!    │
 │  • Uses mcp-oauth-dynamicclient for sacred RFC compliance!  │
-│  • The only system component that knows OAuth dark arts!           │
+│  • The only system component that knows OAuth dark arts!    │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  MCP Services - Layer 3 (The Pure Protocol Servants of Glory) │
+│  MCP Services - Layer 3 (The Pure Protocol Servant of Glory)│
 │  • Run mcp-streamablehttp-proxy wrapping official servers!  │
 │  • Bridge stdio MCP servers to HTTP endpoints with glory!   │
 │  • Expose /mcp through blessed transcendence!               │
@@ -470,20 +470,10 @@ data: {"result":{"protocolVersion":"${MCP_PROTOCOL_VERSION}","capabilities":{...
 
 **The `/.well-known/oauth-authorization-server` endpoint must be accessible on all subdomains!**
 
-```yaml
-# In each MCP service's docker-compose.yml - Priority 10 (Divine Supremacy!)
-- "traefik.http.routers.mcp-fetch-oauth-discovery.rule=Host(`mcp-fetch.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
-- "traefik.http.routers.mcp-fetch-oauth-discovery.priority=10"  # Highest priority - catches before all else!
-- "traefik.http.routers.mcp-fetch-oauth-discovery.service=auth@docker"
-- "traefik.http.middlewares.oauth-discovery-rewrite.headers.customrequestheaders.Host=auth.${BASE_DOMAIN}"
-# No auth middleware - Discovery must be public salvation for all who seek it!
-```
-
 ### The PKCE Sacred Laws (RFC 7636)
 
 - **S256 Challenge Method** - The blessed transformation!
 - **43-128 Character Verifier** - Cryptographically pure!
-- **Plain Challenge Method** - Deprecated (but not forbidden by the RFC)!
 - **Public Client Support** - No secret required for the worthy!
 
 ### The RFC 7591 Registration Prophecy
@@ -579,8 +569,6 @@ data: {"result":{"protocolVersion":"${MCP_PROTOCOL_VERSION}","capabilities":{...
 ✅ Registration: No auth → Returns registration_access_token
 ✅ Management: Bearer registration_access_token → Modify client
 ✅ OAuth: Client credentials → Returns access_token
-❌ Heresy: Using OAuth tokens for client management!
-❌ Blasphemy: Using registration tokens for resource access!
 ```
 
 **Implement these endpoints correctly or face security breaches for eternity!**
@@ -676,32 +664,6 @@ data: {"result":{"protocolVersion":"${MCP_PROTOCOL_VERSION}","capabilities":{...
 - **Process isolation** - Proxy pattern uses subprocess, native pattern uses container isolation!
 - **OAuth ready** - Bearer token authentication handled by Traefik layer for all patterns!
 - **Production tested** - Both architectural patterns with proven reliability!
-
-### The Sacred Security Best Practices - Mandated by the Protocol Specification!
-
-**The Confused Deputy Problem - Beware this ancient evil!**
-- Never forward to third-party auth servers without divine permission!
-- Each dynamically registered client requires explicit blessing!
-
-**The Token Handling Commandments:**
-- Must not accept tokens not explicitly issued for thy MCP server!
-- Avoid the cursed "token passthrough" - validate everything!
-- Validate token audiences with righteous fury!
-- Maintain clear separation between service boundaries!
-
-**The Session Security Laws:**
-- Must verify all inbound requests when auth is implemented!
-- Must not use sessions for authentication (OAuth only!)!
-- Use secure, non-deterministic session IDs from holy randomness!
-- Bind session IDs to user-specific information!
-
-**The Sacred Risks to Prevent:**
-- Circumventing security controls brings damnation!
-- Compromising audit trails invites chaos!
-- Breaking trust boundaries between services is heresy!
-- Enabling unauthorized access summons the security demons!
-
-**Implement these practices or face eternal security breaches!**
 
 ## The Claude.ai Integration Flow
 
@@ -828,8 +790,6 @@ MCP_CLIENT_ACCESS_TOKEN=xxx...  # For mcp-streamablehttp-client
 - ✅ MCP integration
 - ✅ Security enforcement
 - ✅ Production readiness
-
-**⚡ Mock = hell! ⚡**
 
 ## Integration Checklist
 

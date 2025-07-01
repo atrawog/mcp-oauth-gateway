@@ -1,97 +1,58 @@
-# OAuth 2.1 Flow
+# OAuth Flow Architecture
 
-The MCP OAuth Gateway implements a **sophisticated OAuth 2.1 system** that combines client credential authentication with GitHub user authentication. This dual-authentication approach ensures both the OAuth client (e.g., Claude.ai) and the human user are properly verified.
+Comprehensive documentation of the OAuth 2.1 flows implemented in the MCP OAuth Gateway, including dynamic client registration and PKCE.
 
-## OAuth Architecture: Client Credentials + User Authentication
+## OAuth 2.1 Implementation
 
-```{mermaid}
-graph TB
-    subgraph "OAuth Client Registration"
-        CR[POST /register<br/>No auth required]
-        CR --> CC[client_id + client_secret<br/>OAuth credentials]
-        CR --> RT[registration_access_token<br/>Client management only]
-    end
+The gateway implements OAuth 2.1 with these key features:
 
-    subgraph "User Authentication"
-        UA[GET /authorize<br/>Requires client_id]
-        UA --> GH[GitHub OAuth<br/>User authenticates]
-        GH --> CB[Callback with<br/>GitHub user info]
-        CB --> AC[Authorization code<br/>Binds client + user]
-    end
+- Authorization Code Flow with PKCE (mandatory)
+- Dynamic Client Registration (RFC 7591)
+- Client Configuration Management (RFC 7592)
+- JWT access tokens with RS256 signing
+- GitHub OAuth for user authentication
 
-    subgraph "Token Exchange"
-        TE[POST /token<br/>client_id + client_secret<br/>+ auth code + PKCE]
-        TE --> JWT[JWT access_token<br/>Contains both identities]
-    end
-
-    CC --> UA
-    AC --> TE
-
-    classDef registration fill:#9cf,stroke:#333,stroke-width:2px
-    classDef auth fill:#fc9,stroke:#333,stroke-width:2px
-    classDef token fill:#9fc,stroke:#333,stroke-width:2px
-
-    class CR,CC,RT registration
-    class UA,GH,CB,AC auth
-    class TE,JWT token
-```
-
-## Complete Authorization Flow
+## Flow Overview
 
 ```{mermaid}
 sequenceDiagram
-    participant Client as OAuth Client<br/>(e.g., Claude.ai)
-    participant User as Human User
-    participant Gateway as MCP OAuth Gateway
-    participant GitHub as GitHub OAuth
-    participant Redis as Redis Store
+    participant C as MCP Client
+    participant G as Gateway (Traefik)
+    participant A as Auth Service
+    participant R as Redis
+    participant GH as GitHub OAuth
+    participant M as MCP Service
 
-    Note over Client,Redis: Step 1: Client Registration (One-time)
-    Client->>Gateway: POST /register<br/>{redirect_uris, client_name}
-    Gateway->>Redis: Store client registration
-    Gateway->>Client: 201 Created<br/>client_id: abc123<br/>client_secret: xyz789<br/>registration_access_token: reg_tok
+    Note over C,M: 1. Dynamic Client Registration
+    C->>G: POST /register
+    G->>A: Forward to Auth
+    A->>R: Store client data
+    A->>C: 201 Created (client credentials)
 
-    Note over Client,Redis: Step 2: User Authorization
-    User->>Client: Initiate connection
-    Client->>Client: Generate PKCE<br/>code_verifier & code_challenge
-    Client->>User: Open browser
-    User->>Gateway: GET /authorize<br/>?client_id=abc123<br/>&code_challenge=...
-    Gateway->>Redis: Validate client_id
-    Gateway->>User: 302 Redirect to GitHub
-    User->>GitHub: Login & Authorize
-    GitHub->>Gateway: GET /callback<br/>?code=gh_code
-    Gateway->>GitHub: Exchange for user info
-    GitHub->>Gateway: User: johndoe<br/>Email: john@example.com
-    Gateway->>Gateway: Check ALLOWED_GITHUB_USERS
-    Gateway->>Redis: Store auth code with<br/>client_id + user info
-    Gateway->>User: 302 Redirect<br/>?code=auth_code
-    User->>Client: Auth code received
+    Note over C,M: 2. Authorization Flow
+    C->>C: Generate PKCE verifier/challenge
+    C->>G: GET /authorize
+    G->>A: Forward to Auth
+    A->>GH: Redirect to GitHub
+    GH->>A: Callback with code
+    A->>C: Redirect with auth code
 
-    Note over Client,Redis: Step 3: Token Exchange
-    Client->>Gateway: POST /token<br/>client_id=abc123<br/>client_secret=xyz789<br/>code=auth_code<br/>code_verifier=...
-    Gateway->>Redis: Validate client credentials
-    Gateway->>Redis: Get auth code data
-    Gateway->>Gateway: Validate PKCE<br/>Verify client matches
-    Gateway->>Gateway: Generate JWT with:<br/>- sub: github_user_id<br/>- username: johndoe<br/>- client_id: abc123
-    Gateway->>Redis: Store tokens
-    Gateway->>Client: 200 OK<br/>access_token: JWT<br/>refresh_token: opaque
+    Note over C,M: 3. Token Exchange
+    C->>G: POST /token
+    G->>A: Forward to Auth
+    A->>R: Validate & store token
+    A->>C: Access token (JWT)
 
-    Note over Client,Redis: Step 4: Access Resources
-    Client->>Gateway: GET /mcp<br/>Authorization: Bearer JWT
-    Gateway->>Gateway: Validate JWT<br/>Extract identities
-    Gateway->>Client: MCP Response<br/>X-User-Name: johndoe
+    Note over C,M: 4. API Access
+    C->>G: Request + Bearer token
+    G->>A: ForwardAuth /verify
+    A->>R: Validate token
+    A->>G: 200 OK + headers
+    G->>M: Forward request
+    M->>C: Response
 ```
 
-### Key Points
-
-- **client_id + client_secret** authenticate the OAuth CLIENT (e.g., Claude.ai)
-- **GitHub OAuth** authenticates the human USER
-- The final **access_token** contains BOTH: which client AND which user
-- **registration_access_token** is ONLY for client management, NOT resource access
-
 ## Dynamic Client Registration (RFC 7591)
-
-The gateway supports dynamic client registration, allowing MCP clients to register themselves without manual configuration.
 
 ### Registration Request
 
@@ -101,10 +62,11 @@ Content-Type: application/json
 
 {
   "client_name": "My MCP Client",
-  "redirect_uris": ["https://app.example.com/callback"],
+  "redirect_uris": ["http://localhost:8080/callback"],
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
-  "token_endpoint_auth_method": "client_secret_basic"
+  "scope": "mcp:*",
+  "token_endpoint_auth_method": "none"
 }
 ```
 
@@ -115,255 +77,358 @@ HTTP/1.1 201 Created
 Content-Type: application/json
 
 {
-  "client_id": "client_abc123",
-  "client_secret": "secret_xyz789",
+  "client_id": "client_7a3d5f2e",
+  "client_secret": "secret_9b4c6e8d",
   "client_name": "My MCP Client",
-  "redirect_uris": ["https://app.example.com/callback"],
+  "redirect_uris": ["http://localhost:8080/callback"],
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
-  "token_endpoint_auth_method": "client_secret_basic",
-  "client_id_issued_at": 1704067200,
-  "client_secret_expires_at": 1711929600,
-  "registration_access_token": "rat_token123",
-  "registration_client_uri": "https://auth.domain.com/register/client_abc123"
+  "scope": "mcp:*",
+  "token_endpoint_auth_method": "none",
+  "registration_access_token": "reg-4f7d9c2a",
+  "registration_client_uri": "https://auth.example.com/register/client_7a3d5f2e",
+  "client_secret_expires_at": 1743638400
 }
 ```
 
-### Key Features
+### Registration Storage
 
-- **No Authentication Required**: Registration endpoint is public
-- **Automatic Credentials**: Client ID and secret generated automatically
-- **Configurable Lifetime**: Clients expire after 90 days (configurable)
-- **Management Token**: Registration access token for client updates
+```python
+# Redis storage structure
+oauth:client:client_7a3d5f2e = {
+    "client_id": "client_7a3d5f2e",
+    "client_secret": "secret_9b4c6e8d",
+    "client_name": "My MCP Client",
+    "redirect_uris": ["http://localhost:8080/callback"],
+    "registration_access_token": "reg-4f7d9c2a",
+    "created_at": "2024-01-01T00:00:00Z",
+    "expires_at": "2024-04-01T00:00:00Z"
+}
+```
+
+## Authorization Code Flow with PKCE
+
+### Step 1: PKCE Generation
+
+```python
+import secrets
+import hashlib
+import base64
+
+# Generate code verifier (43-128 characters)
+code_verifier = base64.urlsafe_b64encode(
+    secrets.token_bytes(32)
+).decode('utf-8').rstrip('=')
+
+# Generate code challenge (S256)
+code_challenge = base64.urlsafe_b64encode(
+    hashlib.sha256(code_verifier.encode()).digest()
+).decode('utf-8').rstrip('=')
+```
+
+### Step 2: Authorization Request
+
+```
+GET /authorize?
+    client_id=client_7a3d5f2e&
+    redirect_uri=http://localhost:8080/callback&
+    response_type=code&
+    scope=mcp:*&
+    state=abc123xyz&
+    code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&
+    code_challenge_method=S256
+```
+
+### Step 3: User Authentication
+
+```{mermaid}
+sequenceDiagram
+    participant U as User
+    participant A as Auth Service
+    participant G as GitHub
+
+    U->>A: GET /authorize
+    A->>A: Validate client_id
+    A->>A: Store state + PKCE
+    A->>G: Redirect to GitHub OAuth
+    U->>G: Login + Authorize
+    G->>A: Callback with code
+    A->>A: Validate state
+    A->>A: Generate auth code
+    A->>U: Redirect to client
+```
+
+### Step 4: Token Exchange
+
+```http
+POST /token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&
+client_id=client_7a3d5f2e&
+code=auth_9f3a7b2c&
+redirect_uri=http://localhost:8080/callback&
+code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+```
+
+### Token Response
+
+```json
+{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...",
+  "token_type": "Bearer",
+  "expires_in": 2592000,
+  "refresh_token": "refresh_8d4b2c7e",
+  "scope": "mcp:*"
+}
+```
+
+## JWT Token Structure
+
+### Header
+```json
+{
+  "alg": "RS256",
+  "typ": "JWT",
+  "kid": "key-1"
+}
+```
+
+### Payload
+```json
+{
+  "iss": "https://auth.example.com",
+  "sub": "github|username",
+  "aud": "client_7a3d5f2e",
+  "exp": 1706745600,
+  "iat": 1704153600,
+  "jti": "token_3f8a9c2d",
+  "scope": "mcp:*",
+  "github_username": "username",
+  "github_id": "12345",
+  "github_email": "user@example.com"
+}
+```
+
+### Signature
+Generated using RS256 with the private key.
+
+## Token Validation Flow
+
+### ForwardAuth Middleware
+
+```{mermaid}
+sequenceDiagram
+    participant C as Client
+    participant T as Traefik
+    participant A as Auth Service
+    participant R as Redis
+    participant S as MCP Service
+
+    C->>T: Request + Bearer token
+    T->>A: GET /verify
+    Note over A: Extract token from header
+    A->>A: Verify JWT signature
+    A->>R: Check token not revoked
+    A->>A: Validate claims
+    A->>T: 200 OK + User headers
+    T->>S: Forward + headers
+    S->>T: Response
+    T->>C: Response
+```
+
+### Validation Steps
+
+1. **Extract Token**
+   ```python
+   auth_header = request.headers.get("Authorization")
+   token = auth_header.split(" ")[1]  # Bearer TOKEN
+   ```
+
+2. **Verify Signature**
+   ```python
+   payload = jwt.decode(
+       token,
+       public_key,
+       algorithms=["RS256"],
+       audience=client_id
+   )
+   ```
+
+3. **Check Revocation**
+   ```python
+   jti = payload["jti"]
+   if redis.exists(f"oauth:revoked:{jti}"):
+       raise TokenRevoked()
+   ```
+
+4. **Validate Claims**
+   ```python
+   if payload["exp"] < time():
+       raise TokenExpired()
+   if payload["iss"] != expected_issuer:
+       raise InvalidIssuer()
+   ```
 
 ## Client Management (RFC 7592)
 
-Registered clients can manage their registration using the registration access token.
-
-### Read Registration
+### Read Client Configuration
 
 ```http
-GET /register/{client_id}
-Authorization: Bearer {registration_access_token}
+GET /register/client_7a3d5f2e
+Authorization: Bearer reg-4f7d9c2a
+
+Response:
+{
+  "client_id": "client_7a3d5f2e",
+  "client_name": "My MCP Client",
+  "redirect_uris": ["http://localhost:8080/callback"],
+  ...
+}
 ```
 
-### Update Registration
+### Update Client Configuration
 
 ```http
-PUT /register/{client_id}
-Authorization: Bearer {registration_access_token}
+PUT /register/client_7a3d5f2e
+Authorization: Bearer reg-4f7d9c2a
 Content-Type: application/json
 
 {
   "client_name": "Updated Client Name",
-  "redirect_uris": ["https://new.example.com/callback"]
+  "redirect_uris": ["http://localhost:9090/callback"]
 }
 ```
 
-### Delete Registration
+### Delete Client
 
 ```http
-DELETE /register/{client_id}
-Authorization: Bearer {registration_access_token}
+DELETE /register/client_7a3d5f2e
+Authorization: Bearer reg-4f7d9c2a
+
+Response: 204 No Content
 ```
 
-## PKCE Implementation
+## Security Considerations
 
-The gateway enforces PKCE for all authorization code flows.
+### PKCE Protection
 
-### Code Challenge Methods
-
-- **S256** (Required): SHA256 hash of code verifier
-- **plain** (Rejected): Not supported for security
-
-### PKCE Validation
-
-```python
-# Pseudo-code for PKCE validation
-def validate_pkce(code_verifier, code_challenge, method):
-    if method == "S256":
-        calculated = base64url(sha256(code_verifier))
-        return calculated == code_challenge
-    else:
-        raise UnsupportedChallengeMethod()
-```
-
-## Token Types
-
-### Access Tokens (JWT)
-
-The gateway issues JWT access tokens with the following claims:
-
-```json
-{
-  "sub": "github_user_123",
-  "iss": "https://auth.domain.com",
-  "aud": "https://mcp-fetch.domain.com",
-  "exp": 1704153600,
-  "iat": 1704067200,
-  "jti": "token_unique_id",
-  "username": "github_username",
-  "email": "user@example.com",
-  "name": "User Name",
-  "scope": "mcp:*",
-  "client_id": "client_abc123"
-}
-```
-
-### Refresh Tokens
-
-- Opaque tokens (not JWT)
-- Stored in Redis with 1-year TTL
-- Can be revoked immediately
-- Bound to specific client and user
-
-### Registration Access Tokens
-
-- Bearer tokens for client management
-- Unique per client registration
-- Required for RFC 7592 operations
-- Cannot be regenerated if lost
-
-## GitHub Integration
-
-The gateway uses GitHub OAuth in **two distinct ways**:
-
-### 1. GitHub OAuth Web Flow (For End Users)
-
-Used when end users access protected MCP services through a browser:
-
-```env
-GITHUB_CLIENT_ID=your_github_oauth_app_id
-GITHUB_CLIENT_SECRET=your_github_oauth_app_secret
-ALLOWED_GITHUB_USERS=user1,user2,user3  # or * for any user
-```
-
-#### User Authentication Flow (Browser-Based)
-
-1. User attempts to access protected MCP service
-2. Gateway redirects browser to GitHub authorization page
-3. User authenticates with GitHub (if not already logged in)
-4. User approves the OAuth app permissions
-5. GitHub redirects back to gateway with authorization code
-6. Gateway exchanges code for GitHub access token
-7. Gateway fetches user info from GitHub API
-8. Gateway validates user against ALLOWED_GITHUB_USERS
-9. Gateway issues JWT containing user identity
-
-### 2. GitHub Device Flow (For CLI/Gateway)
-
-Used when the gateway itself or CLI tools need GitHub authentication:
-
-#### Device Flow Process (RFC 8628)
-
-```bash
-# Initiated by: just generate-github-token
-```
-
-1. Gateway requests device code from GitHub `/login/device/code`
-2. Gateway displays:
-   - Verification URL: `https://github.com/login/device`
-   - User Code: `XXXX-XXXX`
-3. User manually visits URL and enters code
-4. Gateway polls GitHub `/login/oauth/access_token` endpoint
-5. Upon authorization, GitHub returns access token
-6. Gateway stores token as `GITHUB_PAT` in `.env`
-
-### When Each Flow Is Used
-
-| Component | Flow Type | Trigger | User Experience |
-|-----------|-----------|---------|-----------------|
-| End Users (Claude.ai, browsers) | OAuth Web Flow | Accessing `/authorize` endpoint | Automatic browser redirect |
-| Gateway Setup | Device Flow | `just generate-github-token` | Manual code entry |
-| MCP Client Setup | Device Flow | `just mcp-client-token` | Manual code entry |
-
-## Security Features
+- Mandatory for all flows
+- Prevents authorization code interception
+- S256 challenge method required
 
 ### State Parameter
 
-- Prevents CSRF attacks
+- CSRF protection
 - Cryptographically random
-- Short-lived (5 minutes)
-- Validated on callback
+- 5-minute expiration
 
 ### Token Security
 
-- **JWT Signing**: RS256 with RSA keys
-- **Token Binding**: Tokens bound to client and user
-- **Immediate Revocation**: Via Redis storage
-- **Expiration**: Configurable lifetimes
+- RS256 signing (asymmetric)
+- Short-lived access tokens (30 days)
+- Secure token storage in Redis
+- Token revocation support
 
 ### Client Authentication
 
-- **Basic Auth**: Client credentials in Authorization header
-- **Post Body**: Client credentials in request body
-- **Validation**: Constant-time comparison
+- Public clients supported (mobile/SPA)
+- Client secret for confidential clients
+- Registration access token for management
 
-### Error Handling
+## Error Handling
 
-The gateway follows OAuth 2.1 error response format:
+### OAuth Errors
 
-```json
-{
-  "error": "invalid_request",
-  "error_description": "The code challenge method is not supported",
-  "error_uri": "https://tools.ietf.org/html/rfc7636#section-4.3"
-}
+| Error | Description | HTTP Code |
+|-------|-------------|-----------|
+| `invalid_request` | Malformed request | 400 |
+| `invalid_client` | Unknown client | 401 |
+| `invalid_grant` | Invalid auth code | 400 |
+| `unauthorized_client` | Client not authorized | 403 |
+| `unsupported_grant_type` | Grant type not supported | 400 |
+| `invalid_scope` | Requested scope invalid | 400 |
+
+### Token Errors
+
+| Error | Description | HTTP Code |
+|-------|-------------|-----------|
+| `invalid_token` | Token validation failed | 401 |
+| `insufficient_scope` | Token lacks required scope | 403 |
+| `token_expired` | Token past expiration | 401 |
+| `token_revoked` | Token has been revoked | 401 |
+
+## Integration Examples
+
+### Python Client
+
+```python
+import httpx
+from authlib.integrations.httpx_client import OAuth2Session
+
+# Client registration
+client = OAuth2Session(
+    client_id=None,
+    redirect_uri="http://localhost:8080/callback"
+)
+
+# Register client
+reg_response = await client.post(
+    "https://auth.example.com/register",
+    json={
+        "client_name": "Python MCP Client",
+        "redirect_uris": ["http://localhost:8080/callback"]
+    }
+)
+client_info = reg_response.json()
+
+# Authorization flow
+auth_url, state = client.create_authorization_url(
+    "https://auth.example.com/authorize",
+    code_challenge=code_challenge,
+    code_challenge_method="S256"
+)
+
+# Token exchange
+token = await client.fetch_token(
+    "https://auth.example.com/token",
+    authorization_response=callback_url,
+    code_verifier=code_verifier
+)
 ```
 
-## Service Discovery
+### JavaScript Client
 
-The gateway provides OAuth 2.0 Authorization Server Metadata (RFC 8414):
+```javascript
+// Using PKCE
+const codeVerifier = generateCodeVerifier();
+const codeChallenge = await generateCodeChallenge(codeVerifier);
 
-```http
-GET /.well-known/oauth-authorization-server
+// Authorization URL
+const params = new URLSearchParams({
+  client_id: clientId,
+  redirect_uri: redirectUri,
+  response_type: 'code',
+  scope: 'mcp:*',
+  state: generateState(),
+  code_challenge: codeChallenge,
+  code_challenge_method: 'S256'
+});
 
-{
-  "issuer": "https://auth.domain.com",
-  "authorization_endpoint": "https://auth.domain.com/authorize",
-  "token_endpoint": "https://auth.domain.com/token",
-  "registration_endpoint": "https://auth.domain.com/register",
-  "jwks_uri": "https://auth.domain.com/jwks",
-  "scopes_supported": ["mcp:*"],
-  "response_types_supported": ["code"],
-  "grant_types_supported": ["authorization_code", "refresh_token"],
-  "code_challenge_methods_supported": ["S256"],
-  "token_endpoint_auth_methods_supported": ["client_secret_basic", "client_secret_post"]
-}
+window.location.href = `https://auth.example.com/authorize?${params}`;
+
+// Token exchange
+const tokenResponse = await fetch('https://auth.example.com/token', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded'
+  },
+  body: new URLSearchParams({
+    grant_type: 'authorization_code',
+    client_id: clientId,
+    code: authCode,
+    redirect_uri: redirectUri,
+    code_verifier: codeVerifier
+  })
+});
 ```
-
-## Token Lifecycle
-
-### Issuance
-
-1. User completes authorization flow
-2. Client exchanges code for tokens
-3. Tokens stored in Redis
-4. JWT returned to client
-
-### Validation
-
-1. Extract JWT from Authorization header
-2. Verify JWT signature
-3. Check token in Redis (not revoked)
-4. Validate claims (exp, aud, etc.)
-
-### Renewal
-
-1. Client presents refresh token
-2. Validate refresh token in Redis
-3. Check user still authorized
-4. Issue new access token
-
-### Revocation
-
-1. Client posts token to /revoke
-2. Token marked invalid in Redis
-3. Subsequent requests rejected
-4. Refresh token also revoked
-
-## Next Steps
-
-- [MCP Integration](mcp-integration.md) - How OAuth protects MCP services
-- [Security Architecture](security.md) - Security deep dive
-- [API Reference](../api/oauth-endpoints.md) - Complete endpoint documentation

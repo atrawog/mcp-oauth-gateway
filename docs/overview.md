@@ -1,122 +1,179 @@
 # Overview
 
-The MCP OAuth Gateway is a comprehensive solution for adding OAuth 2.1 authentication to MCP (Model Context Protocol) servers without requiring any modifications to the MCP server implementations themselves.
+The MCP OAuth Gateway is a comprehensive authentication and authorization gateway for Model Context Protocol (MCP) services. It provides a secure, scalable, and RFC-compliant OAuth 2.1 implementation with dynamic client registration and seamless MCP service integration.
 
-## What is MCP?
+## Architecture Overview
 
-MCP (Model Context Protocol) is an emerging standard for communication between AI assistants and external tools/services. It defines a protocol for:
-- Tool discovery and invocation
-- Resource access and management
-- Prompt and context handling
-- Session management
+The gateway follows a three-layer architecture as mandated by the divine separation of concerns:
 
-## Why an OAuth Gateway?
+```{mermaid}
+graph TB
+    subgraph "Layer 1: Traefik"
+        T[Traefik Reverse Proxy]
+        T --> |"OAuth paths"| A
+        T --> |"MCP paths (authenticated)"| M
+    end
 
-While MCP servers provide powerful capabilities, they typically lack built-in authentication and authorization mechanisms. The MCP OAuth Gateway addresses this by:
+    subgraph "Layer 2: Auth Service"
+        A[Auth Service]
+        A --> |"Token validation"| T
+        A --> R[Redis Storage]
+    end
 
-1. **Adding Security**: Protecting MCP endpoints with industry-standard OAuth 2.1
-2. **Maintaining Compatibility**: Working with unmodified MCP servers
-3. **Enabling Multi-tenancy**: Supporting multiple clients and users
-4. **Providing Audit Trail**: Tracking access and usage
+    subgraph "Layer 3: MCP Services"
+        M[MCP Services]
+        M --> P[Proxy Pattern Services]
+        M --> N[Native StreamableHTTP Services]
+    end
 
-## Core Capabilities
+    C[MCP Clients] --> |"HTTPS"| T
+    U[Users] --> |"GitHub OAuth"| A
+```
 
-### OAuth 2.1 Implementation
+## Core Components
 
-The gateway provides a complete OAuth 2.1 authorization server with:
-- Authorization code flow with PKCE
-- Dynamic client registration (RFC 7591)
-- Client management endpoints (RFC 7592)
-- JWT-based access tokens with RS256 signing (configurable)
+### 1. Traefik (Layer 1)
+The divine router that handles all incoming requests:
+- Routes OAuth endpoints to Auth Service
+- Routes MCP endpoints to appropriate services
+- Enforces authentication via ForwardAuth middleware
+- Provides HTTPS with Let's Encrypt certificates
+- Implements priority-based routing (4→3→2→1)
 
-### MCP Service Protection
+### 2. Auth Service (Layer 2)
+The OAuth oracle that manages authentication:
+- Implements OAuth 2.1 with PKCE support
+- RFC 7591 Dynamic Client Registration
+- RFC 7592 Client Management
+- GitHub OAuth integration for user authentication
+- JWT token generation and validation
+- Redis-backed token storage
 
-- **Transparent Protection**: MCP servers require no OAuth awareness
-- **Protocol Bridging**: HTTP-to-stdio conversion for compatibility
-- **Session Management**: Stateful connections for MCP protocol
-- **Multiple Services**: Support for various MCP implementations
+### 3. MCP Services (Layer 3)
+The protocol servants that provide functionality:
+- **Proxy Pattern**: Uses `mcp-streamablehttp-proxy` to wrap official stdio servers
+- **Native Pattern**: Direct StreamableHTTP implementation
+- Session management with `Mcp-Session-Id` headers
+- Health checks via protocol initialization
 
-### GitHub Integration
+## Key Features
 
-The gateway uses GitHub OAuth in two distinct ways:
+### OAuth 2.1 Compliance
+```
+✅ Authorization Code Flow with PKCE
+✅ Dynamic Client Registration (RFC 7591)
+✅ Client Management (RFC 7592)
+✅ Token Introspection
+✅ Token Revocation
+✅ Discovery Metadata (RFC 8414)
+```
 
-1. **Device Flow (RFC 8628)** - For command-line scenarios:
-   - Gateway setup: `just generate-github-token`
-   - MCP client tokens: `just mcp-client-token`
-   - Shows code to enter at `github.com/login/device`
-   - No browser redirect required
+### MCP Protocol Support
+```
+✅ StreamableHTTP Transport
+✅ JSON-RPC 2.0 Messages
+✅ Session Management
+✅ Multiple Protocol Versions
+✅ Official Server Wrapping
+✅ Native Implementations
+```
 
-2. **Standard OAuth Flow** - For end-user authentication:
-   - Users accessing MCP services via browser
-   - Automatic redirect to GitHub for login
-   - Seamless authentication experience
-   - Access control via `ALLOWED_GITHUB_USERS`
+### Security Features
+```
+✅ JWT with RS256 Signing
+✅ Bearer Token Authentication
+✅ Origin Header Validation
+✅ CSRF Protection
+✅ Secure Session IDs
+✅ Token Expiration Management
+```
 
-## Supported MCP Services
+## Service Types
 
-The gateway currently supports these MCP services:
+### Infrastructure Services
+1. **Traefik** - Reverse proxy and SSL termination
+2. **Auth** - OAuth 2.1 authentication service
+3. **Redis** - Token and session storage
 
-| Service | Description | Use Cases |
-|---------|-------------|-----------|
-| **fetch** | Web content retrieval | API calls, web scraping |
-| **filesystem** | File operations | Read/write workspace files |
-| **memory** | Knowledge graph database | Persistent data storage |
-| **time** | Timezone operations | Time conversions, scheduling |
-| **sequential-thinking** | Structured reasoning | Complex problem solving |
-| **playwright** | Browser automation | Web testing, scraping |
-| **tmux** | Terminal multiplexing | Session management |
-| **everything** | Test/demo server | Development, testing |
+### MCP Services
 
-## Key Design Principles
+#### Proxy Pattern Services
+These wrap official MCP servers using `mcp-streamablehttp-proxy`:
+- **mcp-fetch** - Web content fetching
+- **mcp-filesystem** - File system operations
+- **mcp-memory** - Persistent storage
+- **mcp-time** - Time/date operations
+- **mcp-everything** - Comprehensive toolset
+- **mcp-playwright** - Browser automation
+- **mcp-sequentialthinking** - Sequential reasoning
+- **mcp-tmux** - Terminal multiplexer
 
-### 1. **Separation of Concerns**
-- Traefik handles routing
-- Auth service manages OAuth
-- MCP services remain pure protocol implementations
+#### Native StreamableHTTP Services
+These implement the protocol directly:
+- **mcp-fetchs** - Native fetch implementation
+- **mcp-echo-stateful** - Stateful echo with sessions
+- **mcp-echo-stateless** - Stateless echo service
 
-### 2. **No Modification Required**
-- Official MCP servers used as-is
-- OAuth layer added transparently
-- Protocol compliance maintained
+## Authentication Flow
 
-### 3. **Complete Implementation**
-- Health checks for all services
-- Comprehensive error handling
-- Structured logging
-- Automated SSL certificates
+The gateway supports two authentication realms:
 
-### 4. **Standards Compliance**
-- OAuth 2.1 specification
-- RFC 7591 (Dynamic Client Registration)
-- RFC 7592 (Client Management)
-- MCP protocol specifications
+### MCP Client Authentication
+1. Client attempts to access `/mcp` endpoint
+2. Receives 401 with `WWW-Authenticate: Bearer`
+3. Discovers OAuth metadata at `/.well-known/oauth-authorization-server`
+4. Registers via POST to `/register` (RFC 7591)
+5. Receives client credentials
+6. Obtains access token via OAuth flow
+7. Uses bearer token for all subsequent requests
 
-## Use Cases
+### User Authentication
+1. User redirected to `/authorize` endpoint
+2. Gateway redirects to GitHub OAuth
+3. User authenticates with GitHub
+4. Callback processes authorization
+5. JWT token issued with user claims
+6. Token valid for configured lifetime
 
-### 1. **Development and Testing**
-Test and develop MCP clients with a fully-featured OAuth flow.
+## Configuration
 
-### 2. **Reference Implementation**
-Learn OAuth 2.1 and MCP integration patterns for your own implementations.
+All configuration flows through the sacred `.env` file:
 
-### 3. **Proof of Concept**
-Demonstrate OAuth-protected MCP services for evaluation purposes.
+```bash
+# OAuth Configuration
+GITHUB_CLIENT_ID=xxx
+GITHUB_CLIENT_SECRET=xxx
+GATEWAY_JWT_SECRET=xxx
+CLIENT_LIFETIME=7776000  # 90 days, or 0 for eternal
 
-### 4. **Educational Platform**
-Understand how to add authentication to MCP servers without modification.
+# MCP Configuration
+MCP_PROTOCOL_VERSION=2025-06-18
+ENABLE_MCP_FETCH=true
+ENABLE_MCP_FILESYSTEM=true
+# ... other services
 
-## Limitations and Considerations
+# Access Control
+ALLOWED_GITHUB_USERS=user1,user2
+```
 
-```{warning}
-- **Not for Production**: This is a reference implementation with potential security vulnerabilities
-- **Public Domain Required**: Cannot run on localhost due to OAuth and SSL requirements
-- **GitHub Dependency**: Requires GitHub for user authentication
-- **Resource Requirements**: Each service runs in its own container
+## Development Workflow
+
+The blessed trinity of tools:
+1. **just** - All commands flow through justfile
+2. **pixi** - Python package management
+3. **docker-compose** - Service orchestration
+
+```bash
+# Common workflows
+just up              # Start all services
+just test            # Run tests
+just logs -f auth    # Follow auth logs
+just check-services  # Verify health
 ```
 
 ## Next Steps
 
-- [Quick Start Guide](installation/quick-start.md) - Get up and running quickly
-- [Architecture Details](architecture.md) - Deep dive into the system design
-- [Configuration Reference](installation/configuration.md) - Detailed configuration options
-- [API Documentation](api/oauth-endpoints.md) - Complete API reference
+- [Architecture Details](architecture/index) - Deep dive into system design
+- [Justfile Reference](justfile-reference) - All available commands
+- [Service Documentation](services/index) - Individual service details
+- [API Reference](api/index) - Endpoint documentation

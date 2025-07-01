@@ -1,496 +1,88 @@
 # mcp-streamablehttp-client
 
+The divine bridge that enables stdio-based MCP clients to communicate with StreamableHTTP servers, complete with OAuth authentication support.
+
 ## Overview
 
-The `mcp-streamablehttp-client` package is a sophisticated bridge that enables stdio-based MCP clients (like Claude Desktop) to connect to HTTP-based MCP servers with OAuth authentication. It provides comprehensive features for authentication, testing, and debugging MCP integrations.
+`mcp-streamablehttp-client` serves as a protocol translator, allowing traditional stdio-based MCP clients (like Claude Desktop) to connect to HTTP-based MCP servers. It handles:
 
-```{admonition} Key Features
-:class: info
+- Protocol translation (stdio ↔ StreamableHTTP)
+- OAuth 2.0 authentication flows
+- Bearer token management
+- Session handling
+- Streaming responses
 
-- 🔐 **OAuth Device Flow**: Automatic authentication with token refresh
-- 🔄 **Protocol Bridge**: Seamless stdio ↔ HTTP translation
-- 🧪 **Testing Tools**: Raw protocol mode and discovery commands
-- 🎯 **Direct Execution**: Run MCP tools from command line
-- 📝 **RFC 7592 Support**: Complete client registration management
-- 🔑 **Smart Credentials**: Automatic token storage and refresh
-```
+## Key Features
+
+### Protocol Bridge
+- Translates stdio JSON-RPC to HTTP requests
+- Maintains session state across requests
+- Handles streaming responses properly
+- Preserves all MCP protocol semantics
+
+### OAuth Integration
+- Built-in OAuth 2.0 client
+- PKCE support for secure flows
+- Token persistence and refresh
+- Interactive authorization flow
+
+### CLI Interface
+- Command-line tool for testing
+- OAuth token generation utility
+- Direct server communication
+- Debug and verbose modes
 
 ## Architecture
 
-### System Position
-
-```{mermaid}
-graph LR
-    subgraph "MCP Client Application"
-        CD[Claude Desktop<br/>or IDE]
-    end
-
-    subgraph "mcp-streamablehttp-client"
-        CLI[CLI Interface]
-        P[Proxy Core]
-        O[OAuth Manager]
-        C[Config Manager]
-    end
-
-    subgraph "Remote Infrastructure"
-        GW[OAuth Gateway]
-        MS[MCP Servers]
-    end
-
-    CD -->|stdio| CLI
-    CLI --> P
-    P --> O
-    O --> C
-    P -->|HTTP + OAuth| GW
-    GW --> MS
-
-    classDef client fill:#9cf,stroke:#333,stroke-width:2px
-    classDef bridge fill:#fc9,stroke:#333,stroke-width:2px
-    classDef remote fill:#9fc,stroke:#333,stroke-width:2px
-
-    class CD client
-    class CLI,P,O,C bridge
-    class GW,MS remote
+```python
+# Core components
+MCPStreamableHTTPClient    # Main client class
+StdioServerTransport       # stdio communication handler
+OAuthClient               # OAuth flow implementation
+TokenManager              # Token storage and refresh
+StreamParser              # SSE stream parsing
 ```
-
-### Package Structure
-
-```
-mcp_streamablehttp_client/
-├── __init__.py      # Package initialization
-├── cli.py           # Command-line interface
-├── proxy.py         # stdio ↔ HTTP bridge
-├── oauth.py         # OAuth authentication
-├── config.py        # Configuration management
-└── py.typed         # Type checking marker
-```
-
-### Core Components
-
-#### cli.py - Command Interface
-
-Provides extensive CLI options:
-- Interactive stdio mode for Claude Desktop
-- Tool execution with `--command`
-- Raw protocol testing with `--raw`
-- Discovery commands (`--list-tools`, etc.)
-- OAuth management (`--token`, `--reset-auth`)
-- RFC 7592 client management
-
-#### proxy.py - Protocol Bridge
-
-Handles bidirectional translation:
-- JSON-RPC over stdio (client side)
-- JSON-RPC over HTTP (server side)
-- Session management with `Mcp-Session-Id`
-- Automatic initialization handling
-- SSE and JSON response parsing
-
-#### oauth.py - Authentication Manager
-
-Implements complete OAuth flow:
-- Device authorization flow
-- Dynamic client registration (RFC 7591)
-- Token refresh logic
-- Credential persistence
-- Client management (RFC 7592)
 
 ## Installation
 
-### Using pixi (Recommended)
-
 ```bash
-pixi add mcp-streamablehttp-client
-```
-
-### From Source
-
-```bash
-cd mcp-streamablehttp-client
+# Via pixi (recommended)
 pixi install
+
+# Or standalone
+pip install mcp-streamablehttp-client
 ```
 
-## Quick Start
+## Usage
 
-### 1. Initial Configuration
-
-Create a `.env` file:
+### As a CLI Tool
 
 ```bash
-# Required: MCP server endpoint
-MCP_SERVER_URL=https://mcp-fetch.example.com/mcp
+# Basic connection (no auth)
+mcp-streamablehttp-client --server-url https://mcp-echo.example.com/mcp
 
-# OAuth configuration (optional, auto-discovered)
-OAUTH_AUTHORIZATION_URL=https://auth.example.com/authorize
-OAUTH_TOKEN_URL=https://auth.example.com/token
-OAUTH_REGISTRATION_URL=https://auth.example.com/register
+# With OAuth token
+mcp-streamablehttp-client \
+  --server-url https://mcp-fetch.example.com/mcp \
+  --token "Bearer eyJ..."
 
-# Credentials (auto-populated after first auth)
-MCP_CLIENT_ACCESS_TOKEN=
-MCP_CLIENT_REFRESH_TOKEN=
-MCP_CLIENT_ID=
-MCP_CLIENT_SECRET=
+# Generate OAuth token interactively
+mcp-streamablehttp-client \
+  --server-url https://mcp-fetch.example.com/mcp \
+  --token
 ```
 
-### 2. First Run - Authentication
-
-```bash
-# Run the client - it will guide through OAuth
-pixi run mcp-streamablehttp-client
-
-# Output:
-# 🔐 No valid authentication found. Starting OAuth flow...
-# 📝 Registering as OAuth client...
-# ✅ Client registered successfully!
-#
-# 🌐 Please visit: https://auth.example.com/device
-# 📋 Enter code: ABCD-1234
-#
-# ⏳ Waiting for authorization...
-# ✅ Authentication successful!
-# 💾 Credentials saved to .env file
-```
-
-### 3. Claude Desktop Integration
-
-Add to `claude_desktop_config.json`:
+### In Claude Desktop Configuration
 
 ```json
 {
   "mcpServers": {
-    "remote-fetch": {
+    "mcp-fetch": {
       "command": "mcp-streamablehttp-client",
-      "args": ["--env-file", "/path/to/.env"]
-    }
-  }
-}
-```
-
-## Command Line Interface
-
-### Basic Usage
-
-```bash
-pixi run mcp-streamablehttp-client [OPTIONS]
-
-Options:
-  --env-file PATH         Path to .env file
-  --log-level LEVEL       Logging level (DEBUG, INFO, WARNING, ERROR)
-  --server-url URL        Override MCP server URL
-  --help                  Show help and exit
-```
-
-### Authentication Options
-
-```bash
-# Check and refresh tokens
-pixi run mcp-streamablehttp-client --token
-
-# Reset authentication (clear credentials)
-pixi run mcp-streamablehttp-client --reset-auth
-
-# Test authentication without running
-pixi run mcp-streamablehttp-client --test-auth
-```
-
-### Tool Execution
-
-Execute MCP tools directly from CLI:
-
-```bash
-# Simple execution
-pixi run mcp-streamablehttp-client -c "echo Hello World"
-
-# With parameters
-pixi run mcp-streamablehttp-client -c "fetch https://example.com"
-
-# Key=value format
-pixi run mcp-streamablehttp-client -c "search query='python tutorial' limit=10"
-
-# JSON format
-pixi run mcp-streamablehttp-client -c 'weather {"location": "San Francisco", "units": "celsius"}'
-```
-
-### Discovery Commands
-
-List server capabilities:
-
-```bash
-# List all tools with descriptions
-pixi run mcp-streamablehttp-client --list-tools
-
-# Example output:
-# Available tools:
-# - fetch: Fetch content from URLs
-#   Arguments:
-#     - url (string, required): URL to fetch
-#     - method (string): HTTP method (default: GET)
-#     - headers (object): Custom headers
-#
-# - echo: Echo back a message
-#   Arguments:
-#     - message (string, required): Message to echo
-
-# List resources
-pixi run mcp-streamablehttp-client --list-resources
-
-# List prompts
-pixi run mcp-streamablehttp-client --list-prompts
-```
-
-### Raw Protocol Mode
-
-Send raw JSON-RPC requests for testing:
-
-```bash
-# Direct protocol testing
-pixi run mcp-streamablehttp-client --raw '{"method": "tools/list", "params": {}}'
-
-# Test specific methods
-pixi run mcp-streamablehttp-client --raw '{
-  "method": "tools/call",
-  "params": {
-    "name": "fetch",
-    "arguments": {"url": "https://httpbin.org/json"}
-  }
-}'
-
-# Custom protocol testing
-pixi run mcp-streamablehttp-client --raw '{
-  "method": "resources/read",
-  "params": {"uri": "file:///example.txt"}
-}'
-```
-
-### Client Management (RFC 7592)
-
-Manage OAuth client registration:
-
-```bash
-# View current registration
-pixi run mcp-streamablehttp-client --get-client-info
-
-# Output:
-# Client Registration Info:
-# - Client ID: client_abc123xyz
-# - Client Name: mcp-streamablehttp-client
-# - Created: 2024-01-15T10:30:00Z
-# - Expires: Never
-
-# Update client metadata
-pixi run mcp-streamablehttp-client --update-client "client_name=Production MCP Client"
-
-# Update multiple fields
-pixi run mcp-streamablehttp-client --update-client "client_name=My App,scope=read write admin"
-
-# Update redirect URIs (semicolon-separated)
-pixi run mcp-streamablehttp-client --update-client "redirect_uris=https://app1.com/cb;https://app2.com/cb"
-
-# Delete registration (PERMANENT!)
-pixi run mcp-streamablehttp-client --delete-client
-```
-
-## Configuration Reference
-
-### Environment Variables
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `MCP_SERVER_URL` | MCP server endpoint URL | - | Yes |
-| `MCP_CLIENT_ACCESS_TOKEN` | OAuth access token | - | Auto |
-| `MCP_CLIENT_REFRESH_TOKEN` | OAuth refresh token | - | Auto |
-| `MCP_CLIENT_ID` | OAuth client ID | - | Auto |
-| `MCP_CLIENT_SECRET` | OAuth client secret | - | Auto |
-| `MCP_CLIENT_REGISTRATION_TOKEN` | RFC 7592 management token | - | Auto |
-| `MCP_CLIENT_REGISTRATION_URI` | Client management URI | - | Auto |
-| `OAUTH_AUTHORIZATION_URL` | OAuth authorization endpoint | - | Auto-discovered |
-| `OAUTH_TOKEN_URL` | OAuth token endpoint | - | Auto-discovered |
-| `OAUTH_REGISTRATION_URL` | Client registration endpoint | - | Auto-discovered |
-| `OAUTH_DEVICE_AUTH_URL` | Device authorization endpoint | - | Auto-discovered |
-| `SESSION_TIMEOUT` | MCP session timeout (seconds) | 300 | No |
-| `REQUEST_TIMEOUT` | HTTP request timeout (seconds) | 30 | No |
-| `LOG_LEVEL` | Logging verbosity | INFO | No |
-| `VERIFY_SSL` | Verify SSL certificates | true | No |
-
-### Configuration Object
-
-The client uses Pydantic for configuration:
-
-```python
-from mcp_streamablehttp_client import Settings
-
-settings = Settings(
-    mcp_server_url="https://mcp.example.com/mcp",
-    log_level="DEBUG",
-    session_timeout=600
-)
-```
-
-## Authentication Flow
-
-### Device Authorization Flow
-
-```{mermaid}
-sequenceDiagram
-    participant User
-    participant Client
-    participant AuthServer
-    participant GitHub
-
-    Client->>AuthServer: POST /register<br/>(Dynamic Registration)
-    AuthServer-->>Client: client_id, client_secret
-
-    Client->>AuthServer: POST /device/code<br/>(Request device code)
-    AuthServer-->>Client: device_code, user_code, verification_uri
-
-    Client->>User: Display: "Visit: {uri}<br/>Code: {user_code}"
-
-    User->>AuthServer: Visit URL, enter code
-    AuthServer->>GitHub: Redirect to GitHub OAuth
-    User->>GitHub: Authenticate
-    GitHub-->>AuthServer: Authorization code
-
-    loop Poll for completion
-        Client->>AuthServer: POST /token<br/>(Check device code)
-        AuthServer-->>Client: pending / token
-    end
-
-    AuthServer-->>Client: access_token, refresh_token
-    Client->>Client: Save to .env
-```
-
-### Token Management
-
-The client supports OAuth token authentication:
-
-1. **Token Storage**: Saves tokens to .env file
-2. **Bearer Authentication**: Includes token in requests
-3. **Manual Refresh**: Use `--token` flag to get new tokens
-4. **Re-authentication**: Required when tokens expire
-
-## Usage Patterns
-
-### Interactive Mode (Claude Desktop)
-
-When used with Claude Desktop, the client operates in stdio mode:
-
-```python
-# Internal flow
-while True:
-    request = read_from_stdin()
-
-    # Check/refresh auth
-    ensure_valid_token()
-
-    # Forward to HTTP server
-    response = forward_to_http(request)
-
-    # Return to client
-    write_to_stdout(response)
-```
-
-### Command Execution Mode
-
-For direct tool execution:
-
-```python
-# Parse command
-tool_name, arguments = parse_command(command_string)
-
-# Execute via MCP
-result = execute_tool(tool_name, arguments)
-
-# Display result
-print_formatted_result(result)
-```
-
-### Testing Mode
-
-For protocol testing and debugging:
-
-```python
-# Send raw request
-response = send_raw_request(json_string)
-
-# Parse response
-if response.get("result"):
-    display_result(response["result"])
-elif response.get("error"):
-    display_error(response["error"])
-```
-
-## Advanced Features
-
-### Smart Argument Parsing
-
-The client supports multiple argument formats:
-
-```bash
-# Positional arguments
-pixi run mcp-streamablehttp-client -c "echo Hello World"
-# Parsed as: {"message": "Hello World"}
-
-# Key=value pairs
-pixi run mcp-streamablehttp-client -c "search query=test limit=5"
-# Parsed as: {"query": "test", "limit": 5}
-
-# JSON objects
-pixi run mcp-streamablehttp-client -c 'tool {"key": "value", "num": 42}'
-# Parsed as: {"key": "value", "num": 42}
-
-# Mixed formats
-pixi run mcp-streamablehttp-client -c "fetch https://example.com method=POST"
-# Parsed as: {"url": "https://example.com", "method": "POST"}
-```
-
-### Session Management
-
-The client maintains MCP session state:
-
-- Automatic initialization on first request
-- Session ID persistence across requests
-- Graceful handling of session timeouts
-- Automatic re-initialization when needed
-
-### Response Parsing
-
-Handles multiple response formats:
-
-- Standard JSON responses
-- Server-Sent Events (SSE) format
-- Multi-line JSON objects
-- Error responses with proper formatting
-
-## Integration Examples
-
-### With Custom MCP Servers
-
-```json
-{
-  "mcpServers": {
-    "custom-server": {
-      "command": "mcp-streamablehttp-client",
-      "env": {
-        "MCP_SERVER_URL": "https://custom.example.com/mcp",
-        "MCP_CLIENT_ACCESS_TOKEN": "existing_token"
-      }
-    }
-  }
-}
-```
-
-### Multiple Server Configuration
-
-```json
-{
-  "mcpServers": {
-    "fetch-server": {
-      "command": "mcp-streamablehttp-client",
-      "args": ["--env-file", "/configs/fetch.env"]
-    },
-    "filesystem-server": {
-      "command": "mcp-streamablehttp-client",
-      "args": ["--env-file", "/configs/filesystem.env"]
+      "args": [
+        "--server-url", "https://mcp-fetch.example.com/mcp",
+        "--token", "Bearer eyJ..."
+      ]
     }
   }
 }
@@ -499,274 +91,249 @@ Handles multiple response formats:
 ### Programmatic Usage
 
 ```python
-from mcp_streamablehttp_client import StreamableHttpToStdioProxy
+from mcp_streamablehttp_client import MCPStreamableHTTPClient
 
-# Create proxy instance
-proxy = StreamableHttpToStdioProxy(
-    server_url="https://mcp.example.com/mcp",
-    access_token="your_token"
+# Create client
+client = MCPStreamableHTTPClient(
+    server_url="https://mcp-service.example.com/mcp",
+    token="Bearer eyJ..."
 )
 
-# Run in async context
-async def main():
-    await proxy.run()
-
-asyncio.run(main())
+# Run the client (blocks)
+client.run()
 ```
 
-## Testing and Debugging
+## OAuth Token Flow
 
-### Protocol Compliance Testing
-
-Test MCP protocol compliance:
+### 1. Interactive Token Generation
 
 ```bash
-# Test initialization
-pixi run mcp-streamablehttp-client --raw '{
+$ mcp-streamablehttp-client --token --server-url https://mcp.example.com/mcp
+
+🔐 Starting OAuth flow...
+🌐 Opening browser for authorization...
+Please visit: https://auth.example.com/authorize?client_id=...
+
+✅ Authorization successful!
+📝 Access token saved to environment
+
+Your token: Bearer eyJ...
+```
+
+### 2. Token Storage
+
+Tokens can be stored in:
+- Environment variable: `MCP_AUTH_TOKEN`
+- Config file: `~/.mcp/tokens.json`
+- Command line argument
+
+### 3. Token Refresh
+
+The client automatically handles token refresh when:
+- Token is near expiration
+- Server returns 401 Unauthorized
+- Refresh token is available
+
+## Protocol Translation
+
+### stdio to HTTP
+
+```
+stdio client → JSON-RPC → client → HTTP POST → server
+                                ↓
+stdio client ← JSON-RPC ← client ← SSE stream ← server
+```
+
+### Message Flow Example
+
+1. **Client sends (stdio)**:
+```json
+{
+  "jsonrpc": "2.0",
   "method": "initialize",
   "params": {
     "protocolVersion": "2025-06-18",
-    "capabilities": {},
-    "clientInfo": {"name": "test", "version": "1.0"}
+    "capabilities": {}
+  },
+  "id": 1
+}
+```
+
+2. **Client translates to HTTP**:
+```http
+POST /mcp HTTP/1.1
+Host: mcp-service.example.com
+Authorization: Bearer eyJ...
+Content-Type: application/json
+
+{"jsonrpc": "2.0", "method": "initialize", ...}
+```
+
+3. **Server responds (SSE)**:
+```
+event: message
+data: {"jsonrpc": "2.0", "result": {...}, "id": 1}
+```
+
+4. **Client outputs (stdio)**:
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {...}
+  },
+  "id": 1
+}
+```
+
+## Configuration
+
+### Environment Variables
+
+```bash
+# OAuth token
+MCP_AUTH_TOKEN=Bearer eyJ...
+
+# Server URL (default for CLI)
+MCP_SERVER_URL=https://mcp-service.example.com/mcp
+
+# OAuth endpoints (auto-discovered)
+OAUTH_AUTHORIZATION_ENDPOINT=https://auth.example.com/authorize
+OAUTH_TOKEN_ENDPOINT=https://auth.example.com/token
+
+# Logging
+MCP_CLIENT_LOG_LEVEL=INFO
+```
+
+### Configuration File
+
+```json
+{
+  "servers": {
+    "mcp-fetch": {
+      "url": "https://mcp-fetch.example.com/mcp",
+      "token": "Bearer eyJ..."
+    },
+    "mcp-memory": {
+      "url": "https://mcp-memory.example.com/mcp",
+      "token": "Bearer eyJ..."
+    }
   }
-}'
-
-# Test error handling
-pixi run mcp-streamablehttp-client --raw '{"method": "invalid/method"}'
-
-# Test tool execution
-pixi run mcp-streamablehttp-client --raw '{
-  "method": "tools/call",
-  "params": {"name": "echo", "arguments": {"message": "test"}}
-}'
+}
 ```
 
-### Debug Logging
+## Session Management
 
-Enable verbose logging:
+The client handles MCP sessions automatically:
+
+1. **Session Creation**: On successful initialization
+2. **Session ID Tracking**: Via `Mcp-Session-Id` header
+3. **Session Persistence**: Across multiple requests
+4. **Session Cleanup**: On shutdown or error
+
+## Error Handling
+
+### OAuth Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| 401 Unauthorized | Invalid/expired token | Refresh or regenerate token |
+| 403 Forbidden | Insufficient scope | Check token permissions |
+| Invalid redirect_uri | Mismatch with registration | Verify client configuration |
+
+### Protocol Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Connection refused | Server down | Check server status |
+| Invalid session | Session expired | Reinitialize connection |
+| Protocol mismatch | Version incompatibility | Check supported versions |
+
+## Integration Examples
+
+### With Official MCP Clients
 
 ```bash
-# Via command line
-pixi run mcp-streamablehttp-client --log-level DEBUG
+# Use with mcp CLI tool
+export MCP_SERVER_URL=https://mcp.example.com/mcp
+export MCP_AUTH_TOKEN="Bearer eyJ..."
 
-# Via environment
-export LOG_LEVEL=DEBUG
-pixi run mcp-streamablehttp-client
+# The client acts as a bridge
+mcp-streamablehttp-client
 ```
 
-Debug output includes:
-- HTTP requests/responses
-- OAuth flow details
-- Token refresh events
-- Session management
-- Error details
-
-### Common Testing Scenarios
-
-```bash
-# Test authentication
-pixi run mcp-streamablehttp-client --test-auth
-
-# Check token status
-pixi run mcp-streamablehttp-client --token
-
-# List server capabilities
-pixi run mcp-streamablehttp-client --list-tools
-
-# Test specific tool
-pixi run mcp-streamablehttp-client -c "echo test message"
-
-# Raw protocol test
-pixi run mcp-streamablehttp-client --raw '{"method": "tools/list", "params": {}}'
-```
-
-## Troubleshooting
-
-### Authentication Issues
-
-#### "No valid authentication found"
-
-**Solutions**:
-1. Check MCP_SERVER_URL is correct
-2. Verify OAuth endpoints are accessible
-3. Try `--reset-auth` to start fresh
-4. Check network connectivity
-
-#### "Token refresh failed"
-
-**Solutions**:
-1. Verify refresh token hasn't expired
-2. Check OAuth server is running
-3. Try manual re-authentication
-4. Review OAuth server logs
-
-### Connection Issues
-
-#### "Failed to connect to server"
-
-**Solutions**:
-1. Verify server URL and port
-2. Check SSL certificates (`VERIFY_SSL=false` for testing)
-3. Test with curl: `curl -I https://server/mcp`
-4. Check firewall rules
-
-#### "Session timeout"
-
-**Solutions**:
-1. Increase SESSION_TIMEOUT
-2. Check for network interruptions
-3. Verify server session handling
-4. Monitor request frequency
-
-### Protocol Issues
-
-#### "Invalid JSON-RPC response"
-
-**Solutions**:
-1. Enable debug logging
-2. Test with `--raw` mode
-3. Verify server protocol version
-4. Check response format
-
-#### "Method not found"
-
-**Solutions**:
-1. List available methods: `--list-tools`
-2. Check method name spelling
-3. Verify server capabilities
-4. Update protocol version
-
-## Best Practices
-
-### Security
-
-1. **Credential Storage**: Store .env files securely
-2. **Token Rotation**: Implement regular token refresh
-3. **SSL Verification**: Always verify in production
-4. **Access Control**: Limit token scope appropriately
-5. **Audit Logging**: Monitor authentication events
-
-### Performance
-
-1. **Connection Reuse**: Maintain persistent connections
-2. **Token Caching**: Minimize refresh requests
-3. **Batch Operations**: Group related requests
-4. **Timeout Tuning**: Adjust for network conditions
-5. **Resource Cleanup**: Handle disconnections gracefully
-
-### Error Handling
-
-1. **Graceful Degradation**: Handle auth failures smoothly
-2. **Retry Logic**: Implement exponential backoff
-3. **User Feedback**: Provide clear error messages
-4. **Logging**: Capture diagnostic information
-5. **Recovery**: Automatic re-authentication
-
-## Advanced Topics
-
-### Custom OAuth Providers
-
-Configure alternative OAuth providers:
+### In Python Applications
 
 ```python
-from mcp_streamablehttp_client import OAuthConfig
+import subprocess
+import json
 
-custom_oauth = OAuthConfig(
-    authorization_url="https://custom.auth/authorize",
-    token_url="https://custom.auth/token",
-    device_url="https://custom.auth/device",
-    client_id="custom_client",
-    client_secret="custom_secret"
+# Start the client bridge
+proc = subprocess.Popen(
+    ['mcp-streamablehttp-client', '--server-url', server_url, '--token', token],
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    text=True
 )
+
+# Send MCP messages
+message = {"jsonrpc": "2.0", "method": "initialize", "id": 1}
+proc.stdin.write(json.dumps(message) + '\n')
+proc.stdin.flush()
+
+# Read responses
+response = json.loads(proc.stdout.readline())
 ```
 
-### Request Interceptors
+## Debugging
 
-Add custom request processing:
-
-```python
-async def request_interceptor(request: dict) -> dict:
-    # Add custom headers
-    request["_headers"] = {
-        "X-Custom-Header": "value"
-    }
-    return request
-
-proxy.add_interceptor(request_interceptor)
-```
-
-### Response Transformers
-
-Process responses before returning:
-
-```python
-async def response_transformer(response: dict) -> dict:
-    # Add metadata
-    response["_metadata"] = {
-        "timestamp": time.time(),
-        "server": "remote"
-    }
-    return response
-
-proxy.add_transformer(response_transformer)
-```
-
-## Development
-
-### Running Tests
+### Enable Debug Logging
 
 ```bash
-# All tests
-pixi run pytest tests/ -v
+# Verbose output
+mcp-streamablehttp-client --verbose
 
-# Specific test category
-pixi run pytest tests/test_oauth.py -v
-pixi run pytest tests/test_proxy.py -v
-pixi run pytest tests/test_cli.py -v
-
-# With coverage
-pixi run pytest --cov=mcp_streamablehttp_client
+# Debug logging
+export MCP_CLIENT_LOG_LEVEL=DEBUG
 ```
 
-### Test Categories
+### Common Issues
 
-1. **Unit Tests**: Component isolation
-2. **Integration Tests**: OAuth flow testing
-3. **Protocol Tests**: MCP compliance
-4. **CLI Tests**: Command parsing
+1. **Token Generation Hangs**
+   - Check browser opened
+   - Verify redirect URI accessible
+   - Check firewall rules
 
-### Contributing
+2. **Connection Errors**
+   - Verify server URL includes `/mcp`
+   - Check SSL certificates
+   - Test with curl first
 
-See the main project [Development Guidelines](../development/guidelines.md) for contribution standards.
+3. **Protocol Errors**
+   - Enable debug logging
+   - Check protocol version compatibility
+   - Verify message format
 
-## Migration Guide
+## Testing
 
-### From Direct HTTP Clients
+```bash
+# Test basic connectivity
+mcp-streamablehttp-client \
+  --server-url https://mcp-echo.example.com/mcp \
+  --test
 
-If migrating from direct HTTP MCP clients:
+# Test with authentication
+mcp-streamablehttp-client \
+  --server-url https://mcp-fetch.example.com/mcp \
+  --token "Bearer eyJ..." \
+  --test
+```
 
-1. Install mcp-streamablehttp-client
-2. Configure OAuth credentials
-3. Update client configuration
-4. Test authentication flow
-5. Verify tool execution
+## Security Considerations
 
-### From Other Bridges
-
-Key differences from other stdio-HTTP bridges:
-
-1. **Built-in OAuth**: No separate auth setup
-2. **Testing Tools**: Extensive debugging features
-3. **Smart Parsing**: Flexible argument formats
-4. **Token Management**: Automatic refresh
-5. **RFC Compliance**: Full 7591/7592 support
-
-## License
-
-Apache License 2.0 - see project LICENSE file.
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/atrawog/mcp-oauth-gateway/issues)
-- **Documentation**: [Full Documentation](https://atrawog.github.io/mcp-oauth-gateway)
-- **Source**: [GitHub Repository](https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-streamablehttp-client)
+1. **Token Storage**: Use secure storage for tokens
+2. **HTTPS Only**: Always use HTTPS URLs
+3. **Token Scope**: Request minimal necessary permissions
+4. **Token Rotation**: Implement regular token refresh
+5. **Audit Logging**: Monitor token usage

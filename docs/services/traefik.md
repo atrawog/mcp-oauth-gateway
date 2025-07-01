@@ -1,305 +1,440 @@
 # Traefik Service
 
-Traefik serves as the reverse proxy and edge router for the MCP OAuth Gateway, handling all incoming requests, SSL termination, and authentication enforcement.
+The divine reverse proxy that routes all requests, enforces authentication, and provides SSL termination for the gateway.
 
 ## Overview
 
-Traefik provides:
+Traefik serves as the gateway's entry point, implementing:
+
 - Reverse proxy for all services
-- Automatic SSL/TLS with Let's Encrypt
-- Authentication enforcement via ForwardAuth
-- Service discovery through Docker labels
-- Request routing with priority system
+- Automatic SSL/TLS via Let's Encrypt
+- ForwardAuth middleware for authentication
+- Priority-based routing rules
+- Health monitoring
+- Load balancing
 
 ## Architecture
 
-The service uses:
-- **Version**: Traefik v3.0
-- **Ports**: 80 (HTTP), 443 (HTTPS)
-- **Discovery**: Docker provider with labels
-- **SSL**: Let's Encrypt with HTTP challenge
+```
+┌─────────────────────────────────────────┐
+│           Traefik v3.0                   │
+├─────────────────────────────────────────┤
+│  Entrypoints  │  Routers  │ Middlewares │
+│  :80 (web)    │  Priority │ ForwardAuth │
+│  :443 (websec)│  Rules    │ Headers     │
+├─────────────────────────────────────────┤
+│         Service Discovery                │
+│  Docker Labels → Dynamic Configuration  │
+└─────────────────────────────────────────┘
+```
 
 ## Configuration
-
-### Environment Variables
-
-```bash
-# Domain Configuration (REQUIRED)
-BASE_DOMAIN=gateway.yourdomain.com
-ACME_EMAIL=admin@yourdomain.com
-```
 
 ### Docker Compose
 
 ```yaml
-traefik:
-  image: traefik:v3.0
-  container_name: traefik
-  restart: unless-stopped
-  networks:
-    - public
-  ports:
-    - "80:80"
-    - "443:443"
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock:ro
-    - traefik-certificates:/certificates
-  command:
-    - "--providers.docker=true"
-    - "--providers.docker.exposedbydefault=false"
-    - "--entrypoints.web.address=:80"
-    - "--entrypoints.websecure.address=:443"
-    - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-    - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+services:
+  traefik:
+    image: traefik:v3.0
+    restart: unless-stopped
+    command:
+      # API and Dashboard
+      - "--api.dashboard=true"
+      - "--api.debug=false"
+
+      # Providers
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=public"
+      - "--providers.file.directory=/middlewares"
+      - "--providers.file.watch=true"
+
+      # Entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+
+      # Let's Encrypt
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+
+      # Logging
+      - "--log.level=${TRAEFIK_LOG_LEVEL:-INFO}"
+      - "--accesslog=true"
+      - "--accesslog.filepath=/logs/access.log"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-certificates:/certificates
+      - ./traefik/middlewares:/middlewares:ro
+      - ./logs/traefik:/logs
+    networks:
+      - public
+    environment:
+      - BASE_DOMAIN=${BASE_DOMAIN}
+      - ACME_EMAIL=${ACME_EMAIL}
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      # Dashboard (optional)
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
 ```
 
-## Routing System
+### Middleware Configuration
 
-### Priority-Based Routing
-
-Traefik uses priorities to ensure correct request handling:
+The ForwardAuth middleware is generated from template:
 
 ```yaml
-# Priority 10 - OAuth Discovery (Highest)
-PathPrefix(`/.well-known/oauth-authorization-server`)
-
-# Priority 4 - OAuth Routes
-PathPrefix(`/register`) || PathPrefix(`/authorize`) || PathPrefix(`/token`)
-
-# Priority 3 - Internal Routes
-PathPrefix(`/verify`)
-
-# Priority 2 - MCP Routes with Auth
-Host(`service.domain.com`) && PathPrefix(`/mcp`)
-
-# Priority 1 - Catch-all (Lowest)
-Host(`service.domain.com`)
+# middlewares/mcp-auth.yml
+http:
+  middlewares:
+    mcp-auth:
+      forwardAuth:
+        address: "http://auth:8000/verify"
+        authResponseHeaders:
+          - "X-User-Id"
+          - "X-User-Name"
+          - "X-Auth-Token"
+        trustForwardHeader: true
 ```
 
-### Service Configuration
+## Routing Architecture
 
-Each service configures routing via Docker labels:
+### Priority System
 
-```yaml
-labels:
-  # Enable Traefik processing
-  - "traefik.enable=true"
+Traefik uses priority-based routing to ensure correct request handling:
 
-  # Define service port
-  - "traefik.http.services.service-name.loadbalancer.server.port=3000"
-
-  # Configure routing
-  - "traefik.http.routers.service-name.rule=Host(`service.${BASE_DOMAIN}`)"
-  - "traefik.http.routers.service-name.priority=2"
-  - "traefik.http.routers.service-name.entrypoints=websecure"
-  - "traefik.http.routers.service-name.tls.certresolver=letsencrypt"
-
-  # Apply authentication
-  - "traefik.http.routers.service-name.middlewares=mcp-auth@docker"
+```
+Priority 4 (Highest): OAuth endpoints
+         ↓
+Priority 3: Auth support endpoints
+         ↓
+Priority 2: MCP service routes
+         ↓
+Priority 1: Catch-all routes
 ```
 
-## Middleware
+### Routing Rules
 
-### ForwardAuth Middleware
-
-Enforces authentication for protected routes:
-
+#### OAuth Routes (Priority 4)
 ```yaml
-# Define middleware
-- "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"
-- "traefik.http.middlewares.mcp-auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name,X-Auth-Token"
-- "traefik.http.middlewares.mcp-auth.forwardauth.trustForwardHeader=true"
-
-# Apply to routes
-- "traefik.http.routers.service.middlewares=mcp-auth@docker"
+- "traefik.http.routers.auth-oauth.rule=
+    PathPrefix(`/register`) ||
+    PathPrefix(`/authorize`) ||
+    PathPrefix(`/token`) ||
+    PathPrefix(`/callback`) ||
+    PathPrefix(`/.well-known`)"
+- "traefik.http.routers.auth-oauth.priority=4"
 ```
 
-Flow:
-1. Request arrives at protected endpoint
-2. Traefik calls auth service `/verify`
-3. Auth validates Bearer token
-4. Success: Request forwarded with user headers
-5. Failure: 401 Unauthorized returned
-
-### HTTPS Redirect
-
-Global redirect from HTTP to HTTPS:
-
+#### MCP Service Routes (Priority 2)
 ```yaml
-# HTTP to HTTPS redirect middleware
-- "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-- "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
-
-# Global catch-all router
-- "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
-- "traefik.http.routers.http-catchall.entrypoints=web"
-- "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
-```
-
-### CORS Middleware
-
-Handles cross-origin requests:
-
-```yaml
-# CORS configuration
-- "traefik.http.middlewares.mcp-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE,PATCH"
-- "traefik.http.middlewares.mcp-cors.headers.accesscontrolallowheaders=*"
-- "traefik.http.middlewares.mcp-cors.headers.accesscontrolalloworiginlist=https://claude.ai"
-- "traefik.http.middlewares.mcp-cors.headers.accesscontrolmaxage=100"
-- "traefik.http.middlewares.mcp-cors.headers.accesscontrolallowcredentials=true"
+- "traefik.http.routers.mcp-fetch.rule=
+    Host(`mcp-fetch.${BASE_DOMAIN}`) ||
+    Host(`fetch.${BASE_DOMAIN}`)"
+- "traefik.http.routers.mcp-fetch.priority=2"
+- "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@file"
 ```
 
 ## SSL/TLS Configuration
 
 ### Let's Encrypt Integration
 
-Automatic certificate generation and renewal:
+Traefik automatically obtains and renews certificates:
 
 ```yaml
-command:
-  # ACME configuration
-  - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-  - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-  - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
-  - "--certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json"
-
-# Router configuration
-labels:
-  - "traefik.http.routers.service.tls=true"
-  - "traefik.http.routers.service.tls.certresolver=letsencrypt"
+certificatesresolvers:
+  letsencrypt:
+    acme:
+      email: ${ACME_EMAIL}
+      storage: /certificates/acme.json
+      httpChallenge:
+        entryPoint: web
 ```
 
 ### Certificate Storage
 
-Certificates stored in Docker volume:
-- Volume: `traefik-certificates`
-- File: `/certificates/acme.json`
-- Permissions: 600 (important!)
+Certificates stored in persistent volume:
+```
+traefik-certificates/
+└── acme.json  # Let's Encrypt certificates and keys
+```
 
-## Monitoring
+### HTTPS Redirect
 
-### Health Check
+All HTTP traffic redirected to HTTPS:
+```yaml
+entrypoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entrypoint:
+          to: websecure
+          scheme: https
+```
+
+## Service Discovery
+
+### Docker Labels
+
+Services register with Traefik via labels:
 
 ```yaml
-command:
-  - "--ping=true"
+labels:
+  # Enable Traefik
+  - "traefik.enable=true"
 
-healthcheck:
-  test: ["CMD", "traefik", "healthcheck", "--ping"]
-  interval: 10s
-  timeout: 5s
-  retries: 5
+  # Routing rule
+  - "traefik.http.routers.service.rule=Host(`service.${BASE_DOMAIN}`)"
+
+  # TLS configuration
+  - "traefik.http.routers.service.tls=true"
+  - "traefik.http.routers.service.tls.certresolver=letsencrypt"
+
+  # Middleware
+  - "traefik.http.routers.service.middlewares=mcp-auth@file"
+
+  # Priority
+  - "traefik.http.routers.service.priority=2"
+
+  # Service port
+  - "traefik.http.services.service.loadbalancer.server.port=3000"
 ```
+
+### Network Configuration
+
+All services must be on the `public` network:
+```yaml
+networks:
+  public:
+    external: true
+```
+
+## ForwardAuth Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Traefik
+    participant Auth
+    participant Service
+
+    Client->>Traefik: Request + Bearer Token
+    Traefik->>Auth: GET /verify
+    Auth-->>Traefik: 200 OK + Headers
+    Traefik->>Service: Forward Request + Headers
+    Service-->>Traefik: Response
+    Traefik-->>Client: Response
+```
+
+## Load Balancing
+
+### Round Robin (Default)
+
+```yaml
+services:
+  service:
+    loadBalancer:
+      servers:
+        - url: "http://service1:3000"
+        - url: "http://service2:3000"
+```
+
+### Sticky Sessions
+
+```yaml
+services:
+  service:
+    loadBalancer:
+      sticky:
+        cookie:
+          name: mcp_session
+```
+
+## Health Monitoring
+
+### Traefik Health
+
+```bash
+# Internal health check
+docker exec traefik traefik healthcheck
+
+# API endpoint
+curl https://traefik.${BASE_DOMAIN}/api/http/routers
+```
+
+### Service Health
+
+Traefik monitors backend health:
+```yaml
+services:
+  service:
+    loadBalancer:
+      healthCheck:
+        path: /health
+        interval: 30s
+        timeout: 5s
+```
+
+## Logging
 
 ### Access Logs
 
+```
+# logs/traefik/access.log
+{"time":"2024-01-01T12:00:00Z","status":200,"method":"POST","path":"/mcp","duration":"5ms"}
+```
+
+### Application Logs
+
+```
+# logs/traefik/traefik.log
+time="2024-01-01T12:00:00Z" level=info msg="Configuration loaded"
+```
+
+### Log Levels
+
+Set via `TRAEFIK_LOG_LEVEL`:
+- ERROR
+- WARN
+- INFO
+- DEBUG
+
+## Security Features
+
+### Headers Middleware
+
 ```yaml
-command:
-  - "--accesslog=true"
-  - "--log.level=INFO"
+http:
+  middlewares:
+    secure-headers:
+      headers:
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        contentTypeNosniff: true
+        browserXssFilter: true
 ```
 
-### Dashboard (Development Only)
+### Rate Limiting
 
 ```yaml
-command:
-  - "--api.insecure=true"  # Enables dashboard on port 8080
+http:
+  middlewares:
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
 ```
 
-Access at: `http://localhost:8080`
+### IP Whitelisting
 
-## Operations
-
-### Starting Traefik
-
-```bash
-# Start Traefik only
-just up traefik
-
-# View logs
-just logs traefik
-
-# Check SSL certificates
-just check-ssl
-```
-
-### Common Tasks
-
-```bash
-# View routing configuration
-curl http://localhost:8080/api/http/routers | jq
-
-# Check service health
-curl http://localhost:8080/api/http/services | jq
-
-# Monitor access logs
-just logs -f traefik | grep -v "GET /ping"
+```yaml
+http:
+  middlewares:
+    ip-whitelist:
+      ipWhiteList:
+        sourceRange:
+          - "10.0.0.0/8"
+          - "192.168.0.0/16"
 ```
 
 ## Troubleshooting
 
-### Common Issues
-
-#### 404 Page Not Found
-- Check router priorities
-- Verify Host rule matches domain
-- Ensure service has `traefik.enable=true`
-- Check service is on correct network
-
-#### 502 Bad Gateway
-- Service not running or unhealthy
-- Wrong port in service configuration
-- Network connectivity issue
-- Service not on `public` network
-
-#### SSL Certificate Errors
-- Check DNS points to server
-- Verify ACME email is valid
-- Check rate limits (5 certs/week/domain)
-- Review acme.json permissions
-
-#### Authentication Issues
-- Auth service not reachable
-- ForwardAuth middleware misconfigured
-- Invalid Bearer token
-- User not in allowed list
-
-### Debugging
+### Certificate Issues
 
 ```bash
-# Enable debug logging
-docker exec traefik sed -i 's/--log.level=INFO/--log.level=DEBUG/g' /etc/traefik/traefik.yml
-
-# Check specific route
-curl -H "Host: service.domain.com" http://localhost/test
-
-# View certificate details
+# Check certificate status
 docker exec traefik cat /certificates/acme.json | jq '.letsencrypt.Certificates'
 
-# Test ForwardAuth
-curl -v -H "Authorization: Bearer $TOKEN" https://service.domain.com/mcp
+# Force renewal
+docker exec traefik rm /certificates/acme.json
+docker restart traefik
+```
+
+### Routing Issues
+
+```bash
+# Check active routers
+curl https://traefik.${BASE_DOMAIN}/api/http/routers | jq
+
+# Verify service discovery
+docker exec traefik traefik show-routing
+```
+
+### ForwardAuth Failures
+
+```bash
+# Test auth endpoint directly
+curl http://auth:8000/verify -H "Authorization: Bearer $TOKEN"
+
+# Check middleware configuration
+cat traefik/middlewares/mcp-auth.yml
+```
+
+## Performance Tuning
+
+### Connection Limits
+
+```yaml
+transport:
+  respondingTimeouts:
+    readTimeout: 30s
+    writeTimeout: 30s
+    idleTimeout: 180s
+```
+
+### Buffer Sizes
+
+```yaml
+transport:
+  maxIdleConnsPerHost: 200
+  maxResponseHeaderBytes: 1048576
+```
+
+## Monitoring Integration
+
+### Prometheus Metrics
+
+```yaml
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addServicesLabels: true
+    buckets:
+      - 0.1
+      - 0.3
+      - 1.2
+      - 5.0
+```
+
+### Access Log Analysis
+
+```bash
+# Top requested paths
+cat logs/traefik/access.log | jq -r '.path' | sort | uniq -c | sort -nr
+
+# Response time analysis
+cat logs/traefik/access.log | jq -r '.duration' | sort -n
 ```
 
 ## Best Practices
 
-1. **Always Set Priorities** - Prevent catch-all confusion
-2. **Use Specific Rules** - Combine Host + Path when possible
-3. **Monitor Logs** - Watch for routing issues
-4. **Backup Certificates** - Save acme.json regularly
-5. **Test Locally** - Use Host header to test routing
-6. **Health Checks** - Ensure services are ready
-7. **Network Isolation** - Keep internal services off public network
-
-## Architecture Notes
-
-- Stateless design (state in acme.json only)
-- Service discovery via Docker API
-- Dynamic configuration through labels
-- No hardcoded routes
-- Single instance sufficient
-
-## Related Documentation
-
-- [Components](../architecture/components.md) - System architecture
-- [Security](../architecture/security.md) - Security details
-- [Monitoring](../usage/monitoring.md) - Monitoring guide
+1. **Use Priority Rules**: Prevent routing conflicts
+2. **Enable Access Logs**: For debugging and analytics
+3. **Monitor Certificates**: Set up renewal alerts
+4. **Health Checks**: Configure for all backends
+5. **Secure Headers**: Apply security middleware
+6. **Rate Limiting**: Protect against abuse

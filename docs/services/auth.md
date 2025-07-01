@@ -1,231 +1,370 @@
 # Auth Service
 
-The Auth Service is the OAuth 2.1 authorization server that handles all authentication and authorization for the MCP OAuth Gateway. It integrates with GitHub OAuth for user authentication and implements dynamic client registration per RFC 7591/7592.
+The divine OAuth 2.1 authentication service that guards the gateway, implementing RFC 7591/7592 compliant dynamic client registration and user authentication.
 
 ## Overview
 
-The Auth service provides:
-- OAuth 2.1 authorization server implementation
-- GitHub OAuth integration for user authentication
-- Dynamic client registration (RFC 7591/7592)
+The Auth service is the authentication oracle of the gateway, built on `mcp-oauth-dynamicclient`. It provides:
+
+- OAuth 2.1 authorization server
+- Dynamic client registration (RFC 7591)
+- Client management (RFC 7592)
+- GitHub OAuth integration
 - JWT token generation and validation
-- ForwardAuth endpoint for Traefik integration
+- ForwardAuth endpoint for Traefik
 
 ## Architecture
 
-The service uses:
-- **Framework**: FastAPI with mcp-oauth-dynamicclient package
-- **Storage**: Redis for state and token management
-- **Port**: Exposes port 8000 internally
-- **Authentication**: GitHub OAuth as identity provider
+```
+┌─────────────────────────────────────────┐
+│            Auth Service                  │
+├─────────────────────────────────────────┤
+│  OAuth Endpoints  │  ForwardAuth        │
+│  /authorize       │  /verify            │
+│  /token           │                     │
+│  /register        │  Management         │
+│  /callback        │  /introspect        │
+│  /.well-known/*   │  /revoke            │
+├─────────────────────────────────────────┤
+│         Redis Storage Backend            │
+│  • Tokens  • Clients  • Sessions        │
+└─────────────────────────────────────────┘
+```
 
 ## Configuration
 
-### Environment Variables
-
-```bash
-# GitHub OAuth App (REQUIRED)
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-client-secret
-
-# JWT Configuration (REQUIRED)
-GATEWAY_JWT_SECRET=your-generated-jwt-secret-at-least-32-chars
-JWT_ALGORITHM=RS256  # or HS256
-JWT_PRIVATE_KEY_B64=your-base64-encoded-private-key  # For RS256 only
-
-# Access Control (REQUIRED)
-ALLOWED_GITHUB_USERS=user1,user2  # Comma-separated list
-
-# Token Lifetimes (REQUIRED)
-ACCESS_TOKEN_LIFETIME=86400      # 24 hours
-REFRESH_TOKEN_LIFETIME=2592000   # 30 days
-SESSION_TIMEOUT=3600             # 1 hour
-CLIENT_LIFETIME=7776000          # 90 days (0 for eternal)
-
-# Redis Connection (REQUIRED)
-REDIS_PASSWORD=your-secure-redis-password
-REDIS_URL=redis://redis:6379
-
-# Protocol Configuration
-MCP_PROTOCOL_VERSION=2025-06-18
-MCP_PROTOCOL_VERSIONS_SUPPORTED=2025-06-18,2025-03-26,2024-11-05
-```
-
-## OAuth Endpoints
-
-### Public Endpoints
-
-#### POST /register - Dynamic Client Registration
-- Implements RFC 7591
-- No authentication required
-- Returns client credentials and registration token
-
-```bash
-curl -X POST https://auth.gateway.yourdomain.com/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "redirect_uris": ["https://app.example.com/callback"],
-    "client_name": "My MCP Client"
-  }'
-```
-
-#### GET /authorize - OAuth Authorization
-- Initiates OAuth flow
-- Redirects to GitHub for authentication
-- Supports PKCE (required)
-
-```bash
-# Browser-based flow
-https://auth.gateway.yourdomain.com/authorize?
-  client_id=CLIENT_ID&
-  redirect_uri=REDIRECT_URI&
-  state=STATE&
-  code_challenge=CHALLENGE&
-  code_challenge_method=S256
-```
-
-#### POST /token - Token Exchange
-- Exchanges authorization code for tokens
-- Validates PKCE verifier
-- Returns JWT access token
-
-```bash
-curl -X POST https://auth.gateway.yourdomain.com/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=authorization_code&
-      code=AUTH_CODE&
-      client_id=CLIENT_ID&
-      client_secret=CLIENT_SECRET&
-      code_verifier=VERIFIER"
-```
-
-#### GET /.well-known/oauth-authorization-server - Server Metadata
-- Returns OAuth server capabilities
-- Required by MCP specification
-- No authentication required
-
-### Internal Endpoints
-
-#### GET /verify - ForwardAuth Validation
-- Used by Traefik for request validation
-- Validates Bearer tokens
-- Returns user information in headers
-
-## Security Features
-
-### Authentication Flow
-1. Client registration via `/register`
-2. User redirected to `/authorize`
-3. GitHub OAuth authentication
-4. Authorization code returned
-5. Code exchanged for JWT token
-6. Token used for API access
-
-### Token Security
-- JWT tokens signed with HS256 or RS256
-- Short-lived access tokens (24 hours default)
-- Refresh tokens for renewal (30 days default)
-- Tokens bound to GitHub user identity
-
-### Access Control
-- GitHub user whitelist (`ALLOWED_GITHUB_USERS`)
-- Per-client registration lifetime
-- Token validation on every request
-- Automatic token cleanup
-
-## Integration with Traefik
-
-The Auth service integrates with Traefik via ForwardAuth:
+### Docker Compose
 
 ```yaml
-# Traefik middleware configuration
-- "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"
-- "traefik.http.middlewares.mcp-auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name"
+services:
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      # GitHub OAuth
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+
+      # JWT Configuration
+      - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET}
+      - GATEWAY_RSA_PRIVATE_KEY=${GATEWAY_RSA_PRIVATE_KEY}
+      - GATEWAY_RSA_PUBLIC_KEY=${GATEWAY_RSA_PUBLIC_KEY}
+
+      # Token Lifetimes
+      - ACCESS_TOKEN_LIFETIME=${ACCESS_TOKEN_LIFETIME:-2592000}
+      - REFRESH_TOKEN_LIFETIME=${REFRESH_TOKEN_LIFETIME:-31536000}
+      - CLIENT_LIFETIME=${CLIENT_LIFETIME:-7776000}
+
+      # Access Control
+      - ALLOWED_GITHUB_USERS=${ALLOWED_GITHUB_USERS}
+
+      # Redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - public
+    volumes:
+      - ./logs/auth:/logs
+      - auth-keys:/keys
+    labels:
+      # Traefik routing
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=Host(`auth.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.auth.priority=4"
+      - "traefik.http.routers.auth.tls=true"
+      - "traefik.http.routers.auth.tls.certresolver=letsencrypt"
 ```
 
-Flow:
-1. Request arrives at Traefik
-2. ForwardAuth middleware calls `/verify`
-3. Auth service validates Bearer token
-4. User info returned in headers
-5. Request forwarded to destination
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `GITHUB_CLIENT_ID` | GitHub OAuth App ID | Required |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth App Secret | Required |
+| `GATEWAY_JWT_SECRET` | JWT signing secret | Required |
+| `GATEWAY_RSA_PRIVATE_KEY` | RSA private key for RS256 | Optional |
+| `GATEWAY_RSA_PUBLIC_KEY` | RSA public key for RS256 | Optional |
+| `ACCESS_TOKEN_LIFETIME` | Access token TTL (seconds) | 2592000 (30 days) |
+| `REFRESH_TOKEN_LIFETIME` | Refresh token TTL (seconds) | 31536000 (1 year) |
+| `CLIENT_LIFETIME` | Client registration TTL | 7776000 (90 days) |
+| `ALLOWED_GITHUB_USERS` | Comma-separated allowlist | Required |
+| `REDIS_HOST` | Redis hostname | redis |
+| `REDIS_PORT` | Redis port | 6379 |
+| `REDIS_PASSWORD` | Redis password | Required |
+
+## API Endpoints
+
+### OAuth 2.0 Core
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/authorize` | GET | Start authorization flow |
+| `/token` | POST | Exchange code for token |
+| `/callback` | GET | GitHub OAuth callback |
+| `/revoke` | POST | Revoke token |
+| `/introspect` | POST | Token introspection |
+
+### Dynamic Client Registration
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/register` | POST | Register new client (public) |
+| `/register/{id}` | GET | Read client config |
+| `/register/{id}` | PUT | Update client config |
+| `/register/{id}` | DELETE | Delete client |
+
+### Discovery & Metadata
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/.well-known/oauth-authorization-server` | GET | Server metadata |
+| `/.well-known/openid-configuration` | GET | OpenID config |
+
+### ForwardAuth Integration
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/verify` | GET | Verify token for Traefik |
+| `/health` | GET | Service health check |
+
+## Authentication Flows
+
+### Client Registration Flow
+
+```mermaid
+sequenceDiagram
+    participant C as MCP Client
+    participant A as Auth Service
+    participant R as Redis
+
+    C->>A: POST /register
+    A->>R: Generate client_id
+    A->>R: Store client data
+    A->>C: 201 Created
+    Note right of C: Receives:<br/>client_id<br/>client_secret<br/>registration_access_token
+```
+
+### Authorization Code Flow with PKCE
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant C as Client
+    participant A as Auth Service
+    participant G as GitHub
+
+    C->>C: Generate PKCE verifier/challenge
+    C->>U: Redirect to /authorize
+    U->>A: GET /authorize
+    A->>G: Redirect to GitHub OAuth
+    U->>G: Authenticate
+    G->>A: Callback with code
+    A->>U: Redirect to client
+    U->>C: Authorization code
+    C->>A: POST /token with verifier
+    A->>C: Access token (JWT)
+```
+
+### Token Verification (ForwardAuth)
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant T as Traefik
+    participant A as Auth Service
+    participant M as MCP Service
+
+    C->>T: Request with Bearer token
+    T->>A: GET /verify
+    A->>T: 200 OK + Headers
+    T->>M: Forward request
+    M->>T: Response
+    T->>C: Response
+```
+
+## JWT Token Structure
+
+```json
+{
+  "header": {
+    "alg": "RS256",
+    "typ": "JWT"
+  },
+  "payload": {
+    "iss": "https://auth.example.com",
+    "sub": "github|username",
+    "aud": "client_abc123",
+    "exp": 1234567890,
+    "iat": 1234567890,
+    "jti": "unique-token-id",
+    "scope": "mcp:*",
+    "github_username": "username",
+    "github_id": "12345"
+  }
+}
+```
 
 ## Redis Storage Schema
 
-```redis
-# OAuth State Management
-oauth:state:{state}           # OAuth flow state (5min TTL)
-oauth:code:{code}             # Authorization codes (1year TTL)
-oauth:pkce:{code_challenge}   # PKCE verifiers
+```
+# Client registrations
+oauth:client:{client_id} = {
+  "client_id": "...",
+  "client_secret": "...",
+  "client_name": "...",
+  "redirect_uris": [...],
+  "registration_access_token": "reg-xxx",
+  "created_at": "...",
+  "expires_at": "..."
+}
 
-# Client Management
-oauth:client:{client_id}      # Client registration data
-oauth:client_index            # Client ID index
+# OAuth states (CSRF protection)
+oauth:state:{state} = {
+  "client_id": "...",
+  "redirect_uri": "...",
+  "code_challenge": "...",
+  "created_at": "..."
+} # TTL: 5 minutes
 
-# Token Management
-oauth:token:{jti}             # Active JWT tokens (30day TTL)
-oauth:refresh:{token}         # Refresh tokens (1year TTL)
-oauth:user_tokens:{username}  # User's token index
+# Authorization codes
+oauth:code:{code} = {
+  "client_id": "...",
+  "user_id": "...",
+  "scope": "...",
+  "code_challenge": "...",
+  "created_at": "..."
+} # TTL: 1 year (for long-lived tokens)
+
+# Access tokens
+oauth:token:{jti} = {
+  "client_id": "...",
+  "user_id": "...",
+  "scope": "...",
+  "created_at": "...",
+  "expires_at": "..."
+} # TTL: 30 days
+
+# User token index
+oauth:user_tokens:{username} = ["jti1", "jti2", ...]
 ```
 
-## Starting the Service
+## Health Monitoring
 
-```bash
-# Start auth service only
-just up auth
+### Health Endpoint
 
-# View logs
-just logs auth
+```http
+GET /health
 
-# Rebuild after changes
-just rebuild auth
+{
+  "status": "healthy",
+  "redis": "connected",
+  "version": "0.2.0",
+  "uptime": 3600
+}
 ```
+
+### Monitoring Metrics
+
+- Active client registrations
+- Token generation rate
+- Authentication success/failure rate
+- GitHub API rate limit status
+- Redis connection status
+
+## Security Features
+
+### Token Security
+- JWT signed with RS256 (or HS256)
+- Short-lived access tokens
+- Secure token storage in Redis
+- Token revocation support
+
+### Client Security
+- Dynamic client registration
+- Client secret rotation
+- Registration access tokens
+- Client expiration
+
+### User Security
+- GitHub OAuth for user auth
+- User allowlist enforcement
+- Session management
+- CSRF protection
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### GitHub OAuth Errors
-- Verify `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`
-- Check OAuth app callback URL matches
-- Ensure user is in `ALLOWED_GITHUB_USERS`
-
-#### JWT Validation Failures
-- Verify `GATEWAY_JWT_SECRET` is consistent
-- Check token expiration
-- Ensure JWT algorithm matches configuration
-
-#### Redis Connection Errors
-- Verify Redis is running: `just logs redis`
-- Check `REDIS_PASSWORD` and `REDIS_URL`
-- Ensure Redis has persistence enabled
-
-### Debugging
-
+#### GitHub OAuth Failures
 ```bash
-# View auth logs
-just logs auth
+# Check GitHub app configuration
+curl https://auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server
 
-# Check OAuth registrations
-just oauth-list-registrations
-
-# Validate tokens
-just validate-tokens
-
-# View OAuth statistics
-just oauth-stats
+# Verify callback URL matches GitHub app
+# Should be: https://auth.${BASE_DOMAIN}/callback
 ```
 
-## Architecture Notes
+#### Token Validation Failures
+```bash
+# Test token directly
+curl -H "Authorization: Bearer ${TOKEN}" \
+  https://auth.${BASE_DOMAIN}/verify
 
-- Built with FastAPI and mcp-oauth-dynamicclient
-- Stateless design with Redis backend
-- No knowledge of MCP protocols
-- Pure OAuth implementation
-- Runs as single service instance
+# Check JWT claims
+echo $TOKEN | cut -d. -f2 | base64 -d | jq
+```
 
-## Related Documentation
+#### Redis Connection Issues
+```bash
+# Check Redis connectivity
+docker exec auth redis-cli -h redis ping
 
-- [OAuth Flow](../architecture/oauth-flow.md) - Detailed flow documentation
-- [Components](../architecture/components.md) - System architecture
-- [Security](../architecture/security.md) - Security details
+# Verify Redis password
+docker exec auth env | grep REDIS
+```
+
+## Integration with MCP Services
+
+The auth service integrates with MCP services via Traefik's ForwardAuth:
+
+```yaml
+# Traefik middleware configuration
+- "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"
+- "traefik.http.middlewares.mcp-auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name,X-Auth-Token"
+
+# Applied to MCP services
+- "traefik.http.routers.mcp-service.middlewares=mcp-auth@docker"
+```
+
+## Maintenance
+
+### Backup Client Data
+```bash
+just oauth-backup
+```
+
+### Clean Expired Tokens
+```bash
+just oauth-purge-expired
+```
+
+### View Active Clients
+```bash
+just oauth-list-registrations
+```
+
+### Monitor Token Usage
+```bash
+just oauth-stats
+```

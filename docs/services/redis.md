@@ -1,299 +1,303 @@
 # Redis Service
 
-Redis provides persistent state storage for the MCP OAuth Gateway, managing OAuth flows, client registrations, tokens, and session state.
+The divine storage backend for OAuth tokens, client registrations, and session data.
 
 ## Overview
 
-Redis serves as the central state store providing:
-- OAuth flow state management
-- Client registration persistence
-- Token storage and indexing
-- Session state for MCP services
-- High-performance key-value storage
+Redis provides persistent storage for the Auth service, maintaining:
 
-## Architecture
-
-The service uses:
-- **Version**: Redis 7 Alpine
-- **Port**: 6379 (internal only)
-- **Persistence**: AOF and RDB enabled
-- **Volume**: redis-data for persistent storage
+- OAuth client registrations
+- Access and refresh tokens
+- Authorization codes
+- CSRF state tokens
+- User token indices
+- Session data
 
 ## Configuration
-
-### Environment Variables
-
-```bash
-# Redis Security (REQUIRED)
-REDIS_PASSWORD=your-secure-redis-password
-REDIS_URL=redis://redis:6379
-```
 
 ### Docker Compose
 
 ```yaml
-redis:
-  image: redis:7-alpine
-  container_name: redis
-  restart: unless-stopped
-  networks:
-    - internal
-  ports:
-    - "127.0.0.1:6379:6379"  # Local access only
-  volumes:
-    - redis-data:/data
-  command: >
-    redis-server
-    --requirepass ${REDIS_PASSWORD}
-    --appendonly yes
-    --appendfilename "redis.aof"
-    --save 60 1
-    --save 300 10
-    --save 900 100
-  healthcheck:
-    test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
-    interval: 10s
-    timeout: 5s
-    retries: 5
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+      - ./logs/redis:/logs
+    networks:
+      - public
+    healthcheck:
+      test: ["CMD", "redis-cli", "--pass", "${REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    ports:
+      - "127.0.0.1:6379:6379"  # Local access only
 ```
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `REDIS_PASSWORD` | Redis authentication password | Yes |
 
 ## Data Schema
 
-### OAuth State Management
+### Key Patterns
 
-```redis
-# Temporary OAuth flow state
-oauth:state:{state}              # TTL: 5 minutes
-{
-  "client_id": "...",
-  "redirect_uri": "...",
-  "code_challenge": "...",
-  "code_challenge_method": "S256"
-}
+```
+oauth:client:{client_id}        # Client registration data
+oauth:state:{state}             # CSRF state (5 min TTL)
+oauth:code:{code}               # Auth codes (1 year TTL)
+oauth:token:{jti}               # Access tokens (30 days TTL)
+oauth:refresh:{token}           # Refresh tokens (1 year TTL)
+oauth:user_tokens:{username}    # User token index
+```
 
-# Authorization codes
-oauth:code:{code}                # TTL: 1 year
+### Data Structures
+
+#### Client Registration
+```json
 {
-  "client_id": "...",
-  "user_id": "...",
-  "redirect_uri": "...",
-  "scope": "...",
-  "code_challenge": "..."
+  "client_id": "client_abc123",
+  "client_secret": "secret_xyz789",
+  "client_name": "My MCP Client",
+  "redirect_uris": ["http://localhost:8080/callback"],
+  "grant_types": ["authorization_code", "refresh_token"],
+  "registration_access_token": "reg-token123",
+  "created_at": "2024-01-01T00:00:00Z",
+  "expires_at": "2024-04-01T00:00:00Z"
 }
 ```
 
-### Client Registration
-
-```redis
-# Client registration data
-oauth:client:{client_id}         # No TTL (eternal or CLIENT_LIFETIME)
+#### Token Data
+```json
 {
-  "client_id": "...",
-  "client_secret": "...",
-  "client_name": "...",
-  "redirect_uris": [...],
-  "created_at": "...",
-  "expires_at": "..."
+  "client_id": "client_abc123",
+  "user_id": "github|username",
+  "scope": "mcp:*",
+  "issued_at": "2024-01-01T00:00:00Z",
+  "expires_at": "2024-01-31T00:00:00Z"
 }
-
-# Client ID index
-oauth:client_index               # Set of all client IDs
 ```
 
-### Token Management
+## Persistence
 
-```redis
-# Active JWT tokens
-oauth:token:{jti}                # TTL: ACCESS_TOKEN_LIFETIME
-{
-  "user_id": "...",
-  "username": "...",
-  "client_id": "...",
-  "scope": "...",
-  "exp": ...
-}
+### Data Volume
 
-# Refresh tokens
-oauth:refresh:{token}            # TTL: REFRESH_TOKEN_LIFETIME
-{
-  "user_id": "...",
-  "client_id": "...",
-  "jti": "..."
-}
-
-# User token index
-oauth:user_tokens:{username}     # Set of user's JTIs
+```yaml
+volumes:
+  redis-data:
+    external: true
 ```
 
-### MCP Session State
-
-```redis
-# Session state
-redis:session:{session_id}:state # MCP session metadata
-{
-  "client_id": "...",
-  "created_at": "...",
-  "last_active": "..."
-}
-
-# Session messages
-redis:session:{session_id}:messages # List of pending messages
-```
-
-## Persistence Configuration
-
-### Append-Only File (AOF)
-- Enabled for durability
-- Logs every write operation
-- Automatic rewrite on size threshold
-
-### RDB Snapshots
-- Save after 60 seconds if 1+ keys changed
-- Save after 300 seconds if 10+ keys changed
-- Save after 900 seconds if 100+ keys changed
-
-### Volume Persistence
-- Data stored in `redis-data` Docker volume
-- Survives container restarts
-- Backup recommended for production
-
-## Operations
-
-### Starting Redis
+### Backup Strategy
 
 ```bash
-# Start Redis only
-just up redis
-
-# View logs
-just logs redis
-
-# Check health
-docker exec redis redis-cli -a $REDIS_PASSWORD ping
-```
-
-### Accessing Redis CLI
-
-```bash
-# Access Redis CLI
-docker exec -it redis redis-cli -a $REDIS_PASSWORD
-
-# Common commands
-KEYS oauth:*              # List OAuth keys
-GET oauth:client:123      # Get client data
-TTL oauth:token:456       # Check token TTL
-DBSIZE                    # Total key count
-```
-
-### Monitoring
-
-```bash
-# Memory usage
-docker exec redis redis-cli -a $REDIS_PASSWORD INFO memory
-
-# Connected clients
-docker exec redis redis-cli -a $REDIS_PASSWORD CLIENT LIST
-
-# Stats
-docker exec redis redis-cli -a $REDIS_PASSWORD INFO stats
-```
-
-## Backup and Restore
-
-### Manual Backup
-
-```bash
-# Trigger RDB snapshot
-docker exec redis redis-cli -a $REDIS_PASSWORD BGSAVE
+# Manual backup
+docker exec redis redis-cli --pass $REDIS_PASSWORD BGSAVE
 
 # Copy backup file
-docker cp redis:/data/dump.rdb ./redis-backup-$(date +%Y%m%d).rdb
+docker cp redis:/data/dump.rdb ./backups/redis-$(date +%Y%m%d-%H%M%S).rdb
 ```
 
-### Restore from Backup
+### Restore Process
 
 ```bash
 # Stop Redis
-just down redis
+docker compose stop redis
 
-# Copy backup to volume
-docker run --rm -v redis-data:/data -v $(pwd):/backup alpine \
-  cp /backup/redis-backup.rdb /data/dump.rdb
+# Copy backup
+docker cp ./backups/redis-backup.rdb redis:/data/dump.rdb
 
 # Start Redis
-just up redis
+docker compose start redis
 ```
 
-## Security Considerations
+## Security
 
-1. **Password Protection** - Always set strong REDIS_PASSWORD
-2. **Network Isolation** - Only accessible within Docker network
-3. **No External Ports** - Bound to 127.0.0.1 only
-4. **Command Restrictions** - Consider disabling dangerous commands
-5. **Memory Limits** - Set maxmemory policy for production
+### Authentication
 
-## Performance Tuning
+- Password required via `requirepass`
+- Set strong password via `REDIS_PASSWORD`
+- No default password allowed
 
-### Memory Management
-```redis
-# Set max memory (in redis.conf or runtime)
-CONFIG SET maxmemory 2gb
-CONFIG SET maxmemory-policy allkeys-lru
+### Network Security
+
+- Only accessible within Docker network
+- Optional local port binding (127.0.0.1 only)
+- No external exposure
+
+### Access Control
+
+```bash
+# Connect with password
+redis-cli -h redis -a $REDIS_PASSWORD
+
+# Or via AUTH command
+redis-cli -h redis
+> AUTH $REDIS_PASSWORD
 ```
 
-### Connection Limits
-```redis
-# Adjust max clients
-CONFIG SET maxclients 10000
+## Monitoring
+
+### Health Check
+
+```bash
+# Via Docker
+docker exec redis redis-cli --pass $REDIS_PASSWORD ping
+# Response: PONG
+
+# Via justfile
+just exec redis redis-cli --pass $REDIS_PASSWORD ping
 ```
 
-### Persistence Tuning
-```redis
-# Adjust save intervals for performance
-CONFIG SET save "3600 1 1800 10 300 100"
+### Memory Usage
+
+```bash
+# Memory info
+docker exec redis redis-cli --pass $REDIS_PASSWORD INFO memory
+
+# Key statistics
+docker exec redis redis-cli --pass $REDIS_PASSWORD INFO keyspace
+```
+
+### Performance Metrics
+
+```bash
+# Operations per second
+docker exec redis redis-cli --pass $REDIS_PASSWORD INFO stats
+
+# Connected clients
+docker exec redis redis-cli --pass $REDIS_PASSWORD CLIENT LIST
+```
+
+## Maintenance
+
+### View Keys
+
+```bash
+# List all OAuth keys
+docker exec redis redis-cli --pass $REDIS_PASSWORD KEYS "oauth:*"
+
+# Count by type
+docker exec redis redis-cli --pass $REDIS_PASSWORD KEYS "oauth:client:*" | wc -l
+```
+
+### Clean Expired Data
+
+```bash
+# Redis handles TTL automatically
+# Force cleanup of expired keys
+docker exec redis redis-cli --pass $REDIS_PASSWORD SCAN 0 MATCH oauth:*
+```
+
+### Database Size
+
+```bash
+# Total keys
+docker exec redis redis-cli --pass $REDIS_PASSWORD DBSIZE
+
+# Database file size
+docker exec redis ls -lh /data/dump.rdb
 ```
 
 ## Troubleshooting
 
-### Common Issues
-
-#### Connection Refused
-- Check Redis is running: `docker ps | grep redis`
-- Verify password: `echo $REDIS_PASSWORD`
-- Check network connectivity
-
-#### Memory Issues
-- Monitor memory: `docker stats redis`
-- Check eviction policy
-- Consider increasing container memory
-
-#### Persistence Issues
-- Check volume permissions
-- Verify disk space
-- Review AOF/RDB settings
-
-### Debugging
+### Connection Issues
 
 ```bash
-# View detailed logs
-just logs redis --tail=100
+# Test from auth service
+docker exec auth redis-cli -h redis -a $REDIS_PASSWORD ping
 
-# Check Redis configuration
-docker exec redis redis-cli -a $REDIS_PASSWORD CONFIG GET "*"
-
-# Monitor commands in real-time
-docker exec redis redis-cli -a $REDIS_PASSWORD MONITOR
+# Check network
+docker network inspect public | grep -A5 redis
 ```
 
-## Architecture Notes
+### Memory Issues
 
-- Single Redis instance (consider Redis Sentinel for HA)
-- All data in memory with disk persistence
-- No clustering (sufficient for gateway needs)
-- Atomic operations ensure consistency
-- Used only by Auth service
+```bash
+# Check max memory
+docker exec redis redis-cli --pass $REDIS_PASSWORD CONFIG GET maxmemory
 
-## Related Services
+# Set memory limit
+docker exec redis redis-cli --pass $REDIS_PASSWORD CONFIG SET maxmemory 256mb
+```
 
-- [Auth Service](auth.md) - Primary Redis consumer
-- [Components](../architecture/components.md) - System architecture
+### Performance Issues
+
+```bash
+# Slow log
+docker exec redis redis-cli --pass $REDIS_PASSWORD SLOWLOG GET 10
+
+# Monitor commands
+docker exec redis redis-cli --pass $REDIS_PASSWORD MONITOR
+```
+
+## Integration with Auth Service
+
+The Auth service connects to Redis for all storage:
+
+```python
+# Auth service configuration
+REDIS_URL = f"redis://:{REDIS_PASSWORD}@redis:6379/0"
+
+# Connection pooling
+redis_client = redis.from_url(
+    REDIS_URL,
+    decode_responses=True,
+    max_connections=50
+)
+```
+
+## Best Practices
+
+1. **Strong Password**: Use `just generate-redis-password`
+2. **Regular Backups**: Implement automated backup
+3. **Monitor Memory**: Set appropriate limits
+4. **TTL Usage**: Let Redis handle expiration
+5. **Connection Pooling**: Reuse connections
+6. **Persistence**: Enable AOF for critical data
+
+## Redis Commands Reference
+
+### Client Management
+```bash
+# Get client data
+GET oauth:client:client_123
+
+# List all clients
+KEYS oauth:client:*
+
+# Delete client
+DEL oauth:client:client_123
+```
+
+### Token Management
+```bash
+# Check token
+GET oauth:token:jti_123
+
+# Token TTL
+TTL oauth:token:jti_123
+
+# Revoke token
+DEL oauth:token:jti_123
+```
+
+### User Tokens
+```bash
+# Get user's tokens
+SMEMBERS oauth:user_tokens:username
+
+# Add token to user
+SADD oauth:user_tokens:username jti_123
+
+# Remove token
+SREM oauth:user_tokens:username jti_123
+```

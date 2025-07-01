@@ -1,112 +1,84 @@
 # Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
 format: jb-book
 root: index
-chapters:
-  - file: overview
-    title: Overview
-  - file: architecture
-    title: Architecture
-    sections:
-      - file: architecture/components
-        title: System Components
-      - file: architecture/oauth-flow
-        title: OAuth 2.1 Flow
-      - file: architecture/device-flow
-        title: GitHub Device Flow
-      - file: architecture/mcp-integration
-        title: MCP Integration
-      - file: architecture/security
-        title: Security Architecture
-      - file: architecture/rfc7592-implementation
-        title: RFC 7592 Implementation
-  - file: installation
-    title: Installation & Setup
-    sections:
-      - file: installation/requirements
-        title: Requirements
-      - file: installation/quick-start
-        title: Quick Start Guide
-      - file: installation/minimal-setup
-        title: Minimal Setup Guide
-      - file: installation/configuration
-        title: Configuration Reference
-      - file: installation/github-oauth
-        title: GitHub OAuth Setup
-  - file: packages/overview
-    title: Python Packages
-    sections:
+parts:
+  - caption: Getting Started
+    chapters:
+      - file: overview
+      - file: architecture/index
+        sections:
+          - file: architecture/system-components
+          - file: architecture/oauth-flow
+          - file: architecture/mcp-integration
+          - file: architecture/security
+
+  - caption: Development Tools
+    chapters:
+      - file: justfile-reference
+        sections:
+          - file: justfile-commands/testing
+          - file: justfile-commands/docker-operations
+          - file: justfile-commands/oauth-management
+          - file: justfile-commands/logging
+          - file: justfile-commands/utilities
+
+  - caption: Python Packages
+    chapters:
+      - file: packages/index
+      - file: packages/python-packages-overview
       - file: packages/mcp-oauth-dynamicclient
-        title: OAuth Dynamic Client
-      - file: packages/mcp-streamablehttp-proxy
-        title: Streamable HTTP Proxy
+      - file: packages/mcp-oauth-dynamicclient-detailed
       - file: packages/mcp-streamablehttp-client
-        title: Streamable HTTP Client
+      - file: packages/mcp-streamablehttp-client-detailed
+      - file: packages/mcp-streamablehttp-proxy
+      - file: packages/mcp-streamablehttp-proxy-detailed
       - file: packages/mcp-fetch-streamablehttp-server
-        title: Fetch Server (Native)
-      - file: packages/pypi-publishing
-        title: PyPI Publishing Guide
-  - file: services
-    title: MCP Services
-    sections:
-      - file: services/overview
-        title: Services Overview
-      - file: services/fetch
-        title: Fetch Service
-      - file: services/filesystem
-        title: Filesystem Service
-      - file: services/memory
-        title: Memory Service
-      - file: services/time
-        title: Time Service
-      - file: services/sequential-thinking
-        title: Sequential Thinking
-      - file: services/echo
-        title: Echo Service
-      - file: services/others
-        title: Other Services
-  - file: usage
-    title: Usage Guide
-    sections:
-      - file: usage/commands
-        title: Command Reference
-      - file: usage/service-management
-        title: Service Management
-      - file: usage/token-management
-        title: Token Management
-      - file: usage/testing
-        title: Testing
-      - file: usage/monitoring
-        title: Monitoring & Troubleshooting
-  - file: development
-    title: Development
-    sections:
-      - file: development/guidelines
-        title: Development Guidelines
-      - file: development/testing-approach
-        title: Testing Approach
-      - file: development/project-structure
-        title: Project Structure
-      - file: development/adding-services
-        title: Adding New Services
-  - file: api
-    title: API Reference
-    sections:
+      - file: packages/mcp-fetch-streamablehttp-server-detailed
+      - file: packages/mcp-echo-streamablehttp-server-stateful
+      - file: packages/mcp-echo-streamablehttp-server-stateful-detailed
+      - file: packages/mcp-echo-streamablehttp-server-stateless
+      - file: packages/mcp-echo-streamablehttp-server-stateless-detailed
+
+  - caption: Service Implementations
+    chapters:
+      - file: services/index
+      - file: services/infrastructure
+        sections:
+          - file: services/auth
+          - file: services/traefik
+          - file: services/redis
+      - file: services/mcp-services
+        sections:
+          - file: services/mcp-echo-stateful
+          - file: services/mcp-echo-stateless
+          - file: services/mcp-everything
+          - file: services/mcp-fetch
+          - file: services/mcp-fetchs
+          - file: services/mcp-filesystem
+          - file: services/mcp-memory
+          - file: services/mcp-playwright
+          - file: services/mcp-sequentialthinking
+          - file: services/mcp-time
+          - file: services/mcp-tmux
+
+  - caption: API Reference
+    chapters:
+      - file: api/index
       - file: api/oauth-endpoints
-        title: OAuth Endpoints
       - file: api/mcp-endpoints
-        title: MCP Endpoints
       - file: api/client-registration
-        title: Client Registration
       - file: api/error-codes
-        title: Error Codes
-  - file: deployment
-    title: Deployment
-    sections:
-      - file: deployment/production
-        title: Production Deployment
-      - file: deployment/ssl-certificates
-        title: SSL Certificates
-      - file: deployment/scaling
-        title: Scaling Considerations
-      - file: deployment/backup-restore
-        title: Backup & Restore
+
+  - caption: Operations
+    chapters:
+      - file: deployment/index
+        sections:
+          - file: deployment/prerequisites
+          - file: deployment/quick-start
+          - file: deployment/configuration
+          - file: deployment/production
+          - file: deployment/ssl-certificates
+          - file: deployment/monitoring
+          - file: deployment/troubleshooting

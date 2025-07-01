@@ -1,134 +1,115 @@
-# MCP OAuth Gateway
+# MCP OAuth Gateway Documentation
 
-```{warning}
-**Important Notice**: This is a reference implementation and test platform for the MCP protocol. While it strives for security best practices, this implementation likely contains bugs and security vulnerabilities. It is NOT recommended for production use without thorough security review. Use at your own risk.
+```{toctree}
+:hidden:
+
+overview
 ```
 
-## Welcome
+## Welcome to MCP OAuth Gateway
 
-The MCP OAuth Gateway is an OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Context Protocol) server without requiring code modification. The gateway acts as an OAuth Authorization Server while using GitHub as the Identity Provider (IdP) for user authentication.
+The **MCP OAuth Gateway** is a comprehensive OAuth 2.1 compliant gateway for Model Context Protocol (MCP) services. It provides secure authentication, dynamic client registration, and seamless integration with multiple MCP service implementations.
 
 ## Key Features
 
-- **OAuth 2.1 Compliant**: Full implementation of OAuth 2.1 with PKCE support
-- **RFC 7591/7592 Support**: Dynamic client registration and management
-- **Zero MCP Modification**: Protects any MCP server without code changes
-- **GitHub Integration**: Uses GitHub OAuth for user authentication
-- **Multiple MCP Services**: Supports various MCP protocol implementations
-- **Production Architecture**: Three-tier separation with Traefik routing
-- **Comprehensive Testing**: Full integration test suite with no mocking
+### 🔐 OAuth 2.1 Compliance
+- Full implementation of OAuth 2.1 specification
+- RFC 7591 Dynamic Client Registration
+- RFC 7592 Client Management
+- PKCE (RFC 7636) support for enhanced security
+- GitHub OAuth integration for user authentication
 
-## Quick Links
+### 🚀 MCP Protocol Support
+- StreamableHTTP transport implementation
+- Support for both proxy pattern (wrapping official servers) and native implementations
+- Session management with secure session IDs
+- Multiple protocol version support (2024-11-05, 2025-03-26, 2025-06-18)
 
-::::{grid} 1 1 2 3
-:gutter: 2
+### 🏗️ Production-Ready Architecture
+- Traefik reverse proxy with automatic SSL via Let's Encrypt
+- Redis for token and session storage
+- Docker Compose orchestration
+- Health checks for all services
+- Comprehensive logging and monitoring
 
-:::{grid-item-card} Getting Started
-:link: installation/quick-start
-:link-type: doc
-
-Quick installation and setup guide to get your gateway running
-:::
-
-:::{grid-item-card} Architecture
-:link: architecture
-:link-type: doc
-
-Understand the three-tier architecture and component interactions
-:::
-
-:::{grid-item-card} MCP Services
-:link: services/overview
-:link-type: doc
-
-Explore available MCP services and their capabilities
-:::
-
-:::{grid-item-card} API Reference
-:link: api/oauth-endpoints
-:link-type: doc
-
-Complete API documentation for OAuth and MCP endpoints
-:::
-
-:::{grid-item-card} Development
-:link: development/guidelines
-:link-type: doc
-
-Guidelines for contributing and extending the gateway
-:::
-
-:::{grid-item-card} Deployment
-:link: deployment/production
-:link-type: doc
-
-Production deployment considerations and best practices
-:::
-::::
-
-## Architecture Overview
-
-The gateway implements a clean three-tier architecture:
-
-```{mermaid}
-graph TD
-    Client[MCP Client] --> Traefik[Traefik Router]
-    User[User Browser] --> Traefik
-
-    Traefik --> |OAuth paths| Auth[Auth Service]
-    Traefik --> |MCP paths + ForwardAuth| MCP[MCP Services]
-
-    Auth --> |User auth| GitHub[GitHub OAuth]
-    Auth --> |Token storage| Redis[(Redis)]
-
-    MCP --> Proxy[mcp-streamablehttp-proxy]
-    Proxy --> |stdio| Servers[Official MCP Servers]
-```
-
-## How It Works
-
-1. **Client Registration**: MCP clients register dynamically via RFC 7591
-2. **User Authentication**: Users authenticate through GitHub OAuth
-3. **Token Issuance**: Gateway issues JWT tokens for authorized clients
-4. **Request Routing**: Traefik routes authenticated requests to MCP services
-5. **Protocol Bridging**: Proxy converts HTTP to stdio for MCP servers
+### 🛠️ Developer Experience
+- Blessed trinity of tools: `just`, `pixi`, `docker-compose`
+- Automated testing with real services (no mocks!)
+- Sidecar coverage testing for production containers
+- Comprehensive justfile with 100+ commands
 
 ## Quick Start
 
-Despite the comprehensive `.env.example` file, you only need **5 tokens** to run the gateway:
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/mcp-oauth-gateway
+cd mcp-oauth-gateway
 
-| Token | Purpose | How to Get |
-|-------|---------|------------|
-| `GITHUB_CLIENT_ID` | GitHub OAuth App | Create at github.com/settings/developers |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth App | From the same OAuth App |
-| `GATEWAY_JWT_SECRET` | JWT signing | Run: `just generate-jwt-secret` |
-| `JWT_PRIVATE_KEY_B64` | RSA key | Run: `just generate-rsa-keys` |
-| `REDIS_PASSWORD` | Redis auth | Run: `just generate-redis-password` |
+# Copy and configure environment
+cp .env.example .env
+# Edit .env with your configuration
 
-All other tokens (GITHUB_PAT, GATEWAY_OAUTH_*, MCP_CLIENT_*) are **only for testing**!
+# Generate JWT secret
+just generate-jwt-secret
 
-See the [Minimal Setup Guide](installation/minimal-setup.md) for the quickest path to a running gateway.
+# Build and start all services
+just up
 
-## Requirements
+# Check service health
+just check-services
+```
 
-- **Public Domain**: Real domains with DNS (no localhost deployments)
-- **Docker & Docker Compose**: For service orchestration
-- **Ports 80/443**: Must be accessible for Let's Encrypt certificates
-- **GitHub OAuth App**: For user authentication
+## Documentation Structure
 
-## Navigation
+::::{grid} 1 1 2 2
+:gutter: 3
 
-Use the navigation menu on the left to explore the documentation:
+:::{grid-item-card} Getting Started
+:link: overview
+:link-type: doc
 
-- **Overview**: High-level introduction to the gateway
-- **Architecture**: Detailed component and flow documentation
-- **Installation**: Step-by-step setup instructions
-- **Services**: Documentation for each MCP service
-- **Usage**: Day-to-day operation guides
-- **Development**: Contributing and extending the gateway
-- **API Reference**: Complete endpoint documentation
-- **Deployment**: Production deployment guidance
+Learn about the gateway architecture and core concepts
+:::
 
-## License
+:::{grid-item-card} Development Tools
+:link: justfile-reference
+:link-type: doc
 
-This project is licensed under the Apache License 2.0. See the LICENSE file for details.
+Complete reference for all justfile commands and workflows
+:::
+
+:::{grid-item-card} Python Packages
+:link: packages/index
+:link-type: doc
+
+Documentation for all Python packages in the gateway
+:::
+
+:::{grid-item-card} Service Implementations
+:link: services/index
+:link-type: doc
+
+Detailed documentation for all MCP and infrastructure services
+:::
+
+::::
+
+## Sacred Commandments
+
+This project follows the **Ten Sacred Commandments of Divine Python Development** as decreed in CLAUDE.md:
+
+1. **No Mocks or Burn in Production Hell** - Real testing only!
+2. **The Holy Trinity of Tools** - just, pixi, docker-compose
+3. **Sacred Project Structure** - Divine isolation is mandatory
+4. **Configuration Through .env** - All config flows through .env
+5. **Docker Compose for All Services** - Compose is the divine orchestrator
+6. **Pytest and Coverage** - Pytest is the only true test runner
+7. **Real Health Checks** - Only healthchecks save from random failures
+8. **Centralized Logging** - Scattered logs = lost wisdom
+9. **Document with Jupyter Book** - Divine documentation tooling
+
+## Support
+
+- GitHub Issues: [Report bugs or request features](https://github.com/yourusername/mcp-oauth-gateway/issues)
+- Documentation: You're already here!
+- CLAUDE.md: The sacred development guidelines

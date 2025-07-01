@@ -1,326 +1,402 @@
-# MCP Integration
+# MCP Integration Architecture
 
-This document explains how the MCP OAuth Gateway integrates with MCP (Model Context Protocol) servers to provide authentication without requiring any modifications to the MCP implementations.
+Detailed architecture of how Model Context Protocol (MCP) services integrate with the OAuth gateway, including protocol implementation details and transport mechanisms.
 
-## Overview
+## MCP Protocol Overview
 
-The gateway achieves transparent MCP protection through:
-1. **Protocol Bridging**: HTTP to stdio conversion
-2. **Session Management**: Stateful MCP connections
-3. **Authentication Layer**: OAuth validation before MCP access
-4. **Service Isolation**: Each MCP service runs independently
+The gateway implements StreamableHTTP transport for MCP, enabling:
 
-## MCP Protocol Basics
+- Web-based access to MCP services
+- OAuth authentication integration
+- Session management
+- Both proxy and native implementations
 
-### What is MCP?
-
-MCP (Model Context Protocol) is a protocol for communication between AI assistants and external tools. It defines:
-
-- **Tools**: Functions that can be invoked
-- **Resources**: Data that can be accessed
-- **Prompts**: Templates for interactions
-- **Lifecycle**: Initialization and session management
-
-### Protocol Structure
-
-MCP uses JSON-RPC 2.0 over various transports:
-- **stdio**: Standard input/output (original)
-- **HTTP**: RESTful endpoints
-- **WebSocket**: Persistent connections
-
-## Architecture
-
-### Component Interaction
+## Transport Architecture
 
 ```{mermaid}
 graph TB
-    subgraph "Client Layer"
-        C[MCP Client<br/>Claude.ai/IDE]
+    subgraph "MCP Clients"
+        CLAUDE[Claude.ai]
+        DESKTOP[Claude Desktop<br/>+ mcp-streamablehttp-client]
+        API[Direct API Clients]
     end
 
-    subgraph "Gateway Layer"
-        T[Traefik]
-        A[Auth Service]
+    subgraph "Transport Layer"
+        HTTP[HTTPS + Bearer Token]
+        SSE[Server-Sent Events]
     end
 
-    subgraph "MCP Layer"
-        P[mcp-streamablehttp-proxy]
-        S[Official MCP Server<br/>stdio-based]
-        N[Native HTTP Server]
+    subgraph "Gateway Services"
+        PROXY[Proxy Pattern<br/>stdio → HTTP]
+        NATIVE[Native Pattern<br/>Direct HTTP]
     end
 
-    C -->|HTTPS + Bearer Token| T
-    T -->|ForwardAuth| A
-    T -->|Authenticated Request| P
-    T -->|Authenticated Request| N
-    P <-->|stdio| S
+    CLAUDE -->|StreamableHTTP| HTTP
+    DESKTOP -->|stdio → HTTP bridge| HTTP
+    API -->|Direct HTTP| HTTP
+
+    HTTP --> PROXY
+    HTTP --> NATIVE
+
+    PROXY -->|SSE Response| SSE
+    NATIVE -->|SSE Response| SSE
 ```
 
-## The Proxy Bridge
+## StreamableHTTP Protocol
 
-### mcp-streamablehttp-proxy
+### Request Format
 
-The proxy is the key component that enables OAuth protection for stdio-based MCP servers:
+All MCP requests go to the `/mcp` endpoint:
 
-#### Responsibilities
+```http
+POST /mcp HTTP/1.1
+Host: service.example.com
+Authorization: Bearer eyJ...
+Content-Type: application/json
+Mcp-Session-Id: session-123 (optional)
 
-1. **HTTP Endpoint**: Exposes `/mcp` for HTTP requests
-2. **Process Management**: Spawns MCP server subprocesses
-3. **Protocol Translation**: Converts between HTTP and stdio
-4. **Session Handling**: Maintains stateful connections
-5. **Health Monitoring**: Provides health check endpoints
+{
+  "jsonrpc": "2.0",
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {
+      "tools": {},
+      "resources": {},
+      "prompts": {}
+    },
+    "clientInfo": {
+      "name": "claude-ai",
+      "version": "1.0"
+    }
+  },
+  "id": 1
+}
+```
 
-#### Request Flow
+### Response Format (SSE)
+
+Responses use Server-Sent Events:
+
+```
+HTTP/1.1 200 OK
+Content-Type: text/event-stream
+Cache-Control: no-cache
+Mcp-Session-Id: session-123
+
+event: message
+data: {"jsonrpc":"2.0","result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{"list":true,"call":true}},"serverInfo":{"name":"mcp-fetch","version":"0.1.0"}},"id":1}
+
+event: done
+data: {"status":"complete"}
+```
+
+## Protocol Implementation Patterns
+
+### Proxy Pattern Implementation
+
+```python
+# mcp-streamablehttp-proxy architecture
+class StreamableHTTPProxy:
+    def __init__(self, mcp_command: str, mcp_args: List[str]):
+        self.sessions = {}  # session_id -> subprocess
+
+    async def handle_request(self, request: Request):
+        # 1. Extract session ID
+        session_id = request.headers.get("Mcp-Session-Id")
+
+        # 2. Get or create subprocess
+        if not session_id or session_id not in self.sessions:
+            session_id = generate_session_id()
+            subprocess = spawn_mcp_server(self.mcp_command, self.mcp_args)
+            self.sessions[session_id] = subprocess
+
+        # 3. Forward request to subprocess
+        subprocess = self.sessions[session_id]
+        subprocess.stdin.write(request.body + "\n")
+
+        # 4. Stream response
+        async def generate():
+            while True:
+                line = subprocess.stdout.readline()
+                if not line:
+                    break
+                yield f"event: message\ndata: {line}\n\n"
+            yield "event: done\ndata: {\"status\":\"complete\"}\n\n"
+
+        return StreamingResponse(generate(), media_type="text/event-stream")
+```
+
+### Native Pattern Implementation
+
+```python
+# Direct StreamableHTTP implementation
+class NativeMCPService:
+    def __init__(self):
+        self.tools = {}
+        self.sessions = {}
+
+    @app.post("/mcp")
+    async def handle_mcp(self, request: Request):
+        body = await request.json()
+        method = body.get("method")
+
+        if method == "initialize":
+            return self.handle_initialize(body)
+        elif method == "tools/list":
+            return self.handle_tools_list(body)
+        elif method == "tools/call":
+            return self.handle_tool_call(body)
+
+    async def handle_initialize(self, request):
+        # Direct protocol implementation
+        result = {
+            "protocolVersion": "2025-06-18",
+            "capabilities": {
+                "tools": {"list": True, "call": True}
+            },
+            "serverInfo": {
+                "name": "native-service",
+                "version": "1.0.0"
+            }
+        }
+        return self.create_sse_response(result, request["id"])
+```
+
+## Session Management
+
+### Session Lifecycle
+
+```{mermaid}
+stateDiagram-v2
+    [*] --> NoSession: Initial Request
+    NoSession --> SessionCreated: Initialize
+    SessionCreated --> Active: Successful Init
+    Active --> Active: Subsequent Requests
+    Active --> Terminated: Shutdown/Timeout
+    Terminated --> [*]
+```
+
+### Session Storage
+
+```python
+# Session data structure
+sessions = {
+    "session-123": {
+        "id": "session-123",
+        "created_at": "2024-01-01T00:00:00Z",
+        "last_activity": "2024-01-01T00:05:00Z",
+        "client_info": {
+            "name": "claude-ai",
+            "version": "1.0"
+        },
+        "state": {},  # Service-specific state
+        "subprocess": subprocess.Popen(...),  # For proxy pattern
+    }
+}
+```
+
+## MCP Methods Implementation
+
+### Core Protocol Methods
+
+| Method | Purpose | Required |
+|--------|---------|----------|
+| `initialize` | Protocol handshake | Yes |
+| `initialized` | Confirm initialization | Yes |
+| `tools/list` | List available tools | If tools capability |
+| `tools/call` | Execute a tool | If tools capability |
+| `resources/list` | List resources | If resources capability |
+| `resources/read` | Read a resource | If resources capability |
+| `prompts/list` | List prompts | If prompts capability |
+| `prompts/get` | Get prompt details | If prompts capability |
+
+### Tool Implementation Example
+
+```python
+# Tool registration
+tools = {
+    "fetch_url": {
+        "name": "fetch_url",
+        "description": "Fetch content from a URL",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "format": "uri"},
+                "headers": {"type": "object"}
+            },
+            "required": ["url"]
+        }
+    }
+}
+
+# Tool execution
+async def handle_tool_call(self, request):
+    tool_name = request["params"]["name"]
+    arguments = request["params"]["arguments"]
+
+    if tool_name == "fetch_url":
+        result = await self.fetch_url(
+            arguments["url"],
+            arguments.get("headers", {})
+        )
+
+    return {
+        "jsonrpc": "2.0",
+        "result": {
+            "content": [{"type": "text", "text": result}]
+        },
+        "id": request["id"]
+    }
+```
+
+## Authentication Integration
+
+### Bearer Token Flow
 
 ```{mermaid}
 sequenceDiagram
     participant Client
-    participant Proxy
-    participant MCPServer
+    participant Traefik
+    participant Auth
+    participant MCP
 
-    Note over Client,MCPServer: Initialization
-    Client->>Proxy: POST /mcp<br/>{"method": "initialize"}
-    Proxy->>Proxy: Create session
-    Proxy->>MCPServer: Spawn subprocess
-    Proxy->>MCPServer: Write to stdin
-    MCPServer->>Proxy: Read from stdout
-    Proxy->>Client: HTTP Response<br/>Mcp-Session-Id: xxx
-
-    Note over Client,MCPServer: Subsequent Requests
-    Client->>Proxy: POST /mcp<br/>Mcp-Session-Id: xxx
-    Proxy->>Proxy: Find session
-    Proxy->>MCPServer: Write to stdin
-    MCPServer->>Proxy: Read from stdout
-    Proxy->>Client: HTTP Response
+    Client->>Traefik: POST /mcp + Bearer Token
+    Traefik->>Auth: ForwardAuth /verify
+    Auth->>Traefik: 200 OK + Headers
+    Note over Traefik: X-User-Id: github|username<br/>X-User-Name: username
+    Traefik->>MCP: Forward + Auth Headers
+    MCP->>MCP: Process (no auth logic)
+    MCP->>Traefik: SSE Response
+    Traefik->>Client: SSE Response
 ```
 
-### Session Management
+### Service Implementation
 
-Sessions are critical for MCP's stateful protocol:
+MCP services receive pre-authenticated requests:
 
 ```python
-# Session structure
-{
-    "session_id": "unique_identifier",
-    "process": subprocess_handle,
-    "created_at": timestamp,
-    "last_accessed": timestamp,
-    "client_info": {
-        "name": "client_name",
-        "version": "1.0"
-    }
-}
+# Services DO NOT implement authentication
+# They receive headers from ForwardAuth
+@app.post("/mcp")
+async def handle_mcp(request: Request):
+    # Optional: Use auth headers for logging/metrics
+    user_id = request.headers.get("X-User-Id")
+    user_name = request.headers.get("X-User-Name")
+
+    # Process MCP request without auth checks
+    return process_mcp_request(request)
 ```
 
-#### Session Lifecycle
+## Client Integration Patterns
 
-1. **Creation**: On first `initialize` request
-2. **Usage**: Subsequent requests use session ID
-3. **Timeout**: Sessions expire after inactivity
-4. **Cleanup**: Process termination on timeout/error
+### Claude.ai Integration
 
-## Authentication Integration
+Claude.ai directly supports StreamableHTTP:
 
-### ForwardAuth Flow
+1. Attempts connection to `/mcp`
+2. Receives 401 → triggers OAuth flow
+3. Obtains token via dynamic registration
+4. Includes Bearer token in all requests
 
-```{mermaid}
-graph LR
-    subgraph "1. Request Arrives"
-        A[Client Request<br/>Bearer Token]
-    end
+### Claude Desktop Integration
 
-    subgraph "2. Traefik Validates"
-        B[ForwardAuth to<br/>/verify endpoint]
-        C{Token Valid?}
-    end
-
-    subgraph "3. Route Decision"
-        D[Forward to MCP]
-        E[Return 401]
-    end
-
-    A --> B
-    B --> C
-    C -->|Yes| D
-    C -->|No| E
-```
-
-### Headers Passed to MCP
-
-After successful authentication, these headers are added:
-- `X-User-Id`: GitHub user ID
-- `X-User-Name`: GitHub username
-- `X-Auth-Token`: Original bearer token
-
-## MCP Service Types
-
-### 1. Wrapped stdio Services
-
-These use official MCP servers with the proxy:
-
-```yaml
-# Example: mcp-fetch
-services:
-  mcp-fetch:
-    image: ghcr.io/atrawog/mcp-streamablehttp-proxy:latest
-    environment:
-      - SERVER_COMMAND=npx @modelcontextprotocol/server-fetch
-```
-
-**Characteristics**:
-- Run official MCP implementations
-- No modification required
-- Full protocol compliance
-- Process isolation per session
-
-### 2. Native HTTP Services
-
-These implement streamable HTTP directly:
-
-```yaml
-# Example: mcp-everything
-services:
-  mcp-everything:
-    image: ghcr.io/modelcontextprotocol/servers/everything:latest
-    environment:
-      - NODE_ENV=production
-```
-
-**Characteristics**:
-- Direct HTTP implementation
-- No proxy needed
-- Better performance
-- Shared process model
-
-## Protocol Implementation Details
-
-### Initialization Handshake
+Uses `mcp-streamablehttp-client` as bridge:
 
 ```json
-// Client Request
 {
-  "jsonrpc": "2.0",
-  "method": "initialize",
-  "params": {
-    "protocolVersion": "2025-06-18",
-    "capabilities": {},
-    "clientInfo": {
-      "name": "claude",
-      "version": "1.0"
+  "mcpServers": {
+    "gateway-fetch": {
+      "command": "mcp-streamablehttp-client",
+      "args": [
+        "--server-url", "https://mcp-fetch.example.com/mcp",
+        "--token", "Bearer eyJ..."
+      ]
     }
-  },
-  "id": 1
+  }
 }
+```
 
-// Server Response
-{
-  "jsonrpc": "2.0",
-  "result": {
-    "protocolVersion": "2025-06-18",
-    "capabilities": {
-      "tools": true,
-      "resources": true
+### Direct API Integration
+
+```python
+import httpx
+import json
+
+# Initialize connection
+async with httpx.AsyncClient() as client:
+    # Send initialization
+    init_response = await client.post(
+        "https://service.example.com/mcp",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "jsonrpc": "2.0",
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-06-18",
+                "capabilities": {}
+            },
+            "id": 1
+        }
+    )
+
+    # Parse SSE response
+    session_id = init_response.headers.get("Mcp-Session-Id")
+
+    # Use session for subsequent requests
+    tool_response = await client.post(
+        "https://service.example.com/mcp",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Mcp-Session-Id": session_id
+        },
+        json={
+            "jsonrpc": "2.0",
+            "method": "tools/call",
+            "params": {
+                "name": "fetch_url",
+                "arguments": {"url": "https://example.com"}
+            },
+            "id": 2
+        }
+    )
+```
+
+## Protocol Compliance
+
+### Version Support
+
+The gateway supports multiple MCP protocol versions:
+
+- `2025-06-18` (latest, default)
+- `2025-03-26`
+- `2024-11-05`
+
+Services negotiate version during initialization.
+
+### Capability Negotiation
+
+```python
+# Server declares capabilities
+capabilities = {
+    "tools": {
+        "list": True,
+        "call": True
     },
-    "serverInfo": {
-      "name": "mcp-fetch",
-      "version": "1.0.0"
+    "resources": {
+        "list": False,
+        "read": False
+    },
+    "prompts": {
+        "list": False,
+        "get": False
     }
-  },
-  "id": 1
-}
-```
-
-### Tool Invocation
-
-```json
-// List Tools
-{
-  "jsonrpc": "2.0",
-  "method": "tools/list",
-  "id": 2
 }
 
-// Call Tool
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "fetch",
-    "arguments": {
-      "url": "https://example.com"
-    }
-  },
-  "id": 3
-}
-```
-
-## Health Checks
-
-### Proxy Health Check
-
-```bash
-# Basic health
-GET /health
-
-# Protocol health
-POST /mcp
-{
-  "jsonrpc": "2.0",
-  "method": "initialize",
-  "params": {
-    "protocolVersion": "2025-06-18",
-    "capabilities": {},
-    "clientInfo": {
-      "name": "healthcheck",
-      "version": "1.0"
-    }
-  },
-  "id": 1
-}
-```
-
-### Docker Health Configuration
-
-```yaml
-healthcheck:
-  test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp \\
-    -H 'Content-Type: application/json' \\
-    -d '{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",...}' \\
-    | grep -q 'protocolVersion'"]
-  interval: 30s
-  timeout: 5s
-  retries: 3
-```
-
-## Service Configuration
-
-### Environment Variables
-
-```bash
-# Protocol version
-MCP_PROTOCOL_VERSION=2025-06-18
-
-# Service identification
-SERVER_NAME=mcp-fetch
-
-# Proxy configuration
-SERVER_COMMAND="npx @modelcontextprotocol/server-fetch"
-SESSION_TIMEOUT=3600
-```
-
-### Docker Compose Labels
-
-```yaml
-labels:
-  # Routing
-  - "traefik.http.routers.mcp-fetch.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
-  - "traefik.http.routers.mcp-fetch.priority=2"
-
-  # Authentication
-  - "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@docker"
-
-  # Service
-  - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
+# Client must respect declared capabilities
+if "tools" in server_capabilities:
+    # Can use tools/list and tools/call
+    pass
 ```
 
 ## Error Handling
@@ -333,43 +409,61 @@ labels:
   "error": {
     "code": -32600,
     "message": "Invalid Request",
-    "data": "Missing required parameter: protocolVersion"
+    "data": {
+      "details": "Missing required field: method"
+    }
   },
-  "id": 1
+  "id": null
 }
 ```
 
-### HTTP Errors
+### Error Codes
 
-- **401 Unauthorized**: Invalid/missing token
-- **403 Forbidden**: Valid token but insufficient permissions
-- **404 Not Found**: Invalid session ID
-- **500 Internal Server Error**: MCP server crash
+| Code | Message | Description |
+|------|---------|-------------|
+| -32700 | Parse error | Invalid JSON |
+| -32600 | Invalid Request | Invalid JSON-RPC |
+| -32601 | Method not found | Unknown method |
+| -32602 | Invalid params | Invalid parameters |
+| -32603 | Internal error | Server error |
 
 ## Performance Considerations
 
-### Session Pooling
+### Connection Pooling
 
-- Pre-spawn processes for faster initialization
-- Reuse sessions when possible
-- Implement session timeout and cleanup
+- Reuse HTTP connections where possible
+- Maintain persistent sessions
+- Implement connection limits
 
-### Resource Limits
+### Streaming Optimization
 
-- Maximum sessions per service
-- Memory limits per subprocess
-- CPU throttling if needed
+- Use chunked transfer encoding
+- Flush SSE events immediately
+- Implement backpressure handling
 
-### Monitoring
+### Resource Management
 
-Key metrics to track:
-- Session creation rate
-- Average session lifetime
-- Request latency
+- Session timeout (default: 1 hour)
+- Maximum sessions per client
+- Subprocess resource limits (proxy pattern)
+
+## Monitoring
+
+### Key Metrics
+
+- Protocol version distribution
+- Method call frequency
+- Session duration
 - Error rates by type
+- Tool execution time
 
-## Next Steps
+### Health Checks
 
-- [Security Architecture](security.md) - Security implementation details
-- [Services Overview](../services/overview.md) - Available MCP services
-- [Development Guidelines](../development/guidelines.md) - Development best practices
+Protocol-based health check:
+
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18"},"id":1}' \
+  | grep -q '"protocolVersion"'
+```
