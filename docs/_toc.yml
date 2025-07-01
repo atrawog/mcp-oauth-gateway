@@ -51,34 +51,16 @@ parts:
           - file: services/redis
       - file: services/mcp-services
         sections:
-          - file: services/mcp-echo-stateful
-          - file: services/mcp-echo-stateless
-          - file: services/mcp-everything
           - file: services/mcp-fetch
-          - file: services/mcp-fetchs
-          - file: services/mcp-filesystem
-          - file: services/mcp-memory
-          - file: services/mcp-playwright
-          - file: services/mcp-sequentialthinking
-          - file: services/mcp-time
-          - file: services/mcp-tmux
 
   - caption: API Reference
     chapters:
       - file: api/index
       - file: api/oauth-endpoints
-      - file: api/mcp-endpoints
-      - file: api/client-registration
-      - file: api/error-codes
 
   - caption: Operations
     chapters:
-      - file: deployment/index
-        sections:
-          - file: deployment/prerequisites
-          - file: deployment/quick-start
-          - file: deployment/configuration
-          - file: deployment/production
-          - file: deployment/ssl-certificates
-          - file: deployment/monitoring
-          - file: deployment/troubleshooting
+      - file: deployment/production
+      - file: deployment/ssl-certificates
+      - file: deployment/monitoring
+      - file: deployment/troubleshooting
