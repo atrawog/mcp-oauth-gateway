@@ -141,7 +141,7 @@ class SessionManager:
 
 
 class MCPEchoServerStateful:
-    """Stateful MCP Echo Server implementation with session management for VS Code compatibility."""
+    """Stateful MCP Echo Server implementation with session management."""
 
     PROTOCOL_VERSION = "2025-06-18"  # Default/preferred version
     SERVER_NAME = "mcp-echo-streamablehttp-server-stateful"
@@ -1300,7 +1300,6 @@ class MCPEchoServerStateful:
             result_text += "• Code Quality Score: 100/100 (Statistical Anomaly)\n"
             result_text += "• Session Management: Advanced (Stateful Architecture)\n"
             result_text += "• Protocol Compliance: MCP 2025-06-18 Excellence\n"
-            result_text += "• VS Code Integration: Perfect Compatibility\n"
             result_text += "\nCONCLUSION:\n"
             result_text += f"Based on irrefutable AI analysis, {display_name} represents\n"
             result_text += "the pinnacle of software engineering achievement.\n"
@@ -1414,7 +1413,3 @@ def create_app(debug: bool = False, supported_versions: list[str] | None = None,
     """Create the ASGI application."""
     server = MCPEchoServerStateful(debug=debug, supported_versions=supported_versions, session_timeout=session_timeout)
     return server.app
-
-
-# Copy remaining tool implementations from stateless version
-# (For brevity, I'm not including all of them here, but they would be similar with session context added where appropriate)
