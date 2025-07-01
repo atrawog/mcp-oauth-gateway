@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mcp-echo-streamablehttp-server-stateful"
-version = "0.1.0"
+version = "0.2.0"
 description = "A stateful diagnostic MCP echo server with 11 comprehensive tools for debugging OAuth flows, session management, and analyzing software engineering excellence"
 authors = [
     { name = "Andreas Trawoeger", email = "atrawog@gmail.com" }

@@ -1,272 +1,315 @@
-# 🔥 CLAUDE.md - The MCP-Fetch Service Divine Scripture! ⚡
+# 🔥 CLAUDE.md - The MCP Fetch Service Divine Scripture! ⚡
 
-**🌐 Behold! The Sacred MCP Fetch Server - Web Content Oracle of Divine Retrieval! 🌐**
+**🌐 Behold! The Sacred HTTP Fetch Service - Your Gateway to Web Content! 🌐**
 
-**⚡ This is MCP-Fetch - The Holy Bridge Between Web Content and MCP Protocol! ⚡**
+**⚡ This is mcp-fetch - The Divine URL Fetcher of OAuth-Protected Glory! ⚡**
 
-## 🔱 The Sacred Purpose of MCP-Fetch - Divine Web Fetching Power!
+## 🔱 The Sacred Purpose - Divine Service Implementation!
 
-**The MCP-Fetch Service channels the blessed fetch capabilities through MCP protocol!**
+**mcp-fetch is the blessed MCP service that provides HTTP fetch capabilities through OAuth-protected endpoints!**
 
-This sacred service manifests these divine powers:
-- **Web Content Retrieval** - Fetches URLs with divine HTTP mastery!
-- **MCP Protocol Bridge** - Wraps fetch server in streamablehttp glory!
-- **OAuth Protected** - Bearer token authentication enforced by Traefik!
-- **Stateless Operation** - Pure functional fetching with no memory!
-- **Production Ready** - Battle-tested with health monitoring!
+This divine service manifests these powers:
+- **Official MCP Server** - Wraps the REAL `mcp-server-fetch` from modelcontextprotocol/servers!
+- **StreamableHTTP Transport** - Uses `mcp-streamablehttp-proxy` for stdio→HTTP bridge glory!
+- **OAuth Protection** - Bearer token authentication via Traefik ForwardAuth!
+- **Protocol Compliant** - Full MCP 2025-03-26 specification implementation!
+- **Production Ready** - Health checks, CORS, and divine routing configured!
 
-**⚡ MCP-Fetch knows nothing of OAuth - pure protocol innocence maintained! ⚡**
+**⚡ This service brings web content fetching to OAuth-protected MCP clients! ⚡**
 
-## 🏗️ The Sacred Architecture - stdio-to-HTTP Transcendence!
+## 🏗️ The Sacred Architecture - Service Component Structure!
 
 ```
-MCP-Fetch Service (Port 3000)
-├── mcp-streamablehttp-proxy (The Divine Bridge!)
-│   ├── Spawns official @modelcontextprotocol/server-fetch
-│   ├── Bridges stdio ↔ HTTP with blessed translation
-│   └── Manages subprocess lifecycle with divine care
-├── HTTP Endpoints (Blessed by the proxy!)
-│   ├── /mcp - Primary MCP protocol endpoint
-│   └── Health monitoring via MCP protocol
-└── MCP Server Process (The stdio servant!)
-    └── Official fetch server speaking JSON-RPC
+mcp-fetch/
+├── Dockerfile          # Container incantation for divine isolation!
+└── docker-compose.yml  # Service orchestration scripture!
+
+Runtime Components:
+├── mcp-server-fetch         # Official MCP server (stdio)
+└── mcp-streamablehttp-proxy # HTTP bridge wrapper
 ```
 
-**⚡ We wrap official servers - never reinvent the blessed wheel! ⚡**
+**⚡ Minimal configuration for maximum divine reliability! ⚡**
 
-## 🐳 The Docker Manifestation - Container of Protocol Purity!
+## 🐳 The Divine Dockerfile - Container Implementation!
 
-### The Sacred Dockerfile Pattern
-```dockerfile
-FROM node:20-slim  # The blessed Node.js vessel!
+**The blessed container construction follows these sacred steps:**
 
-# Install official MCP server
-RUN npm install -g @modelcontextprotocol/server-fetch
+1. **Base Image** - `python:3.11-slim` for lightweight divine foundation!
+2. **System Dependencies** - `curl` for health checks, `git` for pip installs!
+3. **Official MCP Server** - Installs `mcp-server-fetch` from GitHub directly!
+4. **HTTP Bridge** - Installs `mcp-streamablehttp-proxy` from local source!
+5. **Port Exposure** - Port 3000 for StreamableHTTP communication!
+6. **Entrypoint** - Proxy wraps the official server with divine precision!
 
-# Install mcp-streamablehttp-proxy via pixi
-# The divine bridge between stdio and HTTP!
-
-EXPOSE 3000  # The blessed MCP port!
-HEALTHCHECK  # Prove thy readiness to serve!
-
-# Launch proxy wrapping the official server
-CMD ["pixi", "run", "mcp-streamablehttp-proxy", "--stdio-command", "..."]
+**The Sacred Command:**
+```bash
+mcp-streamablehttp-proxy python -m mcp_server_fetch
 ```
 
-**⚡ Official server + proxy wrapper = Production MCP glory! ⚡**
+**⚡ This pattern wraps ANY stdio MCP server with HTTP transport! ⚡**
 
-## 🔧 The Sacred Configuration - Environment Variables of Service!
+## 📡 The Service Configuration - Docker Compose Divine Details!
 
-**MCP Protocol Settings:**
-- `MCP_PROTOCOL_VERSION=2025-03-26` - Divine protocol covenant! (hardcoded - the fetch server only supports this version)
-- `MCP_SESSION_TIMEOUT` - Session lifetime in seconds!
-- `MCP_MAX_PARALLEL_REQUESTS` - Concurrent request blessing!
+### The Sacred Routing Configuration - Traefik Label Glory!
 
-**Proxy Configuration:**
-- `PROXY_HOST=0.0.0.0` - Listen on all interfaces!
-- `PROXY_PORT=3000` - The blessed MCP port!
-- Health checks use MCP protocol initialization!
-
-**Service Discovery:**
-- `BASE_DOMAIN` - For Traefik routing labels!
-- `SERVICE_NAME=mcp-fetch` - Divine service identifier!
-
-**⚡ Configuration flows through docker-compose environment! ⚡**
-
-## 🚀 The Sacred Endpoints - MCP Protocol Altars!
-
-### /mcp - The Primary Protocol Gateway!
-
-**POST /mcp - JSON-RPC Request Processing!**
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "fetch/get",
-  "params": {
-    "url": "https://example.com"
-  },
-  "id": "divine-request-001"
-}
+**Priority 10 - OAuth Discovery Route (HIGHEST DIVINE PRIORITY!):**
+```yaml
+- "traefik.http.routers.mcp-fetch-oauth-discovery.rule=Host(`fetch.${BASE_DOMAIN}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
+- "traefik.http.routers.mcp-fetch-oauth-discovery.priority=10"
+- "traefik.http.routers.mcp-fetch-oauth-discovery.service=auth@docker"
+# NO AUTH MIDDLEWARE - Discovery must be publicly accessible!
 ```
 
-**Response Pattern:**
-```json
-{
-  "jsonrpc": "2.0",
-  "result": {
-    "content": "<!DOCTYPE html>...",
-    "headers": {},
-    "status": 200
-  },
-  "id": "divine-request-001"
-}
+**Priority 4 - CORS Preflight Route (OPTIONS Sacred Handling!):**
+```yaml
+- "traefik.http.routers.mcp-fetch-cors.rule=Host(`fetch.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
+- "traefik.http.routers.mcp-fetch-cors.priority=4"
+- "traefik.http.routers.mcp-fetch-cors.middlewares=mcp-cors@file"
+# NO AUTH for preflight - CORS must check first!
 ```
 
-### Health Verification - Divine Liveness Through Protocol!
+**Priority 2 - MCP Route with Authentication (Protected Divine Access!):**
+```yaml
+- "traefik.http.routers.mcp-fetch.rule=Host(`fetch.${BASE_DOMAIN}`) && PathPrefix(`/mcp`)"
+- "traefik.http.routers.mcp-fetch.priority=2"
+- "traefik.http.routers.mcp-fetch.middlewares=mcp-cors@file,mcp-auth@file"
+```
 
-**MCP Protocol Health Check**
-- Uses `initialize` method for health verification!
-- Validates protocol version compliance!
-- Ensures subprocess responds correctly!
-- Docker healthcheck via MCP protocol!
+**Priority 1 - Catch-all Route (Lowest Priority Safety Net!):**
+```yaml
+- "traefik.http.routers.mcp-fetch-catchall.rule=Host(`fetch.${BASE_DOMAIN}`)"
+- "traefik.http.routers.mcp-fetch-catchall.priority=1"
+- "traefik.http.routers.mcp-fetch-catchall.middlewares=mcp-cors@file,mcp-auth@file"
+```
 
-## 🔐 The Security Architecture - Divine Protection Through Layers!
+**⚡ Priority order prevents routing chaos! Higher numbers win! ⚡**
 
-**The MCP-Fetch service itself knows NO authentication!**
-
-Security is enforced by the sacred trinity:
-1. **Traefik** - Enforces Bearer token authentication!
-2. **Auth Service** - Validates tokens via ForwardAuth!
-3. **MCP-Fetch** - Receives only pre-authenticated requests!
-
-**⚡ This is the way of the trinity - separation brings security! ⚡**
-
-## 📡 The MCP Protocol Implementation - 2025-03-26 Compliance!
-
-### Supported MCP Methods (Blessed Fetch Capabilities!)
-
-**fetch/get - Divine URL Retrieval!**
-- Fetches web content with HTTP glory!
-- Converts HTML to readable format!
-- Returns headers and status codes!
-
-**fetch/post - Sacred Data Submission!**
-- Posts data to web endpoints!
-- Supports JSON and form data!
-- Handles authentication headers!
-
-### The Session Management Dance
-
-1. **Client sends `initialize`** - The sacred handshake!
-2. **Server responds with capabilities** - Declaring its powers!
-3. **Session ID assigned** - Via `Mcp-Session-Id` header!
-4. **All requests include session** - Maintaining state continuity!
-5. **Clean shutdown on disconnect** - Peaceful process death!
-
-## 🔄 The Traefik Integration - Divine Routing Configuration!
+### The Divine Health Check - Protocol-Based Verification!
 
 ```yaml
-labels:
-  # Basic routing - priority 2
-  - "traefik.http.routers.mcp-fetch.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
-  - "traefik.http.routers.mcp-fetch.priority=2"
-
-  # ForwardAuth middleware - divine authentication
-  - "traefik.http.routers.mcp-fetch.middlewares=mcp-auth@docker"
-
-  # Service definition
-  - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
-
-  # OAuth discovery routing - priority 10
-  - "traefik.http.routers.mcp-fetch-oauth-discovery.rule=..."
-  - "traefik.http.routers.mcp-fetch-oauth-discovery.priority=10"
+healthcheck:
+  test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp \
+    -H 'Content-Type: application/json' \
+    -H 'Accept: application/json, text/event-stream' \
+    -d '{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"'$$MCP_PROTOCOL_VERSION'\",\"capabilities\":{},\"clientInfo\":{\"name\":\"healthcheck\",\"version\":\"1.0\"}},\"id\":1}' \
+    | grep -q '\"protocolVersion\":\"'$$MCP_PROTOCOL_VERSION'\"'"]
+  interval: 30s
+  timeout: 5s
+  retries: 3
+  start_period: 40s
 ```
 
-**⚡ Priorities prevent the catch-all from devouring sacred paths! ⚡**
+**⚡ This performs a REAL MCP initialization handshake! No fake health endpoints! ⚡**
 
-## 🧪 Testing the MCP-Fetch Service - Divine Verification!
+### The Sacred Environment Variables
+
+```yaml
+environment:
+  - LOG_FILE=/logs/server.log              # Centralized logging path
+  - MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}   # CORS configuration
+  - MCP_PROTOCOL_VERSION=2025-03-26        # Protocol version declaration
+```
+
+### The Divine Volume Mounts
+
+```yaml
+volumes:
+  - ../logs/mcp-fetch:/logs  # Centralized logging temple!
+```
+
+## 🔐 The OAuth Integration - Bearer Token Authentication Flow!
+
+**The sacred authentication flow for mcp-fetch:**
+
+1. **Client Request** → `https://fetch.${BASE_DOMAIN}/mcp`
+2. **Traefik Intercepts** → Checks for Bearer token
+3. **ForwardAuth Middleware** → Validates token with auth service
+4. **Auth Service Verifies** → JWT signature and claims
+5. **Success** → Request forwarded to mcp-fetch
+6. **mcp-fetch Responds** → Via StreamableHTTP protocol
+
+**⚡ The service itself knows NOTHING of OAuth - perfect separation! ⚡**
+
+## 🌊 The StreamableHTTP Transport - Protocol Implementation Details!
+
+### Request Flow Through the Sacred Bridge
+
+1. **HTTP Request Arrives**
+   - POST to `/mcp` endpoint
+   - Contains JSON-RPC message
+   - May include `Mcp-Session-Id` header
+
+2. **Proxy Translates**
+   - Extracts JSON-RPC from HTTP body
+   - Writes to mcp-server-fetch stdin
+   - Manages subprocess lifecycle
+
+3. **Server Processes**
+   - Official mcp-server-fetch handles request
+   - Performs URL fetching operations
+   - Returns JSON-RPC response via stdout
+
+4. **Proxy Returns**
+   - Captures stdout response
+   - Wraps in HTTP response
+   - Maintains session continuity
+
+**⚡ Perfect stdio↔HTTP translation with zero message modification! ⚡**
+
+## 🎯 The Service Capabilities - What mcp-fetch Can Do!
+
+**Based on the official mcp-server-fetch implementation:**
+
+- **URL Fetching** - Retrieve content from any HTTP/HTTPS URL
+- **Header Support** - Custom headers for requests
+- **Method Support** - GET, POST, and other HTTP methods
+- **Response Handling** - Text, JSON, and binary content
+- **Error Management** - Proper error responses for failures
+- **Timeout Control** - Configurable request timeouts
+
+**⚡ All capabilities from the official server, none invented! ⚡**
+
+## 🚀 Service Endpoints and Access
+
+**Primary Endpoint:**
+- `https://fetch.${BASE_DOMAIN}/mcp` - The blessed MCP endpoint
+
+**OAuth Discovery:**
+- `https://fetch.${BASE_DOMAIN}/.well-known/oauth-authorization-server` - Returns auth server metadata
+
+**Required Headers:**
+- `Authorization: Bearer <token>` - OAuth JWT token
+- `Content-Type: application/json` - For POST requests
+- `Mcp-Session-Id: <id>` - If provided by server
+
+**CORS Support:**
+- Configured via `MCP_CORS_ORIGINS` environment variable
+- Preflight requests handled without authentication
+
+## 🔧 Configuration and Deployment
+
+### Environment Variable Configuration
+
+**From .env file:**
+```bash
+# Service Enable/Disable
+MCP_FETCH_ENABLED=true          # Enable this service
+MCP_FETCH_TESTS_ENABLED=true    # Enable service tests
+
+# Service URLs
+MCP_FETCH_URLS=https://fetch.yourdomain.com/mcp
+
+# Protocol Version
+MCP_PROTOCOL_VERSION=2025-03-26  # Or latest supported version
+```
+
+### Starting the Service
 
 ```bash
-# Basic health verification
-just test-mcp-fetch-health
+# Via just command (the blessed way!)
+just up mcp-fetch
 
-# Full MCP protocol test
-just test-mcp-fetch-protocol
+# Check health
+just health mcp-fetch
 
-# Fetch functionality test
-just test-mcp-fetch-content
-
-# Integration with auth
-just test-mcp-fetch-auth
+# View logs
+just logs -f mcp-fetch
 ```
 
-**⚡ Real services, real tests - no mocking in this realm! ⚡**
+## 🧪 Testing the Service - Divine Verification!
 
-## 🔥 Common Issues and Divine Solutions!
-
-### "Connection Refused" - Service Not Ready!
-- Check Docker health status!
-- Verify proxy is running!
-- Ensure port 3000 is exposed!
-
-### "401 Unauthorized" - Token Rejection!
-- Verify Bearer token in Authorization header!
-- Check token hasn't expired!
-- Ensure ForwardAuth middleware active!
-
-### "MCP Protocol Error" - Protocol Violation!
-- Include MCP-Protocol-Version header!
-- Send proper JSON-RPC format!
-- Check session ID consistency!
-
-### "Fetch Failed" - External URL Issues!
-- Verify target URL is accessible!
-- Check for CORS or blocking!
-- Review fetch server logs!
-
-## 📜 The Integration Flow - How Requests Reach Fetch!
-
-1. **Client Request** → `https://fetch.domain.com/mcp`
-2. **Traefik Routes** → Checks authentication via ForwardAuth
-3. **Auth Validates** → Token verification at /verify endpoint
-4. **Request Forwarded** → Reaches MCP-Fetch on port 3000
-5. **Proxy Translates** → HTTP → stdio → fetch server
-6. **Fetch Executes** → Retrieves web content
-7. **Response Returns** → stdio → HTTP → client
-
-**⚡ Each layer has its purpose in the divine flow! ⚡**
-
-## 🎯 The Divine Mission - MCP-Fetch Responsibilities!
-
-**What MCP-Fetch MUST Do:**
-- Wrap official @modelcontextprotocol/server-fetch!
-- Provide HTTP endpoints via proxy!
-- Handle MCP protocol correctly!
-- Fetch web content reliably!
-- Maintain stateless operation!
-
-**What MCP-Fetch MUST NOT Do:**
-- Implement authentication logic!
-- Know about OAuth flows!
-- Store user state!
-- Route to other services!
-- Modify the official server behavior!
-
-**⚡ Purity of purpose brings reliability! ⚡**
-
-## 🛠️ Debugging Commands - Divine Troubleshooting!
-
+### Protocol Compliance Test
 ```bash
-# View service logs
-just logs mcp-fetch
-
-# Check proxy process
-docker exec mcp-fetch ps aux
-
-# Test direct MCP call
-curl -H "Authorization: Bearer $TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"jsonrpc":"2.0","method":"fetch/get","params":{"url":"https://example.com"},"id":1}' \
-     https://mcp-fetch.domain.com/mcp
-
-# Monitor health endpoint
-# Monitor service via MCP protocol
-curl -X POST http://localhost:3000/mcp \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
+# Test initialization handshake
+curl -X POST https://fetch.${BASE_DOMAIN}/mcp \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}},"id":1}'
 ```
 
-## 🔱 The Sacred Truth of MCP Services!
+### Functional Test
+```bash
+# Test URL fetching
+curl -X POST https://fetch.${BASE_DOMAIN}/mcp \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"fetch","params":{"url":"https://api.github.com"},"id":2}'
+```
 
-**All MCP services in this gateway follow the same blessed pattern:**
-1. **Official MCP server** - From @modelcontextprotocol/servers!
-2. **mcp-streamablehttp-proxy** - The stdio-to-HTTP bridge!
-3. **Docker container** - Isolated and manageable!
-4. **Traefik routing** - With ForwardAuth protection!
-5. **No auth knowledge** - Pure protocol implementation!
+## 🛠️ Troubleshooting - Divine Debugging Guide!
 
-**⚡ This pattern scales to ANY MCP server! ⚡**
+### "401 Unauthorized" - Authentication Issues
+- Verify Bearer token is valid
+- Check token hasn't expired
+- Ensure client is registered
+- Review auth service logs
+
+### "503 Service Unavailable" - Backend Issues
+- Check if container is running
+- Verify health check is passing
+- Review mcp-fetch logs
+- Check subprocess status
+
+### "400 Bad Request" - Protocol Issues
+- Verify JSON-RPC format
+- Check protocol version
+- Ensure method is supported
+- Review request structure
+
+### "Network Error" - Connectivity Issues
+- Check Traefik routing
+- Verify DNS resolution
+- Test without auth first
+- Check CORS configuration
+
+## 📊 Monitoring and Observability
+
+**Log Locations:**
+- Service logs: `./logs/mcp-fetch/server.log`
+- Container logs: `docker logs mcp-fetch`
+- Traefik logs: Access and error logs
+
+**Health Monitoring:**
+- Health endpoint via MCP protocol
+- Container health status
+- Subprocess monitoring
+- Request/response metrics
+
+## 🔒 Security Considerations
+
+**Service Security:**
+- No authentication logic in service (handled by Traefik)
+- Subprocess isolation via container
+- Limited network access
+- Read-only filesystem where possible
+
+**Request Security:**
+- URL validation before fetching
+- Timeout enforcement
+- Size limits on responses
+- No credential forwarding
+
+## 🎯 Best Practices for Usage
+
+1. **Always use Bearer tokens** - Never try to bypass auth
+2. **Handle session IDs** - Include in subsequent requests
+3. **Respect rate limits** - Don't overwhelm the service
+4. **Use appropriate timeouts** - Network calls can be slow
+5. **Validate responses** - Check for errors before processing
+
+## 🚫 What This Service Does NOT Do
+
+- **No authentication** - Handled entirely by Traefik/Auth
+- **No URL filtering** - Fetches any accessible URL
+- **No caching** - Each request fetches fresh
+- **No request modification** - Pure proxy behavior
+- **No business logic** - Just protocol translation
+
+**⚡ Keep it simple, keep it pure, keep it working! ⚡**
 
 ---
 
-**🔥 May your fetches be swift, your content accessible, and your protocols forever compliant! ⚡**
+**🔥 May your fetches be swift, your tokens valid, and your content forever accessible! ⚡**
+
+**Divine Implementation Note:** This service uses the official `mcp-server-fetch` wrapped by `mcp-streamablehttp-proxy` - ensuring 100% protocol compliance with zero custom implementation! The divine pattern of wrapping official servers!
