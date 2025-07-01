@@ -1,109 +1,121 @@
-# mcp-fetch-streamablehttp-server
+# MCP Fetch StreamableHTTP Server
 
-A native Python implementation of an MCP fetch server with Streamable HTTP transport, implementing the MCP 2025-06-18 protocol specification from scratch. This represents the next generation of MCP server architecture with superior performance and integration.
+A native Python implementation of an MCP (Model Context Protocol) server that provides secure URL fetching capabilities through the StreamableHTTP transport.
 
 ## Overview
 
-Unlike proxy-based approaches, this server:
-- **Native Implementation**: Direct Python implementation without subprocesses
-- **True Async**: Built on FastAPI with native async/await throughout
-- **Direct OAuth Integration**: Seamless integration with authentication layer
-- **Superior Performance**: ~10x faster startup, ~5x lower latency
-- **Better Error Handling**: Native Python exceptions instead of stdio errors
+This server implements the MCP protocol with a native StreamableHTTP transport, providing a `fetch` tool that allows AI assistants to retrieve content from URLs with built-in security protections.
 
-## Key Features
+### Key Features
 
-- 🚀 **Native Streamable HTTP**: Protocol implementation from scratch
-- 🔧 **Fetch Tool**: HTTP GET/POST with robots.txt compliance
-- ⚡ **High Performance**: Direct execution without proxy overhead
-- 🔐 **OAuth Ready**: Designed for Bearer token authentication
-- 📊 **Stateless Design**: Each request handled independently
-- 🧪 **Production Ready**: Health checks and comprehensive error handling
-- 🎯 **BeautifulSoup Integration**: HTML parsing and title extraction
-- 🤖 **Robots.txt Compliance**: Automatic compliance checking
+- **Native MCP Implementation**: Direct protocol implementation without stdio bridging
+- **StreamableHTTP Transport**: HTTP-based transport for web-native deployments
+- **Secure Fetching**: SSRF protection, size limits, and robots.txt compliance
+- **Stateless Operation**: Each request is independent, enabling horizontal scaling
+- **Production Ready**: Includes health checks, proper error handling, and security measures
 
-## Architecture Comparison
+## Architecture
 
-### Traditional Proxy Approach (❌)
-```
-HTTP Request → Proxy → Subprocess → stdio → MCP Server
-                ↑                              ↓
-                ←──── Multiple Layers ←────────┘
-```
+This service operates as part of the MCP OAuth Gateway's three-layer architecture:
 
-### Native Implementation (✅)
-```
-HTTP Request → FastAPI → Direct Handler → Response
-                ↑                            ↓
-                ←─── Single Process ←────────┘
-```
+1. **Traefik** (Layer 1): Handles routing and authentication
+2. **Auth Service** (Layer 2): Manages OAuth flows and token validation
+3. **MCP Services** (Layer 3): This service - pure protocol implementation
 
-## Installation
-
-```bash
-# Via pixi (recommended)
-cd mcp-fetch-streamablehttp-server
-pixi install -e .
-
-# Run directly
-pixi run python -m mcp_fetch_streamablehttp_server
-```
+The service has no authentication code - all auth is handled by Traefik's ForwardAuth middleware.
 
 ## Quick Start
 
-### Local Development
+### Environment Variables
+
+Create a `.env` file with required configuration:
 
 ```bash
-# Set environment variables
-export HOST=0.0.0.0
-export PORT=3000
+# Required
+MCP_SERVER_NAME=mcp-fetch
+MCP_SERVER_VERSION=1.0.0
+MCP_PROTOCOL_VERSION=2025-06-18
 
-# Run the server
-pixi run python -m mcp_fetch_streamablehttp_server
+# Optional
+MCP_FETCH_ALLOWED_SCHEMES=["http","https"]
+MCP_FETCH_MAX_REDIRECTS=5
+MCP_FETCH_DEFAULT_USER_AGENT=ModelContextProtocol/1.0 (Fetch Server)
+HOST=0.0.0.0
+PORT=3000
 ```
 
-### Docker Deployment
+### Running with Docker Compose
+
+```yaml
+services:
+  mcp-fetch:
+    build: ./mcp-fetch-streamablehttp-server
+    env_file: .env
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/mcp", "-X", "POST",
+             "-H", "Content-Type: application/json",
+             "-d", '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+```
+
+### Running Locally
 
 ```bash
-# Build and run with docker-compose
-cd ../mcp-fetchs  # Docker config location
-docker-compose up -d
+# Using just and pixi (recommended)
+just run mcp-fetch
 
-# Server available at:
-# https://fetchs.yourdomain.com/mcp
+# Or directly with pixi
+pixi run -e mcp-fetch python -m mcp_fetch_streamablehttp_server
 ```
 
 ## API Reference
 
-### POST /mcp
+### StreamableHTTP Endpoints
 
-Main MCP protocol endpoint implementing JSON-RPC 2.0.
+- **POST /mcp**: Handles JSON-RPC requests
+- **GET /mcp**: SSE endpoint (infrastructure ready, not yet implemented)
+- **DELETE /mcp**: Session termination (infrastructure ready)
 
-**Request Headers:**
-- `Content-Type: application/json` (required)
-- `Accept: application/json, text/event-stream` (required)
-- `MCP-Protocol-Version: 2025-06-18` (optional)
-- `Authorization: Bearer <token>` (when behind gateway)
+### MCP Methods
 
-**Supported Methods:**
-- `initialize` - Initialize MCP session
-- `tools/list` - List available tools
-- `tools/call` - Execute the fetch tool
+#### initialize
+Protocol handshake and capability negotiation.
 
-### Fetch Tool
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {},
+    "clientInfo": {
+      "name": "example-client",
+      "version": "1.0"
+    }
+  },
+  "id": 1
+}
+```
 
-The fetch tool supports comprehensive HTTP operations:
+#### tools/list
+Returns available tools (currently just `fetch`).
 
-**Parameters:**
-- `url` (required): Target URL to fetch
-- `method`: HTTP method (GET or POST, default: GET)
-- `headers`: Custom HTTP headers (object)
-- `body`: Request body for POST requests
-- `user_agent`: Custom user agent string
-- `follow_redirects`: Follow HTTP redirects (default: true)
-- `max_redirects`: Maximum redirect count (default: 5)
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/list",
+  "params": {},
+  "id": 2
+}
+```
 
-**Example Request:**
+#### tools/call
+Executes the fetch tool.
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -114,190 +126,150 @@ The fetch tool supports comprehensive HTTP operations:
       "url": "https://example.com",
       "method": "GET",
       "headers": {
-        "Accept": "application/json"
+        "User-Agent": "Custom-Agent/1.0"
       }
     }
   },
-  "id": 1
+  "id": 3
 }
 ```
 
-**Response Format:**
+### Fetch Tool
+
+The `fetch` tool retrieves content from URLs with these parameters:
+
+- **url** (required): The URL to fetch
+- **method**: HTTP method (GET or POST, default: GET)
+- **headers**: Optional HTTP headers object
+- **body**: Optional request body for POST requests
+- **max_length**: Maximum response length in bytes (default: 100000)
+- **user_agent**: User agent string to use (default: "ModelContextProtocol/1.0")
+
+#### Security Features
+
+- **SSRF Protection**: Blocks requests to localhost, private networks, and cloud metadata services
+- **Size Limits**: Responses limited to 100KB by default
+- **Scheme Restrictions**: Only http/https allowed by default
+- **Redirect Limits**: Maximum 5 redirects by default
+
+#### Response Format
+
+Text content:
 ```json
 {
-  "jsonrpc": "2.0",
-  "result": {
-    "status_code": 200,
-    "headers": {...},
-    "content": "...",
-    "content_type": "text/html",
-    "size": 1234,
-    "title": "Example Domain"  // For HTML pages
-  },
-  "id": 1
+  "content": [
+    {
+      "type": "text",
+      "text": "Response content here"
+    }
+  ]
 }
 ```
 
-## Configuration
-
-### Environment Variables
-
-```bash
-# Server configuration
-HOST=0.0.0.0                          # Binding host
-PORT=3000                             # Server port
-MCP_FETCH_SERVER_NAME=mcp-fetch-streamablehttp  # Server identity
-MCP_FETCH_PROTOCOL_VERSION=2025-06-18           # Protocol version
-
-# Fetch tool configuration
-MCP_FETCH_DEFAULT_USER_AGENT=ModelContextProtocol/1.0
-MCP_FETCH_ALLOWED_SCHEMES=["http","https"]
-MCP_FETCH_MAX_REDIRECTS=5
-MCP_FETCH_MAX_RESPONSE_SIZE=10485760  # 10MB
-MCP_FETCH_REQUEST_TIMEOUT=30
+Image content:
+```json
+{
+  "content": [
+    {
+      "type": "image",
+      "data": "<base64-encoded-image>",
+      "mimeType": "image/png"
+    }
+  ]
+}
 ```
 
-## Health Checks
-
-The server provides health verification via MCP protocol:
-
-```bash
-curl -X POST http://localhost:3000/mcp \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json, text/event-stream' \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "initialize",
-    "params": {
-      "protocolVersion": "2025-06-18",
-      "capabilities": {},
-      "clientInfo": {"name": "healthcheck", "version": "1.0"}
-    },
-    "id": 1
-  }'
-```
-
-## Performance Benefits
-
-### Native vs Proxy Implementation
-
-| Metric | Proxy Approach | Native Implementation | Improvement |
-|--------|----------------|----------------------|-------------|
-| Startup Time | ~500ms | ~50ms | 10x faster |
-| Request Latency | ~25ms | ~5ms | 5x lower |
-| Memory Usage | ~150MB | ~50MB | 3x lower |
-| Error Handling | stdio parsing | Native exceptions | Instant |
-| Concurrent Requests | Limited by processes | Fully async | Unlimited |
-
-### Why Native Implementation?
-
-1. **No Subprocess Overhead**: Direct execution in main process
-2. **Native Async**: True concurrent request handling
-3. **Shared Context**: Can access application state directly
-4. **Better Debugging**: Native Python stack traces
-5. **Resource Efficiency**: Single process for all requests
-
-## Integration with OAuth Gateway
-
-The server integrates seamlessly with the MCP OAuth Gateway:
-
-```yaml
-# Docker Compose configuration
-services:
-  mcp-fetchs:
-    build: ./mcp-fetchs
-    environment:
-      - HOST=0.0.0.0
-      - PORT=3000
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.fetchs.rule=Host(`fetchs.${BASE_DOMAIN}`)"
-      - "traefik.http.routers.fetchs.middlewares=mcp-auth@docker"
-      - "traefik.http.services.fetchs.loadbalancer.server.port=3000"
+Error response:
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Error: Connection timeout"
+    }
+  ],
+  "isError": true
+}
 ```
 
 ## Testing
 
-Comprehensive test coverage includes:
+Run tests using the project's testing infrastructure:
 
 ```bash
 # Run all tests
-pixi run pytest tests/ -v
+just test
 
-# Run integration tests
-pixi run pytest tests/test_mcp_fetch_streamablehttp_integration.py -v
+# Run specific tests
+just test test_mcp_fetch
 
-# Test coverage areas:
-# ✅ MCP protocol compliance
-# ✅ Authentication requirements
-# ✅ CORS handling
-# ✅ Tool execution
-# ✅ Error responses
-# ✅ OAuth discovery routing
+# Run with coverage
+just test-sidecar-coverage
 ```
+
+Tests should verify real protocol interactions without mocks:
+- Protocol handshake via initialize
+- Tool listing and execution
+- Security boundary validation
+- Error handling scenarios
+
+## Deployment
+
+### Production Configuration
+
+1. Deploy behind Traefik with appropriate routing labels
+2. Configure ForwardAuth middleware for authentication
+3. Set all environment variables via .env file
+4. Enable health checks for monitoring
+5. Use docker-compose for orchestration
+
+### Health Monitoring
+
+The service can be monitored by sending an initialize request:
+
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"monitoring","version":"1.0"}},"id":1}'
+```
+
+A successful response with matching protocol version indicates health.
 
 ## Development
 
-```bash
-# Clone repository
-git clone https://github.com/atrawog/mcp-oauth-gateway
-cd mcp-oauth-gateway/mcp-fetch-streamablehttp-server
+### Project Structure
 
-# Install in development mode
-pixi install -e .
-
-# Run with auto-reload
-pixi run uvicorn mcp_fetch_streamablehttp_server.server:app --reload
-
-# Run with debug logging
-LOG_LEVEL=DEBUG pixi run python -m mcp_fetch_streamablehttp_server
+```
+mcp-fetch-streamablehttp-server/
+├── src/
+│   └── mcp_fetch_streamablehttp_server/
+│       ├── __init__.py          # Package initialization
+│       ├── __main__.py          # Entry point
+│       ├── server.py            # FastAPI application
+│       ├── transport.py         # StreamableHTTP transport
+│       └── fetch_handler.py     # Fetch tool implementation
+├── pyproject.toml               # Package configuration
+├── CLAUDE.md                    # Divine implementation guide
+└── README.md                    # This file
 ```
 
-## Future Enhancements
+### Adding Features
 
-### Planned Features
+When extending this service:
+1. Maintain stateless operation
+2. Add new tools via the MCP tools interface
+3. Configure via environment variables
+4. Include security validations
+5. Follow existing error handling patterns
 
-1. **Server-Sent Events (SSE)**
-   - Streaming responses for large content
-   - Real-time progress updates
-   - Long-polling support
+## Security Considerations
 
-2. **Advanced Caching**
-   - Request/response caching with TTL
-   - ETag support
-   - Conditional requests
-
-3. **Enhanced Security**
-   - Rate limiting per client
-   - Request size limits
-   - URL filtering rules
-
-4. **Monitoring**
-   - Prometheus metrics
-   - Request/response logging
-   - Performance tracking
-
-## Migration from Proxy-Based Servers
-
-If migrating from `mcp-streamablehttp-proxy`:
-
-1. **Same Protocol**: Implements identical MCP protocol
-2. **Same Endpoints**: `/mcp` endpoint works identically
-3. **Better Performance**: Expect significant speed improvements
-4. **Simpler Deployment**: No subprocess management needed
-5. **Direct Integration**: Can be embedded in existing FastAPI apps
+- Never add authentication code (handled by Traefik)
+- Validate all URLs against SSRF patterns
+- Limit response sizes to prevent DoS
+- Use timeout controls for all HTTP operations
+- Follow the principle of least privilege
 
 ## License
 
-Apache License 2.0 - see [LICENSE](LICENSE) file for details.
-
-## Author
-
-Andreas Trawoeger
-
-## Links
-
-- [Homepage](https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-fetch-streamablehttp-server)
-- [Repository](https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-fetch-streamablehttp-server)
-- [Documentation](https://atrawog.github.io/mcp-oauth-gateway)
-- [Issues](https://github.com/atrawog/mcp-oauth-gateway/issues)
+Part of the MCP OAuth Gateway project.
