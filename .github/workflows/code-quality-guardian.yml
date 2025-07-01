@@ -44,27 +44,35 @@ jobs:
           cache: true
           cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
 
+      - name: "🔧 Install just"
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
+      - name: "📦 Install Dependencies"
+        run: pixi install
+
       - name: "🔥 Run Ruff Linting (Sacred Syntax Check)"
         run: |
           echo "🔥 RUNNING SACRED RUFF LINTING ⚡"
-          pixi run lint
+          just lint
         continue-on-error: true  # Continue to show all issues
 
       - name: "⚡ Run Pydantic Deprecation Hunt"
         run: |
           echo "🔥 STARTING PYDANTIC DEPRECATION HUNT ⚡"
-          pixi run lint-pydantic
+          just lint-pydantic
 
       - name: "🎨 Check Code Formatting"
         run: |
           echo "🔥 CHECKING SACRED CODE FORMATTING ⚡"
-          pixi run format-check
+          just format-check
 
       - name: "🔒 Security Scan with Bandit"
         run: |
           echo "🔥 RUNNING SECURITY SCAN ⚡"
-          pixi run python -m bandit -r . -x tests/ -f json -o bandit-report.json || true
-          pixi run python -m bandit -r . -x tests/ -f txt
+          just security-scan-json || true
+          just security-scan
         continue-on-error: true
 
       - name: "📊 Upload Security Report"
@@ -97,14 +105,16 @@ jobs:
           pixi-version: v0.47.0
           cache: true
 
-      - name: "🔗 Install Pre-commit"
-        run: |
-          pip install pre-commit
+      - name: "🔧 Install just"
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just
 
       - name: "⚡ Run Pre-commit Hooks"
         run: |
           echo "🔥 RUNNING PRE-COMMIT HOOKS ⚡"
-          pre-commit run --all-files
+          pixi install
+          just lint
         continue-on-error: true  # Show results but don't fail CI yet
 
   # 📋 Summary Job ⚡

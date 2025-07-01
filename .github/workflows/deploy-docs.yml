@@ -36,10 +36,15 @@ jobs:
           pixi-version: v0.47.0
           cache: true
 
+      - name: Install just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
       - name: Build JupyterBook
         run: |
           pixi install
-          pixi run jupyter-book build docs/
+          just docs-build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

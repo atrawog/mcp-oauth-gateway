@@ -138,6 +138,15 @@ lint-comprehensive:
     pixi run pre-commit run ruff-format --all-files
     pixi run python scripts/lint_pydantic_compliance.py
 
+# Security scan with bandit
+security-scan:
+    @echo "🔥 Running Security Scan with Bandit ⚡"
+    pixi run python -m bandit -r . -x tests/ -f txt
+
+# Security scan with JSON output
+security-scan-json:
+    pixi run python -m bandit -r . -x tests/ -f json -o bandit-report.json
+
 
 # Docker operations
 
