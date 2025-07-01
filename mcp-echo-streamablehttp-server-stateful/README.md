@@ -53,7 +53,39 @@ Environment variables:
 - `MCP_PROTOCOL_VERSION` - Default protocol version (default: 2025-06-18)
 - `MCP_PROTOCOL_VERSIONS_SUPPORTED` - Comma-separated supported versions
 
-## Docker Deployment
+## Installation
+
+### Using pip
+
+```bash
+pip install mcp-echo-streamablehttp-server-stateful
+```
+
+### Using pixi
+
+```bash
+pixi add --pypi mcp-echo-streamablehttp-server-stateful
+```
+
+### Docker Deployment
+
+```dockerfile
+FROM python:3.11-slim
+
+# Install the package
+RUN pip install mcp-echo-streamablehttp-server-stateful
+
+# Set environment variables
+ENV MCP_ECHO_HOST=0.0.0.0
+ENV MCP_ECHO_PORT=3000
+ENV MCP_ECHO_DEBUG=true
+
+# Expose the port
+EXPOSE 3000
+
+# Run the server
+CMD ["python", "-m", "mcp_echo_streamablehttp_server_stateful"]
+```
 
 The service includes:
 - Health check with protocol validation
@@ -79,6 +111,46 @@ Each session maintains:
 - Runs every 60 seconds
 - Removes sessions older than timeout
 - Clears associated message queues
+
+## Quick Start
+
+### Running Locally
+
+```bash
+# Using pip/pixi installation
+mcp-echo-stateful-server
+
+# Or using Python module
+python -m mcp_echo_streamablehttp_server_stateful
+
+# With custom configuration
+MCP_ECHO_PORT=8080 MCP_SESSION_TIMEOUT=7200 mcp-echo-stateful-server
+```
+
+### Using with Docker Compose
+
+```yaml
+services:
+  mcp-echo-stateful:
+    image: mcp-echo-stateful:latest
+    build:
+      context: ./mcp-echo-streamablehttp-server-stateful
+    environment:
+      - MCP_ECHO_HOST=0.0.0.0
+      - MCP_ECHO_PORT=3000
+      - MCP_ECHO_DEBUG=true
+      - MCP_SESSION_TIMEOUT=3600
+      - MCP_PROTOCOL_VERSION=2025-06-18
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/mcp", "-X", "POST",
+             "-H", "Content-Type: application/json",
+             "-d", '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+```
 
 ## Example Usage
 

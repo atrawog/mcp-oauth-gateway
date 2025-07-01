@@ -24,6 +24,42 @@ This service operates as part of the MCP OAuth Gateway's three-layer architectur
 
 The service has no authentication code - all auth is handled by Traefik's ForwardAuth middleware.
 
+## Installation
+
+### Using pip
+
+```bash
+pip install mcp-fetch-streamablehttp-server
+```
+
+### Using pixi
+
+```bash
+pixi add --pypi mcp-fetch-streamablehttp-server
+```
+
+### Docker Deployment
+
+```dockerfile
+FROM python:3.11-slim
+
+# Install the package
+RUN pip install mcp-fetch-streamablehttp-server
+
+# Set environment variables
+ENV MCP_SERVER_NAME=mcp-fetch
+ENV MCP_SERVER_VERSION=1.0.0
+ENV MCP_PROTOCOL_VERSION=2025-06-18
+ENV HOST=0.0.0.0
+ENV PORT=3000
+
+# Expose the port
+EXPOSE 3000
+
+# Run the server
+CMD ["python", "-m", "mcp_fetch_streamablehttp_server"]
+```
+
 ## Quick Start
 
 ### Environment Variables
@@ -65,7 +101,13 @@ services:
 ### Running Locally
 
 ```bash
-# Using just and pixi (recommended)
+# Using pip/pixi installation
+mcp-fetch-server
+
+# Or using Python module
+python -m mcp_fetch_streamablehttp_server
+
+# Using just and pixi (recommended for development)
 just run mcp-fetch
 
 # Or directly with pixi

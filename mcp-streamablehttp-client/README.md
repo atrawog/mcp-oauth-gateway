@@ -33,9 +33,42 @@ pixi add mcp-streamablehttp-client
 pip install mcp-streamablehttp-client
 ```
 
-### Using Docker
+### Docker Deployment
+
+```dockerfile
+FROM python:3.11-slim
+
+# Install the package
+RUN pip install mcp-streamablehttp-client
+
+# Set working directory
+WORKDIR /app
+
+# Copy .env file (if exists)
+COPY .env* ./
+
+# Run the client
+CMD ["mcp-streamablehttp-client"]
+```
+
+### Using Docker Compose
+
+```yaml
+services:
+  mcp-client:
+    image: mcp-streamablehttp-client:latest
+    build:
+      context: ./mcp-streamablehttp-client
+    environment:
+      - MCP_SERVER_URL=${MCP_SERVER_URL}
+    volumes:
+      - ./.env:/app/.env:ro
+    stdin_open: true
+    tty: true
+```
 
 ```bash
+# Build and run with docker-compose
 docker-compose up -d
 ```
 

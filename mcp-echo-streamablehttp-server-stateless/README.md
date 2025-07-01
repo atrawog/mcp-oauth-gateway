@@ -40,6 +40,40 @@ Unlike the stateful variant, this server maintains no session state between requ
 - Provides JWT token decoding for debugging (no verification)
 - Exposes complete authentication context through diagnostic tools
 
+## Installation
+
+### Using pip
+
+```bash
+pip install mcp-echo-streamablehttp-server-stateless
+```
+
+### Using pixi
+
+```bash
+pixi add --pypi mcp-echo-streamablehttp-server-stateless
+```
+
+### Docker Deployment
+
+```dockerfile
+FROM python:3.11-slim
+
+# Install the package
+RUN pip install mcp-echo-streamablehttp-server-stateless
+
+# Set environment variables
+ENV MCP_ECHO_HOST=0.0.0.0
+ENV MCP_ECHO_PORT=3000
+ENV MCP_ECHO_DEBUG=false
+
+# Expose the port
+EXPOSE 3000
+
+# Run the server
+CMD ["python", "-m", "mcp_echo_streamablehttp_server_stateless"]
+```
+
 ## Configuration
 
 ### Environment Variables
@@ -58,12 +92,49 @@ MCP_PROTOCOL_VERSIONS_SUPPORTED=2025-06-18,2024-11-05  # Comma-separated support
 LOG_FILE=/logs/mcp-echo-stateless.log  # Optional log file path
 ```
 
-### Docker Integration
+### Docker Compose Integration
+
+```yaml
+services:
+  mcp-echo-stateless:
+    image: mcp-echo-stateless:latest
+    build:
+      context: ./mcp-echo-streamablehttp-server-stateless
+    environment:
+      - MCP_ECHO_HOST=0.0.0.0
+      - MCP_ECHO_PORT=3000
+      - MCP_ECHO_DEBUG=false
+      - MCP_PROTOCOL_VERSION=2025-06-18
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/mcp", "-X", "POST",
+             "-H", "Content-Type: application/json",
+             "-d", '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+```
 
 The service includes comprehensive Docker configuration with:
 - Health checks using MCP protocol initialization
 - Traefik routing labels with proper priorities
 - Integration with the OAuth gateway architecture
+
+## Quick Start
+
+### Running Locally
+
+```bash
+# Using pip/pixi installation
+mcp-echo-stateless-server
+
+# Or using Python module
+python -m mcp_echo_streamablehttp_server_stateless
+
+# With custom configuration
+MCP_ECHO_PORT=8080 MCP_ECHO_DEBUG=true mcp-echo-stateless-server
+```
 
 ## Usage Examples
 

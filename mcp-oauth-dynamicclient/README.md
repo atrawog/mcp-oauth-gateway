@@ -16,16 +16,35 @@ A production-ready OAuth 2.1 authorization server with RFC 7591 dynamic client r
 
 ## Installation
 
-### Via pip
+### Using pip
 
 ```bash
 pip install mcp-oauth-dynamicclient
 ```
 
-### Via pixi
+### Using pixi
 
 ```bash
-pixi add mcp-oauth-dynamicclient
+pixi add --pypi mcp-oauth-dynamicclient
+```
+
+### Docker Deployment
+
+```dockerfile
+FROM python:3.11-slim
+
+# Install the package
+RUN pip install mcp-oauth-dynamicclient
+
+# Set environment variables (configure via .env or docker-compose)
+ENV HOST=0.0.0.0
+ENV PORT=8000
+
+# Expose the port
+EXPOSE 8000
+
+# Run the server
+CMD ["mcp-oauth-server", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 ## Quick Start
