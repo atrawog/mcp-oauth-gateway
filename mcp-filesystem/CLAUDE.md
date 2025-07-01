@@ -1,331 +1,178 @@
-# 🔥 CLAUDE.md - The MCP-Filesystem Service Divine Scripture! ⚡
+# MCP Filesystem Service - The Divine File System Oracle
 
-**📁 Behold! The Sacred MCP Filesystem Server - File System Oracle of Divine Access! 📁**
+**🗄️ Behold! The sacred gateway to the file system realm! ⚡**
 
-**⚡ This is MCP-Filesystem - The Holy Bridge Between File Systems and MCP Protocol! ⚡**
+## Service Overview - The Divine Purpose
 
-## 🔱 The Sacred Purpose of MCP-Filesystem - Divine File System Power!
+**🔥 This service grants blessed MCP clients access to file system operations! ⚡**
 
-**The MCP-Filesystem Service channels the blessed filesystem capabilities through MCP protocol!**
+The mcp-filesystem service channels the divine powers of the official `mcp-server-filesystem` from modelcontextprotocol/servers, wrapping it in the blessed StreamableHTTP proxy pattern for OAuth-protected web access!
 
-This sacred service manifests these divine powers:
-- **File System Access** - Read, write, and manage files with divine authority!
-- **Directory Navigation** - Traverse the file system hierarchy with blessed permission!
-- **MCP Protocol Bridge** - Wraps filesystem server in streamablehttp glory!
-- **OAuth Protected** - Bearer token authentication enforced by Traefik!
-- **Sandboxed Operation** - Restricted to /workspace for divine security!
-- **Production Ready** - Battle-tested with health monitoring!
+## Sacred Implementation Pattern - The Proxy Architecture
 
-**⚡ MCP-Filesystem knows nothing of OAuth - pure protocol innocence maintained! ⚡**
+**⚡ Pattern 1: The Sacred Proxy Pattern - As decreed by the gateway commandments! ⚡**
 
-## 🏗️ The Sacred Architecture - stdio-to-HTTP Transcendence!
+This service follows the blessed proxy pattern:
+- **Official MCP Server**: Uses `mcp-server-filesystem` from GitHub's divine repository!
+- **Divine Bridge**: `mcp-streamablehttp-proxy` transforms stdio ↔ HTTP with sacred transcendence!
+- **Protocol Version**: Blessed with `2025-03-26` - The covenant of file system communion!
+
+## The Divine Architecture
 
 ```
-MCP-Filesystem Service (Port 3000)
-├── mcp-streamablehttp-proxy (The Divine Bridge!)
-│   ├── Spawns official @modelcontextprotocol/server-filesystem
-│   ├── Bridges stdio ↔ HTTP with blessed translation
-│   └── Manages subprocess lifecycle with divine care
-├── HTTP Endpoints (Blessed by the proxy!)
-│   ├── /mcp - Primary MCP protocol endpoint
-│   └── Health monitoring via MCP protocol
-└── MCP Server Process (The stdio servant!)
-    └── Official filesystem server speaking JSON-RPC
+┌─────────────────────────────────────────────────────────────┐
+│                   mcp-filesystem Service                    │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │        mcp-streamablehttp-proxy (Port 3000)         │    │
+│  │  • Receives HTTP requests on /mcp endpoint          │    │
+│  │  • Manages subprocess lifecycle                     │    │
+│  │  • Bridges HTTP ↔ stdio with divine translation     │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                            ↓                                │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │          mcp-server-filesystem (stdio)              │    │
+│  │  • Official MCP filesystem implementation           │    │
+│  │  • Serves /workspace directory with sacred access   │    │
+│  │  • Pure stdio JSON-RPC communication                │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**⚡ We wrap official servers - never reinvent the blessed wheel! ⚡**
+## Sacred Configuration
 
-## 🐳 The Docker Manifestation - Container of Protocol Purity!
+### Environment Variables - The Divine Settings
 
-### The Sacred Dockerfile Pattern
-```dockerfile
-FROM python:3.11-slim  # The blessed Python vessel!
-
-# Install official MCP server
-RUN pip install mcp-server-filesystem
-
-# Install mcp-streamablehttp-proxy
-# The divine bridge between stdio and HTTP!
-
-EXPOSE 3000  # The blessed MCP port!
-HEALTHCHECK  # Prove thy readiness to serve!
-
-# Launch proxy wrapping the official server
-CMD ["mcp-streamablehttp-proxy", "python", "-m", "mcp_server_filesystem", "/workspace"]
+```bash
+LOG_FILE=/logs/server.log         # Sacred log destination
+MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}  # Blessed CORS origins
+MCP_PROTOCOL_VERSION=2025-03-26   # The covenant version
 ```
 
-**⚡ Official server + proxy wrapper = Production MCP glory! ⚡**
-
-## 🔧 The Sacred Configuration - Environment Variables of Service!
-
-**MCP Protocol Settings:**
-- `MCP_PROTOCOL_VERSION=2025-03-26` - Divine protocol covenant! (hardcoded - the filesystem server only supports this version)
-- `MCP_SESSION_TIMEOUT` - Session lifetime in seconds!
-- `MCP_MAX_PARALLEL_REQUESTS` - Concurrent request blessing!
-
-**Proxy Configuration:**
-- `PROXY_HOST=0.0.0.0` - Listen on all interfaces!
-- `PROXY_PORT=3000` - The blessed MCP port!
-- Health checks use MCP protocol initialization!
-
-**Service Discovery:**
-- `BASE_DOMAIN` - For Traefik routing labels!
-- `SERVICE_NAME=mcp-filesystem` - Divine service identifier!
-
-**Filesystem Configuration:**
-- Volume mount: `./workspace:/workspace:rw` - The blessed workspace!
-- Working directory: `/workspace` - Root of filesystem access!
-
-**⚡ Configuration flows through docker-compose environment! ⚡**
-
-## 🚀 The Sacred Endpoints - MCP Protocol Altars!
-
-### /mcp - The Primary Protocol Gateway!
-
-**POST /mcp - JSON-RPC Request Processing!**
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "filesystem/read",
-  "params": {
-    "path": "/workspace/example.txt"
-  },
-  "id": "divine-request-001"
-}
-```
-
-**Response Pattern:**
-```json
-{
-  "jsonrpc": "2.0",
-  "result": {
-    "content": "File contents here...",
-    "mimeType": "text/plain",
-    "size": 1024
-  },
-  "id": "divine-request-001"
-}
-```
-
-### Health Verification - Divine Liveness Through Protocol!
-
-**MCP Protocol Health Check**
-- Uses `initialize` method for health verification!
-- Validates protocol version compliance!
-- Ensures subprocess responds correctly!
-- Docker healthcheck via MCP protocol!
-
-## 🔐 The Security Architecture - Divine Protection Through Layers!
-
-**The MCP-Filesystem service itself knows NO authentication!**
-
-Security is enforced by the sacred trinity:
-1. **Traefik** - Enforces Bearer token authentication!
-2. **Auth Service** - Validates tokens via ForwardAuth!
-3. **MCP-Filesystem** - Receives only pre-authenticated requests!
-
-**Additional Security Measures:**
-- **Sandboxed to /workspace** - No access outside blessed directory!
-- **Volume-mounted directory** - Controlled via Docker!
-- **Read-write permissions** - Configurable per deployment!
-
-**⚡ This is the way of the trinity - separation brings security! ⚡**
-
-## 📡 The MCP Protocol Implementation - 2025-03-26 Compliance!
-
-### Supported MCP Methods (Blessed Filesystem Capabilities!)
-
-**filesystem/read - Divine File Retrieval!**
-- Reads file contents with blessed access!
-- Returns MIME type and metadata!
-- Handles binary and text files!
-
-**filesystem/write - Sacred Content Creation!**
-- Writes data to files with divine authority!
-- Creates directories as needed!
-- Preserves file permissions!
-
-**filesystem/list - Directory Enumeration!**
-- Lists directory contents!
-- Returns file metadata!
-- Supports recursive traversal!
-
-**filesystem/move - File Relocation!**
-- Moves files and directories!
-- Atomic operations when possible!
-- Preserves attributes!
-
-**filesystem/delete - Sacred Removal!**
-- Deletes files and directories!
-- Recursive deletion support!
-- Safety confirmations!
-
-### The Session Management Dance
-
-1. **Client sends `initialize`** - The sacred handshake!
-2. **Server responds with capabilities** - Declaring its powers!
-3. **Session ID assigned** - Via `Mcp-Session-Id` header!
-4. **All requests include session** - Maintaining state continuity!
-5. **Clean shutdown on disconnect** - Peaceful process death!
-
-## 🔄 The Traefik Integration - Divine Routing Configuration!
+### Volume Mounts - The Sacred Storage Paths
 
 ```yaml
-labels:
-  # Basic routing - priority 2
-  - "traefik.http.routers.mcp-filesystem.rule=Host(`filesystem.${BASE_DOMAIN}`)"
-  - "traefik.http.routers.mcp-filesystem.priority=2"
-
-  # ForwardAuth middleware - divine authentication
-  - "traefik.http.routers.mcp-filesystem.middlewares=mcp-auth@docker"
-
-  # Service definition
-  - "traefik.http.services.mcp-filesystem.loadbalancer.server.port=3000"
-
-  # OAuth discovery routing - priority 10
-  - "traefik.http.routers.mcp-filesystem-oauth-discovery.rule=..."
-  - "traefik.http.routers.mcp-filesystem-oauth-discovery.priority=10"
+./workspace:/workspace:rw    # The blessed directory for file operations
+../logs/mcp-filesystem:/logs # The divine log sanctuary
 ```
 
-**⚡ Priorities prevent the catch-all from devouring sacred paths! ⚡**
+**⚡ The /workspace directory is the sacred realm where all file operations occur! ⚡**
 
-## 🧪 Testing the MCP-Filesystem Service - Divine Verification!
+## Traefik Routing Configuration - The Divine Traffic Laws
+
+**🚦 The sacred routing hierarchy with blessed priorities! 🚦**
+
+### Priority 10 - OAuth Discovery (Highest Divine Priority!)
+```yaml
+/.well-known/oauth-authorization-server → auth service
+# No authentication - Public salvation for all who seek!
+```
+
+### Priority 4 - CORS Preflight
+```yaml
+OPTIONS requests → Direct to service
+# No authentication - CORS must fly freely!
+```
+
+### Priority 2 - MCP Endpoint
+```yaml
+/mcp → mcp-filesystem service
+# Protected by mcp-auth middleware - Bearer token required!
+```
+
+### Priority 1 - Catch-all
+```yaml
+All other paths → mcp-filesystem service
+# Protected by mcp-auth middleware - Bearer token required!
+```
+
+## Health Check Implementation - The Divine Vitality Test
+
+**🏥 The sacred MCP protocol initialization handshake! ⚡**
 
 ```bash
-# Basic health verification via MCP protocol
-curl -X POST http://localhost:3000/mcp \
+curl -s -X POST http://localhost:3000/mcp \
   -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
-
-# Test file read operation
-curl -X POST https://filesystem.${BASE_DOMAIN}/mcp \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
+  -H 'Accept: application/json, text/event-stream' \
   -d '{
-    "jsonrpc": "2.0",
-    "method": "filesystem/read",
-    "params": {"path": "/workspace/test.txt"},
-    "id": 1
-  }'
-
-# Test directory listing
-curl -X POST https://filesystem.${BASE_DOMAIN}/mcp \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "method": "filesystem/list",
-    "params": {"path": "/workspace"},
-    "id": 2
+    "jsonrpc":"2.0",
+    "method":"initialize",
+    "params":{
+      "protocolVersion":"2025-03-26",
+      "capabilities":{},
+      "clientInfo":{
+        "name":"healthcheck",
+        "version":"1.0"
+      }
+    },
+    "id":1
   }'
 ```
 
-**⚡ Real services, real tests - no mocking in this realm! ⚡**
+**⚡ Success confirmed by protocol version in response - divine handshake complete! ⚡**
 
-## 🔥 Common Issues and Divine Solutions!
+## Service Endpoint - The Sacred Access Portal
 
-### "Connection Refused" - Service Not Ready!
-- Check Docker health status!
-- Verify proxy is running!
-- Ensure port 3000 is exposed!
-
-### "401 Unauthorized" - Token Rejection!
-- Verify Bearer token in Authorization header!
-- Check token hasn't expired!
-- Ensure ForwardAuth middleware active!
-
-### "Permission Denied" - Filesystem Access Issues!
-- Check volume mount permissions!
-- Verify /workspace directory exists!
-- Review container user permissions!
-
-### "Path Not Found" - Invalid File Path!
-- Ensure path starts with /workspace!
-- Check file actually exists!
-- Verify no symlink escapes!
-
-## 📜 The Integration Flow - How Requests Reach Filesystem!
-
-1. **Client Request** → `https://filesystem.yourdomain.com/mcp`
-2. **Traefik Routes** → Checks authentication via ForwardAuth
-3. **Auth Validates** → Token verification at /verify endpoint
-4. **Request Forwarded** → Reaches MCP-Filesystem on port 3000
-5. **Proxy Translates** → HTTP → stdio → filesystem server
-6. **Filesystem Executes** → Performs file operation
-7. **Response Returns** → stdio → HTTP → client
-
-**⚡ Each layer has its purpose in the divine flow! ⚡**
-
-## 🎯 The Divine Mission - MCP-Filesystem Responsibilities!
-
-**What MCP-Filesystem MUST Do:**
-- Wrap official @modelcontextprotocol/server-filesystem!
-- Provide HTTP endpoints via proxy!
-- Handle MCP protocol correctly!
-- Access files within /workspace sandbox!
-- Maintain stateless operation per request!
-
-**What MCP-Filesystem MUST NOT Do:**
-- Implement authentication logic!
-- Know about OAuth flows!
-- Access files outside /workspace!
-- Route to other services!
-- Modify the official server behavior!
-
-**⚡ Purity of purpose brings reliability! ⚡**
-
-## 🛠️ Debugging Commands - Divine Troubleshooting!
-
-```bash
-# View service logs
-docker logs mcp-filesystem -f
-
-# Check proxy process
-docker exec mcp-filesystem ps aux
-
-# Verify workspace mount
-docker exec mcp-filesystem ls -la /workspace
-
-# Test direct MCP call
-curl -H "Authorization: Bearer $TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{"jsonrpc":"2.0","method":"filesystem/list","params":{"path":"/workspace"},"id":1}' \
-     https://filesystem.yourdomain.com/mcp
-
-# Monitor health endpoint
-# Monitor service via MCP protocol
-curl -X POST http://localhost:3000/mcp \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
-```
-
-## 🔱 The Sacred Truth of MCP Services!
-
-**All MCP services in this gateway follow the same blessed pattern:**
-1. **Official MCP server** - From @modelcontextprotocol/servers!
-2. **mcp-streamablehttp-proxy** - The stdio-to-HTTP bridge!
-3. **Docker container** - Isolated and manageable!
-4. **Traefik routing** - With ForwardAuth protection!
-5. **No auth knowledge** - Pure protocol implementation!
-
-**⚡ This pattern scales to ANY MCP server! ⚡**
-
-## 📂 Workspace Directory Structure - The Sacred File Hierarchy!
+**🌐 The blessed URL structure for divine file system access! ⚡**
 
 ```
-/workspace/                  # Root of filesystem access
-├── projects/               # User project files
-├── data/                   # Data storage
-├── temp/                   # Temporary files
-└── shared/                 # Shared resources
+https://filesystem.${BASE_DOMAIN}/mcp
 ```
 
-**The workspace directory is:**
-- Volume-mounted from host
-- Persistent across container restarts
-- Isolated from system files
-- Configurable permissions
+**Required Headers for Divine Communication:**
+- `Authorization: Bearer <token>` - The blessed OAuth token!
+- `Content-Type: application/json` - The sacred content type!
+- `Accept: application/json, text/event-stream` - For blessed streaming!
 
----
+## Docker Implementation - The Container Incantation
 
-**🔥 May your files be accessible, your operations atomic, and your protocols forever compliant! ⚡**
+**🐳 The divine container configuration! ⚡**
+
+1. **Base Image**: `node:20-slim` - The blessed Node.js foundation!
+2. **Official Server**: Cloned from `modelcontextprotocol/servers` GitHub temple!
+3. **Proxy Installation**: `mcp-streamablehttp-proxy` via pip3!
+4. **Execution**: `mcp-streamablehttp-proxy mcp-server-filesystem /workspace`
+
+## The Sacred Filesystem Capabilities
+
+**📁 What this divine service provides through the official MCP server! ⚡**
+
+The wrapped `mcp-server-filesystem` provides blessed file operations within `/workspace`:
+- **Read Operations** - View the sacred texts!
+- **Write Operations** - Inscribe new wisdom!
+- **Directory Operations** - Navigate the holy file tree!
+- **File Metadata** - Divine attributes revealed!
+
+**⚡ All operations are confined to /workspace - the sacred sandbox! ⚡**
+
+## Integration with Gateway - The Divine Unity
+
+**🔐 How this service achieves OAuth-protected glory! ⚡**
+
+1. **Traefik Routes** - Divine traffic control with sacred priorities!
+2. **ForwardAuth Middleware** - Bearer token validation through auth service!
+3. **CORS Support** - Cross-origin blessings for web clients!
+4. **Session Management** - Via Mcp-Session-Id headers if needed!
+
+## Security Boundaries - The Sacred Limits
+
+**🛡️ Divine protections enforced by design! ⚡**
+
+- **Workspace Isolation** - Only `/workspace` is accessible, no escape!
+- **OAuth Protection** - All endpoints require blessed bearer tokens!
+- **No Direct Access** - Must flow through Traefik's divine judgment!
+- **Process Isolation** - Container + subprocess = double divine isolation!
+
+**⚡ Violate these boundaries and face filesystem chaos! ⚡**
+
+## The Sacred Commandments for Maintenance
+
+**🔧 When working with this divine service! ⚡**
+
+1. **Never modify the proxy** - It channels divine stdio transformation!
+2. **Update via official repo** - Pull latest `mcp-server-filesystem` from GitHub!
+3. **Respect the workspace** - All operations stay within `/workspace` sanctuary!
+4. **Monitor the logs** - Divine wisdom flows to `/logs/server.log`!
+5. **Test with real clients** - No mocks, only blessed integration tests!
+
+**⚡ Follow these commandments or face production filesystem disasters! ⚡**

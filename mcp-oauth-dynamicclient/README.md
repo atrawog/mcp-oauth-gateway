@@ -1,322 +1,269 @@
-# mcp-oauth-dynamicclient
+# MCP OAuth Dynamic Client
 
-A production-ready OAuth 2.1 library with Dynamic Client Registration (RFC 7591/7592) support, designed for Model Context Protocol (MCP) integration. This package provides the core OAuth implementation used by the MCP OAuth Gateway.
+A production-ready OAuth 2.1 authorization server with RFC 7591 dynamic client registration support, designed specifically for the MCP OAuth Gateway.
 
-## Overview
+## Features
 
-This library implements:
-- **OAuth 2.1**: Full authorization server implementation with PKCE
-- **RFC 7591**: Dynamic client registration for self-service OAuth clients
-- **RFC 7592**: Client configuration management endpoints
-- **GitHub Integration**: Built-in GitHub OAuth provider support
-- **JWT Tokens**: Secure token generation with customizable claims
-- **Redis Backend**: Scalable storage for tokens and client data
-
-## Key Features
-
-- 🔐 **Complete OAuth 2.1 Implementation**: Authorization code flow with PKCE
-- 📝 **Dynamic Client Registration**: Self-service client onboarding via RFC 7591
-- 🔧 **Client Management API**: Full CRUD operations via RFC 7592
-- 🎫 **JWT Token Generation**: HS256-signed tokens with configurable lifetime
-- 🌐 **GitHub OAuth Integration**: Pre-configured GitHub provider support
-- 📦 **Redis Storage**: Production-ready persistence layer
-- 🔒 **ForwardAuth Support**: Token validation for reverse proxies
-- 📚 **Metadata Discovery**: RFC 8414 compliant server metadata
+- **OAuth 2.1 Compliant** - Modern OAuth implementation with mandatory PKCE
+- **Dynamic Client Registration** - RFC 7591 compliant automatic client setup
+- **Client Management Protocol** - RFC 7592 compliant CRUD operations
+- **GitHub OAuth Integration** - User authentication via GitHub
+- **JWT Token Management** - RS256 (recommended) and HS256 support
+- **ForwardAuth Compatible** - Works seamlessly with Traefik
+- **Redis State Storage** - Scalable token and client storage
+- **Token Introspection** - RFC 7662 compliant token validation
+- **Token Revocation** - RFC 7009 compliant token lifecycle
 
 ## Installation
 
-```bash
-# Via pixi (recommended)
-pixi add mcp-oauth-dynamicclient
+### Via pip
 
-# Or from source
-cd mcp-oauth-dynamicclient
-pixi install -e .
+```bash
+pip install mcp-oauth-dynamicclient
+```
+
+### Via pixi
+
+```bash
+pixi add mcp-oauth-dynamicclient
 ```
 
 ## Quick Start
 
-### 1. Environment Configuration
+### 1. Set up environment variables
 
-Create a `.env` file with required settings:
+Create a `.env` file with required configuration:
 
 ```bash
 # GitHub OAuth App credentials
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
 
-# JWT signing secret (minimum 32 characters)
-GATEWAY_JWT_SECRET=your-secret-key-at-least-32-chars
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_key
+JWT_ALGORITHM=RS256  # or HS256
+JWT_PRIVATE_KEY_B64=your_base64_encoded_rsa_key  # For RS256
 
-# Redis connection
-REDIS_URL=redis://redis:6379/0
+# Domain configuration
+BASE_DOMAIN=yourdomain.com
 
-# Optional: Access control
-ALLOWED_GITHUB_USERS=user1,user2,user3
+# Redis configuration
+REDIS_URL=redis://localhost:6379/0
+REDIS_PASSWORD=your_redis_password  # Optional
 
-# Optional: Client lifetime (seconds, 0 = eternal)
-CLIENT_LIFETIME=7776000  # 90 days default
+# Token lifetimes (in seconds)
+ACCESS_TOKEN_LIFETIME=1800      # 30 minutes
+REFRESH_TOKEN_LIFETIME=31536000 # 1 year
+SESSION_TIMEOUT=300             # 5 minutes
+CLIENT_LIFETIME=7776000         # 90 days (0 = never expires)
+
+# Access control
+ALLOWED_GITHUB_USERS=user1,user2,user3  # or '*' for any GitHub user
+
+# MCP Protocol version
+MCP_PROTOCOL_VERSION=2025-06-18
 ```
 
-### 2. Using as a Library
+### 2. Run the server
+
+Using the CLI:
+
+```bash
+mcp-oauth-server --host 0.0.0.0 --port 8000
+```
+
+Using Python:
 
 ```python
 from mcp_oauth_dynamicclient import create_app, Settings
+import uvicorn
 
-# Create FastAPI application
 settings = Settings()  # Loads from .env
 app = create_app(settings)
 
-# Run with uvicorn
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
-### 3. Using the CLI
-
-```bash
-# Start OAuth server
-pixi run mcp-oauth-server
-
-# Generate GitHub token (for gateway's own use)
-pixi run mcp-oauth-token
-```
-
-## Architecture
-
-### Module Structure
-
-```
-mcp_oauth_dynamicclient/
-├── config.py              # Pydantic settings management
-├── models.py              # Data models and schemas
-├── keys.py                # RSA key generation utilities
-├── routes.py              # FastAPI route definitions
-├── auth_authlib.py        # Authlib OAuth server setup
-├── resource_protector.py  # Token validation
-├── async_resource_protector.py  # Async token validation
-├── redis_client.py        # Redis storage operations
-├── rfc7592.py            # Client management endpoints
-├── server.py             # FastAPI app factory
-└── cli.py                # Command-line interface
-```
-
-### Core Components
-
-1. **OAuth Server (Authlib)**
-   - Authorization code grant with PKCE
-   - Refresh token support
-   - Token introspection
-
-2. **Dynamic Registration**
-   - Public `/register` endpoint
-   - Automatic client_id/secret generation
-   - Optional expiration support
-
-3. **Client Management (RFC 7592)**
-   - Bearer token protected endpoints
-   - GET/PUT/DELETE operations
-   - Registration access tokens
-
-4. **Storage Layer**
-   - Redis for all persistent data
-   - Configurable TTLs
-   - Atomic operations
-
-## API Reference
-
-### OAuth 2.1 Endpoints
-
-#### POST /register - Dynamic Client Registration
-```bash
-curl -X POST https://auth.example.com/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "redirect_uris": ["https://app.example.com/callback"],
-    "client_name": "My MCP Client",
-    "scope": "read write"
-  }'
-```
-
-Response includes:
-- `client_id`: Unique client identifier
-- `client_secret`: Client authentication secret
-- `registration_access_token`: Token for managing this registration
-- `registration_client_uri`: URI for client management
-
-#### GET /authorize - Authorization Endpoint
-Initiates OAuth flow with PKCE:
-```
-https://auth.example.com/authorize?
-  client_id=client_xxxxx&
-  redirect_uri=https://app.example.com/callback&
-  response_type=code&
-  state=random_state&
-  code_challenge=challenge&
-  code_challenge_method=S256
-```
-
-#### POST /token - Token Exchange
-```bash
-curl -X POST https://auth.example.com/token \
-  -d "grant_type=authorization_code" \
-  -d "code=auth_code" \
-  -d "client_id=client_xxxxx" \
-  -d "client_secret=secret_xxxxx" \
-  -d "code_verifier=verifier"
-```
-
-### Client Management (RFC 7592)
-
-#### GET /register/{client_id}
-```bash
-curl -H "Authorization: Bearer {registration_access_token}" \
-  https://auth.example.com/register/{client_id}
-```
-
-#### PUT /register/{client_id}
-```bash
-curl -X PUT https://auth.example.com/register/{client_id} \
-  -H "Authorization: Bearer {registration_access_token}" \
-  -H "Content-Type: application/json" \
-  -d '{"client_name": "Updated Name"}'
-```
-
-#### DELETE /register/{client_id}
-```bash
-curl -X DELETE https://auth.example.com/register/{client_id} \
-  -H "Authorization: Bearer {registration_access_token}"
-```
-
-### Metadata Discovery
-
-#### GET /.well-known/oauth-authorization-server
-Returns server capabilities and endpoint URLs following RFC 8414.
-
-### Token Validation
-
-#### GET /verify - ForwardAuth Endpoint
-Used by reverse proxies to validate tokens:
-```bash
-curl -H "Authorization: Bearer {access_token}" \
-  https://auth.example.com/verify
-```
-
-Returns headers:
-- `X-User-Id`: GitHub user ID
-- `X-User-Name`: GitHub username
-- `X-Auth-Token`: Token identifier
-
-## Integration Examples
-
-### With FastAPI Services
+### 3. Register a client
 
 ```python
-from mcp_oauth_dynamicclient import verify_token, get_current_user
-from fastapi import Depends
+import httpx
+import asyncio
 
-@app.get("/protected")
-async def protected_route(user = Depends(get_current_user)):
-    return {"user": user.name}
+async def register_client():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "https://auth.yourdomain.com/register",
+            json={
+                "redirect_uris": ["https://myapp.com/callback"],
+                "client_name": "My Application",
+                "scope": "openid profile email"
+            }
+        )
+
+        if response.status_code == 201:
+            result = response.json()
+            print(f"Client ID: {result['client_id']}")
+            print(f"Client Secret: {result['client_secret']}")
+            print(f"Registration Token: {result['registration_access_token']}")
+            # Save these credentials securely!
+
+asyncio.run(register_client())
 ```
 
-### With Traefik
+## API Endpoints
+
+### Public Endpoints
+
+- `POST /register` - Register a new OAuth client (RFC 7591)
+- `GET /.well-known/oauth-authorization-server` - Server metadata
+- `GET /jwks` - JSON Web Key Set for token verification
+
+### OAuth Flow Endpoints
+
+- `GET /authorize` - Start authorization flow
+- `POST /token` - Exchange authorization code for tokens
+- `GET /callback` - GitHub OAuth callback handler
+
+### Protected Endpoints (Require Bearer Token)
+
+- `GET /verify` - Verify token for ForwardAuth
+- `POST /revoke` - Revoke a token
+- `POST /introspect` - Introspect token details
+
+### Client Management (Require Registration Access Token)
+
+- `GET /register/{client_id}` - Get client configuration
+- `PUT /register/{client_id}` - Update client configuration
+- `DELETE /register/{client_id}` - Delete client registration
+
+## OAuth Flow
+
+1. **Client Registration**
+   - Client POSTs to `/register` with metadata
+   - Receives `client_id`, `client_secret`, and `registration_access_token`
+
+2. **Authorization**
+   - Client redirects user to `/authorize` with PKCE challenge
+   - User authenticates via GitHub
+   - Server redirects back with authorization code
+
+3. **Token Exchange**
+   - Client POSTs code to `/token` with PKCE verifier
+   - Receives JWT access token and refresh token
+
+4. **Token Usage**
+   - Client includes token in `Authorization: Bearer <token>` header
+   - Server validates token on each request
+
+## Security Features
+
+- **PKCE Required** - Only S256 code challenge method supported
+- **JWT Tokens** - Cryptographically signed with RS256 or HS256
+- **Token Expiration** - Configurable lifetimes with automatic cleanup
+- **GitHub User Validation** - Restrict access to specific GitHub users
+- **Redis Token Storage** - Tokens can be revoked immediately
+- **Registration Access Tokens** - Secure client management
+
+## Docker Deployment
+
+The service is designed to run in Docker with the MCP OAuth Gateway:
 
 ```yaml
-labels:
-  - "traefik.http.middlewares.auth.forwardauth.address=http://auth:8000/verify"
-  - "traefik.http.middlewares.auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name"
+services:
+  auth:
+    image: mcp-oauth-dynamicclient:latest
+    environment:
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ALGORITHM=RS256
+      - JWT_PRIVATE_KEY_B64=${JWT_PRIVATE_KEY_B64}
+      - BASE_DOMAIN=${BASE_DOMAIN}
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - ACCESS_TOKEN_LIFETIME=1800
+      - REFRESH_TOKEN_LIFETIME=31536000
+      - SESSION_TIMEOUT=300
+      - CLIENT_LIFETIME=7776000
+      - ALLOWED_GITHUB_USERS=${ALLOWED_GITHUB_USERS}
+      - MCP_PROTOCOL_VERSION=2025-06-18
+    depends_on:
+      - redis
+    networks:
+      - internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=Host(`auth.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.auth.tls=true"
+      - "traefik.http.routers.auth.tls.certresolver=letsencrypt"
 ```
 
-## Security Considerations
+## Traefik Integration
 
-### Token Security
-- JWT tokens signed with HS256
-- Configurable expiration (default: 30 days)
-- Unique JTI for tracking/revocation
-- Stored in Redis with TTL
+Configure Traefik to use this service for authentication:
 
-### Client Security
-- Cryptographically secure client secrets
-- Optional client expiration
-- Registration access tokens for management
-- Redirect URI validation
+```yaml
+# ForwardAuth middleware
+- "traefik.http.middlewares.auth.forwardauth.address=http://auth:8000/verify"
+- "traefik.http.middlewares.auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name,X-Auth-Token"
 
-### PKCE Implementation
-- S256 challenge method required
-- 43-128 character verifiers
-- One-time authorization codes
-- 5-minute code expiration
-
-## Configuration Reference
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `GITHUB_CLIENT_ID` | GitHub OAuth App ID | - | Yes |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth App Secret | - | Yes |
-| `GATEWAY_JWT_SECRET` | JWT signing secret | - | Yes |
-| `GATEWAY_JWT_ALGORITHM` | JWT algorithm | HS256 | No |
-| `GATEWAY_JWT_EXPIRE_MINUTES` | Token lifetime | 43200 | No |
-| `REDIS_URL` | Redis connection URL | redis://redis:6379/0 | No |
-| `ALLOWED_GITHUB_USERS` | Whitelist (comma-separated) | - | No |
-| `CLIENT_LIFETIME` | Client registration lifetime | 7776000 | No |
-| `MCP_PROTOCOL_VERSION` | MCP protocol version | 2025-06-18 | No |
+# Apply to protected services
+- "traefik.http.routers.myservice.middlewares=auth"
+```
 
 ## Development
 
-```bash
-# Clone repository
-git clone https://github.com/atrawog/mcp-oauth-gateway
-cd mcp-oauth-gateway/mcp-oauth-dynamicclient
+### Running tests
 
-# Install with dev dependencies
-pixi install -e .
+```bash
+# Start dependencies
+docker-compose up -d redis
 
 # Run tests
-pixi run pytest tests/ -v
+pytest
+```
+
+### Development mode
+
+```bash
+# Install in development mode
+pip install -e .
 
 # Run with auto-reload
-pixi run uvicorn mcp_oauth_dynamicclient.server:create_app --factory --reload
+mcp-oauth-server --reload
 ```
 
-## Testing
+## Configuration Reference
 
-The package includes comprehensive tests:
-```bash
-# Unit tests
-pixi run pytest tests/test_models.py -v
-
-# Integration tests (requires Redis)
-pixi run pytest tests/test_oauth_flow.py -v
-
-# RFC compliance tests
-pixi run pytest tests/test_rfc7592.py -v
-```
-
-## Redis Key Structure
-
-```
-oauth:state:{state}              # OAuth state (5 min TTL)
-oauth:code:{code}                # Auth codes (5 min TTL)
-oauth:token:{jti}                # Access tokens (30 day TTL)
-oauth:refresh:{token}            # Refresh tokens (1 year TTL)
-oauth:client:{client_id}         # Client registrations
-oauth:registration_token:{token} # Registration access tokens
-oauth:user_tokens:{username}     # User token index
-```
+| Environment Variable | Description | Default | Required |
+|---------------------|-------------|---------|----------|
+| `GITHUB_CLIENT_ID` | GitHub OAuth App Client ID | - | Yes |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth App Client Secret | - | Yes |
+| `JWT_SECRET` | Secret key for HS256 JWT signing | - | Yes |
+| `JWT_ALGORITHM` | JWT signing algorithm (RS256 or HS256) | - | Yes |
+| `JWT_PRIVATE_KEY_B64` | Base64 encoded RSA private key (RS256 only) | - | If RS256 |
+| `BASE_DOMAIN` | Base domain for OAuth URLs | - | Yes |
+| `REDIS_URL` | Redis connection URL | - | Yes |
+| `REDIS_PASSWORD` | Redis password | - | No |
+| `ACCESS_TOKEN_LIFETIME` | Access token lifetime in seconds | - | Yes |
+| `REFRESH_TOKEN_LIFETIME` | Refresh token lifetime in seconds | - | Yes |
+| `SESSION_TIMEOUT` | OAuth state timeout in seconds | - | Yes |
+| `CLIENT_LIFETIME` | Client registration lifetime (0=never) | - | Yes |
+| `ALLOWED_GITHUB_USERS` | Comma-separated GitHub usernames or '*' | - | Yes |
+| `MCP_PROTOCOL_VERSION` | MCP protocol version | - | Yes |
 
 ## License
 
-Apache License 2.0 - see [LICENSE](LICENSE) file for details.
+Apache-2.0 License
 
-## Author
+## Contributing
 
-Andreas Trawoeger
+Contributions are welcome! Please ensure:
 
-## Links
+1. All tests pass with real Redis (no mocks!)
+2. Code follows the established patterns
+3. New endpoints are RFC compliant
+4. Documentation is updated
 
-- [Homepage](https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-oauth-dynamicclient)
-- [Repository](https://github.com/atrawog/mcp-oauth-gateway/tree/main/mcp-oauth-dynamicclient)
-- [Documentation](https://atrawog.github.io/mcp-oauth-gateway)
-- [Issues](https://github.com/atrawog/mcp-oauth-gateway/issues)
+See [CLAUDE.md](./CLAUDE.md) for detailed development guidelines.

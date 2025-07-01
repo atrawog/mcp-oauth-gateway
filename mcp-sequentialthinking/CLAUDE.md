@@ -1,184 +1,193 @@
-# MCP Sequential Thinking Service
+# 🧠 The Divine Sequential Thinking MCP Service - Sacred Step-by-Step Reasoning! ⚡
 
-This service provides the official MCP Sequential Thinking server from the modelcontextprotocol/servers repository, wrapped for OAuth authentication and HTTP transport.
+**🔥 Behold! The blessed proxy pattern wrapping the official sequential thinking oracle! ⚡**
 
-## Overview
+## The Sacred Service Architecture
 
-The MCP Sequential Thinking server provides structured, dynamic problem-solving capabilities that break down complex problems into manageable steps. It enables iterative thought processes with the ability to revise, refine, and branch reasoning paths.
+**🏗️ This service channels the divine proxy pattern to bridge stdio to HTTP glory! ⚡**
 
-## Features
-
-- 🧠 **Structured Problem Solving**: Break complex problems into manageable steps
-- 🔄 **Iterative Refinement**: Revise and refine thoughts as understanding deepens
-- 🌳 **Branching Logic**: Explore alternative paths of reasoning
-- 📈 **Dynamic Scaling**: Adjust the total number of thoughts dynamically
-- ✅ **Hypothesis Testing**: Generate and verify solution hypotheses
-- 🔗 **Sequential Processing**: Maintain logical flow between thought steps
-
-## Architecture
-
-This service follows the project's standard MCP service pattern:
-- **Base**: Official `@modelcontextprotocol/server-sequential-thinking` npm package
-- **Transport**: mcp-streamablehttp-proxy wrapping stdio to HTTP
-- **Authentication**: OAuth 2.1 via Traefik ForwardAuth
-- **Isolation**: No persistent storage needed (stateless processing)
-- **Health Monitoring**: MCP protocol health checks via initialization
-
-## Configuration
-
-### Environment Variables
-
-- `MCP_PROTOCOL_VERSION=2024-11-05` - MCP protocol version (hardcoded - the sequential thinking server only supports this version)
-- `MCP_CORS_ORIGINS=*` - CORS configuration
-- `PORT=3000` - Service port
-
-### No Persistent Storage
-
-Unlike the memory service, sequential thinking is stateless and processes each request independently. No volumes are required.
-
-## Endpoints
-
-- **Primary**: `https://sequentialthinking.${BASE_DOMAIN}/mcp`
-- **Health Check**: Uses MCP protocol initialization
-- **OAuth Discovery**: `https://sequentialthinking.${BASE_DOMAIN}/.well-known/oauth-authorization-server`
-
-## Usage
-
-### Authentication
-
-The service requires OAuth authentication via the gateway:
-1. Register OAuth client via `/register` endpoint
-2. Obtain access token through OAuth flow
-3. Include `Authorization: Bearer <token>` header in requests
-
-### MCP Operations
-
-The sequential thinking server provides tools for structured reasoning:
-- **Problem decomposition** - Break complex problems into steps
-- **Thought progression** - Build logical sequences of reasoning
-- **Alternative exploration** - Branch into different solution paths
-- **Hypothesis generation** - Create and test solution approaches
-- **Iterative refinement** - Improve understanding through revision
-
-### Example Usage
-
-```bash
-# Using mcp-streamablehttp-client
-mcp-streamablehttp-client --server-url https://sequentialthinking.yourdomain.com/mcp --command "think 'How can I optimize database performance?'"
-
-# Raw protocol
-mcp-streamablehttp-client --raw '{"method": "tools/call", "params": {"name": "sequential_thinking", "arguments": {"problem": "Complex software architecture decision"}}}'
+```
+┌─────────────────────────────────────────────────────────────┐
+│  mcp-streamablehttp-proxy (The Divine Bridge of Protocol)   │
+│  • Spawns @modelcontextprotocol/server-sequential-thinking  │
+│  • Converts stdio JSON-RPC ↔ HTTP StreamableHTTP transport  │
+│  • Manages subprocess lifecycle with divine supervision     │
+│  • Exposes blessed /mcp endpoint on port 3000               │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  @modelcontextprotocol/server-sequential-thinking           │
+│  • Official MCP server from the blessed npm registry        │
+│  • Provides sequentialthinking tool for structured reasoning│
+│  • Speaks pure stdio JSON-RPC protocol                      │
+│  • Version: latest (auto-updated with divine npm magic)     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Testing
+**⚡ The proxy pattern brings official functionality with HTTP transport blessing! ⚡**
 
-The service is tested via the comprehensive MCP test suite:
-- Protocol compliance tests
-- Tool execution tests
-- Authentication flow tests
-- Error handling validation
+## Sacred Service Configuration
 
-Use the standard project testing commands:
-```bash
-just test  # Run all tests including mcp-sequentialthinking
+**🔥 The divine docker-compose.yml declarations! ⚡**
+
+### The Holy Environment Variables
+```yaml
+environment:
+  - LOG_FILE=/logs/server.log          # Sacred logging path
+  - MCP_CORS_ORIGINS=*                 # Allow all origins (protected by auth)
+  - MCP_PROTOCOL_VERSION=2024-11-05    # The blessed protocol version
 ```
 
-## Sequential Thinking Capabilities
+### The Sacred Domain
+- **Service URL**: `https://sequentialthinking.${BASE_DOMAIN}`
+- **MCP Endpoint**: `https://sequentialthinking.${BASE_DOMAIN}/mcp`
+- **Health Check**: Internal `/health` endpoint via proxy
 
-The service provides structured thinking tools for:
+## The Sequential Thinking Tool - Divine Step-by-Step Reasoning!
 
-### Problem Analysis
-- **Decomposition**: Break complex problems into smaller, manageable components
-- **Pattern Recognition**: Identify recurring themes and structures
-- **Constraint Identification**: Recognize limitations and boundaries
+**🧠 The sequentialthinking tool enables structured problem decomposition! ⚡**
 
-### Solution Development
-- **Hypothesis Formation**: Generate potential solution approaches
-- **Step-by-Step Planning**: Create detailed implementation sequences
-- **Alternative Evaluation**: Compare different solution paths
+### Tool Capabilities Exposed
+- **sequentialthinking** - The one divine tool for methodical reasoning!
+  - Break complex problems into sequential thoughts
+  - Revise previous thoughts for iterative refinement
+  - Branch reasoning paths for exploring alternatives
+  - Dynamically scale analysis complexity
+  - Maintain context across thinking sessions
 
-### Iterative Improvement
-- **Thought Revision**: Refine understanding based on new insights
-- **Path Correction**: Adjust reasoning when assumptions prove incorrect
-- **Depth Adjustment**: Scale analysis complexity based on problem needs
-
-### Logical Flow
-- **Sequential Dependencies**: Maintain logical connections between steps
-- **Branch Management**: Handle multiple concurrent reasoning paths
-- **Synthesis**: Combine insights from different reasoning branches
-
-## Integration Benefits
-
-- **AI Enhancement**: Improve AI reasoning with structured thought processes
-- **Problem Solving**: Systematic approach to complex challenges
-- **Decision Making**: Comprehensive analysis before conclusions
-- **Documentation**: Clear trail of reasoning for audit and review
-- **Collaboration**: Shareable thought processes for team analysis
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Thinking process not starting**: Check tool parameters and format
-2. **Authentication failures**: Verify OAuth token validity
-3. **Service not responding**: Check container logs and health status
-
-### Debugging
-
-```bash
-# Check service status
-just logs mcp-sequentialthinking
-
-# Test authentication
-mcp-streamablehttp-client --server-url https://sequentialthinking.yourdomain.com/mcp --test-auth
-
-# Health check
-curl -X POST https://sequentialthinking.yourdomain.com/mcp \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"'"$MCP_PROTOCOL_VERSION"'","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
+### The Sacred Tool Parameters
+```json
+{
+  "thought": "string",           // Current reasoning step
+  "nextThoughtNeeded": "boolean", // Continue reasoning?
+  "thoughtNumber": "number",      // Current step number
+  "totalThoughts": "number",      // Expected total steps
+  "isRevision": "boolean",        // Revising previous thought?
+  "revisesThought": "number",     // Which thought to revise
+  "branchFromThought": "number",  // Create alternative path
+  "branchId": "string",          // Branch identifier
+  "needsMoreThoughts": "boolean"  // Extend beyond initial plan
+}
 ```
 
-## Use Cases
+## The Divine Health Check Pattern
 
-The sequential thinking service excels at:
+**🏥 Protocol-based health verification blessed by the MCP gods! ⚡**
 
-### Software Development
-- Architecture design decisions
-- Algorithm optimization strategies
-- Debugging complex issues
-- Code review processes
+```yaml
+healthcheck:
+  test: ["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp \
+    -H 'Content-Type: application/json' \
+    -H 'Accept: application/json, text/event-stream' \
+    -d '{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"'$$MCP_PROTOCOL_VERSION'\",\"capabilities\":{},\"clientInfo\":{\"name\":\"healthcheck\",\"version\":\"1.0\"}},\"id\":1}' \
+    | grep -q '\"protocolVersion\":\"'$$MCP_PROTOCOL_VERSION'\"'"]
+```
 
-### Business Analysis
-- Strategic planning breakdown
-- Process improvement analysis
-- Risk assessment workflows
-- Decision tree construction
+**⚡ This divine incantation verifies the MCP protocol handshake succeeds! ⚡**
 
-### Research & Analysis
-- Literature review structuring
-- Hypothesis development
-- Experimental design
-- Data interpretation strategies
+## The Sacred Traefik Routing Configuration
 
-### Education & Training
-- Curriculum development
-- Learning objective decomposition
-- Assessment strategy design
-- Knowledge transfer planning
+**🚦 Four-priority routing hierarchy enforces divine traffic control! ⚡**
 
-## Integration
+1. **Priority 10** - OAuth discovery route (/.well-known paths)
+2. **Priority 6** - CORS preflight handling (OPTIONS method)
+3. **Priority 2** - MCP authenticated routes (/mcp paths)
+4. **Priority 1** - Catch-all with authentication
 
-The service integrates with:
-- **Auth Service**: OAuth token validation
-- **Traefik**: Reverse proxy and routing
-- **Let's Encrypt**: Automatic HTTPS certificates
-- **Other MCP Services**: Can be combined with memory, fetch, and other tools
+**⚡ All routes except OAuth discovery require authentication blessing! ⚡**
 
-## Performance Characteristics
+## The Divine Logging Configuration
 
-- **Stateless Operation**: No persistent state between requests
-- **Fast Processing**: Lightweight reasoning operations
-- **Scalable**: Can handle multiple concurrent thinking sessions
-- **Resource Efficient**: Minimal memory and storage requirements
+**📜 Logs flow to the sacred directory for eternal preservation! ⚡**
 
-The sequential thinking service provides a powerful tool for structured problem-solving and analysis, seamlessly integrated into the MCP OAuth gateway architecture.
+```yaml
+volumes:
+  - ../logs/mcp-sequentialthinking:/logs
+```
+
+**Server logs captured at**: `/logs/server.log`
+
+## The Sacred Build Process
+
+**🏗️ Multi-stage divine construction! ⚡**
+
+1. **Base Image**: `node:22-alpine` - Lightweight and blessed
+2. **MCP Server**: `npm install -g @modelcontextprotocol/server-sequential-thinking@latest`
+3. **Proxy Installation**: `pip3 install mcp-streamablehttp-proxy` from source
+4. **Execution**: `mcp-streamablehttp-proxy npx @modelcontextprotocol/server-sequential-thinking`
+
+## Usage Example - The Divine Sequential Reasoning Flow
+
+**🧠 Witness the power of structured thinking! ⚡**
+
+```bash
+# Initialize connection with bearer token
+curl -X POST https://sequentialthinking.${BASE_DOMAIN}/mcp \
+  -H "Authorization: Bearer ${MCP_CLIENT_ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {},
+      "clientInfo": {
+        "name": "reasoning-client",
+        "version": "1.0"
+      }
+    },
+    "id": 1
+  }'
+
+# Call the sequential thinking tool
+curl -X POST https://sequentialthinking.${BASE_DOMAIN}/mcp \
+  -H "Authorization: Bearer ${MCP_CLIENT_ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "sequentialthinking",
+      "arguments": {
+        "thought": "I need to design a scalable web service. Let me break this down into key areas.",
+        "nextThoughtNeeded": true,
+        "thoughtNumber": 1,
+        "totalThoughts": 5
+      }
+    },
+    "id": 2
+  }'
+```
+
+## The Sacred Implementation Truths
+
+**⚡ What this service truly provides (no myths, only reality)! ⚡**
+
+✅ **Proxy Pattern Glory** - Wraps official npm package via mcp-streamablehttp-proxy
+✅ **StreamableHTTP Transport** - Pure HTTP/SSE communication blessed
+✅ **OAuth Protection** - Traefik ForwardAuth middleware guards the gates
+✅ **Session Management** - Stateful connections maintained by proxy
+✅ **Protocol Compliance** - MCP version 2024-11-05 fully supported
+✅ **Health Monitoring** - Protocol-based health checks ensure readiness
+✅ **Structured Logging** - All output captured in /logs/server.log
+
+**⚡ This service knows nothing of OAuth - authentication is Traefik's divine duty! ⚡**
+**⚡ The proxy spawns and manages the official MCP server - no reimplementation! ⚡**
+
+## The Divine Integration Checklist
+
+**✅ Service-Specific Seals of Approval ⚡**
+
+- ✅ **Seal of Proxy Pattern** - Official server wrapped, not reimplemented
+- ✅ **Seal of Port 3000** - Standard MCP StreamableHTTP port exposed
+- ✅ **Seal of Health Checks** - MCP protocol initialization verified
+- ✅ **Seal of Traefik Labels** - Four-priority routing configured
+- ✅ **Seal of Log Volumes** - Server output preserved eternally
+- ✅ **Seal of Protocol Version** - 2024-11-05 compliance declared
+- ✅ **Seal of Sequential Tool** - Step-by-step reasoning blessed
+
+**⚡ All seals verified against actual implementation - no fiction, only divine truth! ⚡**
+
+---
+
+**🧠 May your reasoning be structured, your thoughts sequential, and your problems decomposed! ⚡**

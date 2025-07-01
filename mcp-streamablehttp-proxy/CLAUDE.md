@@ -1,396 +1,284 @@
-# 🔥 CLAUDE.md - The mcp-streamablehttp-proxy Package Divine Scripture! ⚡
+# The Divine Commandments of mcp-streamablehttp-proxy
 
-**🌉 Behold! The Sacred Bridge - stdio to HTTP Protocol Transcendence! 🌉**
+**🔥 Behold! The Sacred stdio-to-StreamableHTTP Bridge of Divine Protocol Transcendence! ⚡**
 
-**⚡ This is mcp-streamablehttp-proxy - The Holy Translator of MCP Protocols! ⚡**
+## The Sacred Purpose - Bridge of Divine Protocol Translation!
 
-## 🔱 The Sacred Purpose - Divine Protocol Bridge Implementation!
+**⚡ This blessed proxy bridges stdio MCP servers to StreamableHTTP glory! ⚡**
 
-**mcp-streamablehttp-proxy is the blessed Python package that bridges stdio MCP servers to HTTP!**
+The **mcp-streamablehttp-proxy** is the divine bridge that transforms humble stdio-based MCP servers into glorious HTTP endpoints! It channels the following sacred powers:
 
-This sacred package manifests these divine powers:
-- **stdio to HTTP Bridge** - Translates between transport protocols with divine precision!
-- **Subprocess Management** - Spawns and controls MCP server processes with holy care!
-- **Session State Handling** - Maintains MCP session continuity across requests!
-- **Streamable HTTP Transport** - Implements MCP 2025-06-18 transport specification!
-- **Health Monitoring** - Provides HTTP health endpoints for container orchestration!
-- **Error Translation** - Converts process errors to proper HTTP responses!
+- **🌉 Protocol Bridging** - Converts stdio JSON-RPC to HTTP StreamableHTTP!
+- **🔄 Session Management** - Each client blessed with isolated subprocess!
+- **⚡ Subprocess Orchestration** - Spawns and manages MCP server children!
+- **🎯 Request Correlation** - Maps async responses to their divine requests!
 
-**⚡ This package makes ANY stdio MCP server HTTP-accessible! ⚡**
+**⚡ Without this proxy, stdio servers remain trapped in terminal purgatory! ⚡**
 
-## 🏗️ The Sacred Architecture - Bridge Component Structure!
+## The Holy Architecture - Divine Separation of Concerns!
 
 ```
-mcp_streamablehttp_proxy/
-├── Core Modules (The Sacred Foundations!)
-│   ├── __init__.py - Package exports and initialization!
-│   ├── proxy.py - The stdio-HTTP bridge engine!
-│   ├── server.py - FastAPI server implementation!
-│   └── cli.py - Command-line interface blessed!
-└── Type Definitions (The Contract Declarations!)
-    └── py.typed - Type checking enablement marker!
+┌─────────────────────────────────────────────────────────────┐
+│           HTTP Client (Claude.ai, IDE, etc.)                 │
+│                    Speaks StreamableHTTP                      │
+└──────────────────────────┬───────────────────────────────────┘
+                           │ HTTP POST /mcp
+                           │ Mcp-Session-Id: <uuid>
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│              mcp-streamablehttp-proxy (This Holy Service)    │
+│  • Receives HTTP requests at sacred /mcp endpoint           │
+│  • Manages sessions with divine UUID blessing               │
+│  • Spawns stdio MCP server subprocess per session          │
+│  • Translates HTTP ↔ stdio with protocol righteousness     │
+│  • Correlates async responses via request IDs              │
+└──────────────────────────┬───────────────────────────────────┘
+                           │ stdin/stdout pipes
+                           │ JSON-RPC 2.0
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│          stdio MCP Server (Official or Custom)               │
+│    • mcp-server-fetch, mcp-server-filesystem, etc.          │
+│    • Speaks only stdio JSON-RPC - knows not of HTTP!        │
+│    • Blissfully unaware of the divine HTTP transformation!  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**⚡ Minimal surface area for maximum divine reliability! ⚡**
+**⚡ Each layer has its divine purpose! Violate not the sacred boundaries! ⚡**
 
-## 📖 The Sacred Modules - Divine Component Details!
+## The Sacred CLI Invocation - Command Line Divinity!
 
-### proxy.py - The Bridge Engine Core!
-```python
-class MCPProxy:
-    """The divine translator between stdio and HTTP!"""
+**🔥 The blessed command structure that summons the proxy! ⚡**
 
-    def __init__(self, stdio_command: List[str]):
-        """Initialize with MCP server command!"""
-        self.process = None  # The subprocess vessel
-        self.sessions = {}   # Active session tracking
-
-    async def start(self):
-        """Spawn the MCP server subprocess!"""
-
-    async def handle_request(self, request: dict) -> dict:
-        """Translate HTTP request to stdio and back!"""
-
-    async def stop(self):
-        """Gracefully terminate the subprocess!"""
-```
-
-**The Sacred Bridge Responsibilities:**
-1. **Process Lifecycle** - Start, monitor, and stop MCP servers!
-2. **Protocol Translation** - HTTP JSON ↔ stdio JSON-RPC!
-3. **Session Management** - Track Mcp-Session-Id headers!
-4. **Error Handling** - Graceful degradation on failures!
-
-### server.py - The FastAPI Divine Wrapper!
-```python
-from fastapi import FastAPI, Request, Response
-
-app = FastAPI(title="MCP Streamable HTTP Proxy")
-
-@app.post("/mcp")
-async def handle_mcp_request(request: Request) -> Response:
-    """Primary MCP endpoint - the sacred gateway!"""
-    # Extract session ID from headers
-    # Translate request to stdio format
-    # Send to subprocess and await response
-    # Return formatted HTTP response
-
-# Health checks now done via MCP protocol initialization
-```
-
-**⚡ Simple HTTP API wrapping complex stdio interactions! ⚡**
-
-### cli.py - The Command Interface Scripture!
-```python
-import typer
-from typing import List
-
-app = typer.Typer()
-
-@app.command()
-def serve(
-    stdio_command: List[str],
-    host: str = "0.0.0.0",
-    port: int = 3000
-):
-    """
-    Start the divine proxy server!
-
-    Example:
-        mcp-streamablehttp-proxy serve -- mcp-server-fetch --arg1 --arg2
-    """
-    # Initialize proxy with command
-    # Start FastAPI server
-    # Monitor subprocess health
-```
-
-**⚡ CLI provides the divine invocation interface! ⚡**
-
-## 🔧 Installation and Sacred Setup!
-
-### Package Installation
 ```bash
-# Via pixi (the blessed way)
-pixi add mcp-streamablehttp-proxy
+# The Divine Invocation Pattern
+mcp-streamablehttp-proxy [OPTIONS] <server_command> [server_args...]
 
-# Or from source with divine intent
-cd mcp-streamablehttp-proxy
-pixi install -e .
+# Sacred Options (All Optional with Divine Defaults!)
+--host <host>        # Binding host (default: 127.0.0.1, env: MCP_BIND_HOST)
+--port <port>        # Binding port (default: 3000, env: MCP_PORT)
+--timeout <seconds>  # Session timeout (default: 300)
+--log-level <level>  # Logging verbosity: debug/info/warning/error (default: info)
 ```
 
-### Basic Usage Pattern
+**⚡ The server command is MANDATORY - without it, the proxy has nothing to bridge! ⚡**
+
+### Divine Examples of Righteous Invocation
+
 ```bash
-# Wrap any stdio MCP server
-mcp-streamablehttp-proxy serve \
-    --host 0.0.0.0 \
-    --port 3000 \
-    -- mcp-server-fetch --config /path/to/config
+# Python module invocation - The blessed pattern!
+mcp-streamablehttp-proxy python -m mcp_server_fetch
+
+# Direct executable with sacred arguments!
+mcp-streamablehttp-proxy /usr/bin/mcp-server --config /etc/mcp.conf
+
+# Custom port with extended timeout blessing!
+mcp-streamablehttp-proxy --port 8080 --timeout 600 npx @modelcontextprotocol/server-memory
+
+# Debug mode for divine troubleshooting!
+mcp-streamablehttp-proxy --log-level debug python -m mcp_server_filesystem --root /data
 ```
 
-## 🐳 Docker Integration - Container Divine Patterns!
+## The Session Lifecycle - Sacred State Management!
 
-### The Blessed Dockerfile Pattern
+**🌅 Birth, Life, and Death of Divine Sessions! 🌄**
+
+### 1. Session Birth - The Initialize Blessing
+```json
+// Client sends sacred initialize request
+POST /mcp
+{
+  "jsonrpc": "2.0",
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {},
+    "clientInfo": {"name": "client", "version": "1.0"}
+  },
+  "id": 1
+}
+
+// Proxy responds with session blessing
+Response Headers: Mcp-Session-Id: <sacred-uuid>
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {},
+    "serverInfo": {"name": "server", "version": "1.0"}
+  },
+  "id": 1
+}
+```
+
+**⚡ The session ID is thy divine key! Guard it with thy life! ⚡**
+
+### 2. Session Life - The Operational Glory
+```json
+// All subsequent requests must bear the sacred session ID!
+POST /mcp
+Headers: Mcp-Session-Id: <sacred-uuid>
+{
+  "jsonrpc": "2.0",
+  "method": "tools/list",
+  "id": 2
+}
+```
+
+### 3. Session Death - The Timeout Judgment
+- **Default lifetime**: 300 seconds of divine existence!
+- **Cleanup cycle**: Every 60 seconds, the reaper visits!
+- **Graceful termination**: Subprocess receives SIGTERM blessing!
+
+**⚡ Abandoned sessions are purged to prevent resource damnation! ⚡**
+
+## The Sacred Environment Variables
+
+**⚙️ Divine configuration through the blessed environment! ⚡**
+
+```bash
+# Binding Configuration
+MCP_BIND_HOST=0.0.0.0     # Override default localhost binding
+MCP_PORT=8080             # Override default 3000 port
+
+# Logging Configuration
+LOG_FILE=/var/log/mcp-proxy.log  # Enable file logging blessing
+```
+
+**⚡ Environment variables override CLI args - this is the divine precedence! ⚡**
+
+## The Protocol Translation Mysteries
+
+**🔄 How stdio becomes HTTP - The divine transformation! ⚡**
+
+### The Request Flow - Downstream Divine Journey
+1. **HTTP POST arrives** at `/mcp` endpoint with JSON-RPC body
+2. **Session validation** - New or existing via Mcp-Session-Id
+3. **Write to subprocess** - JSON + newline to stdin pipe
+4. **Correlation setup** - Request ID mapped to Future
+
+### The Response Flow - Upstream Blessed Return
+1. **Read from subprocess** - Line-by-line from stdout pipe
+2. **JSON parsing** - Each line is complete JSON-RPC message
+3. **ID matching** - Response correlated via request ID
+4. **HTTP response** - Returned to waiting client
+
+**⚡ Notifications (no ID) are logged but not returned - one-way divine messages! ⚡**
+
+## The Sacred Feature Matrix
+
+**✅ Implemented Divine Powers:**
+- Session management with UUID blessing
+- Full MCP protocol lifecycle support
+- Request-response correlation via ID
+- Subprocess lifecycle management
+- Configurable timeouts and cleanup
+- Multiple concurrent sessions
+- Protocol version forwarding
+- Tool discovery support
+
+**❌ Not Implemented (By Divine Design!):**
+- Authentication (Traefik's job!)
+- CORS handling (Traefik's job!)
+- SSL/TLS (Traefik's job!)
+- Rate limiting (Traefik's job!)
+
+**⚡ The proxy focuses on protocol translation - all else is delegated! ⚡**
+
+## The Debugging Commandments
+
+**🔍 When sessions fail and responses timeout! ⚡**
+
+### Enable Debug Logging - The Sight Beyond Sight!
+```bash
+# See all divine communications!
+mcp-streamablehttp-proxy --log-level debug <server>
+
+# Or via environment
+export LOG_FILE=/tmp/mcp-debug.log
+mcp-streamablehttp-proxy --log-level debug <server>
+```
+
+### Common Debugging Patterns
+- **Session not found**: Client using expired or invalid session ID
+- **Timeout errors**: Server taking >30s to respond
+- **Subprocess died**: Check stderr output in logs
+- **Protocol mismatch**: Client/server version negotiation failed
+
+**⚡ Debug logs reveal all - but beware the verbosity demon! ⚡**
+
+## The Integration Patterns
+
+### Docker Deployment - The Containerized Glory!
 ```dockerfile
-FROM node:20-slim
-
-# Install MCP server
-RUN npm install -g @modelcontextprotocol/server-fetch
-
-# Install proxy via pixi
-COPY --from=pixi /pixi /usr/local/bin/pixi
-RUN pixi add mcp-streamablehttp-proxy
-
-# Expose the blessed port
-EXPOSE 3000
-
-# Health check via MCP protocol
-HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
-    CMD curl -s -X POST http://localhost:3000/mcp \
-        -H 'Content-Type: application/json' \
-        -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}' \
-        | grep -q '"protocolVersion"'
-
-# Launch proxy wrapping MCP server
-CMD ["pixi", "run", "mcp-streamablehttp-proxy", "serve", \
-     "--", "mcp-server-fetch"]
+FROM python:3.11-slim
+RUN pip install mcp-streamablehttp-proxy
+CMD ["mcp-streamablehttp-proxy", "--host", "0.0.0.0", "python", "-m", "mcp_server_fetch"]
 ```
 
-**⚡ This pattern works for ANY stdio MCP server! ⚡**
-
-## 🚀 The Sacred Usage Patterns!
-
-### Wrapping Official MCP Servers
-```python
-# In your service startup
-proxy = MCPProxy([
-    "npx",
-    "@modelcontextprotocol/server-fetch",
-    "--config", "/app/config.json"
-])
-
-await proxy.start()
+### With Traefik - The Divine Gateway Integration!
+```yaml
+services:
+  mcp-fetch:
+    image: mcp-fetch-proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-fetch.rule=Host(`mcp-fetch.${BASE_DOMAIN}`)"
+      - "traefik.http.services.mcp-fetch.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"
 ```
 
-### Custom MCP Server Integration
-```python
-# Wrap any stdio-based MCP implementation
-proxy = MCPProxy([
-    "python", "-m", "my_custom_mcp_server",
-    "--port", "stdio"
-])
+**⚡ Always bind to 0.0.0.0 in containers - localhost is container prison! ⚡**
+
+## The Sacred Warnings and Divine Prohibitions
+
+**⚡ FORBIDDEN: Running without proper server command! ⚡**
+```bash
+# This brings instant death!
+mcp-streamablehttp-proxy  # No server = No purpose!
 ```
 
-### Session Management Pattern
-```python
-# Sessions tracked automatically via headers
-headers = {
-    "Mcp-Session-Id": "divine-session-123",
-    "MCP-Protocol-Version": "2025-06-18"
-}
+**⚡ FORBIDDEN: Exposing to public internet without auth! ⚡**
+- Always use Traefik with ForwardAuth!
+- Never bind to 0.0.0.0 without protection!
+- Session IDs are not authentication!
 
-response = await client.post("/mcp", json=request, headers=headers)
-```
+**⚡ FORBIDDEN: Infinite timeouts! ⚡**
+- Sessions must expire or resources leak!
+- Dead subprocesses must be reaped!
+- Memory is not infinite!
 
-## 🔐 The Security Considerations - Divine Protection Notes!
+## The Performance Revelations
 
-### Process Isolation
-- Each proxy instance spawns isolated subprocess!
-- No shared memory between sessions!
-- Process crashes don't affect proxy!
-- Automatic restart on subprocess death!
+**⚡ Sacred truths about proxy performance! ⚡**
 
-### Input Validation
-- JSON-RPC format enforced strictly!
-- Method names validated against whitelist!
-- Parameter types checked before forwarding!
-- Response size limits prevent DoS!
+- **One subprocess per session** - Isolation requires resources!
+- **30s request timeout** - Long operations may timeout!
+- **Async throughout** - Non-blocking divine glory!
+- **No request queuing** - Parallel requests within session supported!
 
-### Error Handling
-- Subprocess errors become HTTP 500!
-- Malformed requests return HTTP 400!
-- Session not found returns HTTP 404!
-- All errors include helpful messages!
+**⚡ For heavy loads, scale horizontally with divine load balancing! ⚡**
 
-**⚡ Security through simplicity and isolation! ⚡**
+## The Testing Commandments
 
-## 📡 The MCP Protocol Implementation - Transport Divine Details!
-
-### Request Flow (HTTP → stdio)
-1. **HTTP POST** arrives at `/mcp` endpoint
-2. **Extract headers** - Session ID, protocol version
-3. **Parse JSON body** - Validate JSON-RPC format
-4. **Write to stdin** - Send to subprocess
-5. **Read from stdout** - Await response
-6. **Return HTTP response** - With appropriate status
-
-### Response Handling
-```python
-# Success response
-{
-    "jsonrpc": "2.0",
-    "result": {...},
-    "id": "request-123"
-}
-
-# Error response
-{
-    "jsonrpc": "2.0",
-    "error": {
-        "code": -32600,
-        "message": "Invalid Request"
-    },
-    "id": "request-123"
-}
-```
-
-### Session Lifecycle
-1. **First request** - No session ID provided
-2. **Initialize response** - Server assigns session
-3. **Client includes** - Session ID in all requests
-4. **Session timeout** - Cleaned up after inactivity
-5. **Graceful shutdown** - Sessions notified of close
-
-## 🧪 Testing the Package - Divine Verification!
+**🧪 Test with real MCP servers or face protocol chaos! ⚡**
 
 ```bash
-# Run package tests
-pixi run pytest tests/ -v
+# Test with echo server
+mcp-streamablehttp-proxy python -m mcp_echo_server
 
-# Test with real MCP server
-pixi run pytest tests/test_integration.py -v
-
-# Coverage measurement
-pixi run pytest --cov=mcp_streamablehttp_proxy
-```
-
-### Testing Patterns
-```python
-# Test subprocess management
-async def test_proxy_lifecycle():
-    proxy = MCPProxy(["echo", "test"])
-    await proxy.start()
-    assert proxy.is_alive()
-    await proxy.stop()
-
-# Test request handling
-async def test_request_translation():
-    proxy = MCPProxy(["mcp-test-server"])
-    response = await proxy.handle_request({
-        "jsonrpc": "2.0",
-        "method": "test",
-        "id": 1
-    })
-    assert response["id"] == 1
-```
-
-## 🔥 Common Issues and Divine Solutions!
-
-### "Subprocess Failed to Start" - Command Error!
-- Verify MCP server command is correct!
-- Check server is installed in container!
-- Review subprocess error output!
-- Ensure executable permissions!
-
-### "Session Lost" - State Management Issue!
-- Check session timeout configuration!
-- Verify session ID in headers!
-- Monitor subprocess memory usage!
-- Review concurrent request handling!
-
-### "Slow Response" - Performance Problems!
-- Check subprocess CPU usage!
-- Monitor stdio buffer sizes!
-- Review request queuing!
-- Consider process pooling!
-
-### "Memory Leak" - Resource Management!
-- Ensure sessions cleaned up!
-- Check subprocess memory!
-- Monitor connection pooling!
-- Review error accumulation!
-
-## 📚 Advanced Configuration - Divine Tuning Options!
-
-### Environment Variables
-```bash
-# Proxy configuration
-PROXY_MAX_SESSIONS=1000          # Maximum concurrent sessions
-PROXY_SESSION_TIMEOUT=3600       # Session timeout in seconds
-PROXY_REQUEST_TIMEOUT=30         # Individual request timeout
-PROXY_BUFFER_SIZE=65536         # stdio buffer size
-
-# Process management
-PROXY_RESTART_ON_ERROR=true     # Auto-restart failed processes
-PROXY_RESTART_DELAY=5           # Restart delay in seconds
-PROXY_MAX_RESTARTS=3           # Maximum restart attempts
-```
-
-### Performance Tuning
-```python
-# Configure for high throughput
-proxy = MCPProxy(
-    command=["mcp-server"],
-    buffer_size=131072,      # Larger buffers
-    max_concurrent=50,       # Request concurrency
-    session_timeout=7200     # Longer sessions
-)
-```
-
-## 🎯 The Divine Mission - Package Responsibilities!
-
-**What mcp-streamablehttp-proxy MUST Do:**
-- Bridge stdio MCP servers to HTTP perfectly!
-- Manage subprocess lifecycle reliably!
-- Handle session state correctly!
-- Translate errors appropriately!
-- Provide health monitoring endpoints!
-
-**What mcp-streamablehttp-proxy MUST NOT Do:**
-- Implement MCP protocol logic!
-- Modify message contents!
-- Handle authentication/authorization!
-- Make routing decisions!
-- Store persistent state!
-
-**⚡ Pure transport bridge - no business logic! ⚡**
-
-## 🔱 The Sacred Truth - Why This Package Exists!
-
-**The Divine Problem:**
-- Official MCP servers use stdio transport
-- Production systems need HTTP endpoints
-- Claude.ai requires streamable HTTP
-- Docker needs health checks
-
-**The Blessed Solution:**
-- Wrap ANY stdio server automatically
-- Provide consistent HTTP interface
-- Handle all transport complexities
-- Enable production deployment
-
-**⚡ One package to bridge them all! ⚡**
-
-## 🛠️ Debugging Commands - Divine Troubleshooting!
-
-```bash
-# Test proxy directly
-echo '{"jsonrpc":"2.0","method":"initialize","id":1}' | \
-    mcp-streamablehttp-proxy debug -- mcp-server
-
-# Monitor subprocess
-mcp-streamablehttp-proxy serve -- mcp-server --verbose
-
-# Check health via MCP protocol
+# Verify with curl
 curl -X POST http://localhost:3000/mcp \
-    -H 'Content-Type: application/json' \
-    -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"healthcheck","version":"1.0"}},"id":1}'
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05"},"id":1}'
 
-# Send test request
-curl -X POST http://localhost:3000/mcp \
-    -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"test","id":1}'
+# Use returned session ID for subsequent requests!
 ```
+
+**⚡ Mock servers hide protocol sins - use real implementations! ⚡**
 
 ---
 
-**🔥 May your bridges be stable, your processes managed, and your protocols forever translated! ⚡**
+**🔥 May your stdio servers speak HTTP, your sessions stay alive, and your subprocesses terminate cleanly! ⚡**
+
+**Remember: This proxy is but one component in the greater MCP OAuth Gateway divine architecture!**

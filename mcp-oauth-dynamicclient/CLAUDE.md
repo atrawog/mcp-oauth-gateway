@@ -1,360 +1,353 @@
-# 🔥 CLAUDE.md - The mcp-oauth-dynamicclient Package Divine Scripture! ⚡
+# CLAUDE.md - Divine Development Guidance for MCP OAuth Dynamic Client
 
-**📦 Behold! The Sacred OAuth Library - Divine Authentication Power Incarnate! 📦**
+**🔥 This is the sacred CLAUDE.md for mcp-oauth-dynamicclient! ⚡**
 
-**⚡ This is mcp-oauth-dynamicclient - The Holy Engine of RFC-Compliant OAuth Glory! ⚡**
+## Divine Service Architecture
 
-## 🔱 The Sacred Purpose - Divine OAuth Implementation Library!
+**🌟 mcp-oauth-dynamicclient: The OAuth 2.1 and RFC 7591/7592 Compliant Auth Service! 🌟**
 
-**mcp-oauth-dynamicclient is the blessed Python package that powers ALL OAuth magic!**
+This blessed service implements:
+- **OAuth 2.1** - Modern authentication with PKCE (S256 only!)
+- **RFC 7591** - Dynamic Client Registration Protocol
+- **RFC 7592** - Dynamic Client Configuration Management Protocol
+- **RFC 8414** - OAuth 2.0 Authorization Server Metadata
+- **RFC 6749** - The OAuth 2.0 Authorization Framework
+- **RFC 7009** - OAuth 2.0 Token Revocation
+- **RFC 7662** - OAuth 2.0 Token Introspection
+- **RFC 7636** - Proof Key for Code Exchange (PKCE)
 
-This sacred library channels these divine powers:
-- **RFC 7591 Compliance** - Dynamic client registration with holy precision!
-- **RFC 7592 Management** - Client lifecycle control with divine CRUD!
-- **OAuth 2.1 + PKCE** - Modern authentication flows blessed by standards!
-- **JWT Token Crafting** - Cryptographic token minting with sacred claims!
-- **Redis Integration** - Eternal storage of authentication state!
-- **FastAPI + Authlib** - The blessed framework combination!
+## Sacred Implementation Details
 
-**⚡ This package IS the OAuth implementation - all services consume its power! ⚡**
+### The Divine Separation of Authentication Realms
 
-## 🏗️ The Sacred Architecture - Modular Divine Components!
+**⚡ Two authentication realms exist - never confuse them! ⚡**
+
+1. **MCP Gateway Client Realm** - Dynamic client registration via RFC 7591/7592
+   - Public `/register` endpoint for client birth
+   - Bearer `registration_access_token` for client management
+   - Client credentials for OAuth token issuance
+
+2. **User Authentication Realm** - GitHub OAuth for human users
+   - GitHub OAuth flow for user authentication
+   - JWT tokens with user claims
+   - Access control via ALLOWED_GITHUB_USERS
+
+### The Sacred Endpoints
+
+**🚀 OAuth 2.1 Core Endpoints:**
+- `/authorize` - Authorization endpoint (initiates GitHub OAuth)
+- `/token` - Token endpoint (exchanges codes for JWTs)
+- `/callback` - GitHub OAuth callback
+- `/verify` - ForwardAuth verification for Traefik
+
+**📜 RFC 7591 Dynamic Registration:**
+- `POST /register` - PUBLIC endpoint for client registration
+
+**🔐 RFC 7592 Client Management (Bearer Auth Required):**
+- `GET /register/{client_id}` - View client configuration
+- `PUT /register/{client_id}` - Update client configuration
+- `DELETE /register/{client_id}` - Delete client registration
+
+**✨ Extension Endpoints:**
+- `/.well-known/oauth-authorization-server` - Server metadata (RFC 8414)
+- `/jwks` - JSON Web Key Set for RS256 public keys
+- `/revoke` - Token revocation (RFC 7009)
+- `/introspect` - Token introspection (RFC 7662)
+
+### The Divine JWT Implementation
+
+**🔥 RS256 is the blessed algorithm! HS256 exists only for transition! ⚡**
+
+```python
+# The blessed RS256 implementation in auth_authlib.py
+if self.settings.jwt_algorithm == "RS256":
+    # Use RSA public key for RS256 - divine cryptographic validation!
+    token = self.jwt.encode(header, payload, self.key_manager.private_key)
+else:
+    # HS256 is HERESY but supported for backwards compatibility
+    token = self.jwt.encode(header, payload, self.settings.jwt_secret)
+```
+
+### The Sacred Redis Storage Patterns
 
 ```
-mcp_oauth_dynamicclient/
-├── Core Modules (The Sacred Foundations!)
-│   ├── __init__.py - Package initialization and exports!
-│   ├── config.py - Configuration management with pydantic!
-│   ├── models.py - Data models and schemas of truth!
-│   └── keys.py - RSA key generation and management!
-├── OAuth Modules (The Authentication Engines!)
-│   ├── routes.py - FastAPI route definitions!
-│   ├── auth_authlib.py - Authlib integration glory!
-│   ├── resource_protector.py - Token validation guardian!
-│   └── async_resource_protector.py - Async validation power!
-├── Storage Module (The Persistence Layer!)
-│   ├── redis_client.py - Redis connection and operations!
-├── RFC Implementation (The Standards Compliance!)
-│   ├── rfc7592.py - Client management endpoints!
-├── Server Module (The Application Core!)
-│   ├── server.py - FastAPI app factory!
-│   └── __main__.py - CLI entry point!
-└── CLI Module (The Command Interface!)
-    └── cli.py - Token generation and management!
+oauth:state:{state}          # 5 minute TTL - CSRF protection
+oauth:code:{code}            # 1 year TTL - Authorization codes
+oauth:token:{jti}            # 30 days TTL - JWT access tokens
+oauth:refresh:{token}        # 1 year TTL - Refresh tokens
+oauth:client:{client_id}     # Client lifetime - Includes registration_access_token!
+oauth:user_tokens:{username} # No expiry - Index of user's tokens
 ```
 
-**⚡ Each module has its divine purpose in the OAuth machinery! ⚡**
+### The Divine Client Lifecycle
 
-## 📖 The Sacred Modules - Divine Component Details!
+1. **Birth** - POST /register creates client with credentials
+2. **Blessing** - Receive `registration_access_token` for management
+3. **Life** - 90 days default or eternal if CLIENT_LIFETIME=0
+4. **Management** - Use Bearer token for GET/PUT/DELETE operations
+5. **Death** - Natural expiration or explicit DELETE
 
-### config.py - The Configuration Oracle!
+### The Sacred Configuration (NO DEFAULTS!)
+
 ```python
 class Settings(BaseSettings):
-    """Divine configuration with automatic validation!"""
+    """Sacred Configuration following the divine laws"""
 
-    # GitHub OAuth settings
+    # GitHub OAuth
     github_client_id: str
     github_client_secret: str
 
-    # JWT configuration
-    gateway_jwt_secret: str
-    gateway_jwt_algorithm: str = "HS256"
-    gateway_jwt_expire_minutes: int = 43200  # 30 days
+    # JWT Configuration
+    jwt_secret: str
+    jwt_algorithm: str  # NO DEFAULTS!
+    jwt_private_key_b64: Optional[str] = None  # Base64 encoded RSA key
 
-    # Redis connection
-    redis_url: str = "redis://redis:6379/0"
+    # Domain Configuration
+    base_domain: str
 
-    # OAuth settings
-    client_lifetime: int = 7776000  # 90 days (0 = eternal)
+    # Redis Configuration
+    redis_url: str
+    redis_password: Optional[str]  # NO DEFAULTS!
 
-    model_config = SettingsConfigDict(env_file=".env")
+    # Token Lifetimes - NO DEFAULTS!
+    access_token_lifetime: int
+    refresh_token_lifetime: int
+    session_timeout: int
+    client_lifetime: int  # 0 = never expires
+
+    # Access Control
+    allowed_github_users: str  # NO DEFAULTS! Comma-separated or '*'
+
+    # MCP Protocol Version
+    mcp_protocol_version: str  # NO DEFAULTS!
 ```
 
-**⚡ All configuration flows through pydantic validation! ⚡**
+### The Divine Security Architecture
 
-### models.py - The Data Schema Temple!
+**🔐 Authlib-based implementation - NO AD-HOC SECURITY CODE! ⚡**
+
+The implementation uses:
+- `authlib.oauth2` for OAuth 2.0 compliance
+- `authlib.jose` for JWT handling
+- `authlib.integrations.httpx_client` for GitHub OAuth
+- Custom `ResourceProtector` wrapper for async FastAPI compatibility
+
+**⚡ NEVER implement security primitives yourself! Use Authlib! ⚡**
+
+### The Sacred PKCE Implementation
+
 ```python
-# OAuth client registration model
-class OAuthClient(BaseModel):
-    client_id: str
-    client_secret: str
-    redirect_uris: List[str]
-    created_at: datetime
-    expires_at: Optional[datetime]
+def verify_pkce_challenge(self, verifier: str, challenge: str, method: str = "S256") -> bool:
+    """Verify PKCE code challenge - S256 only as per CLAUDE.md sacred laws"""
+    if method == "plain":
+        # REJECTED: Plain method is deprecated per CLAUDE.md commandments!
+        return False
 
-# Token models with divine claims
-class TokenData(BaseModel):
-    sub: str  # Subject (user ID)
-    name: Optional[str]  # User display name
-    exp: int  # Expiration timestamp
-    iat: int  # Issued at timestamp
-    jti: str  # JWT ID for tracking
+    if method != "S256":
+        # Only S256 is blessed by the sacred laws
+        return False
+
+    # Proper S256 verification: SHA256 hash + base64url encode
+    digest = hashlib.sha256(verifier.encode()).digest()
+    computed = base64.urlsafe_b64encode(digest).decode().rstrip("=")
+
+    return computed == challenge
 ```
 
-**⚡ Type safety through pydantic brings reliability! ⚡**
+### The Divine Bearer Token Architecture
 
-### routes.py - The Sacred Endpoint Definitions!
+**🌟 Three types of Bearer tokens exist in the sacred realm! 🌟**
 
-**The OAuth Flow Endpoints:**
-- `POST /register` - RFC 7591 dynamic registration!
-- `GET /authorize` - OAuth authorization initiation!
-- `POST /token` - Token exchange sanctuary!
-- `GET /callback` - GitHub OAuth return path!
-- `GET /.well-known/oauth-authorization-server` - Metadata!
+1. **OAuth Access Tokens** - JWT tokens for resource access
+2. **Registration Access Tokens** - `reg-{token}` for client management
+3. **GitHub Access Tokens** - External tokens from GitHub OAuth
 
-**The Management Endpoints (RFC 7592):**
-- `GET /register/{client_id}` - View registration!
-- `PUT /register/{client_id}` - Update registration!
-- `DELETE /register/{client_id}` - Revoke registration!
+**⚡ Each serves its divine purpose - never confuse them! ⚡**
 
-**The Internal Endpoints:**
-- `GET /verify` - ForwardAuth validation!
+## Development Commandments
 
-### auth_authlib.py - The Authlib Integration Glory!
+### The Sacred Testing Approach
+
+**🧪 Real Redis required - NO MOCKS! ⚡**
+
 ```python
-# OAuth server configuration with Authlib
-oauth_server = AuthorizationServer(
-    query_client=query_client,
-    save_token=save_token,
+# Tests must use real Redis via docker-compose
+async def test_client_registration():
+    # Real HTTP client
+    async with httpx.AsyncClient() as client:
+        # Real Redis connection
+        redis_client = redis.from_url(settings.redis_url)
+
+        # Real registration request
+        response = await client.post("/register", json={...})
+
+        # Verify in real Redis
+        client_data = await redis_client.get(f"oauth:client:{client_id}")
+```
+
+### The Divine Error Handling
+
+**⚡ RFC-compliant error responses or damnation! ⚡**
+
+```python
+# Always return proper OAuth error format
+{
+    "error": "invalid_client",
+    "error_description": "Client authentication failed",
+    "error_uri": "https://tools.ietf.org/html/rfc6749#section-5.2"
+}
+
+# Always include WWW-Authenticate header on 401
+headers={"WWW-Authenticate": "Bearer"}
+```
+
+### The Sacred Logging Pattern
+
+```python
+# Structured logging for divine observability
+logger.info(
+    "AUTH REQUEST - Method: %s | Path: %s | Real-IP: %s | JSON: %s",
+    request.method,
+    request.url.path,
+    traefik_headers.get("x-real-ip", "unknown"),
+    json.dumps(request_data),
 )
-
-# Grant type registration
-oauth_server.register_grant(AuthorizationCodeGrant)
-oauth_server.register_grant(RefreshTokenGrant)
-
-# PKCE extension for divine security
-oauth_server.register_extension(CodeChallengeExtension)
 ```
 
-**⚡ Authlib provides RFC-compliant OAuth implementation! ⚡**
+## Integration with the Gateway
 
-### redis_client.py - The Eternal Storage Interface!
-```python
-class RedisClient:
-    """Divine Redis operations for OAuth state!"""
+### The Divine Traefik Labels
 
-    async def store_client(self, client_data: dict) -> None:
-        """Store client registration eternally!"""
+```yaml
+# Auth service gets priority 4 (highest!)
+- "traefik.http.routers.auth-oauth.priority=4"
+- "traefik.http.routers.auth-oauth.rule=PathPrefix(`/register`) || PathPrefix(`/authorize`) || PathPrefix(`/token`) || PathPrefix(`/callback`) || PathPrefix(`/.well-known`)"
 
-    async def store_token(self, token: str, data: dict) -> None:
-        """Store token with TTL blessing!"""
-
-    async def get_and_delete(self, key: str) -> Optional[str]:
-        """Atomic get-and-delete for security!"""
+# ForwardAuth middleware configuration
+- "traefik.http.middlewares.mcp-auth.forwardauth.address=http://auth:8000/verify"
+- "traefik.http.middlewares.mcp-auth.forwardauth.authResponseHeaders=X-User-Id,X-User-Name,X-Auth-Token"
 ```
 
-**⚡ Redis provides persistent state across restarts! ⚡**
+### The Sacred Environment Variables
 
-### rfc7592.py - The Client Management Scripture!
-```python
-# RFC 7592 compliant client management
-async def get_client_registration(client_id: str, token: str):
-    """View client registration with bearer auth!"""
-
-async def update_client_registration(client_id: str, token: str, data: dict):
-    """Update registration with validation!"""
-
-async def delete_client_registration(client_id: str, token: str):
-    """Revoke client with divine finality!"""
-```
-
-**⚡ Full RFC 7592 compliance for client lifecycle! ⚡**
-
-## 🔧 Installation and Sacred Setup!
-
-### Package Installation (The Blessed Way!)
 ```bash
-# Via pixi (the divine package manager)
+# GitHub OAuth (from GitHub App)
+GITHUB_CLIENT_ID=Ov23li...
+GITHUB_CLIENT_SECRET=xxx...
+
+# JWT Configuration
+JWT_SECRET=xxx...  # For HS256 (deprecated)
+JWT_ALGORITHM=RS256  # The blessed algorithm!
+JWT_PRIVATE_KEY_B64=xxx...  # Base64 encoded RSA key
+
+# Domain
+BASE_DOMAIN=yourdomain.com
+
+# Redis
+REDIS_URL=redis://redis:6379/0
+REDIS_PASSWORD=xxx...
+
+# Token Lifetimes (seconds)
+ACCESS_TOKEN_LIFETIME=1800  # 30 minutes
+REFRESH_TOKEN_LIFETIME=31536000  # 1 year
+SESSION_TIMEOUT=300  # 5 minutes
+CLIENT_LIFETIME=7776000  # 90 days (0 for eternal)
+
+# Access Control
+ALLOWED_GITHUB_USERS=user1,user2  # or '*' for any GitHub user
+
+# MCP Protocol
+MCP_PROTOCOL_VERSION=2025-06-18
+```
+
+## The Divine Package Usage
+
+### Installation
+
+```bash
+# Via pixi (blessed!)
 pixi add mcp-oauth-dynamicclient
 
-# Or install from source with divine intent
-cd mcp-oauth-dynamicclient
-pixi install -e .
+# Via pip (if you must)
+pip install mcp-oauth-dynamicclient
 ```
 
-### Environment Configuration
-```bash
-# Required divine variables
-GITHUB_CLIENT_ID=your-github-app-id
-GITHUB_CLIENT_SECRET=your-github-secret
-GATEWAY_JWT_SECRET=your-secret-key
-REDIS_URL=redis://redis:6379/0
-ALLOWED_GITHUB_USERS=user1,user2
-CLIENT_LIFETIME=7776000  # or 0 for eternal
-```
-
-## 🚀 Using the Sacred Library!
-
-### As a FastAPI Application
-```python
-from mcp_oauth_dynamicclient import create_app
-
-# Create the blessed FastAPI app
-app = create_app()
-
-# Run with uvicorn divine power
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-```
-
-### CLI Token Generation
-```bash
-# Generate GitHub token with divine automation
-pixi run mcp-oauth-token
-
-# The sacred flow:
-# 1. Opens browser for GitHub auth
-# 2. Captures callback automatically
-# 3. Saves tokens to .env file
-# 4. Ready for immediate use!
-```
-
-### As a Library in Your Service
-```python
-from mcp_oauth_dynamicclient import (
-    create_oauth_server,
-    verify_token,
-    RedisClient,
-    Settings
-)
-
-# Initialize components
-settings = Settings()
-redis = RedisClient(settings.redis_url)
-oauth_server = create_oauth_server(settings, redis)
-
-# Use in your routes
-token_data = await verify_token(bearer_token)
-```
-
-## 🔐 The Security Architecture - Divine Protection Patterns!
-
-### Token Security
-- **JWT with HS256** - HMAC signature validation!
-- **30-day expiration** - Configurable lifetime!
-- **JTI tracking** - Unique token identifiers!
-- **Redis blacklist** - Revocation support!
-
-### Client Security
-- **Secure random secrets** - 32-byte entropy!
-- **Registration tokens** - RFC 7592 bearer auth!
-- **Redirect URI validation** - No open redirects!
-- **Client expiration** - Optional time limits!
-
-### PKCE Protection
-- **S256 mandatory** - SHA256 code challenges!
-- **43-128 char verifiers** - RFC compliance!
-- **One-time codes** - Atomic redemption!
-- **5-minute expiry** - Short-lived codes!
-
-## 🧪 Testing the Package - Divine Verification!
+### Running the Server
 
 ```bash
-# Run all package tests
-pixi run pytest tests/test_mcp_oauth_dynamicclient.py -v
+# Via CLI (production)
+mcp-oauth-server --host 0.0.0.0 --port 8000
 
-# Test specific components
-pixi run pytest tests/test_oauth_flow.py -v
-pixi run pytest tests/test_rfc7592_compliance.py -v
+# Via Python
+from mcp_oauth_dynamicclient import create_app, Settings
 
-# Coverage measurement
-pixi run pytest --cov=mcp_oauth_dynamicclient
+settings = Settings()  # Loads from .env
+app = create_app(settings)
+
+# Run with uvicorn
+uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
-**⚡ Real integration tests - no mocking allowed! ⚡**
+### Client Registration Example
 
-## 🔥 Common Issues and Divine Solutions!
-
-### "Import Error" - Package Not Found!
-- Ensure pixi installation completed!
-- Check PYTHONPATH includes package!
-- Verify __init__.py exports!
-
-### "Redis Connection Failed" - Storage Unavailable!
-- Check REDIS_URL configuration!
-- Verify Redis container running!
-- Test connection with redis-cli!
-
-### "JWT Validation Failed" - Token Corruption!
-- Verify GATEWAY_JWT_SECRET matches!
-- Check token hasn't expired!
-- Ensure HS256 algorithm used!
-
-### "GitHub OAuth Error" - External Auth Failed!
-- Verify GitHub app credentials!
-- Check redirect URI configuration!
-- Ensure user is in allowed list!
-
-## 📚 The Sacred API Reference - Quick Divine Lookup!
-
-### Core Functions
 ```python
-# App creation
-app = create_app(settings: Optional[Settings] = None)
+import httpx
+import json
 
-# Token operations
-token_data = await verify_token(token: str) -> TokenData
-access_token = create_access_token(data: dict) -> str
+async def register_client():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "https://auth.yourdomain.com/register",
+            json={
+                "redirect_uris": ["https://app.com/callback"],
+                "client_name": "My Application",
+                "scope": "openid profile email"
+            }
+        )
 
-# Client operations
-client = await register_client(data: ClientRegistration) -> OAuthClient
-client = await get_client(client_id: str) -> Optional[OAuthClient]
-
-# OAuth operations
-auth_url = create_authorization_url(client_id: str, redirect_uri: str)
-tokens = await exchange_code(code: str, verifier: str) -> TokenResponse
+        if response.status_code == 201:
+            result = response.json()
+            print(f"Client ID: {result['client_id']}")
+            print(f"Client Secret: {result['client_secret']}")
+            print(f"Registration Token: {result['registration_access_token']}")
 ```
 
-### Decorators and Utilities
-```python
-# Require authentication
-@require_auth
-async def protected_route(token_data: TokenData = Depends(get_current_user)):
-    pass
+## The Sacred Development Workflow
 
-# Redis operations
-async with get_redis() as redis:
-    await redis.set("key", "value")
-```
+1. **Environment Setup**
+   ```bash
+   just up  # Start Redis and dependencies
+   just generate-rsa-keys  # Create JWT_PRIVATE_KEY_B64
+   ```
 
-## 🎯 The Divine Mission - Package Responsibilities!
+2. **Development Mode**
+   ```bash
+   just dev  # Runs with --reload
+   ```
 
-**What mcp-oauth-dynamicclient MUST Do:**
-- Implement RFC-compliant OAuth flows!
-- Provide reusable authentication components!
-- Handle all token lifecycle management!
-- Integrate with GitHub OAuth seamlessly!
-- Store state in Redis reliably!
+3. **Testing**
+   ```bash
+   just test  # Real tests with real Redis!
+   ```
 
-**What mcp-oauth-dynamicclient MUST NOT Do:**
-- Know about MCP protocols!
-- Implement service-specific logic!
-- Handle routing or proxy concerns!
-- Manage Docker orchestration!
-- Make infrastructure decisions!
+4. **Production Build**
+   ```bash
+   just build  # Creates Docker image
+   ```
 
-**⚡ Pure OAuth implementation - focused and reusable! ⚡**
+**⚡ Remember: NO MOCKS! Real systems only! This is the divine law! ⚡**
 
-## 🔱 The Sacred Integration Pattern!
+## The Divine Integration Checklist
 
-Services use this package through divine dependency:
-```yaml
-# In service's pixi.toml
-[dependencies]
-mcp-oauth-dynamicclient = { path = "../mcp-oauth-dynamicclient" }
-```
+- ✅ **OAuth 2.1 Compliance** - PKCE S256 mandatory!
+- ✅ **RFC 7591 Registration** - Public POST /register endpoint!
+- ✅ **RFC 7592 Management** - Bearer token protected CRUD!
+- ✅ **GitHub OAuth** - User authentication via GitHub!
+- ✅ **JWT with RS256** - Cryptographically blessed tokens!
+- ✅ **Redis Storage** - Sacred key patterns maintained!
+- ✅ **Authlib Security** - No ad-hoc implementations!
+- ✅ **ForwardAuth Ready** - Traefik integration blessed!
+- ✅ **No Defaults** - All config from environment!
+- ✅ **Real Testing** - No mocks, real Redis only!
 
-Then import and use the blessed components:
-```python
-from mcp_oauth_dynamicclient import create_app
-
-# The auth service is just a thin wrapper!
-app = create_app()
-```
-
-**⚡ Don't reinvent OAuth - use this blessed package! ⚡**
-
----
-
-**🔥 May your tokens be valid, your flows RFC-compliant, and your authentication forever secure! ⚡**
+**🔥 Follow these commandments and your auth service shall be blessed! ⚡**
