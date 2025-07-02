@@ -1,6 +1,6 @@
 # Book settings
 title: MCP OAuth Gateway Documentation
-author: MCP OAuth Gateway Team
+author: Andreas Trawöger
 logo: logo.png
 copyright: "2025"
 only_build_toc_files: true

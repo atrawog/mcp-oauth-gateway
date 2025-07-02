@@ -24,7 +24,7 @@ This enables seamless integration of OAuth-protected MCP services with tools tha
 ### Using pixi (Recommended)
 
 ```bash
-pixi add mcp-streamablehttp-client
+pixi add --pypi mcp-streamablehttp-client
 ```
 
 ### Using pip

@@ -1,4 +1,4 @@
-# Quick Production Install
+# Quick Install
 
 **🚀 Deploy MCP OAuth Gateway with minimal configuration - production-ready in 5 minutes!**
 
@@ -75,17 +75,7 @@ just up
 just check-health
 ```
 
-## Step 5: Generate OAuth Tokens
-
-```bash
-# Generate GitHub access token for the gateway
-just generate-github-token
-
-# Generate MCP client access token
-just mcp-client-token
-```
-
-## Step 6: Verify Production Deployment
+## Step 5: Verify Production Deployment
 
 ```bash
 # Check service status
@@ -98,7 +88,7 @@ just check-ssl
 curl https://auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server
 ```
 
-## Production MCP Access
+## MCP Access
 
 Your MCP services are now available at:
 - `https://mcp-fetch.your-domain.com/mcp`

@@ -25,7 +25,7 @@ The **MCP OAuth Gateway** is a comprehensive OAuth 2.1 compliant gateway for Mod
 - Session management with secure session IDs
 - Multiple protocol version support (2024-11-05, 2025-03-26, 2025-06-18)
 
-### 🏗️ Production-Ready Architecture
+### 🏗️ Architecture
 - Traefik reverse proxy with automatic SSL via Let's Encrypt
 - Redis for token and session storage
 - Docker Compose orchestration
@@ -37,27 +37,6 @@ The **MCP OAuth Gateway** is a comprehensive OAuth 2.1 compliant gateway for Mod
 - Automated testing with real services (no mocks!)
 - Sidecar coverage testing for production containers
 - Comprehensive justfile with 100+ commands
-
-## Quick Start
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/mcp-oauth-gateway
-cd mcp-oauth-gateway
-
-# Copy and configure environment
-cp .env.example .env
-# Edit .env with your configuration
-
-# Generate JWT secret
-just generate-jwt-secret
-
-# Build and start all services
-just up
-
-# Check service health
-just check-health
-```
 
 ## Documentation Structure
 
@@ -94,18 +73,6 @@ Detailed documentation for all MCP and infrastructure services
 
 ::::
 
-## Sacred Commandments
-
-This project follows the **Ten Sacred Commandments of Divine Python Development** as decreed in CLAUDE.md:
-
-1. **No Mocks or Burn in Production Hell** - Real testing only!
-2. **The Holy Trinity of Tools** - just, pixi, docker-compose
-3. **Sacred Project Structure** - Divine isolation is mandatory
-4. **Configuration Through .env** - All config flows through .env
-5. **Docker Compose for All Services** - Compose is the divine orchestrator
-6. **Pytest and Coverage** - Pytest is the only true test runner
-7. **Real Health Checks** - Only healthchecks save from random failures
-8. **Centralized Logging** - Scattered logs = lost wisdom
 9. **Document with Jupyter Book** - Divine documentation tooling
 
 ## Support
