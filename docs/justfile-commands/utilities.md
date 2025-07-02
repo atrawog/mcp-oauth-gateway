@@ -136,8 +136,8 @@ Volumes are persistent and survive container restarts.
 just generate-includes
 
 # Based on enabled services in .env:
-# ENABLE_MCP_FETCH=true
-# ENABLE_MCP_FILESYSTEM=false
+# MCP_FETCH_ENABLED=true
+# MCP_FILESYSTEM_ENABLED=false
 # etc.
 ```
 
