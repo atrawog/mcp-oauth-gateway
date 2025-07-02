@@ -59,9 +59,3 @@ parts:
     chapters:
       - file: api/index
       - file: api/oauth-endpoints
-
-  - caption: Operations
-    chapters:
-      - file: deployment/production
-      - file: deployment/ssl-certificates
-      - file: deployment/troubleshooting
