@@ -661,6 +661,11 @@ oauth-delete-token jti:
     echo "🗑️  Deleting token: {{jti}}"
     just run manage_oauth_data delete-token {{jti}}
 
+# Delete all test client registrations (safer than delete-all)
+oauth-delete-test-registrations:
+    echo "🧪 Deleting all test client registrations..."
+    just run manage_oauth_data delete-test-registrations
+
 # Delete ALL client registrations (dangerous!)
 oauth-delete-all-registrations:
     echo "⚠️  WARNING: This will delete ALL client registrations!"

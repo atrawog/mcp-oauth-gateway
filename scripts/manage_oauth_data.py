@@ -340,6 +340,80 @@ async def delete_token(jti: str):
         await client.aclose()
 
 
+async def delete_test_registrations():
+    """Delete all test client registrations (names containing 'test' or 'TEST')."""
+    client = await get_redis_client()
+
+    try:
+        # Find all client registrations
+        keys = await client.keys("oauth:client:*")
+
+        if not keys:
+            print("No client registrations found.")
+            return
+
+        test_clients = []
+        for key in keys:
+            data = await client.get(key)
+            if data:
+                client_data = json.loads(data)
+                client_name = client_data.get("client_name", "")
+
+                # Check if it's a test client (case-insensitive)
+                if "test" in client_name.lower() or "concurrent" in client_name.lower():
+                    test_clients.append(
+                        {
+                            "key": key,
+                            "client_id": client_data.get("client_id"),
+                            "client_name": client_name,
+                            "data": client_data,
+                        }
+                    )
+
+        if not test_clients:
+            print("No test client registrations found.")
+            return
+
+        print(f"\n⚠️  WARNING: Found {len(test_clients)} test client registrations:")
+        for tc in test_clients:
+            print(f"   - {tc['client_name']} ({tc['client_id']})")
+
+        confirm = input("\nDelete all test registrations? (yes/no): ")
+
+        if confirm.lower() != "yes":
+            print("Cancelled.")
+            return
+
+        # Delete test registrations and their associated tokens
+        deleted_count = 0
+        deleted_tokens = 0
+
+        for tc in test_clients:
+            # Delete registration
+            await client.delete(tc["key"])
+            deleted_count += 1
+
+            # Delete associated tokens
+            token_keys = await client.keys("oauth:token:*")
+            for token_key in token_keys:
+                token_data = await client.get(token_key)
+                if token_data:
+                    try:
+                        payload = json.loads(token_data)
+                    except:
+                        payload = decode_jwt_payload(token_data)
+
+                    if payload and payload.get("client_id") == tc["client_id"]:
+                        await client.delete(token_key)
+                        deleted_tokens += 1
+
+        print(f"\n✅ Deleted {deleted_count} test client registrations")
+        print(f"✅ Deleted {deleted_tokens} associated tokens")
+
+    finally:
+        await client.aclose()
+
+
 async def delete_all_registrations():
     """Delete ALL client registrations."""
     client = await get_redis_client()
@@ -463,6 +537,7 @@ async def main():
         print("  list-tokens          - Show all active tokens")
         print("  delete-registration <client_id> - Delete specific registration")
         print("  delete-token <jti>   - Delete specific token")
+        print("  delete-test-registrations - Delete all test client registrations")
         print("  delete-all-registrations - Delete ALL registrations")
         print("  delete-all-tokens    - Delete ALL tokens")
         print("  stats                - Show OAuth statistics")
@@ -485,6 +560,8 @@ async def main():
                 print("❌ Please provide token JTI")
                 sys.exit(1)
             await delete_token(sys.argv[2])
+        elif command == "delete-test-registrations":
+            await delete_test_registrations()
         elif command == "delete-all-registrations":
             await delete_all_registrations()
         elif command == "delete-all-tokens":

@@ -6,6 +6,7 @@ and security is enforced at authorization/token issuance stage.
 
 import pytest
 
+from .conftest import RegisteredClientContext
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import HTTP_CREATED
@@ -18,36 +19,23 @@ class TestRegisterEndpointSecurity:
     @pytest.mark.asyncio
     async def test_register_is_public_endpoint(self, http_client, _wait_for_services, unique_client_name):
         """Test that /register endpoint is public per RFC 7591."""
-        registration_data = {
-            "redirect_uris": ["https://example.com/callback"],
-            "client_name": unique_client_name,
-            "scope": "openid profile email",
-        }
+        async with RegisteredClientContext(http_client) as ctx:
+            registration_data = {
+                "redirect_uris": ["https://example.com/callback"],
+                "client_name": unique_client_name,
+                "scope": "openid profile email",
+            }
 
-        # Test without Authorization header - should succeed per RFC 7591
-        response = await http_client.post(f"{AUTH_BASE_URL}/register", json=registration_data)
+            # Test without Authorization header - should succeed per RFC 7591
+            client_data = await ctx.register_client(registration_data)
 
-        # Registration should succeed without authentication
-        assert response.status_code == HTTP_CREATED
-        client_data = response.json()
-        assert "client_id" in client_data
-        assert "client_secret" in client_data
-        assert client_data["client_name"] == unique_client_name
+            # Registration should succeed without authentication
+            assert "client_id" in client_data
+            assert "client_secret" in client_data
+            assert client_data["client_name"] == unique_client_name
 
-        # Security is enforced at authorization/token stage, not registration
-
-        # Cleanup: Delete the client registration using RFC 7592
-        if "registration_access_token" in client_data:
-            try:
-                delete_response = await http_client.delete(
-                    f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                    headers={
-                        "Authorization": f"Bearer {client_data['registration_access_token']}",  # TODO: Break long line
-                    },
-                )
-                assert delete_response.status_code in (204, 404)
-            except Exception as e:
-                print(f"Warning: Error during client cleanup: {e}")
+            # Security is enforced at authorization/token stage, not registration
+            # Cleanup happens automatically when context manager exits
 
     @pytest.mark.asyncio
     async def test_register_ignores_authorization_headers(self, http_client, _wait_for_services, unique_client_name):

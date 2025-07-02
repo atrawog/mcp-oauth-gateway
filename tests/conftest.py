@@ -363,6 +363,25 @@ async def _cleanup_redis_test_data(request):
 
 
 @pytest.fixture(scope="session", autouse=True)
+async def _cleanup_test_registrations_at_end():
+    """Clean up any test client registrations at the end of the test session."""
+    yield  # Run all tests
+
+    # After all tests complete, clean up any remaining test registrations
+    if _TEST_CLIENT_REGISTRY:
+        print(f"\n\nCleaning up {len(_TEST_CLIENT_REGISTRY)} test client registrations...")
+        async with httpx.AsyncClient(timeout=10.0, verify=True) as client:
+            cleaned = 0
+            for client_data in _TEST_CLIENT_REGISTRY:
+                try:
+                    await cleanup_client_registration(client, client_data)
+                    cleaned += 1
+                except Exception as e:
+                    print(f"Error cleaning up client {client_data.get('client_id')}: {e}")
+            print(f"Cleaned up {cleaned} test client registrations")
+
+
+@pytest.fixture(scope="session", autouse=True)
 async def _ensure_services_ready():
     """Ensure all services are ready before ANY tests run - replaces scripts/check_services_ready.py."""
     print("\n" + "=" * 60)
@@ -761,6 +780,10 @@ def unique_client_name(unique_test_id):
     return f"TEST {unique_test_id}"
 
 
+# Global registry for tracking test client registrations
+_TEST_CLIENT_REGISTRY = []
+
+
 @pytest.fixture
 async def registered_client(http_client: httpx.AsyncClient, _wait_for_services, unique_client_name) -> dict:
     """Register a test OAuth client dynamically - no hardcoded values!
@@ -787,21 +810,14 @@ async def registered_client(http_client: httpx.AsyncClient, _wait_for_services, 
     assert response.status_code == 201, f"Client registration failed: {response.text}"
     client_data = response.json()
 
+    # Track this registration for session cleanup
+    _TEST_CLIENT_REGISTRY.append(client_data)
+
     # Yield the client data for the test to use
     yield client_data
 
     # Cleanup: Delete the client registration using RFC 7592
-    if "registration_access_token" in client_data and "client_id" in client_data:
-        try:
-            delete_response = await http_client.delete(
-                f"{AUTH_BASE_URL}/register/{client_data['client_id']}",
-                headers={"Authorization": f"Bearer {client_data['registration_access_token']}"},
-            )
-            # 204 No Content is success, 404 is okay if already deleted
-            if delete_response.status_code not in (204, 404):
-                print(f"Warning: Failed to delete client {client_data['client_id']}: {delete_response.status_code}")
-        except Exception as e:
-            print(f"Warning: Error during client cleanup: {e}")
+    await cleanup_client_registration(http_client, client_data)
 
 
 @pytest.fixture
@@ -1050,3 +1066,70 @@ def parse_error_response(response_json):
 
     # Fallback
     return "unknown_error", str(response_json)
+
+
+async def cleanup_client_registration(http_client: httpx.AsyncClient, client_data: dict):
+    """Helper function to clean up OAuth client registrations.
+
+    Uses RFC 7592 DELETE endpoint to remove client registration.
+
+    Args:
+        http_client: The HTTP client to use for the request
+        client_data: The client registration data containing client_id and registration_access_token
+    """
+    if not client_data:
+        return
+
+    client_id = client_data.get("client_id")
+    registration_access_token = client_data.get("registration_access_token")
+
+    if client_id and registration_access_token:
+        try:
+            delete_response = await http_client.delete(
+                f"{AUTH_BASE_URL}/register/{client_id}",
+                headers={"Authorization": f"Bearer {registration_access_token}"},
+            )
+            # 204 No Content is success, 404 is okay if already deleted
+            if delete_response.status_code not in (204, 404):
+                print(f"Warning: Failed to delete client {client_id}: {delete_response.status_code}")
+        except Exception as e:
+            print(f"Warning: Error during client cleanup for {client_id}: {e}")
+
+
+class RegisteredClientContext:
+    """Context manager for tests that need to create client registrations directly.
+
+    Ensures proper cleanup of registrations even if the test fails.
+
+    Usage:
+        async with RegisteredClientContext(http_client) as ctx:
+            client_data = await ctx.register_client({...})
+            # Use client_data in test
+            # Cleanup happens automatically
+    """
+
+    def __init__(self, http_client: httpx.AsyncClient):
+        self.http_client = http_client
+        self.registered_clients = []
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        # Clean up all registered clients
+        for client_data in self.registered_clients:
+            await cleanup_client_registration(self.http_client, client_data)
+
+    async def register_client(self, registration_data: dict) -> dict:
+        """Register a client and track it for cleanup."""
+        response = await self.http_client.post(
+            f"{AUTH_BASE_URL}/register",
+            json=registration_data,
+        )
+
+        if response.status_code == 201:
+            client_data = response.json()
+            self.registered_clients.append(client_data)
+            _TEST_CLIENT_REGISTRY.append(client_data)  # Also track globally
+            return client_data
+        raise Exception(f"Client registration failed: {response.status_code} - {response.text}")
