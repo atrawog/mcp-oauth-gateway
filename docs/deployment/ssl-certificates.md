@@ -59,10 +59,7 @@ The gateway comes pre-configured for Let's Encrypt. Essential settings in `.env`
 ```bash
 # Required for Let's Encrypt
 ACME_EMAIL=admin@yourdomain.com
-DOMAIN=mcp.yourdomain.com
-
-# Certificate resolver (don't change)
-CERT_RESOLVER=letsencrypt
+BASE_DOMAIN=yourdomain.com
 
 # Optional: Use staging for testing
 # ACME_CA_SERVER=https://acme-staging-v02.api.letsencrypt.org/directory
@@ -94,8 +91,8 @@ Each service must declare SSL usage via Docker labels:
 labels:
   - "traefik.http.routers.auth.tls=true"
   - "traefik.http.routers.auth.tls.certresolver=letsencrypt"
-  - "traefik.http.routers.auth.tls.domains[0].main=${DOMAIN}"
-  - "traefik.http.routers.auth.tls.domains[0].sans=*.${DOMAIN}"
+  - "traefik.http.routers.auth.tls.domains[0].main=auth.${BASE_DOMAIN}"
+  - "traefik.http.routers.auth.tls.domains[0].sans=*.${BASE_DOMAIN}"
 ```
 
 ## HTTP Challenge (Default)
@@ -208,10 +205,10 @@ volumes:
 Physical location:
 ```bash
 # View certificates
-docker exec mcp-oauth-traefik-1 cat /letsencrypt/acme.json | jq .
+docker exec traefik cat /certificates/acme.json | jq .
 
 # Backup certificates
-docker cp mcp-oauth-traefik-1:/letsencrypt/acme.json ./backup-acme.json
+docker cp traefik:/certificates/acme.json ./backup-acme.json
 ```
 
 ### Permissions
@@ -243,14 +240,14 @@ Traefik handles renewal automatically:
 Force renewal if needed:
 
 ```bash
-# Stop Traefik
-just stop traefik
+# Stop services
+just down
 
 # Remove certificates
-docker exec mcp-oauth-traefik-1 rm /letsencrypt/acme.json
+docker volume rm traefik-certificates
 
-# Restart Traefik (triggers new certificate request)
-just up traefik
+# Restart services (triggers new certificate request)
+just up
 
 # Monitor logs
 just logs -f traefik | grep -i acme
@@ -391,10 +388,10 @@ just exec traefik env | grep CF_
 
 ```yaml
 labels:
-  - "traefik.http.routers.auth.tls.domains[0].main=mcp.domain1.com"
-  - "traefik.http.routers.auth.tls.domains[0].sans=*.mcp.domain1.com"
-  - "traefik.http.routers.auth.tls.domains[1].main=mcp.domain2.com"
-  - "traefik.http.routers.auth.tls.domains[1].sans=*.mcp.domain2.com"
+  - "traefik.http.routers.auth.tls.domains[0].main=auth.domain1.com"
+  - "traefik.http.routers.auth.tls.domains[0].sans=*.domain1.com"
+  - "traefik.http.routers.auth.tls.domains[1].main=auth.domain2.com"
+  - "traefik.http.routers.auth.tls.domains[1].sans=*.domain2.com"
 ```
 
 ### Certificate Per Service
@@ -438,15 +435,15 @@ tls:
 ### Operations
 
 1. **Test in staging first** - Use Let's Encrypt staging
-2. **Monitor rate limits** - Avoid hitting limits
+2. **Check Let's Encrypt limits** - Avoid hitting limits
 3. **Document DNS providers** - For DNS challenges
-4. **Automate monitoring** - Certificate expiry alerts
+4. **Automate checking** - Certificate expiry alerts
 5. **Plan for renewal** - Ensure automation works
 
 ### Development
 
 1. **Use self-signed for local** - Don't waste Let's Encrypt quota
-2. **Test with staging certs** - Full flow without rate limits
+2. **Test with staging certs** - Full flow without hitting production limits
 3. **Mock SSL in tests** - Don't depend on external CAs
 4. **Document SSL requirements** - For each environment
 

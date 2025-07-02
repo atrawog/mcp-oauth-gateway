@@ -40,41 +40,31 @@ All documentation follows the Ten Sacred Commandments:
 ## Deployment Documentation Created
 
 ### 1. Deployment Overview (/deployment/)
-- **index.md**: Main deployment landing page with navigation
-- **prerequisites.md**: System requirements, dependencies, and preparation
-- **quick-start.md**: Get running in under 10 minutes
-- **configuration.md**: Comprehensive environment variable reference
 - **production.md**: Production deployment with security hardening
 - **ssl-certificates.md**: Let's Encrypt and SSL/TLS configuration
-- **monitoring.md**: Observability with Prometheus, Grafana, Loki
 - **troubleshooting.md**: Common issues and debugging techniques
 
 ### 2. Key Features Documented
 
 #### Quick Start Features
-- ✅ Clone and deploy in 8 minutes
-- ✅ Development mode without GitHub OAuth
+- ✅ Clone and deploy in 5 minutes
 - ✅ Just commands for all operations
 - ✅ Docker Compose orchestration
 - ✅ Health check verification
 
 #### Configuration Features
-- ✅ Hierarchical .env structure
+- ✅ Simple .env structure
 - ✅ GitHub OAuth integration
 - ✅ JWT RS256 signing
-- ✅ Redis persistence settings
-- ✅ Rate limiting configuration
+- ✅ Redis password authentication
 - ✅ Security headers via Traefik
 - ✅ MCP protocol version negotiation
 
 #### Production Features
 - ✅ Security hardening checklist
-- ✅ High availability setup
 - ✅ Automated backup scripts
 - ✅ Performance optimization
-- ✅ Monitoring and alerting
-- ✅ Log aggregation
-- ✅ Distributed tracing
+- ✅ Centralized logging in ./logs directory
 
 #### SSL/TLS Features
 - ✅ Automatic Let's Encrypt
@@ -84,13 +74,10 @@ All documentation follows the Ten Sacred Commandments:
 - ✅ Security headers configuration
 - ✅ TLS version enforcement
 
-#### Monitoring Features
-- ✅ Prometheus metrics collection
-- ✅ Grafana dashboard provisioning
-- ✅ Loki log aggregation
-- ✅ Jaeger distributed tracing
-- ✅ AlertManager integration
-- ✅ Custom metrics examples
+#### Health Check Features
+- ✅ Built-in health checks for all services
+- ✅ Protocol-based MCP health verification
+- ✅ Centralized logging for debugging
 
 #### Troubleshooting Coverage
 - ✅ Quick diagnostic commands
@@ -112,11 +99,10 @@ All documented features have been verified in the codebase:
 - ✅ StreamableHTTP protocol implementation
 
 ### Just Commands Documented
-- ✅ Service management (up, down, restart)
+- ✅ Service management (up, down, rebuild)
 - ✅ Configuration generation (JWT, passwords)
-- ✅ Health checking (health-check)
+- ✅ Health checking (check-health)
 - ✅ Log management (logs, logs -f)
-- ✅ Monitoring deployment (monitoring-up)
 - ✅ Backup and restore operations
 
 ### Environment Variables
@@ -151,9 +137,6 @@ All documented features have been verified in the codebase:
 # Build the documentation
 just docs-build
 
-# Serve locally
-just docs-serve
-
 # Or manually
 cd docs
 jupyter-book build .
@@ -166,7 +149,7 @@ This deployment documentation provides:
 - ✅ Complete deployment guide from development to production
 - ✅ All configuration options with examples
 - ✅ Security hardening and best practices
-- ✅ Monitoring and observability setup
+- ✅ Health checks and logging setup
 - ✅ Comprehensive troubleshooting guide
 - ✅ SSL/TLS configuration with Let's Encrypt
 - ✅ Full compliance with CLAUDE.md commandments

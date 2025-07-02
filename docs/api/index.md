@@ -95,18 +95,7 @@ X-Request-ID: {uuid}
 
 ## Rate Limiting
 
-All endpoints subject to rate limiting:
-
-- Default: 100 requests/second per IP
-- Burst: 200 requests
-- OAuth endpoints: Additional per-client limits
-
-Rate limit headers:
-```http
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 95
-X-RateLimit-Reset: 1704153600
-```
+Rate limiting is not currently implemented but can be added via Traefik middleware if needed.
 
 ## Error Responses
 

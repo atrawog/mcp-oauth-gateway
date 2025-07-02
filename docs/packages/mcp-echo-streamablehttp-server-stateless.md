@@ -331,7 +331,7 @@ GET /health
 ### Prometheus Metrics
 
 ```python
-# Exposed metrics
+# Exposed statistics
 mcp_echo_requests_total
 mcp_echo_request_duration_seconds
 mcp_echo_errors_total
@@ -376,7 +376,7 @@ backend echo_stateless
 - Review request body sizes
 
 ### Performance Degradation
-- Check CPU throttling
+- Check CPU usage
 - Verify network latency
 - Review concurrent request limits
 

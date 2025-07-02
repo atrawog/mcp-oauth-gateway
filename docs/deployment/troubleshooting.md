@@ -18,22 +18,22 @@ Before diving deep, run these blessed diagnostics:
 
 ```bash
 # Overall health check
-just health-check
+just check-health
 
 # Service status
-just ps
+just status
 
 # Recent logs
 just logs --since 10m
 
-# Check configuration
-just validate-config
+# Environment configuration
+grep -E 'GITHUB|BASE_DOMAIN|ALLOWED' .env
 
-# Network connectivity
-just check-network
+# Network status
+docker network ls | grep public
 
-# Port availability
-just check-ports
+# Port usage
+netstat -tlnp | grep -E ':(80|443|6379)'
 ```
 
 ## Common Issues
@@ -57,7 +57,7 @@ sudo lsof -i :443
 sudo lsof -i :8000
 
 # Verify environment variables
-just check-env
+just check-tokens
 ```
 
 #### Common Causes & Solutions
@@ -82,7 +82,7 @@ sudo systemctl stop nginx  # or apache2
 ```bash
 # Error: yaml: line 23: found character '\t'
 # Solution: Fix YAML formatting (spaces only!)
-just validate-compose
+docker compose -f docker-compose.includes.yml config
 ```
 
 ### OAuth Authentication Failures
@@ -227,7 +227,7 @@ just logs traefik | grep -i acme
 **Common Fixes**:
 1. Ensure port 80 is accessible for ACME
 2. Verify DNS points to correct IP
-3. Check rate limits not exceeded
+3. Check Let's Encrypt limits not exceeded
 4. Use staging server for testing
 
 ### Performance Issues
@@ -238,13 +238,13 @@ just logs traefik | grep -i acme
 
 ```bash
 # Monitor memory usage
-just stats
+docker stats
 
 # Check for memory leaks
 just exec auth ps aux --sort=-%mem | head
 
 # View memory limits
-docker inspect mcp-oauth-auth-1 | jq '.[0].HostConfig.Memory'
+docker inspect auth | jq '.[0].HostConfig.Memory'
 ```
 
 **Common Fixes**:
@@ -303,9 +303,8 @@ just exec auth redis-cli -a $REDIS_PASSWORD PING
 **Symptom**: Data lost after restart
 
 ```bash
-# Check persistence config
-just exec redis redis-cli CONFIG GET save
-just exec redis redis-cli CONFIG GET appendonly
+# Check Redis info
+just exec redis redis-cli INFO persistence
 
 # Verify data directory
 just exec redis ls -la /data
@@ -327,14 +326,14 @@ LOG_LEVEL=DEBUG just up auth
 
 # Or modify .env
 echo "LOG_LEVEL=DEBUG" >> .env
-just restart auth
+just rebuild auth
 ```
 
 ### Interactive Debugging
 
 ```bash
 # Enter service container
-just shell auth
+just exec auth bash
 
 # Inside container:
 python
@@ -365,7 +364,8 @@ just exec traefik wget -S -O- http://auth:8000/health
 
 ```bash
 # Enable Traefik debug logs
-TRAEFIK_LOG_LEVEL=DEBUG just restart traefik
+echo "TRAEFIK_LOG_LEVEL=DEBUG" >> .env
+just rebuild traefik
 
 # Follow request flow
 just logs -f traefik | grep -E "auth|mcp-fetch"
@@ -380,15 +380,15 @@ just logs | grep test-123
 ### Service Recovery
 
 ```bash
-# Restart individual service
-just restart auth
+# Rebuild individual service
+just rebuild auth
 
 # Restart all services
 just down && just up
 
 # Force recreate
 just down
-just up --force-recreate
+just up
 ```
 
 ### Data Recovery
@@ -397,19 +397,21 @@ just up --force-recreate
 # Backup Redis before recovery
 just exec redis redis-cli BGSAVE
 
-# Restore from backup
-docker cp backup/dump.rdb mcp-oauth-redis-1:/data/dump.rdb
-just restart redis
+# Restore OAuth data from backup
+just oauth-restore
+
+# Or restore specific backup
+just oauth-restore-file oauth-backup-20240101_020000.json
 ```
 
 ### Complete Reset
 
 ```bash
 # Warning: Deletes all data!
-just clean-all
+just down -v
 
 # Start fresh
-just init
+just setup
 just up
 ```
 
@@ -430,14 +432,13 @@ just logs -f | grep -E "ERROR|CRITICAL|FATAL"
 
 ```bash
 # Weekly: Update containers
-just pull
-just up -d
+just rebuild
 
 # Monthly: Clean unused resources
 docker system prune -af
 
 # Quarterly: Review and rotate secrets
-just rotate-secrets
+just generate-all-secrets
 ```
 
 ## Getting Help
@@ -445,21 +446,18 @@ just rotate-secrets
 ### Collect Diagnostics
 
 ```bash
-# Generate diagnostic bundle
-just diagnostic-bundle
-
-# Includes:
-# - Service logs
-# - Configuration (sanitized)
-# - Health check results
-# - Resource usage
+# Collect diagnostic information
+just check-health > diagnostics.txt
+just status >> diagnostics.txt
+just logs --since 1h >> diagnostics.txt
+just oauth-stats >> diagnostics.txt
 ```
 
 ### Reporting Issues
 
 When reporting issues, include:
-1. Output of `just version`
-2. Diagnostic bundle
+1. Output of `just check-health`
+2. Recent logs (`just logs --since 1h`)
 3. Steps to reproduce
 4. Expected vs actual behavior
 5. Any error messages

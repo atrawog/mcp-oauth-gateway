@@ -45,7 +45,7 @@ mcp_echo_streamablehttp_server_stateless/
 2. **printHeader** - Displays all HTTP headers organized by category
 3. **bearerDecode** - Decodes JWT Bearer tokens (no verification)
 4. **authContext** - Complete authentication context analysis
-5. **requestTiming** - Request performance metrics and system stats
+5. **requestTiming** - Request performance timing and system stats
 6. **corsAnalysis** - Analyzes CORS configuration and headers
 7. **environmentDump** - Displays sanitized environment configuration
 8. **healthProbe** - Deep health check with system resource monitoring
@@ -222,7 +222,7 @@ Complete authentication context analysis.
 ```
 
 ### 5. requestTiming
-Performance metrics and timing analysis.
+Performance timing and system analysis.
 
 **Response**:
 ```json
@@ -601,7 +601,7 @@ spec:
 
 ## Future Enhancements
 
-- [ ] Prometheus metrics endpoint
+- [ ] Performance statistics endpoint
 - [ ] OpenTelemetry tracing
 - [ ] WebSocket support
 - [ ] GraphQL introspection tool

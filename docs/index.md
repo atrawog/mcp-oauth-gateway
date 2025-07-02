@@ -30,7 +30,7 @@ The **MCP OAuth Gateway** is a comprehensive OAuth 2.1 compliant gateway for Mod
 - Redis for token and session storage
 - Docker Compose orchestration
 - Health checks for all services
-- Comprehensive logging and monitoring
+- Centralized logging in ./logs directory
 
 ### 🛠️ Developer Experience
 - Blessed trinity of tools: `just`, `pixi`, `docker-compose`
@@ -56,7 +56,7 @@ just generate-jwt-secret
 just up
 
 # Check service health
-just check-services
+just check-health
 ```
 
 ## Documentation Structure

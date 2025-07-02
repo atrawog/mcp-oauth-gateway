@@ -221,7 +221,7 @@ just logs -f auth
 
 # Check everything
 just status
-just check-services
+just check-health
 ```
 
 ### Debugging Services
@@ -258,8 +258,8 @@ docker compose up -d --scale mcp-fetch=3
 
 Services enabled via .env:
 ```bash
-ENABLE_MCP_FETCH=true
-ENABLE_MCP_FILESYSTEM=false
+MCP_FETCH_ENABLED=true
+MCP_FILESYSTEM_ENABLED=false
 # ... etc
 ```
 

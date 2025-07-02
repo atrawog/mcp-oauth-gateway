@@ -131,15 +131,10 @@ All MCP services:
 
 In `.env`:
 ```bash
-# Infrastructure (always enabled)
-ENABLE_TRAEFIK=true
-ENABLE_AUTH=true
-ENABLE_REDIS=true
-
 # MCP Services
-ENABLE_MCP_FETCH=true
-ENABLE_MCP_FILESYSTEM=false
-ENABLE_MCP_MEMORY=true
+MCP_FETCH_ENABLED=true
+MCP_FILESYSTEM_ENABLED=false
+MCP_MEMORY_ENABLED=true
 # ... etc
 ```
 
@@ -170,7 +165,7 @@ just logs -f mcp-fetch
 just up
 
 # Check health
-just check-services
+just check-health
 ```
 
 ### Scaling

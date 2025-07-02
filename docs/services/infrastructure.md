@@ -36,7 +36,7 @@ graph TB
 - 🔒 Provides SSL/TLS termination via Let's Encrypt
 - 🛡️ Enforces authentication via ForwardAuth
 - ⚖️ Load balances across service instances
-- 📊 Monitors service health
+- 📊 Checks service health
 
 **Divine Truth**: Traefik knows routing, nothing else!
 
@@ -152,7 +152,7 @@ volumes:
   auth-keys:           # RSA signing keys
 ```
 
-## Health Monitoring
+## Health Checks
 
 ### Service Health Endpoints
 
@@ -162,7 +162,7 @@ volumes:
 | Auth | `GET /health` | `{"status": "healthy"}` |
 | Redis | `redis-cli ping` | `PONG` |
 
-### Monitoring Commands
+### Health Check Commands
 
 ```bash
 # Check all infrastructure
@@ -280,8 +280,8 @@ just exec redis redis-cli monitor
 ## Best Practices
 
 1. **Regular Backups**: Automate OAuth and Redis backups
-2. **Monitor Health**: Set up alerts for service health
+2. **Check Health**: Verify service health regularly
 3. **Rotate Secrets**: Periodically update passwords and keys
 4. **Update Regularly**: Keep services at latest versions
-5. **Capacity Planning**: Monitor resource usage trends
+5. **Capacity Planning**: Track resource usage trends
 6. **Documentation**: Keep runbooks updated

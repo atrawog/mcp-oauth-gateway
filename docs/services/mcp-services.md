@@ -243,19 +243,9 @@ Require session affinity:
 - "traefik.http.services.service.loadbalancer.sticky.cookie.name=mcp_session"
 ```
 
-## Monitoring
+## Health Checks
 
-### Service Metrics
-
-Common metrics across all services:
-
-- Request count and rate
-- Response time (p50, p95, p99)
-- Error rate and types
-- Active sessions (if stateful)
-- Resource usage (CPU, memory)
-
-### Health Dashboard
+### Service Health Status
 
 ```bash
 # Check all MCP services
@@ -303,7 +293,7 @@ docker exec mcp-fetch curl http://localhost:3000/health
 
 1. **Health Checks**: Every service must have health validation
 2. **Logging**: Centralized logs with rotation
-3. **Monitoring**: Track key metrics
+3. **Health Checks**: Verify service status
 4. **Error Handling**: Graceful degradation
 5. **Resource Limits**: Set appropriate constraints
 6. **Documentation**: Keep service docs updated

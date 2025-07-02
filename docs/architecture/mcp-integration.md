@@ -280,7 +280,7 @@ MCP services receive pre-authenticated requests:
 # They receive headers from ForwardAuth
 @app.post("/mcp")
 async def handle_mcp(request: Request):
-    # Optional: Use auth headers for logging/metrics
+    # Optional: Use auth headers for logging
     user_id = request.headers.get("X-User-Id")
     user_name = request.headers.get("X-User-Name")
 

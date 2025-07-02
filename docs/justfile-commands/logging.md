@@ -249,25 +249,25 @@ Levels (in order):
 - `ERROR` - Error conditions
 - `FATAL` - Critical failures
 
-## Monitoring Integration
+## Log Analysis Tips
 
-### Real-time Monitoring
+### Real-time Analysis
 
 ```bash
 # Watch for errors
 watch 'grep -c ERROR logs/*/*.log'
 
-# Monitor log growth
+# Check log growth
 watch 'du -sh logs/*'
 
 # Track request rate
 tail -f logs/traefik/access.log | grep -c "POST /mcp"
 ```
 
-### Alerting Patterns
+### Error Detection
 
 ```bash
-# Alert on high error rate
+# Check high error rate
 ERROR_COUNT=$(grep -c ERROR logs/auth/app.log)
 if [ $ERROR_COUNT -gt 100 ]; then
     echo "High error rate detected!"
@@ -288,7 +288,7 @@ fi
    just logs-rotation-setup
    ```
 
-3. **Monitoring**
+3. **Log Checking**
    ```bash
    # Follow logs during development
    just logs -f

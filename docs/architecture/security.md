@@ -35,7 +35,7 @@ graph TB
         subgraph "Layer 4: Application"
             VALID[Input Validation]
             SSRF[SSRF Protection]
-            RATE[Rate Limiting]
+            VALID2[Input Sanitization]
         end
     end
 
@@ -269,22 +269,6 @@ def validate_url(url: str):
         raise SecurityError("Private IP not allowed")
 ```
 
-### Rate Limiting
-
-Protection against abuse:
-
-```yaml
-# Traefik rate limit middleware
-rateLimit:
-  average: 100  # requests per second
-  burst: 200    # burst capacity
-  period: 1s
-
-# Per-IP limiting
-ipWhiteList:
-  sourceRange:
-    - "10.0.0.0/8"  # Internal only
-```
 
 ## Data Security
 
@@ -300,8 +284,8 @@ command: redis-server --requirepass ${REDIS_PASSWORD}
 ports:
   - "127.0.0.1:6379:6379"  # Local only
 
-# Persistence
-save: "900 1 300 10 60 10000"
+# Persistence (actual configuration)
+command: redis-server --requirepass ${REDIS_PASSWORD} --save 60 1 --save 300 10 --save 900 100 --appendonly yes
 ```
 
 ### Token Storage
@@ -462,7 +446,7 @@ just run revoke_client_tokens client_abc123
    just generate-rsa-keys
    ```
 
-3. **Security Monitoring**
+3. **Security Auditing**
    - Failed authentication attempts
    - Unusual token usage patterns
    - Service availability
@@ -499,7 +483,6 @@ Before deployment:
 - [ ] JWT secrets generated and secured
 - [ ] GitHub OAuth app configured correctly
 - [ ] User allowlist populated
-- [ ] Rate limiting configured
 - [ ] Logging enabled
 - [ ] Backup strategy in place
 - [ ] Incident response plan ready

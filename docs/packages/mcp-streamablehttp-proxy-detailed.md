@@ -569,7 +569,7 @@ netstat -an | grep 3000
 
 1. **One Proxy per Server Type**: Don't mix different MCP servers
 2. **Resource Limits**: Set memory/CPU limits in production
-3. **Monitoring**: Implement health checks and metrics
+3. **Health Checks**: Implement health endpoints
 4. **Logging**: Centralize logs for debugging
 5. **Security**: Always use authentication middleware
 6. **Updates**: Keep both proxy and MCP servers updated
@@ -614,9 +614,9 @@ async def request_interceptor(session_id: str, request: dict):
 ## Future Enhancements
 
 - [ ] Configurable per-request timeouts
-- [ ] Request queuing and rate limiting
+- [ ] Request queuing and throttling
 - [ ] Session pooling for identical servers
 - [ ] WebSocket support for streaming
 - [ ] Built-in authentication plugins
-- [ ] Prometheus metrics endpoint
+- [ ] Performance statistics endpoint
 - [ ] Session persistence across restarts

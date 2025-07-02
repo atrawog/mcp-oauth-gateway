@@ -149,7 +149,6 @@ just generate-middlewares
 
 # Creates middlewares from templates:
 # - mcp-auth.yml (ForwardAuth)
-# - rate-limit.yml
 # - secure-headers.yml
 ```
 

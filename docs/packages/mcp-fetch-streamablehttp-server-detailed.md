@@ -785,7 +785,7 @@ python -m mcp_fetch_streamablehttp_server
 - [ ] Playwright integration for JavaScript sites
 - [ ] Streaming response support
 - [ ] Content caching layer
-- [ ] Request queuing and rate limiting
+- [ ] Request queuing and throttling
 - [ ] Custom security rule configuration
 - [ ] Webhook support for async fetching
 - [ ] Content extraction tools

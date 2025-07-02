@@ -77,8 +77,8 @@ GITHUB_CLIENT_ID=xxx
 GITHUB_CLIENT_SECRET=xxx
 
 # Service enablement
-ENABLE_MCP_FETCH=true
-ENABLE_MCP_FILESYSTEM=true
+MCP_FETCH_ENABLED=true
+MCP_FILESYSTEM_ENABLED=true
 ```
 
 ## Architectural Patterns

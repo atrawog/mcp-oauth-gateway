@@ -1,6 +1,6 @@
 # Production Deployment
 
-This guide covers deploying the MCP OAuth Gateway to production environments with security hardening, high availability, and monitoring.
+This guide covers deploying the MCP OAuth Gateway to production environments with security hardening and high availability.
 
 ```{admonition} Production Sacred Laws
 :class: important
@@ -17,14 +17,12 @@ Before deploying to production, ensure:
 - [ ] SSL certificates (Let's Encrypt)
 - [ ] Firewall configured
 - [ ] Backup storage available
-- [ ] Monitoring infrastructure
 
 ### Configuration Complete ✅
 - [ ] Production `.env` file created
 - [ ] All secrets generated (not default values!)
 - [ ] GitHub OAuth app configured for production
 - [ ] Access control lists defined
-- [ ] Rate limits configured
 
 ### Security Hardened ✅
 - [ ] No default passwords
@@ -96,6 +94,9 @@ sudo chown -R $USER:$USER .
 
 # Install Just command runner
 curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash
+
+# Install Pixi package manager
+curl -fsSL https://pixi.sh/install.sh | bash
 ```
 
 ## Production Configuration
@@ -112,9 +113,7 @@ Production `.env` template:
 
 ```bash
 # Core Settings
-COMPOSE_PROJECT_NAME=mcp-oauth-prod
-DOMAIN=mcp.yourdomain.com
-ENVIRONMENT=production
+BASE_DOMAIN=mcp.yourdomain.com
 
 # Auth Service - Production GitHub OAuth
 GITHUB_CLIENT_ID=prod_github_client_id
@@ -126,35 +125,29 @@ REDIS_PASSWORD=$(openssl rand -base64 64)
 
 # Access Control - Specific users only
 ALLOWED_GITHUB_USERS=admin1,admin2,admin3
-# Optional: Organization restrictions
-# ALLOWED_GITHUB_ORGS=mycompany
-# ALLOWED_GITHUB_TEAMS=mycompany/platform-team
+# Or allow any authenticated GitHub user with:
+# ALLOWED_GITHUB_USERS=*
 
 # Client Configuration
-CLIENT_LIFETIME=2592000  # 30 days for production
-JWT_EXPIRY=3600         # 1 hour tokens
+CLIENT_LIFETIME=7776000  # 90 days (0 = eternal)
 
-# Redis - Production settings
-REDIS_SAVE_INTERVALS="900 1 300 10 60 10000"
-REDIS_APPENDONLY=yes
-REDIS_MAXMEMORY=2gb
-REDIS_MAXMEMORY_POLICY=allkeys-lru
+# Token Lifetimes (defaults from .env.example)
+ACCESS_TOKEN_LIFETIME=86400      # 24 hours
+REFRESH_TOKEN_LIFETIME=2592000   # 30 days
+SESSION_TIMEOUT=3600             # 1 hour
 
-# Traefik - Production TLS
+# Email for Let's Encrypt certificates
 ACME_EMAIL=admin@yourdomain.com
-TRAEFIK_LOG_LEVEL=WARN
-TRAEFIK_DASHBOARD=false  # Disable in production!
 
-# Rate Limiting - Production limits
-RATE_LIMIT_AVERAGE=50
-RATE_LIMIT_BURST=100
-OAUTH_RATE_LIMIT_REGISTER=5/hour
-OAUTH_RATE_LIMIT_TOKEN=60/hour
+# MCP Protocol Version
+MCP_PROTOCOL_VERSION=2025-06-18
 
-# Monitoring
-ENABLE_METRICS=true
-ENABLE_TRACING=true
-LOG_LEVEL=INFO
+# Enable production MCP services as needed
+MCP_FETCH_ENABLED=true
+MCP_FILESYSTEM_ENABLED=true
+MCP_MEMORY_ENABLED=true
+MCP_TIME_ENABLED=true
+# Add other MCP_*_ENABLED as required
 ```
 
 ### Security Configuration
@@ -207,11 +200,16 @@ EOF
 # Use production env file
 cp .env.production .env
 
-# Create networks and volumes
-just init
+# Initial setup (creates networks and volumes)
+just setup
 
-# Pull all images first
-just pull
+# Install Python dependencies via Pixi
+pixi install
+
+# Generate all required secrets
+just generate-jwt-secret
+just generate-rsa-keys
+just generate-redis-password
 ```
 
 ### Step 2: Deploy Services
@@ -223,18 +221,18 @@ just up -d
 # Monitor deployment
 just logs -f
 
-# Wait for services to be healthy
-just wait-healthy
+# Check service health
+just check-health
 ```
 
 ### Step 3: Verify Deployment
 
 ```bash
-# Check all services are running
-just ps
+# Check service status
+just status
 
 # Verify health endpoints
-just health-check-all
+just check-health
 
 # Test OAuth metadata
 curl https://mcp.yourdomain.com/.well-known/oauth-authorization-server
@@ -250,42 +248,31 @@ echo | openssl s_client -connect mcp.yourdomain.com:443 2>/dev/null | openssl x5
 Ensure Redis data survives restarts:
 
 ```bash
-# Verify Redis persistence
-just exec redis redis-cli CONFIG GET save
-just exec redis redis-cli CONFIG GET appendonly
+# Create OAuth data backup
+just oauth-backup
 
-# Create Redis backup
-just backup-redis
+# List available backups
+just oauth-backup-list
+
+# Restore from backup if needed
+just oauth-restore
 ```
 
 ### Service Health Monitoring
 
-Configure external monitoring:
+The gateway provides built-in health checks:
 
-```yaml
-# monitoring/docker-compose.yml
-services:
-  prometheus:
-    image: prom/prometheus:latest
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-    networks:
-      - internal
+```bash
+# Check all services
+just check-health
 
-  grafana:
-    image: grafana/grafana:latest
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
-    volumes:
-      - grafana-data:/var/lib/grafana
-    networks:
-      - internal
-      - public
+# Monitor service status
+just status
+
+# View logs
+just logs -f
 ```
+
 
 ### Backup Strategy
 
@@ -394,68 +381,8 @@ entryPoints:
     http:
       middlewares:
         - security-headers@file
-        - rate-limit@file
 ```
 
-## Monitoring and Alerting
-
-### Set Up Monitoring Stack
-
-```bash
-# Deploy monitoring
-just monitoring-up
-
-# Configure alerts
-cat > monitoring/alerts.yml << 'EOF'
-groups:
-  - name: mcp-oauth
-    rules:
-      - alert: ServiceDown
-        expr: up{job="mcp-oauth"} == 0
-        for: 5m
-        annotations:
-          summary: "Service {{ $labels.instance }} is down"
-
-      - alert: HighMemoryUsage
-        expr: container_memory_usage_bytes{name=~"mcp-oauth.*"} > 1e9
-        for: 10m
-        annotations:
-          summary: "High memory usage in {{ $labels.name }}"
-
-      - alert: HighErrorRate
-        expr: rate(traefik_backend_requests_total{code=~"5.."}[5m]) > 0.05
-        for: 5m
-        annotations:
-          summary: "High error rate on {{ $labels.backend }}"
-EOF
-```
-
-### Log Aggregation
-
-```bash
-# Set up centralized logging
-cat > docker-compose.logging.yml << 'EOF'
-services:
-  loki:
-    image: grafana/loki:latest
-    volumes:
-      - ./loki-config.yml:/etc/loki/loki-config.yml
-      - loki-data:/loki
-    command: -config.file=/etc/loki/loki-config.yml
-    networks:
-      - internal
-
-  promtail:
-    image: grafana/promtail:latest
-    volumes:
-      - ./promtail-config.yml:/etc/promtail/promtail-config.yml
-      - /var/log:/var/log:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-    command: -config.file=/etc/promtail/promtail-config.yml
-    networks:
-      - internal
-EOF
-```
 
 ## Post-Deployment Tasks
 
@@ -528,9 +455,11 @@ just down
 ### Regular Tasks
 
 ```bash
-# Weekly: Update containers
-just pull
-just up -d
+# Weekly: Rebuild and update containers
+just rebuild
+
+# Or update specific services
+just rebuild auth mcp-fetch
 
 # Monthly: Security updates
 sudo apt update && sudo apt upgrade -y
@@ -544,10 +473,15 @@ just exec traefik cat /letsencrypt/acme.json | jq '.letsencrypt.Certificates[].d
 
 When traffic grows:
 
-1. **Horizontal Scaling**: Add more auth service replicas
-2. **Redis Clustering**: Implement Redis Sentinel
-3. **Load Balancing**: Add external load balancer
-4. **CDN**: Serve static assets via CDN
+```{admonition} Future Considerations
+:class: note
+The following are potential scaling strategies not currently implemented:
+```
+
+1. **Horizontal Scaling**: Would require adding service replicas and load balancing
+2. **Redis Clustering**: Would require implementing Redis Sentinel or Cluster
+3. **Load Balancing**: Would require external load balancer configuration
+4. **CDN**: Would require serving static assets through a CDN
 
 ## Production Checklist Summary
 
@@ -556,8 +490,8 @@ Before going live:
 - [ ] All services healthy
 - [ ] SSL certificates valid
 - [ ] Backups automated
-- [ ] Monitoring active
-- [ ] Alerts configured
+- [ ] Health checks passing
+- [ ] Logs being collected
 - [ ] Security scanned
 - [ ] Performance tested
 - [ ] Runbook created

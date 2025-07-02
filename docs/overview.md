@@ -148,8 +148,8 @@ CLIENT_LIFETIME=7776000  # 90 days, or 0 for eternal
 
 # MCP Configuration
 MCP_PROTOCOL_VERSION=2025-06-18
-ENABLE_MCP_FETCH=true
-ENABLE_MCP_FILESYSTEM=true
+MCP_FETCH_ENABLED=true
+MCP_FILESYSTEM_ENABLED=true
 # ... other services
 
 # Access Control
@@ -168,7 +168,7 @@ The blessed trinity of tools:
 just up              # Start all services
 just test            # Run tests
 just logs -f auth    # Follow auth logs
-just check-services  # Verify health
+just check-health    # Verify health
 ```
 
 ## Next Steps

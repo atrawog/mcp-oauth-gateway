@@ -355,12 +355,3 @@ OAuth errors follow RFC 6749 format:
 | `unauthorized_client` | Client not authorized for grant type |
 | `unsupported_grant_type` | Grant type not supported |
 | `invalid_scope` | Requested scope invalid or exceeds granted |
-
-## Rate Limiting
-
-OAuth endpoints have specific rate limits:
-
-- `/authorize`: 20 requests/minute per IP
-- `/token`: 60 requests/minute per client
-- `/revoke`: 30 requests/minute per client
-- `/introspect`: 100 requests/minute per client

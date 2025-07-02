@@ -347,13 +347,6 @@ labels:
   - "traefik.http.services.service.loadbalancer.server.port=3000"
 ```
 
-### With Monitoring
-```yaml
-# Prometheus metrics
-- "prometheus.io/scrape=true"
-- "prometheus.io/port=3000"
-- "prometheus.io/path=/metrics"
-```
 
 ### With Logging
 ```yaml

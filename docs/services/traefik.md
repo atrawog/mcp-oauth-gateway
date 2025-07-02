@@ -10,7 +10,6 @@ Traefik serves as the gateway's entry point, implementing:
 - Automatic SSL/TLS via Let's Encrypt
 - ForwardAuth middleware for authentication
 - Priority-based routing rules
-- Health monitoring
 - Load balancing
 
 ## Architecture
@@ -263,7 +262,7 @@ services:
           name: mcp_session
 ```
 
-## Health Monitoring
+## Health Checks
 
 ### Traefik Health
 
@@ -277,7 +276,7 @@ curl https://traefik.${BASE_DOMAIN}/api/http/routers
 
 ### Service Health
 
-Traefik monitors backend health:
+Traefik checks backend health:
 ```yaml
 services:
   service:
@@ -328,16 +327,6 @@ http:
         browserXssFilter: true
 ```
 
-### Rate Limiting
-
-```yaml
-http:
-  middlewares:
-    rate-limit:
-      rateLimit:
-        average: 100
-        burst: 50
-```
 
 ### IP Whitelisting
 
@@ -404,23 +393,7 @@ transport:
   maxResponseHeaderBytes: 1048576
 ```
 
-## Monitoring Integration
-
-### Prometheus Metrics
-
-```yaml
-metrics:
-  prometheus:
-    addEntryPointsLabels: true
-    addServicesLabels: true
-    buckets:
-      - 0.1
-      - 0.3
-      - 1.2
-      - 5.0
-```
-
-### Access Log Analysis
+## Access Log Analysis
 
 ```bash
 # Top requested paths
@@ -434,7 +407,6 @@ cat logs/traefik/access.log | jq -r '.duration' | sort -n
 
 1. **Use Priority Rules**: Prevent routing conflicts
 2. **Enable Access Logs**: For debugging and analytics
-3. **Monitor Certificates**: Set up renewal alerts
+3. **Check Certificates**: Verify renewal status
 4. **Health Checks**: Configure for all backends
 5. **Secure Headers**: Apply security middleware
-6. **Rate Limiting**: Protect against abuse

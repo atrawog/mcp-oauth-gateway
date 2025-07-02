@@ -259,7 +259,7 @@ oauth:token:{jti} = {
 oauth:user_tokens:{username} = ["jti1", "jti2", ...]
 ```
 
-## Health Monitoring
+## Health Check
 
 ### Health Endpoint
 
@@ -273,14 +273,6 @@ GET /health
   "uptime": 3600
 }
 ```
-
-### Monitoring Metrics
-
-- Active client registrations
-- Token generation rate
-- Authentication success/failure rate
-- GitHub API rate limit status
-- Redis connection status
 
 ## Security Features
 
@@ -349,16 +341,6 @@ The auth service integrates with MCP services via Traefik's ForwardAuth:
 
 ## Maintenance
 
-### Backup Client Data
-```bash
-just oauth-backup
-```
-
-### Clean Expired Tokens
-```bash
-just oauth-purge-expired
-```
-
 ### View Active Clients
 ```bash
 just oauth-list-registrations
@@ -367,4 +349,14 @@ just oauth-list-registrations
 ### Monitor Token Usage
 ```bash
 just oauth-stats
+```
+
+### Clean Expired Tokens
+```bash
+just oauth-purge-expired
+```
+
+### Backup OAuth Data
+```bash
+just oauth-backup
 ```

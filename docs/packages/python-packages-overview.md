@@ -146,7 +146,7 @@ mcp-streamablehttp-proxy npx @modelcontextprotocol/server-memory
 3. `printHeader` - Display HTTP headers
 4. `bearerDecode` - Decode JWT tokens
 5. `authContext` - OAuth context analysis
-6. `requestTiming` - Performance metrics
+6. `requestTiming` - Performance timing
 7. `corsAnalysis` - CORS configuration
 8. `environmentDump` - Sanitized env vars
 9. `healthProbe` - Deep health check
@@ -175,7 +175,7 @@ mcp-streamablehttp-proxy npx @modelcontextprotocol/server-memory
 2. `printHeader` - HTTP header analysis
 3. `bearerDecode` - JWT debugging
 4. `authContext` - Auth context display
-5. `requestTiming` - Request metrics
+5. `requestTiming` - Request timing
 6. `corsAnalysis` - CORS headers
 7. `environmentDump` - Config display
 8. `healthProbe` - System health

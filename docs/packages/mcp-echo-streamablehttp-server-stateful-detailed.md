@@ -52,7 +52,7 @@ mcp_echo_streamablehttp_server_stateful/
 3. **printHeader** - Display all HTTP headers categorized
 4. **bearerDecode** - Decode JWT tokens without verification
 5. **authContext** - Show complete OAuth authentication context
-6. **requestTiming** - Display request performance metrics
+6. **requestTiming** - Display request performance statistics
 7. **corsAnalysis** - Analyze CORS configuration
 8. **environmentDump** - Show sanitized environment config
 9. **healthProbe** - Deep health check with session statistics

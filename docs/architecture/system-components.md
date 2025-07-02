@@ -115,7 +115,7 @@ middlewares:
 - Stateless design enables horizontal scaling
 - Shared certificate storage via volume
 - Configuration via Docker labels
-- Health monitoring built-in
+- Health checks built-in
 
 ## Layer 2: Auth Service (OAuth Oracle)
 
@@ -366,17 +366,9 @@ volumes:
   logs:                # Rotated
 ```
 
-## Monitoring Integration
+## Logging Structure
 
-### Metrics Collection
-
-Each component exposes metrics:
-- Request count
-- Response time
-- Error rate
-- Resource usage
-
-### Log Aggregation
+### Log Organization
 
 Centralized logging structure:
 ```
@@ -390,9 +382,8 @@ logs/
     └── service.log
 ```
 
-### Alerting Points
+### Critical Check Points
 
-Critical monitoring points:
 - SSL certificate expiry
 - Redis memory usage
 - Auth service errors
