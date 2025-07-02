@@ -115,6 +115,14 @@ lint:
     @echo "5️⃣ Running ALL other pre-commit hooks..."
     pixi run pre-commit run --all-files
     @echo ""
+    @echo "6️⃣ Checking STAGED files (as git commit would)..."
+    @if git diff --cached --quiet; then \
+        echo "✅ No staged files to check"; \
+    else \
+        echo "🔍 Checking staged files for commit readiness..."; \
+        pixi run pre-commit run || (echo "" && echo "⚠️  STAGED FILES HAVE ISSUES! ⚠️" && echo "🔴 Fix the issues above and re-stage the files!" && echo "" && exit 1); \
+    fi
+    @echo ""
     @echo "🏆 ALL QUALITY CHECKS COMPLETED! Divine compliance achieved! ⚡"
 
 # Quick lint - just run ruff check (for fast feedback)

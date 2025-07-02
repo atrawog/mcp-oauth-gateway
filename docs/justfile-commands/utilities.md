@@ -264,27 +264,20 @@ just generate-rsa-keys
 just generate-redis-password
 ```
 
-## PyPI Package Utilities
+## PyPI Package Management
 
-### Package Building
+For comprehensive PyPI package management commands, see [pypi.md](pypi.md).
 
-```bash
-# Build specific package
-just pypi-build mcp-oauth-dynamicclient
-
-# Build all packages
-just pypi-build all
-```
-
-### Package Testing
-
-```bash
-# Test specific package
-just pypi-test mcp-streamablehttp-proxy
-
-# Test all packages
-just pypi-test all
-```
+Available commands include:
+- `pypi-build` - Build packages
+- `pypi-test` - Test packages
+- `pypi-check` - Validate packages
+- `pypi-upload-test` - Upload to TestPyPI
+- `pypi-upload` - Upload to PyPI
+- `pypi-publish-test` - Full TestPyPI workflow
+- `pypi-publish` - Full PyPI workflow
+- `pypi-clean` - Clean build artifacts
+- `pypi-info` - Show package information
 
 ## Initial Setup
 
@@ -300,6 +293,17 @@ just setup
 # 3. Pixi installation
 # 4. Displays next steps
 ```
+
+## Documentation
+
+### Build Documentation
+
+```bash
+# Build documentation with Jupyter Book
+just docs-build
+```
+
+Builds the documentation in the `docs/` directory using Jupyter Book. The output will be generated in `docs/_build/html/`.
 
 ## Analysis Tools
 

@@ -73,6 +73,15 @@ just down --volumes
 just down --volumes --remove-orphans
 ```
 
+### `remove-orphans` - Clean Orphan Containers
+
+```bash
+# Remove orphan containers
+just remove-orphans
+```
+
+Removes containers that were created by compose but are no longer defined in the current configuration.
+
 ### `rebuild` - No-Cache Rebuild
 
 ```bash

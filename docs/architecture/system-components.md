@@ -1,4 +1,4 @@
-# System Components Architecture
+# Components Architecture
 
 Detailed architecture of the three sacred layers that compose the MCP OAuth Gateway.
 
@@ -325,36 +325,6 @@ Components handle SIGTERM:
 2. Complete in-flight requests
 3. Close connections cleanly
 4. Exit with status 0
-
-## Resource Management
-
-### CPU Allocation
-
-```yaml
-# High priority services
-traefik:
-  cpus: '2'
-auth:
-  cpus: '1'
-
-# Standard services
-mcp-service:
-  cpus: '0.5'
-```
-
-### Memory Limits
-
-```yaml
-# Infrastructure
-redis:
-  memory: 1G
-auth:
-  memory: 512M
-
-# MCP Services
-mcp-service:
-  memory: 256M
-```
 
 ### Storage Volumes
 
