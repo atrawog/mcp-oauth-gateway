@@ -100,23 +100,67 @@ lint:
     @echo "🔥 Running Divine Code Quality Checks ⚡"
     @echo "========================================"
     @echo ""
-    @echo "1️⃣ Running ALL Pre-commit Hooks..."
+    @echo "1️⃣ First Pass: Checking for ALL issues (including those that need manual fixes)..."
+    -pixi run ruff check . --exit-non-zero-on-fix
+    @echo ""
+    @echo "2️⃣ Second Pass: Applying automatic fixes..."
+    pixi run ruff check . --fix
+    @echo ""
+    @echo "3️⃣ Third Pass: Checking for remaining issues that need MANUAL fixes..."
+    pixi run ruff check . --no-fix || (echo "" && echo "⚠️  ⚠️  ⚠️  ATTENTION REQUIRED ⚠️  ⚠️  ⚠️" && echo "🔴 There are linting errors that need MANUAL fixes!" && echo "🔴 Please fix the errors shown above before proceeding." && echo "" && exit 1)
+    @echo ""
+    @echo "4️⃣ Running code formatter..."
+    pixi run ruff format .
+    @echo ""
+    @echo "5️⃣ Running ALL other pre-commit hooks..."
     pixi run pre-commit run --all-files
-    @echo "✅ All pre-commit hooks passed!"
     @echo ""
     @echo "🏆 ALL QUALITY CHECKS COMPLETED! Divine compliance achieved! ⚡"
 
 # Quick lint - just run ruff check (for fast feedback)
 lint-quick:
-    pixi run pre-commit run ruff --all-files
+    pixi run ruff check . --no-fix
 
-# Fix linting issues automatically
+# Show only issues that need MANUAL fixes (cannot be auto-fixed)
+lint-manual:
+    @echo "🔍 Checking for issues that need MANUAL fixes..."
+    @echo "=================================================="
+    @pixi run ruff check . --fix --diff > /tmp/ruff-fixes.diff 2>&1 || true
+    @pixi run ruff check . --no-fix 2>&1 | grep -E "^[^:]+:[0-9]+:[0-9]+:" || (echo "✅ No manual fixes needed!" && exit 0)
+    @echo ""
+    @echo "⚠️  The above errors need MANUAL fixes!"
+    @echo "💡 Tip: Read the error messages carefully and fix them in your editor."
+
+# Fix linting issues automatically (only auto-fixable ones)
 lint-fix:
-    pixi run pre-commit run ruff --all-files
+    @echo "🔧 Applying automatic fixes..."
+    pixi run ruff check . --fix
+    pixi run ruff format .
+    @echo "✅ Auto-fixes applied! Run 'just lint' to check for remaining issues."
 
 # Format code with divine standards
 format:
     pixi run pre-commit run ruff-format --all-files
+
+# Show help for linting commands
+lint-help:
+    @echo "📚 Divine Linting Commands Guide ⚡"
+    @echo "================================"
+    @echo ""
+    @echo "🔥 just lint         - Full divine quality check with clear error reporting"
+    @echo "                     Shows ALL issues including those needing manual fixes"
+    @echo "                     Auto-fixes what it can, then shows remaining issues"
+    @echo "                     ⚠️  EXITS WITH ERROR if manual fixes are needed!"
+    @echo ""
+    @echo "🏃 just lint-quick   - Fast check without auto-fixing (read-only)"
+    @echo ""
+    @echo "🔍 just lint-manual  - Show ONLY issues that need manual fixes"
+    @echo ""
+    @echo "🔧 just lint-fix     - Apply all automatic fixes"
+    @echo ""
+    @echo "🎨 just format       - Format code with divine standards"
+    @echo ""
+    @echo "💡 Pro tip: Always use 'just lint' before committing!"
 
 # Check code formatting without making changes
 format-check:

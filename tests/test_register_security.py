@@ -201,7 +201,7 @@ class TestRegisterEndpointSecurity:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_multiple_clients_can_register_publicly(self, http_client, _wait_for_services):
+    async def test_multiple_clients_can_register_publicly(self, http_client, _wait_for_services, unique_test_id):
         """Test that multiple clients can register without authentication."""
         # Register multiple clients to verify public registration works
         clients = []
@@ -209,7 +209,7 @@ class TestRegisterEndpointSecurity:
         for i in range(3):
             registration_data = {
                 "redirect_uris": [f"https://client{i}.example.com/callback"],
-                "client_name": f"TEST test_multiple_clients_can_register_publicly_{i}",
+                "client_name": f"TEST {unique_test_id}_{i}",
                 "scope": "openid profile email",
             }
 
@@ -220,7 +220,7 @@ class TestRegisterEndpointSecurity:
             client_data = response.json()
             assert "client_id" in client_data
             assert "client_secret" in client_data
-            assert client_data["client_name"] == f"TEST test_multiple_clients_can_register_publicly_{i}"
+            assert client_data["client_name"] == f"TEST {unique_test_id}_{i}"
             clients.append(client_data)
 
         # Ensure all clients have unique IDs

@@ -14,7 +14,6 @@ import pytest
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import HTTP_BAD_REQUEST
-from .test_constants import HTTP_CREATED
 from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import MCP_ECHO_STATELESS_URL
@@ -25,13 +24,15 @@ class TestClaudeIntegration:
     """Test the complete Claude.ai integration flow."""
 
     @pytest.mark.asyncio
-    async def test_claude_nine_sacred_steps(self, http_client, _wait_for_services):
+    async def test_claude_nine_sacred_steps(self, http_client, _wait_for_services, unique_client_name):
         """Test the Nine Sacred Steps of Claude.ai Connection."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
 
-        client_creds = None
-        try:
+        # Use RegisteredClientContext for proper cleanup
+        from .conftest import RegisteredClientContext
+
+        async with RegisteredClientContext(http_client) as ctx:
             # Step 1: First Contact - Claude.ai attempts /mcp
             response = await http_client.post(
                 MCP_ECHO_STATELESS_URL,
@@ -64,7 +65,7 @@ class TestClaudeIntegration:
             # Step 4: Registration Miracle - POSTs to /register
             registration_data = {
                 "redirect_uris": ["https://claude.ai/oauth/callback"],
-                "client_name": "TEST test_claude_nine_sacred_steps",
+                "client_name": unique_client_name,
                 "client_uri": "https://claude.ai",
                 "scope": "mcp:access",
                 "grant_types": ["authorization_code", "refresh_token"],
@@ -72,15 +73,10 @@ class TestClaudeIntegration:
                 "token_endpoint_auth_method": "client_secret_post",
             }
 
-            reg_response = await http_client.post(
-                f"{AUTH_BASE_URL}/register",
-                json=registration_data,
-                headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},
-            )
+            # Use context manager for registration and automatic cleanup
+            client_creds = await ctx.register_client(registration_data)
 
             # Step 5: Client Blessing - Receives credentials
-            assert reg_response.status_code == HTTP_CREATED
-            client_creds = reg_response.json()
             assert "client_id" in client_creds
             assert "client_secret" in client_creds
             # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
@@ -131,24 +127,6 @@ class TestClaudeIntegration:
 
             # For testing, verify the flow would continue correctly
             assert True  # Flow verified up to GitHub auth
-
-        finally:
-            # Clean up the created client using RFC 7592 DELETE
-            if client_creds and "registration_access_token" in client_creds and "client_id" in client_creds:
-                try:
-                    delete_response = await http_client.delete(
-                        f"{AUTH_BASE_URL}/register/{client_creds['client_id']}",
-                        headers={
-                            "Authorization": f"Bearer {client_creds['registration_access_token']}",  # TODO: Break long line
-                        },
-                    )
-                    # 204 No Content is success, 404 is okay if already deleted
-                    if delete_response.status_code not in (204, 404):
-                        print(
-                            f"Warning: Failed to delete client {client_creds['client_id']}: {delete_response.status_code}",  # TODO: Break long line
-                        )
-                except Exception as e:
-                    print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
     async def test_claude_auth_discovery_flow(self, http_client, _wait_for_services):

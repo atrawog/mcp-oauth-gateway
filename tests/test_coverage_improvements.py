@@ -34,8 +34,6 @@ from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import JWT_PRIVATE_KEY_B64
 from .test_constants import REDIS_URL
-from .test_constants import TEST_CLIENT_NAME
-from .test_constants import TEST_OAUTH_CALLBACK_URL
 
 
 class TestAuthAuthlibErrorHandling:
@@ -220,17 +218,10 @@ class TestRoutesErrorHandling:
         # Error details are now in the redirect URL parameters
 
     @pytest.mark.asyncio
-    async def test_callback_github_error(self, http_client, _wait_for_services):
+    async def test_callback_github_error(self, http_client, _wait_for_services, registered_client):
         """Test callback endpoint with GitHub error."""
-        # First create a valid state by registering a client and starting auth flow
-        client_response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json={
-                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
-                "client_name": TEST_CLIENT_NAME,
-            },
-        )
-        client_data = client_response.json()
+        # Use registered_client fixture which provides unique name and handles cleanup
+        client_data = registered_client
 
         auth_response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
@@ -443,17 +434,10 @@ class TestRFC7592ErrorHandling:
         assert "Client not found" in response.text
 
     @pytest.mark.asyncio
-    async def test_update_client_invalid_token(self, http_client, _wait_for_services):
+    async def test_update_client_invalid_token(self, http_client, _wait_for_services, registered_client):
         """Test updating client with invalid registration token."""
-        # First register a client
-        client_response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json={
-                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
-                "client_name": TEST_CLIENT_NAME,
-            },
-        )
-        client_data = client_response.json()
+        # Use registered_client fixture which provides unique name and handles cleanup
+        client_data = registered_client
 
         # Try to update with wrong token
         response = await http_client.put(
@@ -477,17 +461,10 @@ class TestRFC7592ErrorHandling:
         assert "Client not found" in response.text
 
     @pytest.mark.asyncio
-    async def test_get_client_with_expired_secret(self, http_client, _wait_for_services):
+    async def test_get_client_with_expired_secret(self, http_client, _wait_for_services, registered_client):
         """Test getting client with expired secret check."""
-        # Register a client
-        client_response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json={
-                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
-                "client_name": TEST_CLIENT_NAME,
-            },
-        )
-        client_data = client_response.json()
+        # Use registered_client fixture which provides unique name and handles cleanup
+        client_data = registered_client
 
         # Get client info
         response = await http_client.get(
@@ -552,17 +529,10 @@ class TestEdgeCasesAndBranches:
         assert json_response["error"] == "invalid_grant"
 
     @pytest.mark.asyncio
-    async def test_authorize_with_unsupported_response_type(self, http_client, _wait_for_services):
+    async def test_authorize_with_unsupported_response_type(self, http_client, _wait_for_services, registered_client):
         """Test authorize with unsupported response type."""
-        # Register a client first
-        client_response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json={
-                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
-                "client_name": TEST_CLIENT_NAME,
-            },
-        )
-        client_data = client_response.json()
+        # Use registered_client fixture which provides unique name and handles cleanup
+        client_data = registered_client
 
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
@@ -576,19 +546,10 @@ class TestEdgeCasesAndBranches:
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
     @pytest.mark.asyncio
-    async def test_concurrent_token_operations(self, http_client, _wait_for_services):
+    async def test_concurrent_token_operations(self, http_client, _wait_for_services, registered_client):
         """Test concurrent token operations don't cause race conditions."""
-        # Register a client
-        client_response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json={
-                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
-                "client_name": f"{TEST_CLIENT_NAME}_concurrent",
-                "grant_types": ["authorization_code"],
-                "response_types": ["code"],
-            },
-        )
-        client_data = client_response.json()
+        # Use registered_client fixture which provides unique name and handles cleanup
+        client_data = registered_client
 
         # Create multiple authorization requests concurrently
         async def get_auth_code():

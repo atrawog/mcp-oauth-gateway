@@ -75,17 +75,16 @@ class TestMCPOAuthDynamicClientPackage:
         print("✅ OAuth metadata endpoint working correctly")
 
     @pytest.mark.asyncio
-    async def test_dynamic_client_registration_rfc7591(self, http_client: httpx.AsyncClient, _wait_for_services):
+    async def test_dynamic_client_registration_rfc7591(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name
+    ):
         """Test RFC 7591 dynamic client registration functionality."""
         # MUST have OAuth access token for registration
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
 
-        # Create unique client name for this test
-        client_name = "TEST test_dynamic_client_registration_rfc7591"
-
         registration_data = {
             "redirect_uris": [TEST_OAUTH_CALLBACK_URL, "https://example.com/callback2"],
-            "client_name": client_name,
+            "client_name": unique_client_name,
             "scope": "openid profile email",
             "grant_types": ["authorization_code", "refresh_token"],
             "response_types": ["code"],
@@ -118,7 +117,7 @@ class TestMCPOAuthDynamicClientPackage:
             created_at = client_data.get("client_id_issued_at")
             expected_expiry = created_at + client_lifetime
             assert abs(client_data["client_secret_expires_at"] - expected_expiry) <= 5
-        assert client_data["client_name"] == client_name
+        assert client_data["client_name"] == unique_client_name
         assert set(client_data["redirect_uris"]) == set(registration_data["redirect_uris"])
         assert client_data["scope"] == "openid profile email"
 
@@ -130,7 +129,7 @@ class TestMCPOAuthDynamicClientPackage:
             assert stored_client is not None
 
             stored_data = json.loads(stored_client)
-            assert stored_data["client_name"] == client_name
+            assert stored_data["client_name"] == unique_client_name
             assert stored_data["client_secret"] == client_data["client_secret"]
 
             print("✅ Dynamic client registration working correctly")
@@ -156,14 +155,16 @@ class TestMCPOAuthDynamicClientPackage:
         return client_data  # Return for use in other tests
 
     @pytest.mark.asyncio
-    async def test_client_registration_validation(self, http_client: httpx.AsyncClient, _wait_for_services):
+    async def test_client_registration_validation(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name
+    ):
         """Test client registration validation rules."""
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available"
 
         # Test 1: Missing required field (redirect_uris)
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json={"client_name": "TEST test_client_registration_validation"},
+            json={"client_name": f"{unique_client_name}_missing_redirect_uris"},
             headers={
                 "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
                 "Content-Type": "application/json",
@@ -181,7 +182,7 @@ class TestMCPOAuthDynamicClientPackage:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": ["not-a-valid-uri"],
-                "client_name": "TEST test_client_registration_validation_invalid_uri",
+                "client_name": f"{unique_client_name}_invalid_uri",
             },
             headers={
                 "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
@@ -204,7 +205,7 @@ class TestMCPOAuthDynamicClientPackage:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [],
-                "client_name": "TEST test_client_registration_validation_empty_uris",
+                "client_name": f"{unique_client_name}_empty_uris",
             },
             headers={
                 "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
@@ -224,16 +225,14 @@ class TestMCPOAuthDynamicClientPackage:
         self,
         http_client: httpx.AsyncClient,
         _wait_for_services,
+        unique_client_name,
     ):
         """Test authorization endpoint with a dynamically registered client."""
-        # First register a client
-        client_name = "TEST test_authorization_endpoint_with_registered_client"
-
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
-                "client_name": client_name,
+                "client_name": unique_client_name,
                 "scope": TEST_CLIENT_SCOPE,
             },
             headers={
@@ -313,14 +312,11 @@ class TestMCPOAuthDynamicClientPackage:
         print("✅ Token endpoint error handling working correctly")
 
     @pytest.mark.asyncio
-    async def test_redis_integration(self, http_client: httpx.AsyncClient, _wait_for_services):
+    async def test_redis_integration(self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name):
         """Test that mcp-oauth-dynamicclient correctly integrates with Redis."""
-        # Register a client
-        client_name = "TEST test_redis_integration"
-
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
-            json={"redirect_uris": [TEST_OAUTH_CALLBACK_URL], "client_name": client_name},
+            json={"redirect_uris": [TEST_OAUTH_CALLBACK_URL], "client_name": unique_client_name},
             headers={
                 "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
                 "Content-Type": "application/json",
@@ -343,7 +339,7 @@ class TestMCPOAuthDynamicClientPackage:
 
             client_info = json.loads(stored_data)
             assert client_info["client_id"] == client["client_id"]
-            assert client_info["client_name"] == client_name
+            assert client_info["client_name"] == unique_client_name
 
             # Check TTL based on CLIENT_LIFETIME setting
             ttl = await redis_client.ttl(client_key)
@@ -376,14 +372,14 @@ class TestMCPOAuthDynamicClientPackage:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_pkce_support(self, http_client: httpx.AsyncClient, _wait_for_services):
+    async def test_pkce_support(self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name):
         """Test PKCE (RFC 7636) support in the auth service."""
         # Register a client
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
-                "client_name": "TEST test_pkce_support",
+                "client_name": unique_client_name,
             },
             headers={
                 "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
@@ -454,7 +450,9 @@ class TestMCPOAuthDynamicClientPackage:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_concurrent_client_registrations(self, http_client: httpx.AsyncClient, _wait_for_services):
+    async def test_concurrent_client_registrations(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test that multiple clients can register concurrently."""
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available"
 
@@ -466,7 +464,7 @@ class TestMCPOAuthDynamicClientPackage:
                 f"{AUTH_BASE_URL}/register",
                 json={
                     "redirect_uris": [f"https://example{index}.com/callback"],
-                    "client_name": f"TEST test_concurrent_client_registrations_{index}",
+                    "client_name": f"TEST {unique_test_id}_concurrent_{index}",
                     "scope": "openid profile",
                 },
                 headers={
@@ -517,25 +515,10 @@ class TestMCPOAuthDynamicClientPackage:
                     print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_invalid_grant_types(self, http_client: httpx.AsyncClient, _wait_for_services):
+    async def test_invalid_grant_types(self, http_client: httpx.AsyncClient, _wait_for_services, registered_client):
         """Test handling of unsupported grant types."""
-        # First register a client
-        registration_response = await http_client.post(
-            f"{AUTH_BASE_URL}/register",
-            json={
-                "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
-                "client_name": "TEST test_invalid_grant_types",
-            },
-            headers={
-                "Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}",
-                "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream",
-            },
-            timeout=30.0,
-        )
-
-        assert registration_response.status_code == HTTP_CREATED
-        client = registration_response.json()
+        # Use registered_client fixture which provides unique name and handles cleanup
+        client = registered_client
 
         # Try unsupported grant types
         unsupported_grants = ["password", "client_credentials", "implicit"]
@@ -578,19 +561,18 @@ class TestMCPOAuthDynamicClientIntegration:
     """Integration tests for mcp-oauth-dynamicclient with the full system."""
 
     @pytest.mark.asyncio
-    async def test_full_oauth_flow_with_mcp_client(self, http_client: httpx.AsyncClient, _wait_for_services):
+    async def test_full_oauth_flow_with_mcp_client(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name
+    ):
         """Test complete OAuth flow using MCP client tokens."""
         # Use MCP_CLIENT_ACCESS_TOKEN for registration
         assert MCP_CLIENT_ACCESS_TOKEN, "MCP_CLIENT_ACCESS_TOKEN not available"
-
-        # Register a new client
-        client_name = "TEST test_full_oauth_flow_with_mcp_client"
 
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
-                "client_name": client_name,
+                "client_name": unique_client_name,
                 "scope": "read write",
             },
             headers={
@@ -624,7 +606,9 @@ class TestMCPOAuthDynamicClientIntegration:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_auth_service_handles_invalid_tokens(self, http_client: httpx.AsyncClient, _wait_for_services):
+    async def test_auth_service_handles_invalid_tokens(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name
+    ):
         """Test auth service properly rejects invalid tokens."""
         # The /register endpoint may be public (no auth required) per RFC 7591
         # Try registration with invalid token
@@ -632,7 +616,7 @@ class TestMCPOAuthDynamicClientIntegration:
             f"{AUTH_BASE_URL}/register",
             json={
                 "redirect_uris": [TEST_OAUTH_CALLBACK_URL],
-                "client_name": "TEST test_auth_service_handles_invalid_tokens",
+                "client_name": unique_client_name,
             },
             headers={"Authorization": "Bearer invalid_token_12345"},
             timeout=30.0,

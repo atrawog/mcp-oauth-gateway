@@ -20,7 +20,6 @@ from .test_constants import HTTP_OK
 from .test_constants import HTTP_UNAUTHORIZED
 from .test_constants import HTTP_UNPROCESSABLE_ENTITY
 from .test_constants import REDIS_URL
-from .test_constants import TEST_CLIENT_NAME
 from .test_constants import TEST_OAUTH_CALLBACK_URL
 
 
@@ -70,7 +69,7 @@ class TestClientRegistrationErrors:
     """Test client registration error scenarios - Line 327."""
 
     @pytest.mark.asyncio
-    async def test_registration_with_invalid_data(self, http_client, _wait_for_services):
+    async def test_registration_with_invalid_data(self, http_client, _wait_for_services, unique_client_name):
         """Test various registration error conditions."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
@@ -82,7 +81,7 @@ class TestClientRegistrationErrors:
         response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
             json={
-                "client_name": TEST_CLIENT_NAME,
+                "client_name": unique_client_name,
                 # Missing redirect_uris
             },
             headers={"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"},

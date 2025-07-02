@@ -44,7 +44,7 @@ class TestOAuthFlow:
         assert "authorization_code" in metadata["grant_types_supported"]
 
     @pytest.mark.asyncio
-    async def test_client_registration_rfc7591(self, http_client, _wait_for_services):
+    async def test_client_registration_rfc7591(self, http_client, _wait_for_services, unique_client_name):
         """Test dynamic client registration per RFC 7591."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
@@ -56,7 +56,7 @@ class TestOAuthFlow:
             # Test successful registration
             registration_data = {
                 "redirect_uris": ["https://example.com/callback"],
-                "client_name": "TEST test_client_registration_rfc7591",
+                "client_name": unique_client_name,
                 "client_uri": "https://example.com",
                 "scope": "openid profile",
                 "contacts": ["admin@example.com"],
@@ -91,7 +91,7 @@ class TestOAuthFlow:
             assert client["client_uri"] == registration_data["client_uri"]
 
             # Test missing redirect_uris (with proper authentication)
-            invalid_data = {"client_name": "TEST test_client_registration_rfc7591_invalid"}
+            invalid_data = {"client_name": f"{unique_client_name}_invalid"}
             response = await http_client.post(
                 f"{AUTH_BASE_URL}/register",
                 json=invalid_data,

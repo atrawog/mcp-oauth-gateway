@@ -42,13 +42,13 @@ class TestCoverageGaps:
         assert "registration_endpoint" in data
 
     @pytest.mark.asyncio
-    async def test_client_registration_missing_redirect_uris(self, http_client, _wait_for_services):
+    async def test_client_registration_missing_redirect_uris(self, http_client, _wait_for_services, unique_client_name):
         """Test client registration without redirect_uris (line 172)."""
         # MUST have OAuth access token - test FAILS if not available
         assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
 
         registration_data = {
-            "client_name": "TEST test_client_registration_missing_redirect_uris",
+            "client_name": unique_client_name,
             "scope": "openid profile email",
             # Deliberately missing redirect_uris
         }
