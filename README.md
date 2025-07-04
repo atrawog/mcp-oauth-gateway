@@ -2,7 +2,7 @@
 
 An OAuth 2.1 Authorization Server that adds authentication to any MCP (Model Context Protocol) server without code modification. The gateway acts as an OAuth Authorization Server while using GitHub as the Identity Provider (IdP) for user authentication.
 
-📖 **[View Documentation](https://atrawog.github.io/mcp-oauth-gateway)** | 🔧 **[Installation Guide](https://atrawog.github.io/mcp-oauth-gateway/installation/quick-start.html)** | 🏗️ **[Architecture Overview](https://atrawog.github.io/mcp-oauth-gateway/architecture.html)**
+📖 **[View Documentation](https://atrawog.github.io/mcp-oauth-gateway)** | 🔧 **[Installation Guide](https://atrawog.github.io/mcp-oauth-gateway/quick-install.html)** | 🏗️ **[Architecture Overview](https://atrawog.github.io/mcp-oauth-gateway/architecture/index.html)**
 
 ## ⚠️ Important Notice
 
@@ -287,10 +287,11 @@ The gateway implementation combines client credential authentication with GitHub
 ```
 
 🔑 **ARCHITECTURAL PRINCIPLES:**
-• `client_id` + `client_secret` establish OAuth client identity (e.g., Claude.ai application)
-• GitHub OAuth provides user identity federation and authentication
-• The resultant `access_token` JWT encapsulates both client and user identity claims
-• `registration_access_token` is scoped exclusively to client lifecycle management operations
+
+- `client_id` + `client_secret` establish OAuth client identity (e.g., Claude.ai application)
+- GitHub OAuth provides user identity federation and authentication
+- The resultant `access_token` JWT encapsulates both client and user identity claims
+- `registration_access_token` is scoped exclusively to client lifecycle management operations
 
 ### OAuth Roles
 
@@ -314,6 +315,45 @@ The gateway implementation combines client credential authentication with GitHub
    - Protected by OAuth without any code changes
    - Receive pre-authenticated requests with user identity in headers
    - Support various protocol versions based on implementation
+
+## 🚀 Try It Out - Public Test Servers
+
+Before setting up your own gateway, you can test the OAuth flow and MCP integration using my publicly available test servers:
+
+### Available Test Servers
+
+- **Echo Stateless**: https://echo-stateless.atratest.org/mcp
+  - Simple echo service without session state
+  - Each request is independent
+  - Perfect for testing basic OAuth flow and MCP protocol
+  - [📖 View Echo Stateless Documentation](https://atrawog.github.io/mcp-oauth-gateway/packages/mcp-echo-streamablehttp-server-stateless.html)
+
+- **Echo Stateful**: https://echo-stateful.atratest.org/mcp
+  - Echo service with session state management
+  - Includes `replayLastEcho` tool to test stateful operations
+  - Demonstrates session persistence across requests
+  - [📖 View Echo Stateful Documentation](https://atrawog.github.io/mcp-oauth-gateway/packages/mcp-echo-streamablehttp-server-stateful.html)
+
+### How to Use
+
+These servers are configured to accept **any GitHub user** for authentication:
+
+1. **Make a request** to either test server endpoint
+2. **Receive 401 Unauthorized** with OAuth discovery information
+3. **Complete OAuth flow** using your GitHub account
+4. **Access granted** - Use the bearer token for subsequent MCP requests
+
+The test servers implement the full OAuth 2.1 + MCP 2025-06-18 integration:
+- Dynamic client registration (RFC 7591)
+- GitHub OAuth for user authentication
+- PKCE protection for security
+- StreamableHTTP transport for MCP protocol
+
+These servers are ideal for:
+- Testing MCP client implementations
+- Understanding the OAuth flow
+- Validating integration before deployment
+- Educational purposes and demos
 
 ## 📋 Requirements
 
@@ -565,12 +605,3 @@ TEST_HTTP_TIMEOUT=30.0
 TEST_MAX_RETRIES=3
 TEST_RETRY_DELAY=1.0
 ```
-
-### Managing Services
-
-#
-### Environment File Best Practices
-
-1. **Never commit `.env`** - It contains secrets!
-2. **Use strong passwords** - Especially for REDIS_PASSWORD
-3. **Backup your `.env`
