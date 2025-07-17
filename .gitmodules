@@ -1,0 +1,3 @@
+[submodule "mcp-streamablehttp-client"]
+	path = mcp-streamablehttp-client
+	url = git@github.com:atrawog/mcp-streamablehttp-client.git
