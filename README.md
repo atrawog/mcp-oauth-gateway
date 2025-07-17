@@ -387,14 +387,28 @@ You'll need to create a GitHub OAuth App that serves **two distinct purposes**:
    - Uses device flow (no browser redirect)
    - Initiated by `just generate-github-token`
 
+## 📁 Repository Structure
+
+This repository uses Git submodules for better modularity:
+
+- **mcp-streamablehttp-client** - OAuth-enabled stdio-to-HTTP bridge client (submodule)
+  - Repository: https://github.com/atrawog/mcp-streamablehttp-client
+  - Used for: Testing and as a reference client implementation
+  - PyPI package: `mcp-streamablehttp-client`
+
+All other packages are maintained directly in this repository.
+
 ## 🚀 Installation
 
 ### 1. Clone and Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/atrawog/mcp-oauth-gateway.git
+# Clone the repository with submodules
+git clone --recurse-submodules https://github.com/atrawog/mcp-oauth-gateway.git
 cd mcp-oauth-gateway
+
+# If you already cloned without submodules, initialize them
+git submodule update --init --recursive
 
 # Install dependencies with pixi
 pixi install

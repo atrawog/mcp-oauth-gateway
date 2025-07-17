@@ -808,9 +808,21 @@ oauth-backup-view-file filename:
 
 # PyPI Package Management - The Sacred Publishing Commandments!
 
+# Initialize git submodules
+submodule-init:
+    echo "🔄 Initializing git submodules..."
+    git submodule update --init --recursive
+    echo "✅ Submodules initialized"
+
 # Build a specific Python package (or all packages)
 pypi-build package="all":
     #!/usr/bin/env bash
+    # Ensure submodules are initialized
+    if [ ! -f "mcp-streamablehttp-client/pyproject.toml" ]; then
+        echo "🔄 Initializing submodules..."
+        git submodule update --init --recursive
+    fi
+    
     packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless mcp-echo-streamablehttp-server-stateful)
 
     if [ "{{package}}" = "all" ]; then
@@ -835,6 +847,12 @@ pypi-build package="all":
 # Test a specific Python package (or all packages)
 pypi-test package="all":
     #!/usr/bin/env bash
+    # Ensure submodules are initialized
+    if [ ! -f "mcp-streamablehttp-client/pyproject.toml" ]; then
+        echo "🔄 Initializing submodules..."
+        git submodule update --init --recursive
+    fi
+    
     packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless mcp-echo-streamablehttp-server-stateful)
 
     if [ "{{package}}" = "all" ]; then
