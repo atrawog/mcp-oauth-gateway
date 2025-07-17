@@ -32,8 +32,8 @@ docs-build = { cmd = "jupyter-book build docs/", depends-on = ["docs-clean"] }
 dev-auth = "cd auth && uvicorn main:app --reload --host 0.0.0.0 --port 8000"
 
 # MCP client installation - using proper pixi commands
-install-mcp-client = "pixi add --editable ./mcp-streamablehttp-client"
-install-mcp-fetch-native = "pixi add --editable ./mcp-fetch-streamablehttp-server"
+install-mcp-client = "pixi add --pypi --editable ./mcp-streamablehttp-client"
+install-mcp-fetch-native = "pixi add --pypi --editable ./mcp-fetch-streamablehttp-server"
 
 [dependencies]
 # Python runtime from conda-forge
