@@ -1,3 +1,18 @@
 [submodule "mcp-streamablehttp-client"]
 	path = mcp-streamablehttp-client
 	url = git@github.com:atrawog/mcp-streamablehttp-client.git
+[submodule "mcp-echo-streamablehttp-server-stateful"]
+	path = mcp-echo-streamablehttp-server-stateful
+	url = git@github.com:atrawog/mcp-echo-streamablehttp-server-stateful.git
+[submodule "mcp-echo-streamablehttp-server-stateless"]
+	path = mcp-echo-streamablehttp-server-stateless
+	url = git@github.com:atrawog/mcp-echo-streamablehttp-server-stateless.git
+[submodule "mcp-fetch-streamablehttp-server"]
+	path = mcp-fetch-streamablehttp-server
+	url = git@github.com:atrawog/mcp-fetch-streamablehttp-server.git
+[submodule "mcp-oauth-dynamicclient"]
+	path = mcp-oauth-dynamicclient
+	url = git@github.com:atrawog/mcp-oauth-dynamicclient.git
+[submodule "mcp-streamablehttp-proxy"]
+	path = mcp-streamablehttp-proxy
+	url = git@github.com:atrawog/mcp-streamablehttp-proxy.git
