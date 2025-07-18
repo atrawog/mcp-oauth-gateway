@@ -818,7 +818,15 @@ submodule-init:
 pypi-build package="all":
     #!/usr/bin/env bash
     # Ensure submodules are initialized
-    if [ ! -f "mcp-streamablehttp-client/pyproject.toml" ]; then
+    submodule_missing=false
+    for pkg in mcp-streamablehttp-client mcp-echo-streamablehttp-server-stateful mcp-echo-streamablehttp-server-stateless mcp-fetch-streamablehttp-server mcp-oauth-dynamicclient mcp-streamablehttp-proxy; do
+        if [ ! -f "$pkg/pyproject.toml" ]; then
+            submodule_missing=true
+            break
+        fi
+    done
+    
+    if [ "$submodule_missing" = true ]; then
         echo "🔄 Initializing submodules..."
         git submodule update --init --recursive
     fi
@@ -848,7 +856,15 @@ pypi-build package="all":
 pypi-test package="all":
     #!/usr/bin/env bash
     # Ensure submodules are initialized
-    if [ ! -f "mcp-streamablehttp-client/pyproject.toml" ]; then
+    submodule_missing=false
+    for pkg in mcp-streamablehttp-client mcp-echo-streamablehttp-server-stateful mcp-echo-streamablehttp-server-stateless mcp-fetch-streamablehttp-server mcp-oauth-dynamicclient mcp-streamablehttp-proxy; do
+        if [ ! -f "$pkg/pyproject.toml" ]; then
+            submodule_missing=true
+            break
+        fi
+    done
+    
+    if [ "$submodule_missing" = true ]; then
         echo "🔄 Initializing submodules..."
         git submodule update --init --recursive
     fi

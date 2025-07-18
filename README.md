@@ -389,14 +389,48 @@ You'll need to create a GitHub OAuth App that serves **two distinct purposes**:
 
 ## 📁 Repository Structure
 
-This repository uses Git submodules for better modularity:
+This repository uses Git submodules for better modularity. All Python packages are maintained as submodules:
 
-- **mcp-streamablehttp-client** - OAuth-enabled stdio-to-HTTP bridge client (submodule)
+### Submodule Packages
+
+- **mcp-streamablehttp-client** - OAuth-enabled stdio-to-HTTP bridge client
   - Repository: https://github.com/atrawog/mcp-streamablehttp-client
-  - Used for: Testing and as a reference client implementation
-  - PyPI package: `mcp-streamablehttp-client`
+  - PyPI: `mcp-streamablehttp-client`
+  - Purpose: Client library for connecting to MCP servers via StreamableHTTP
 
-All other packages are maintained directly in this repository.
+- **mcp-streamablehttp-proxy** - Stdio to StreamableHTTP proxy server
+  - Repository: https://github.com/atrawog/mcp-streamablehttp-proxy
+  - PyPI: `mcp-streamablehttp-proxy`
+  - Purpose: Wraps stdio-based MCP servers to expose them via HTTP
+
+- **mcp-oauth-dynamicclient** - OAuth 2.0 dynamic client registration
+  - Repository: https://github.com/atrawog/mcp-oauth-dynamicclient
+  - PyPI: `mcp-oauth-dynamicclient`
+  - Purpose: RFC 7591/7592 compliant OAuth server implementation
+
+- **mcp-fetch-streamablehttp-server** - Native fetch server
+  - Repository: https://github.com/atrawog/mcp-fetch-streamablehttp-server
+  - PyPI: `mcp-fetch-streamablehttp-server`
+  - Purpose: Native Python MCP server for web content fetching
+
+- **mcp-echo-streamablehttp-server-stateful** - Stateful echo server
+  - Repository: https://github.com/atrawog/mcp-echo-streamablehttp-server-stateful
+  - PyPI: `mcp-echo-streamablehttp-server-stateful`
+  - Purpose: Diagnostic MCP server with session state management
+
+- **mcp-echo-streamablehttp-server-stateless** - Stateless echo server
+  - Repository: https://github.com/atrawog/mcp-echo-streamablehttp-server-stateless
+  - PyPI: `mcp-echo-streamablehttp-server-stateless`
+  - Purpose: Diagnostic MCP server without state management
+
+### Main Repository Components
+
+- **auth/** - OAuth authorization server implementation
+- **traefik/** - Reverse proxy configuration and routing
+- **mcp-* service directories** - Docker configurations for MCP services
+- **tests/** - Comprehensive test suite
+- **docs/** - Jupyter Book documentation
+- **scripts/** - Utility and automation scripts
 
 ## 🚀 Installation
 

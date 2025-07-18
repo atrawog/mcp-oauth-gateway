@@ -31,9 +31,13 @@ docs-build = { cmd = "jupyter-book build docs/", depends-on = ["docs-clean"] }
 # Development server (for testing auth service locally)
 dev-auth = "cd auth && uvicorn main:app --reload --host 0.0.0.0 --port 8000"
 
-# MCP client installation - using proper pixi commands
+# MCP package installation - using proper pixi commands
 install-mcp-client = "pixi add --pypi --editable ./mcp-streamablehttp-client"
 install-mcp-fetch-native = "pixi add --pypi --editable ./mcp-fetch-streamablehttp-server"
+install-mcp-echo-stateful = "pixi add --pypi --editable ./mcp-echo-streamablehttp-server-stateful"
+install-mcp-echo-stateless = "pixi add --pypi --editable ./mcp-echo-streamablehttp-server-stateless"
+install-mcp-oauth-client = "pixi add --pypi --editable ./mcp-oauth-dynamicclient"
+install-mcp-proxy = "pixi add --pypi --editable ./mcp-streamablehttp-proxy"
 
 [dependencies]
 # Python runtime from conda-forge
