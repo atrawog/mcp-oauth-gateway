@@ -113,10 +113,10 @@ class TestMCPPlaywrightIntegration:
 
     def test_playwright_service_health(self, mcp_playwright_url, mcp_client_token, _wait_for_services, unique_test_id):
         """Test playwright service health using MCP protocol per divine CLAUDE.md."""
-        import requests
+        import httpx
 
         # First verify that /health requires authentication
-        response = requests.get(f"{mcp_playwright_url}/health", timeout=10)
+        response = httpx.get(f"{mcp_playwright_url}/health", timeout=10)
         assert response.status_code == HTTP_UNAUTHORIZED, (
             "/health endpoint must require authentication per divine CLAUDE.md"
         )
@@ -147,17 +147,13 @@ class TestMCPPlaywrightIntegration:
         if not MCP_PLAYWRIGHT_TESTS_ENABLED:
             pytest.skip("MCP Playwright tests are disabled. Set MCP_PLAYWRIGHT_TESTS_ENABLED=true to enable.")
 
-        import requests
-        import urllib3
+        import httpx
 
         from tests.test_constants import BASE_DOMAIN
 
-        # Suppress SSL warnings for test environment
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
         # Use base domain for OAuth discovery, not the /mcp endpoint
         oauth_discovery_url = f"https://playwright.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
-        response = requests.get(oauth_discovery_url, timeout=10, verify=True)
+        response = httpx.get(oauth_discovery_url, timeout=10)
         assert response.status_code == HTTP_OK
 
         oauth_config = response.json()
@@ -445,10 +441,10 @@ class TestMCPPlaywrightIntegration:
 
     def test_playwright_authentication_required(self, mcp_playwright_url, unique_test_id):
         """Test that MCP endpoint requires authentication."""
-        import requests
+        import httpx
 
         # Test without token
-        response = requests.post(
+        response = httpx.post(
             f"{mcp_playwright_url}",
             json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
             timeout=30.0,

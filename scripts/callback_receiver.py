@@ -6,8 +6,11 @@ This runs on localhost to capture the authorization code.
 
 import asyncio
 
-from aiohttp import web
-from aiohttp import web_runner
+import uvicorn
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse
+from starlette.routing import Route
 
 
 class CallbackReceiver:
@@ -16,48 +19,37 @@ class CallbackReceiver:
         self.auth_code = None
         self.state = None
         self.error = None
+        self._server: uvicorn.Server | None = None
 
-    async def callback_handler(self, request):
+    async def callback_handler(self, request: Request) -> PlainTextResponse:
         """Handle OAuth callback."""
-        query_params = dict(request.query)
+        query_params = dict(request.query_params)
 
         if "error" in query_params:
             self.error = query_params["error"]
             error_description = query_params.get("error_description", "")
-            return web.Response(
-                text=f"❌ OAuth Error: {self.error}\n{error_description}\n\nYou can close this window.",
-                content_type="text/plain",
+            return PlainTextResponse(
+                f"❌ OAuth Error: {self.error}\n{error_description}\n\nYou can close this window."
             )
 
         if "code" in query_params:
             self.auth_code = query_params["code"]
             self.state = query_params.get("state")
-
-            return web.Response(
-                text=f"✅ Authorization code received!\n\nCode: {self.auth_code}\n\nYou can close this window.",
-                content_type="text/plain",
+            return PlainTextResponse(
+                f"✅ Authorization code received!\n\nCode: {self.auth_code}\n\nYou can close this window."
             )
 
-        return web.Response(
-            text="❌ No authorization code received\n\nYou can close this window.",
-            content_type="text/plain",
-        )
+        return PlainTextResponse("❌ No authorization code received\n\nYou can close this window.")
 
-    async def start_server(self):
+    async def start_server(self) -> None:
         """Start the callback receiver server."""
-        app = web.Application()
-        app.router.add_get("/callback", self.callback_handler)
-
-        runner = web_runner.AppRunner(app)
-        await runner.setup()
-
-        site = web_runner.TCPSite(runner, "localhost", self.port)
-        await site.start()
-
+        app = Starlette(routes=[Route("/callback", self.callback_handler)])
+        config = uvicorn.Config(app, host="localhost", port=self.port, log_level="warning")
+        self._server = uvicorn.Server(config)
+        asyncio.create_task(self._server.serve())
         print(f"🔗 Callback receiver started on http://localhost:{self.port}/callback")
-        return runner
 
-    async def wait_for_callback(self, timeout=300):
+    async def wait_for_callback(self, timeout: int = 300) -> str:
         """Wait for OAuth callback."""
         print("⏳ Waiting for OAuth callback...")
 
@@ -66,9 +58,11 @@ class CallbackReceiver:
                 break
             await asyncio.sleep(1)
 
+        if self._server:
+            self._server.should_exit = True
+
         if self.error:
             raise Exception(f"OAuth error: {self.error}")
-
         if not self.auth_code:
             raise Exception("Timeout waiting for OAuth callback")
 
@@ -78,14 +72,14 @@ class CallbackReceiver:
 async def main():
     """Test the callback receiver."""
     receiver = CallbackReceiver()
-    runner = await receiver.start_server()
+    await receiver.start_server()
 
     try:
         print("Visit: http://localhost:8080/callback?code=test_code&state=test_state")
         auth_code = await receiver.wait_for_callback(30)
         print(f"Received code: {auth_code}")
-    finally:
-        await runner.cleanup()
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 if __name__ == "__main__":

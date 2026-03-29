@@ -8,13 +8,15 @@ import sys
 from pathlib import Path
 
 
+# Import shared utility function
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils import save_env_var
+
+
 ENV_FILE = Path(__file__).parent.parent / ".env"
 
 
-def save_env_var(key: str, value: str):
-    """Save or update an environment variable in .env file."""
-    lines = []
-    found = False
+
 
     if ENV_FILE.exists():
         with open(ENV_FILE) as f:
@@ -86,7 +88,7 @@ def run_oauth_flow():
     if env_vars:
         print(f"\n📝 Saving {len(env_vars)} MCP client variables to .env...")
         for key, value in env_vars.items():
-            save_env_var(key, value)
+            save_env_var(key, value, ENV_FILE)
             print(f"   ✅ Saved {key}")
         print("\n✅ MCP client credentials saved to .env!")
         return 0

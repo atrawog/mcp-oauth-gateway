@@ -371,48 +371,54 @@ You'll need to create a GitHub OAuth App that serves **two distinct purposes**:
 
 ## 📁 Repository Structure
 
-This repository uses Git submodules for better modularity. All Python packages are maintained as submodules:
+This repository uses Git submodules for modularity. Published Python packages are maintained as submodules; shared local libraries live directly in the repo. See [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) for a full breakdown.
+
+**Stats:** 6 submodules · 19 MCP service directories · 87 test files · 158 utility scripts
 
 ### Submodule Packages
 
-- **mcp-streamablehttp-client** - OAuth-enabled stdio-to-HTTP bridge client
-  - Repository: https://github.com/atrawog/mcp-streamablehttp-client
-  - PyPI: `mcp-streamablehttp-client`
-  - Purpose: Client library for connecting to MCP servers via StreamableHTTP
+| Submodule | PyPI Package | Purpose |
+|-----------|-------------|---------|
+| `mcp-oauth-dynamicclient/` | mcp-oauth-dynamicclient | RFC 7591/7592 OAuth server |
+| `mcp-streamablehttp-proxy/` | mcp-streamablehttp-proxy | Stdio → HTTP/SSE bridge |
+| `mcp-streamablehttp-client/` | mcp-streamablehttp-client | HTTP/SSE → stdio client |
+| `mcp-fetch-streamablehttp-server/` | mcp-fetch-streamablehttp-server | Native Python fetch server |
+| `mcp-echo-streamablehttp-server-stateful/` | mcp-echo-streamablehttp-server-stateful | Diagnostic echo (stateful) |
+| `mcp-echo-streamablehttp-server-stateless/` | mcp-echo-streamablehttp-server-stateless | Diagnostic echo (stateless) |
 
-- **mcp-streamablehttp-proxy** - Stdio to StreamableHTTP proxy server
-  - Repository: https://github.com/atrawog/mcp-streamablehttp-proxy
-  - PyPI: `mcp-streamablehttp-proxy`
-  - Purpose: Wraps stdio-based MCP servers to expose them via HTTP
+### Local Packages
 
-- **mcp-oauth-dynamicclient** - OAuth 2.0 dynamic client registration
-  - Repository: https://github.com/atrawog/mcp-oauth-dynamicclient
-  - PyPI: `mcp-oauth-dynamicclient`
-  - Purpose: RFC 7591/7592 compliant OAuth server implementation
+- **mcp-echo-base/** - Shared abstract base class for echo servers (Template Method pattern)
+  - Not a submodule — lives directly in this repo
+  - Eliminates ~400 lines of duplication between stateful/stateless echo servers
+  - Provides `MCPEchoServerBase` with concrete HTTP/SSE handling; subclasses implement 6 abstract methods
 
-- **mcp-fetch-streamablehttp-server** - Native fetch server
-  - Repository: https://github.com/atrawog/mcp-fetch-streamablehttp-server
-  - PyPI: `mcp-fetch-streamablehttp-server`
-  - Purpose: Native Python MCP server for web content fetching
+### Core Infrastructure
 
-- **mcp-echo-streamablehttp-server-stateful** - Stateful echo server
-  - Repository: https://github.com/atrawog/mcp-echo-streamablehttp-server-stateful
-  - PyPI: `mcp-echo-streamablehttp-server-stateful`
-  - Purpose: Diagnostic MCP server with session state management
+| Directory | Purpose |
+|-----------|---------|
+| `auth/` | OAuth 2.1 authorization server |
+| `traefik/` | Reverse proxy, routing, TLS termination |
+| `tests/` | Comprehensive test suite (87 files) |
+| `scripts/` | Automation utilities (158 files) |
+| `docs/` | Jupyter Book documentation |
+| `coverage-spy/` | Code coverage monitoring |
 
-- **mcp-echo-streamablehttp-server-stateless** - Stateless echo server
-  - Repository: https://github.com/atrawog/mcp-echo-streamablehttp-server-stateless
-  - PyPI: `mcp-echo-streamablehttp-server-stateless`
-  - Purpose: Diagnostic MCP server without state management
+### MCP Service Directories (Docker configs only)
 
-### Main Repository Components
-
-- **auth/** - OAuth authorization server implementation
-- **traefik/** - Reverse proxy configuration and routing
-- **mcp-* service directories** - Docker configurations for MCP services
-- **tests/** - Comprehensive test suite
-- **docs/** - Jupyter Book documentation
-- **scripts/** - Utility and automation scripts
+| Directory | Protocol | Description |
+|-----------|----------|-------------|
+| `mcp-echo-stateful/` | 2025-06-18 | Docker config for stateful echo |
+| `mcp-echo-stateless/` | 2025-06-18 | Docker config for stateless echo |
+| `mcp-everything/` | 2025-06-18 | Test server with all features |
+| `mcp-fetch/` | 2025-03-26 | Web content fetching (stdio wrapper) |
+| `mcp-fetchs/` | 2025-06-18 | Fetch service variant |
+| `mcp-filesystem/` | 2025-03-26 | Sandboxed file system access |
+| `mcp-memory/` | 2024-11-05 | Knowledge graph/memory |
+| `mcp-playwright/` | 2025-06-18 | Browser automation |
+| `mcp-sequentialthinking/` | 2024-11-05 | Problem solving framework |
+| `mcp-time/` | 2025-03-26 | Time/timezone operations |
+| `mcp-tmux/` | 2025-06-18 | Terminal multiplexer |
 
 ## 🚀 Installation
 

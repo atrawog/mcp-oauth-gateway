@@ -7,7 +7,7 @@ Performs a divine MCP protocol health check for any MCP service
 import os
 import sys
 
-import requests
+import httpx
 
 
 def perform_mcp_healthcheck(
@@ -48,7 +48,7 @@ def perform_mcp_healthcheck(
     headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
 
     try:
-        response = requests.post(url, json=payload, headers=headers, timeout=timeout)
+        response = httpx.post(url, json=payload, headers=headers, timeout=timeout)
         response_text = response.text
 
         # Check for protocol version in response
@@ -63,7 +63,7 @@ def perform_mcp_healthcheck(
         print(f"Response: {response_text[:500]}...")  # First 500 chars
         return False
 
-    except requests.exceptions.RequestException as e:
+    except httpx.RequestError as e:
         print(f"Health check failed: Connection error - {e!s}")
         return False
     except Exception as e:

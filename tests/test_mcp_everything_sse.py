@@ -7,8 +7,8 @@ import re
 import time
 from urllib.parse import urljoin
 
+import httpx
 import pytest
-import requests
 
 from tests.test_constants import BASE_DOMAIN
 from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
@@ -36,7 +36,7 @@ class TestMCPEverythingSSE:
     def test_sse_headers_present(self, base_url, auth_headers):
         """Test that SSE middleware adds required headers."""
         # Initialize session first
-        init_response = requests.post(
+        init_response = httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -66,7 +66,7 @@ class TestMCPEverythingSSE:
 
     def test_initialize_returns_sse_format(self, base_url, auth_headers):
         """Test that initialize returns proper SSE format response."""
-        response = requests.post(
+        response = httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -85,7 +85,6 @@ class TestMCPEverythingSSE:
                 "id": 1,
             },
             verify=True,
-            stream=True,  # Important for SSE
         )
 
         assert response.status_code == 200
@@ -117,7 +116,7 @@ class TestMCPEverythingSSE:
     def test_echo_tool_with_sse_response(self, base_url, auth_headers):
         """Test that echo tool returns SSE format response with echo content."""
         # Step 1: Initialize the server
-        init_response = requests.post(
+        init_response = httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -136,7 +135,6 @@ class TestMCPEverythingSSE:
                 "id": 1,
             },
             verify=True,
-            stream=True,
         )
 
         assert init_response.status_code == 200, f"Initialize failed: {init_response.text}"
@@ -145,7 +143,7 @@ class TestMCPEverythingSSE:
         session_id = init_response.headers.get("Mcp-Session-Id")
 
         # Step 2: Send initialized notification (required!)
-        requests.post(
+        httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -165,7 +163,7 @@ class TestMCPEverythingSSE:
 
         # Now test echo tool
         echo_message = "Hello from SSE test!"
-        echo_response = requests.post(
+        echo_response = httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -181,7 +179,6 @@ class TestMCPEverythingSSE:
                 "id": 1,
             },
             verify=True,
-            stream=True,
         )
 
         if echo_response.status_code != 200:
@@ -215,33 +212,30 @@ class TestMCPEverythingSSE:
         """Test that SSE responses are not buffered (stream immediately)."""
         start_time = time.time()
 
-        response = requests.post(
-            urljoin(base_url, "mcp"),
-            timeout=30.0,
-            headers={
-                **auth_headers,
-                "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream",
-            },
-            json={
-                "jsonrpc": "2.0",
-                "method": "initialize",
-                "params": {
-                    "protocolVersion": "2025-06-18",
-                    "capabilities": {},
-                    "clientInfo": {"name": "stream-test", "version": "1.0.0"},
-                },
-                "id": 1,
-            },
-            verify=True,
-            stream=True,
-        )
-
-        # Read first chunk immediately
         first_chunk = None
-        for chunk in response.iter_content(chunk_size=1024, decode_unicode=True):
-            first_chunk = chunk
-            break
+        with httpx.Client(timeout=30.0) as client:
+            with client.stream(
+                "POST",
+                urljoin(base_url, "mcp"),
+                headers={
+                    **auth_headers,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-06-18",
+                        "capabilities": {},
+                        "clientInfo": {"name": "stream-test", "version": "1.0.0"},
+                    },
+                    "id": 1,
+                },
+            ) as response:
+                for chunk in response.iter_text():
+                    first_chunk = chunk
+                    break
 
         elapsed = time.time() - start_time
 
@@ -253,7 +247,7 @@ class TestMCPEverythingSSE:
     def test_multiple_tools_list_sse(self, base_url, auth_headers):
         """Test listing tools returns SSE format."""
         # Step 1: Initialize the server
-        init_response = requests.post(
+        init_response = httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -272,7 +266,6 @@ class TestMCPEverythingSSE:
                 "id": 1,
             },
             verify=True,
-            stream=True,
         )
 
         assert init_response.status_code == 200, f"Initialize failed: {init_response.text}"
@@ -281,7 +274,7 @@ class TestMCPEverythingSSE:
         session_id = init_response.headers.get("Mcp-Session-Id")
 
         # Step 2: Send initialized notification (required!)
-        requests.post(
+        httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -300,7 +293,7 @@ class TestMCPEverythingSSE:
         )
 
         # Now list tools
-        tools_response = requests.post(
+        tools_response = httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -327,7 +320,7 @@ class TestMCPEverythingSSE:
     def test_error_response_in_sse_format(self, base_url, auth_headers):
         """Test that error responses also come in SSE format."""
         # Step 1: Initialize the server
-        init_response = requests.post(
+        init_response = httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -346,7 +339,6 @@ class TestMCPEverythingSSE:
                 "id": 1,
             },
             verify=True,
-            stream=True,
         )
 
         assert init_response.status_code == 200, f"Initialize failed: {init_response.text}"
@@ -355,7 +347,7 @@ class TestMCPEverythingSSE:
         session_id = init_response.headers.get("Mcp-Session-Id")
 
         # Step 2: Send initialized notification (required!)
-        requests.post(
+        httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -374,7 +366,7 @@ class TestMCPEverythingSSE:
         )
 
         # Now try to call a non-existent tool (should error)
-        response = requests.post(
+        response = httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={

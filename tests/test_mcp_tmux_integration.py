@@ -109,10 +109,10 @@ class TestMCPTmuxIntegration:
 
     def test_tmux_service_health(self, mcp_tmux_url, mcp_client_token, _wait_for_services, unique_test_id):
         """Test tmux service health using MCP protocol per divine CLAUDE.md."""
-        import requests
+        import httpx
 
         # First verify that /health requires authentication
-        response = requests.get(f"{mcp_tmux_url}/health", timeout=10)
+        response = httpx.get(f"{mcp_tmux_url}/health", timeout=10)
         assert response.status_code == HTTP_UNAUTHORIZED, (
             "/health endpoint must require authentication per divine CLAUDE.md"
         )
@@ -138,15 +138,11 @@ class TestMCPTmuxIntegration:
 
     def test_tmux_oauth_discovery(self, unique_test_id):
         """Test OAuth discovery endpoint routing."""
-        import requests
-        import urllib3
-
-        # Suppress SSL warnings for test environment
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        import httpx
 
         # Use base domain for OAuth discovery, not the /mcp endpoint
         oauth_discovery_url = f"https://tmux.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
-        response = requests.get(oauth_discovery_url, timeout=10, verify=True)
+        response = httpx.get(oauth_discovery_url, timeout=10)
         assert response.status_code == HTTP_OK
 
         oauth_config = response.json()
@@ -358,10 +354,10 @@ class TestMCPTmuxIntegration:
 
     def test_tmux_authentication_required(self, mcp_tmux_url, unique_test_id):
         """Test that MCP endpoint requires authentication."""
-        import requests
+        import httpx
 
         # Test without token
-        response = requests.post(
+        response = httpx.post(
             f"{mcp_tmux_url}",
             json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
             timeout=30.0,

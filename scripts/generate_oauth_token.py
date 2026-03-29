@@ -21,6 +21,11 @@ import httpx
 
 
 # Load environment variables
+# Import shared utility function
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils import save_env_var
+
+
 ENV_FILE = Path(__file__).parent.parent / ".env"
 
 
@@ -45,10 +50,7 @@ def load_env():
     return env_vars
 
 
-def save_env_var(key: str, value: str):
-    """Save or update an environment variable in .env file."""
-    lines = []
-    found = False
+
 
     if ENV_FILE.exists():
         with open(ENV_FILE) as f:

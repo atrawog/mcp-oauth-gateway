@@ -8,6 +8,11 @@ import os
 from pathlib import Path
 
 
+# Import shared utility function
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils import save_env_var
+
+
 ENV_FILE = Path(__file__).parent.parent / ".env"
 
 # OAuth variables to save
@@ -24,10 +29,7 @@ OAUTH_VARS = [
 ]
 
 
-def save_env_var(key: str, value: str):
-    """Save or update an environment variable in .env file."""
-    lines = []
-    found = False
+
 
     if ENV_FILE.exists():
         with open(ENV_FILE) as f:
@@ -71,7 +73,7 @@ def main():
                 saved_count += 1
             else:
                 # Save other vars as-is
-                save_env_var(var, value)
+                save_env_var(var, value, ENV_FILE)
                 print(f"✅ Saved {var}")
                 saved_count += 1
 

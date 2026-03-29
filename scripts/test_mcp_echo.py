@@ -4,7 +4,7 @@
 import json
 import time
 
-import requests
+import httpx
 
 
 def test_mcp_echo():
@@ -31,7 +31,7 @@ def test_mcp_echo():
     print()
 
     # Send POST request
-    response = requests.post(url, json=data, headers=headers, stream=True, timeout=30.0)
+    response = httpx.post(url, json=data, headers=headers, timeout=30.0)
 
     print(f"Response status: {response.status_code}")
     print(f"Response headers: {dict(response.headers)}")
@@ -39,9 +39,9 @@ def test_mcp_echo():
 
     if response.status_code == 200:
         print("Response content:")
-        for line in response.iter_lines():
+        for line in response.text.splitlines():
             if line:
-                print(line.decode("utf-8"))
+                print(line)
     else:
         print("Error response:", response.text)
 
@@ -49,18 +49,18 @@ def test_mcp_echo():
     print("\n" + "=" * 50 + "\n")
     print("Testing GET request...")
 
-    get_response = requests.get(url, headers={"Accept": "text/event-stream"}, stream=True, timeout=30.0)
+    get_response = httpx.get(url, headers={"Accept": "text/event-stream"}, timeout=30.0)
     print(f"GET Response status: {get_response.status_code}")
     print(f"GET Response headers: {dict(get_response.headers)}")
     print()
 
     if get_response.status_code == 200:
         print("GET Response content (first 5 lines):")
-        for i, line in enumerate(get_response.iter_lines()):
+        for i, line in enumerate(get_response.text.splitlines()):
             if i >= 5:
                 break
             if line:
-                print(line.decode("utf-8"))
+                print(line)
             time.sleep(0.1)
 
 

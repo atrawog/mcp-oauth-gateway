@@ -75,7 +75,6 @@ sphinx = ">=7.0.0,<8"
 # Utilities
 python-dotenv = ">=1.0.0,<2"
 pyyaml = ">=6.0,<7"
-aiohttp = ">=3.12.13,<4"
 beautifulsoup4 = ">=4.12.3,<5"
 aiofiles = ">=24.0.0"
 
@@ -83,7 +82,6 @@ aiofiles = ">=24.0.0"
 click = ">=8.0.0"
 anyio = ">=3.0.0"
 rich = ">=13.0.0"
-requests = ">=2.32.4,<3"
 pytest-timeout = ">=2.4.0,<3"
 pytest-xdist = ">=3.7.0,<4"
 

@@ -5,20 +5,24 @@ Validates all OAuth tokens before running tests.
 """
 
 import asyncio
+import json
 import os
 import sys
 import time
-from datetime import UTC
-from datetime import datetime
+from datetime import UTC, datetime
 
 import httpx
+from authlib.common.encoding import urlsafe_b64decode
+from rich.console import Console
+
+console = Console()
 
 
 def check_env_var(name: str) -> str:
     """Get environment variable or exit with error."""
     value = os.getenv(name)
     if not value:
-        print(f"❌ Environment variable {name} is not set!")
+        console.print(f"[red]❌ Environment variable {name} is not set![/red]")
         return None
     return value
 
@@ -26,22 +30,12 @@ def check_env_var(name: str) -> str:
 def decode_jwt_token(token: str) -> dict:
     """Decode JWT token without signature verification."""
     try:
-        # Decode without verification for inspection only
-        import base64
-        import json
-
-        # JWT format: header.payload.signature
         parts = token.split(".")
         if len(parts) != 3:
             raise ValueError("Invalid JWT format")
-
-        # Decode payload (add padding if needed)
-        payload_part = parts[1]
-        payload_part += "=" * (4 - len(payload_part) % 4)  # Add padding
-        payload_json = base64.urlsafe_b64decode(payload_part)
-        return json.loads(payload_json)
+        return json.loads(urlsafe_b64decode(parts[1]))
     except Exception as e:
-        print(f"❌ Failed to decode JWT token: {e}")
+        console.print(f"[red]❌ Failed to decode JWT token: {e}[/red]")
         return None
 
 
@@ -49,21 +43,21 @@ def check_token_expiry(payload: dict) -> bool:
     """Check if token is expired."""
     exp = payload.get("exp")
     if not exp:
-        print("❌ Token has no expiration claim")
+        console.print("[red]❌ Token has no expiration claim[/red]")
         return False
 
     now = int(time.time())
     iat = payload.get("iat", 0)
 
-    print(f"🕐 Token issued at: {datetime.fromtimestamp(iat, tz=UTC)}")
-    print(f"🕐 Token expires at: {datetime.fromtimestamp(exp, tz=UTC)}")
-    print(f"🕐 Current time: {datetime.fromtimestamp(now, tz=UTC)}")
+    console.print(f"[cyan]🕐 Token issued at: {datetime.fromtimestamp(iat, tz=UTC)}[/cyan]")
+    console.print(f"[cyan]🕐 Token expires at: {datetime.fromtimestamp(exp, tz=UTC)}[/cyan]")
+    console.print(f"[cyan]🕐 Current time: {datetime.fromtimestamp(now, tz=UTC)}[/cyan]")
 
     if exp < now:
-        print(f"❌ TOKEN IS EXPIRED! (expired {now - exp} seconds ago)")
+        console.print(f"[red]❌ TOKEN IS EXPIRED! (expired {now - exp} seconds ago)[/red]")
         return False
     remaining = exp - now
-    print(f"✅ Token is valid (expires in {remaining} seconds / {remaining / 3600:.1f} hours)")
+    console.print(f"[green]✅ Token is valid (expires in {remaining} seconds / {remaining / 3600:.1f} hours)[/green]")
     return True
 
 
@@ -80,14 +74,14 @@ async def test_auth_service(token: str) -> bool:
             response = await client.get(auth_url, headers={"Authorization": f"Bearer {token}"})
 
         if response.status_code == 200:
-            print("✅ Auth service validates token successfully")
+            console.print("[green]✅ Auth service validates token successfully[/green]")
             return True
-        print(f"❌ Auth service rejected token: {response.status_code}")
-        print(f"   Response: {response.text[:200]}")
+        console.print(f"[red]❌ Auth service rejected token: {response.status_code}[/red]")
+        console.print(f"   Response: {response.text[:200]}")
         return False
 
     except Exception as e:
-        print(f"❌ Failed to test auth service: {e}")
+        console.print(f"[red]❌ Failed to test auth service: {e}[/red]")
         return False
 
 
@@ -104,13 +98,13 @@ async def test_mcp_service(token: str) -> bool:
             response = await client.get(mcp_url, headers={"Authorization": f"Bearer {token}"})
 
         if response.status_code in [200, 401]:  # 401 is expected for health endpoint
-            print("✅ MCP service is reachable")
+            console.print("[green]✅ MCP service is reachable[/green]")
             return True
-        print(f"⚠️  MCP service returned unexpected status: {response.status_code}")
+        console.print(f"[yellow]⚠️  MCP service returned unexpected status: {response.status_code}[/yellow]")
         return True  # Still consider it working
 
     except Exception as e:
-        print(f"❌ Failed to test MCP service: {e}")
+        console.print(f"[red]❌ Failed to test MCP service: {e}[/red]")
         return False
 
 
@@ -128,37 +122,37 @@ async def test_github_pat(pat: str) -> bool:
 
         if response.status_code == 200:
             user_data = response.json()
-            print(f"✅ GitHub PAT is valid for user: {user_data.get('login', 'unknown')}")
+            console.print(f"[green]✅ GitHub PAT is valid for user: {user_data.get('login', 'unknown')}[/green]")
             return True
         if response.status_code == 401:
-            print("❌ GitHub PAT is invalid or expired!")
+            console.print("[red]❌ GitHub PAT is invalid or expired![/red]")
             return False
-        print(f"⚠️  GitHub API returned unexpected status: {response.status_code}")
+        console.print(f"[yellow]⚠️  GitHub API returned unexpected status: {response.status_code}[/yellow]")
         return False
 
     except Exception as e:
-        print(f"❌ Failed to test GitHub PAT: {e}")
+        console.print(f"[red]❌ Failed to test GitHub PAT: {e}[/red]")
         return False
 
 
 async def main():
     """Main validation function."""
-    print("=" * 60)
-    print("🔍 OAUTH TOKEN VALIDATION")
-    print("=" * 60)
+    console.print("=" * 60)
+    console.print("[bold]🔍 OAUTH TOKEN VALIDATION[/bold]")
+    console.print("=" * 60)
 
     all_valid = True
 
     # Check OAuth Access Token
-    print("\n📋 Checking GATEWAY_OAUTH_ACCESS_TOKEN...")
+    console.print("\n[bold]📋 Checking GATEWAY_OAUTH_ACCESS_TOKEN...[/bold]")
     oauth_token = check_env_var("GATEWAY_OAUTH_ACCESS_TOKEN")
     if oauth_token:
         payload = decode_jwt_token(oauth_token)
         if payload:
-            print(f"   Subject: {payload.get('sub')}")
-            print(f"   Username: {payload.get('username')}")
-            print(f"   Client ID: {payload.get('client_id')}")
-            print(f"   JTI: {payload.get('jti')}")
+            console.print(f"   Subject: {payload.get('sub')}")
+            console.print(f"   Username: {payload.get('username')}")
+            console.print(f"   Client ID: {payload.get('client_id')}")
+            console.print(f"   JTI: {payload.get('jti')}")
 
             if not check_token_expiry(payload):
                 all_valid = False
@@ -174,68 +168,68 @@ async def main():
         all_valid = False
 
     # Check GitHub PAT
-    print("\n📋 Checking GITHUB_PAT...")
+    console.print("\n[bold]📋 Checking GITHUB_PAT...[/bold]")
     github_pat = check_env_var("GITHUB_PAT")
     if github_pat:
         if github_pat.startswith(("gho_", "ghp_")):
-            print("✅ GitHub PAT format looks valid")
+            console.print("[green]✅ GitHub PAT format looks valid[/green]")
             # Test against GitHub API
             if not await test_github_pat(github_pat):
                 all_valid = False
         else:
-            print("❌ GitHub PAT format is invalid!")
+            console.print("[red]❌ GitHub PAT format is invalid![/red]")
             all_valid = False
     else:
-        print("❌ GitHub PAT not found - this is REQUIRED!")
+        console.print("[red]❌ GitHub PAT not found - this is REQUIRED![/red]")
         all_valid = False
 
     # Check OAuth Client Credentials
-    print("\n📋 Checking OAuth Client Credentials...")
+    console.print("\n[bold]📋 Checking OAuth Client Credentials...[/bold]")
     client_id = check_env_var("GATEWAY_OAUTH_CLIENT_ID")
     client_secret = check_env_var("GATEWAY_OAUTH_CLIENT_SECRET")
 
     if client_id and client_secret:
-        print("✅ OAuth client credentials present")
-        print(f"   Client ID: {client_id}")
-        print(f"   Client Secret: {'*' * (len(client_secret) - 4)}{client_secret[-4:]}")
+        console.print("[green]✅ OAuth client credentials present[/green]")
+        console.print(f"   Client ID: {client_id}")
+        console.print(f"   Client Secret: {'*' * (len(client_secret) - 4)}{client_secret[-4:]}")
     else:
-        print("❌ OAuth client credentials missing")
+        console.print("[red]❌ OAuth client credentials missing[/red]")
         all_valid = False
 
     # Check Refresh Token
-    print("\n📋 Checking GATEWAY_OAUTH_REFRESH_TOKEN...")
+    console.print("\n[bold]📋 Checking GATEWAY_OAUTH_REFRESH_TOKEN...[/bold]")
     refresh_token = check_env_var("GATEWAY_OAUTH_REFRESH_TOKEN")
     if refresh_token:
-        print(f"✅ Refresh token present: {'*' * (len(refresh_token) - 8)}{refresh_token[-8:]}")
+        console.print(f"[green]✅ Refresh token present: {'*' * (len(refresh_token) - 8)}{refresh_token[-8:]}[/green]")
     else:
-        print("⚠️  Refresh token not found")
+        console.print("[yellow]⚠️  Refresh token not found[/yellow]")
 
     # Check MCP Client Access Token
-    print("\n📋 Checking MCP_CLIENT_ACCESS_TOKEN...")
+    console.print("\n[bold]📋 Checking MCP_CLIENT_ACCESS_TOKEN...[/bold]")
     mcp_client_token = check_env_var("MCP_CLIENT_ACCESS_TOKEN")
     if mcp_client_token:
         payload = decode_jwt_token(mcp_client_token)
         if payload:
-            print(f"   Client ID: {payload.get('client_id')}")
-            print(f"   Scope: {payload.get('scope')}")
+            console.print(f"   Client ID: {payload.get('client_id')}")
+            console.print(f"   Scope: {payload.get('scope')}")
             if not check_token_expiry(payload):
                 all_valid = False
         else:
             all_valid = False
     else:
-        print("❌ MCP Client Access Token not found - this is REQUIRED!")
+        console.print("[red]❌ MCP Client Access Token not found - this is REQUIRED![/red]")
         all_valid = False
 
-    print("\n" + "=" * 60)
+    console.print("\n" + "=" * 60)
     if all_valid:
-        print("✅ ALL TOKENS ARE VALID AND READY FOR TESTING!")
-        print("=" * 60)
+        console.print("[bold green]✅ ALL TOKENS ARE VALID AND READY FOR TESTING![/bold green]")
+        console.print("=" * 60)
         sys.exit(0)
     else:
-        print("❌ TOKEN VALIDATION FAILED!")
-        print("   Please run: just generate-github-token")
-        print("   Or check token expiration: just check-token-expiry")
-        print("=" * 60)
+        console.print("[bold red]❌ TOKEN VALIDATION FAILED![/bold red]")
+        console.print("   Please run: just generate-github-token")
+        console.print("   Or check token expiration: just check-token-expiry")
+        console.print("=" * 60)
         sys.exit(1)
 
 

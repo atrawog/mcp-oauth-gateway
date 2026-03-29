@@ -111,8 +111,6 @@ def pytest_configure(config):
     # Verify token with auth service using synchronous request
     import time
 
-    import requests
-
     # Try to verify token with constant polling (auth service might be starting up)
     max_wait_time = 10  # 10 seconds total wait time
     start_time = time.time()
@@ -129,10 +127,10 @@ def pytest_configure(config):
         attempt_count += 1
 
         try:
-            verify_response = requests.get(
+            verify_response = httpx.get(
                 f"{AUTH_BASE_URL}/verify",
                 headers={"Authorization": f"Bearer {gateway_token}"},
-                timeout=5,  # Reduced timeout for faster detection
+                timeout=5,
             )
 
             if verify_response.status_code == 401:
@@ -158,7 +156,7 @@ def pytest_configure(config):
                     file=sys.stderr,
                 )
 
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        except (httpx.ConnectError, httpx.TimeoutException):
             # Service not ready yet - continue polling until timeout
             if current_time - start_time > max_wait_time - 1:  # Last second, show error
                 print(
@@ -185,9 +183,7 @@ def pytest_configure(config):
 
     # Actually validate GitHub PAT against GitHub API
     try:
-        import requests
-
-        github_response = requests.get(
+        github_response = httpx.get(
             "https://api.github.com/user",
             headers={
                 "Authorization": f"token {github_pat}",
@@ -211,7 +207,7 @@ def pytest_configure(config):
             print(f"   Response: {github_response.text}", file=sys.stderr)
             print("=" * 60, file=sys.stderr)
             pytest.exit("GitHub PAT validation failed", returncode=1)
-    except (requests.exceptions.RequestException, ValueError) as e:
+    except (httpx.HTTPError, ValueError) as e:
         print(f"❌ Failed to validate GitHub PAT: {e}", file=sys.stderr)
         print("=" * 60, file=sys.stderr)
         pytest.exit("GitHub PAT validation failed", returncode=1)

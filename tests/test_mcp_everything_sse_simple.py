@@ -7,8 +7,8 @@ import re
 import time
 from urllib.parse import urljoin
 
+import httpx
 import pytest
-import requests
 
 from tests.test_constants import BASE_DOMAIN
 from tests.test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
@@ -34,7 +34,7 @@ class TestMCPEverythingSSESimple:
 
     def test_sse_headers_on_initialize(self, base_url, auth_headers):
         """Test that SSE middleware headers are present on initialize."""
-        response = requests.post(
+        response = httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -67,7 +67,7 @@ class TestMCPEverythingSSESimple:
 
     def test_sse_format_preserved(self, base_url, auth_headers):
         """Test that SSE format is preserved through the gateway."""
-        response = requests.post(
+        response = httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -106,33 +106,30 @@ class TestMCPEverythingSSESimple:
         """Test that responses are not buffered (arrive quickly)."""
         start_time = time.time()
 
-        response = requests.post(
-            urljoin(base_url, "mcp"),
-            timeout=30.0,
-            headers={
-                **auth_headers,
-                "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream",
-            },
-            json={
-                "jsonrpc": "2.0",
-                "method": "initialize",
-                "params": {
-                    "protocolVersion": "2025-06-18",
-                    "capabilities": {},
-                    "clientInfo": {"name": "speed-test", "version": "1.0.0"},
-                },
-                "id": 1,
-            },
-            verify=True,
-            stream=True,  # Stream the response
-        )
-
-        # Read first chunk
         first_chunk = None
-        for chunk in response.iter_content(chunk_size=1024, decode_unicode=True):
-            first_chunk = chunk
-            break
+        with httpx.Client(timeout=30.0) as client:
+            with client.stream(
+                "POST",
+                urljoin(base_url, "mcp"),
+                headers={
+                    **auth_headers,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json, text/event-stream",
+                },
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2025-06-18",
+                        "capabilities": {},
+                        "clientInfo": {"name": "speed-test", "version": "1.0.0"},
+                    },
+                    "id": 1,
+                },
+            ) as response:
+                for chunk in response.iter_text():
+                    first_chunk = chunk
+                    break
 
         elapsed = time.time() - start_time
 
@@ -144,7 +141,7 @@ class TestMCPEverythingSSESimple:
     def test_json_error_handling(self, base_url, auth_headers):
         """Test that JSON errors are handled properly."""
         # Send invalid request
-        response = requests.post(
+        response = httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={
@@ -172,7 +169,7 @@ class TestMCPEverythingSSESimple:
 
     def test_cors_headers_present(self, base_url, auth_headers):
         """Test that CORS headers are properly set for claude.ai."""
-        response = requests.post(
+        response = httpx.post(
             urljoin(base_url, "mcp"),
             timeout=30.0,
             headers={

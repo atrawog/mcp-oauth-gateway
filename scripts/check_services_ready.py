@@ -2,17 +2,15 @@
 """Check that all services are built, running, and healthy before tests."""
 
 import asyncio
+import json
 import os
 import subprocess
 import sys
 import time
 
+from rich.console import Console
 
-# Color codes for output
-GREEN = "\033[92m"
-RED = "\033[91m"
-YELLOW = "\033[93m"
-RESET = "\033[0m"
+console = Console()
 
 
 def run_command(cmd: list[str]) -> tuple[int, str, str]:
@@ -52,7 +50,7 @@ def check_docker_service(service_name: str) -> bool:
     # Check if service is disabled
     disabled, env_var = is_service_disabled(service_name)
     if disabled:
-        print(f"{YELLOW}⊝ Service {service_name} is disabled via {env_var}{RESET}")
+        console.print(f"[yellow]⊝ Service {service_name} is disabled via {env_var}[/yellow]")
         return True  # Consider it "passing" since it's intentionally disabled
 
     # Check if service is running
@@ -69,26 +67,24 @@ def check_docker_service(service_name: str) -> bool:
     code, stdout, stderr = run_command(cmd)
 
     if code != 0:
-        print(f"{RED}✗ Failed to check {service_name}: {stderr}{RESET}")
+        console.print(f"[red]✗ Failed to check {service_name}: {stderr}[/red]")
         return False
 
     if not stdout.strip():
-        print(f"{RED}✗ Service {service_name} is not running{RESET}")
+        console.print(f"[red]✗ Service {service_name} is not running[/red]")
         return False
 
     # Parse and check service state
-    import json
-
     try:
         service_info = json.loads(stdout.strip())
         state = service_info.get("State", "unknown")
         if state == "running":
-            print(f"{GREEN}✓ Service {service_name} is running{RESET}")
+            console.print(f"[green]✓ Service {service_name} is running[/green]")
             return True
-        print(f"{RED}✗ Service {service_name} is in state: {state}{RESET}")
+        console.print(f"[red]✗ Service {service_name} is in state: {state}[/red]")
         return False
-    except:
-        print(f"{YELLOW}⚠ Could not parse {service_name} status{RESET}")
+    except Exception:
+        console.print(f"[yellow]⚠ Could not parse {service_name} status[/yellow]")
         return False
 
 
@@ -98,13 +94,13 @@ def check_network_exists() -> bool:
     code, stdout, stderr = run_command(cmd)
 
     if code != 0:
-        print(f"{RED}✗ Failed to list networks: {stderr}{RESET}")
+        console.print(f"[red]✗ Failed to list networks: {stderr}[/red]")
         return False
 
     if "public" in stdout:
-        print(f"{GREEN}✓ Network 'public' exists{RESET}")
+        console.print("[green]✓ Network 'public' exists[/green]")
         return True
-    print(f"{RED}✗ Network 'public' does not exist{RESET}")
+    console.print("[red]✗ Network 'public' does not exist[/red]")
     return False
 
 
@@ -115,7 +111,7 @@ def check_volumes_exist() -> bool:
     code, stdout, stderr = run_command(cmd)
 
     if code != 0:
-        print(f"{RED}✗ Failed to list volumes: {stderr}{RESET}")
+        console.print(f"[red]✗ Failed to list volumes: {stderr}[/red]")
         return False
 
     existing_volumes = stdout.strip().split("\n")
@@ -123,9 +119,9 @@ def check_volumes_exist() -> bool:
 
     for volume in required_volumes:
         if volume in existing_volumes:
-            print(f"{GREEN}✓ Volume '{volume}' exists{RESET}")
+            console.print(f"[green]✓ Volume '{volume}' exists[/green]")
         else:
-            print(f"{RED}✗ Volume '{volume}' does not exist{RESET}")
+            console.print(f"[red]✗ Volume '{volume}' does not exist[/red]")
             all_exist = False
 
     return all_exist
@@ -133,35 +129,35 @@ def check_volumes_exist() -> bool:
 
 def build_services() -> bool:
     """Build all services."""
-    print(f"\n{YELLOW}Building all services...{RESET}")
+    console.print("\n[yellow]Building all services...[/yellow]")
     cmd = ["docker", "compose", "-f", "docker-compose.includes.yml", "build"]
     code, stdout, stderr = run_command(cmd)
 
     if code != 0:
-        print(f"{RED}✗ Failed to build services: {stderr}{RESET}")
+        console.print(f"[red]✗ Failed to build services: {stderr}[/red]")
         return False
 
-    print(f"{GREEN}✓ All services built successfully{RESET}")
+    console.print("[green]✓ All services built successfully[/green]")
     return True
 
 
 def start_services() -> bool:
     """Start all services."""
-    print(f"\n{YELLOW}Starting all services...{RESET}")
+    console.print("\n[yellow]Starting all services...[/yellow]")
     cmd = ["docker", "compose", "-f", "docker-compose.includes.yml", "up", "-d"]
     code, stdout, stderr = run_command(cmd)
 
     if code != 0:
-        print(f"{RED}✗ Failed to start services: {stderr}{RESET}")
+        console.print(f"[red]✗ Failed to start services: {stderr}[/red]")
         return False
 
-    print(f"{GREEN}✓ All services started{RESET}")
+    console.print("[green]✓ All services started[/green]")
     return True
 
 
 async def wait_for_services(max_wait: int = 60) -> bool:
     """Wait for all services to be healthy using Docker health checks."""
-    print(f"\n{YELLOW}Waiting for Docker health checks (max {max_wait}s)...{RESET}")
+    console.print(f"\n[yellow]Waiting for Docker health checks (max {max_wait}s)...[/yellow]")
 
     services_to_check = ["traefik", "auth", "redis"]
 
@@ -207,7 +203,7 @@ async def wait_for_services(max_wait: int = 60) -> bool:
             code, stdout, stderr = run_command(cmd)
 
             if code != 0:
-                print(f"{RED}✗ Failed to inspect {service}: {stderr}{RESET}")
+                console.print(f"[red]✗ Failed to inspect {service}: {stderr}[/red]")
                 all_healthy = False
                 unhealthy_services.append(service)
                 continue
@@ -226,25 +222,24 @@ async def wait_for_services(max_wait: int = 60) -> bool:
                 unhealthy_services.append(f"{service} ({health_status})")
 
         if all_healthy:
-            print(f"{GREEN}✓ All services are healthy according to Docker{RESET}")
+            console.print("[green]✓ All services are healthy according to Docker[/green]")
             return True
 
         # Show progress
         elapsed = int(time.time() - start_time)
-        print(
-            f"\r{YELLOW}Waiting... {elapsed}s (unhealthy: {', '.join(unhealthy_services)}){RESET}",
+        console.print(
+            f"\r[yellow]Waiting... {elapsed}s (unhealthy: {', '.join(unhealthy_services)})[/yellow]",
             end="",
-            flush=True,
         )
         await asyncio.sleep(2)
 
-    print(f"\n{RED}✗ Timeout waiting for services to be healthy{RESET}")
+    console.print(f"\n[red]✗ Timeout waiting for services to be healthy[/red]")
     return False
 
 
 def check_basic_config() -> bool:
     """Check that basic configuration is present (tokens validated in test setup)."""
-    print(f"\n{YELLOW}Checking basic configuration...{RESET}")
+    console.print("\n[yellow]Checking basic configuration...[/yellow]")
 
     # Only check critical variables needed for service startup
     # Token validation is now centralized in refresh_and_validate_tokens()
@@ -258,33 +253,33 @@ def check_basic_config() -> bool:
     for var_name, description in basic_vars:
         value = os.getenv(var_name)
         if value and len(value) > 1:  # Basic check that it's not empty
-            print(f"{GREEN}✓ {var_name} is configured ({description}){RESET}")
+            console.print(f"[green]✓ {var_name} is configured ({description})[/green]")
         else:
-            print(f"{RED}✗ {var_name} is missing or too short ({description}){RESET}")
+            console.print(f"[red]✗ {var_name} is missing or too short ({description})[/red]")
             all_present = False
 
-    print(f"{YELLOW}Note: Full token validation happens during test setup via refresh_and_validate_tokens(){RESET}")
+    console.print("[yellow]Note: Full token validation happens during test setup via refresh_and_validate_tokens()[/yellow]")
     return all_present
 
 
 async def main():
     """Main check function."""
-    print(f"{YELLOW}{'=' * 60}{RESET}")
-    print(f"{YELLOW}Pre-test Service Check{RESET}")
-    print(f"{YELLOW}{'=' * 60}{RESET}")
+    console.print(f"[yellow]{'=' * 60}[/yellow]")
+    console.print("[yellow]Pre-test Service Check[/yellow]")
+    console.print(f"[yellow]{'=' * 60}[/yellow]")
 
     # First, generate the docker-compose includes file
-    print(f"\n{YELLOW}Generating docker-compose includes...{RESET}")
+    console.print("\n[yellow]Generating docker-compose includes...[/yellow]")
     gen_cmd = ["python", "scripts/generate_compose_includes.py"]
     code, stdout, stderr = run_command(gen_cmd)
     if code != 0:
-        print(f"{RED}✗ Failed to generate docker-compose includes: {stderr}{RESET}")
+        console.print(f"[red]✗ Failed to generate docker-compose includes: {stderr}[/red]")
         return 1
 
     checks = []
 
     # Check network and volumes
-    print(f"\n{YELLOW}Checking Docker resources...{RESET}")
+    console.print("\n[yellow]Checking Docker resources...[/yellow]")
     checks.append(("Network", check_network_exists()))
     checks.append(("Volumes", check_volumes_exist()))
 
@@ -319,7 +314,7 @@ async def main():
         checks.append(("Start", start_services()))
 
     # Check running services
-    print(f"\n{YELLOW}Checking service status...{RESET}")
+    console.print("\n[yellow]Checking service status...[/yellow]")
     for service in base_services:
         checks.append((f"Service {service}", check_docker_service(service)))
 
@@ -330,23 +325,23 @@ async def main():
     checks.append(("Basic Config", check_basic_config()))
 
     # Summary
-    print(f"\n{YELLOW}{'=' * 60}{RESET}")
-    print(f"{YELLOW}Summary:{RESET}")
-    print(f"{YELLOW}{'=' * 60}{RESET}")
+    console.print(f"\n[yellow]{'=' * 60}[/yellow]")
+    console.print("[yellow]Summary:[/yellow]")
+    console.print(f"[yellow]{'=' * 60}[/yellow]")
 
     all_passed = True
     for check_name, passed in checks:
-        status = f"{GREEN}✓ PASS{RESET}" if passed else f"{RED}✗ FAIL{RESET}"
-        print(f"{check_name}: {status}")
+        status = "[green]✓ PASS[/green]" if passed else "[red]✗ FAIL[/red]"
+        console.print(f"{check_name}: {status}")
         if not passed:
             all_passed = False
 
-    print(f"{YELLOW}{'=' * 60}{RESET}")
+    console.print(f"[yellow]{'=' * 60}[/yellow]")
 
     if all_passed:
-        print(f"{GREEN}✅ All checks passed! Ready to run tests.{RESET}")
+        console.print("[green]✅ All checks passed! Ready to run tests.[/green]")
         return 0
-    print(f"{RED}❌ Some checks failed. Please fix the issues above.{RESET}")
+    console.print("[red]❌ Some checks failed. Please fix the issues above.[/red]")
     return 1
 
 

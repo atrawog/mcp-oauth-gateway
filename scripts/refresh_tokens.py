@@ -13,48 +13,32 @@ import time
 from pathlib import Path
 
 import httpx
+from authlib.common.encoding import urlsafe_b64decode
+from dotenv import load_dotenv, set_key
 
-
-def load_env_file():
-    """Load .env file into environment."""
-    env_file = Path(".env")
-    if not env_file.exists():
-        print("❌ .env file not found!")
-        return False
-
-    with open(env_file) as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                key, value = line.split("=", 1)
-                os.environ[key] = value
-    return True
+ENV_FILE = Path(".env")
 
 
 def check_token_expiry(token: str) -> tuple[bool, int]:
     """Check if JWT token is expired. Returns (is_valid, seconds_until_expiry)."""
     try:
-        import base64
-
         parts = token.split(".")
         if len(parts) != 3:
             return False, 0
-
-        # Decode payload
-        payload_part = parts[1]
-        payload_part += "=" * (4 - len(payload_part) % 4)
-        payload_json = base64.urlsafe_b64decode(payload_part)
-        payload = json.loads(payload_json)
-
+        payload = json.loads(urlsafe_b64decode(parts[1]))
         exp = payload.get("exp", 0)
         now = int(time.time())
-
         if exp <= now:
             return False, 0
-
         return True, exp - now
     except Exception:
         return False, 0
+
+
+def _set_env(key: str, value: str) -> None:
+    """Persist a key/value to .env and update the current process environment."""
+    set_key(str(ENV_FILE), key, value, quote_mode="never")
+    os.environ[key] = value
 
 
 async def refresh_oauth_token():
@@ -97,14 +81,9 @@ async def refresh_oauth_token():
             new_refresh_token = data.get("refresh_token", refresh_token)
 
             if new_access_token:
-                # Update .env file
-                update_env_file("GATEWAY_OAUTH_ACCESS_TOKEN", new_access_token)
-                os.environ["GATEWAY_OAUTH_ACCESS_TOKEN"] = new_access_token
-
+                _set_env("GATEWAY_OAUTH_ACCESS_TOKEN", new_access_token)
                 if new_refresh_token != refresh_token:
-                    update_env_file("GATEWAY_OAUTH_REFRESH_TOKEN", new_refresh_token)
-                    os.environ["GATEWAY_OAUTH_REFRESH_TOKEN"] = new_refresh_token
-
+                    _set_env("GATEWAY_OAUTH_REFRESH_TOKEN", new_refresh_token)
                 print("✅ OAuth tokens refreshed successfully!")
                 return True
             print(f"❌ No access token in response: {data}")
@@ -169,34 +148,11 @@ async def refresh_mcp_client_token():
     gateway_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if gateway_token:
         print("📝 Using gateway token as MCP client token")
-        update_env_file("MCP_CLIENT_ACCESS_TOKEN", gateway_token)
-        os.environ["MCP_CLIENT_ACCESS_TOKEN"] = gateway_token
+        _set_env("MCP_CLIENT_ACCESS_TOKEN", gateway_token)
         return True
 
     print("❌ No valid MCP client token available!")
     return False
-
-
-def update_env_file(key: str, value: str):
-    """Update a key in the .env file."""
-    env_file = Path(".env")
-    lines = []
-    found = False
-
-    if env_file.exists():
-        with open(env_file) as f:
-            for line in f:
-                if line.strip().startswith(f"{key}="):
-                    lines.append(f"{key}={value}\n")
-                    found = True
-                else:
-                    lines.append(line)
-
-    if not found:
-        lines.append(f"{key}={value}\n")
-
-    with open(env_file, "w") as f:
-        f.writelines(lines)
 
 
 async def validate_all_tokens():
@@ -245,9 +201,10 @@ async def main():
     print("=" * 60)
 
     # Load environment
-    if not load_env_file():
-        print("❌ Failed to load .env file!")
+    if not ENV_FILE.exists():
+        print("❌ .env file not found!")
         sys.exit(1)
+    load_dotenv(dotenv_path=ENV_FILE, override=True)
 
     # Check current token status
     gateway_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")

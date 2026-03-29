@@ -384,31 +384,28 @@ logs-clean-force:
 
 # Project-specific commands
 
-# Generate JWT secret and save to .env
+# Generate JWT secret and save to Doppler, falling back to .env
 generate-jwt-secret:
     #!/usr/bin/env bash
     NEW_JWT_SECRET=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
-    echo "🔐 Generated new JWT secret: ${NEW_JWT_SECRET}"
 
-    # Check if .env exists
-    if [ ! -f .env ]; then
-        echo "❌ .env file not found! Creating one..."
-        echo "GATEWAY_JWT_SECRET=${NEW_JWT_SECRET}" > .env
-        echo "✅ Created .env with GATEWAY_JWT_SECRET"
+    # Update Doppler if available, otherwise fall back to .env
+    if command -v doppler &>/dev/null; then
+        echo "${NEW_JWT_SECRET}" | doppler secrets set GATEWAY_JWT_SECRET --project integrity-studio --config dev
+        echo "✅ Updated GATEWAY_JWT_SECRET in Doppler (integrity-studio/dev)"
+        echo "🔥 SACRED JWT SECRET HAS BEEN BLESSED"
     else
-        # Check if GATEWAY_JWT_SECRET already exists in .env
-        if grep -q "^GATEWAY_JWT_SECRET=" .env; then
-            # Update existing GATEWAY_JWT_SECRET
-            sed -i.bak "s/^GATEWAY_JWT_SECRET=.*/GATEWAY_JWT_SECRET=${NEW_JWT_SECRET}/" .env
-            echo "✅ Updated GATEWAY_JWT_SECRET in .env file"
-        else
-            # Add GATEWAY_JWT_SECRET to .env
-            echo "GATEWAY_JWT_SECRET=${NEW_JWT_SECRET}" >> .env
-            echo "✅ Added GATEWAY_JWT_SECRET to .env file"
+        echo "⚠️  doppler CLI not found — falling back to .env"
+        if [ ! -f .env ]; then
+            touch .env
         fi
+        if grep -q "^GATEWAY_JWT_SECRET=" .env; then
+            sed -i.bak "s|^GATEWAY_JWT_SECRET=.*|GATEWAY_JWT_SECRET=${NEW_JWT_SECRET}|" .env && rm -f .env.bak
+        else
+            echo "GATEWAY_JWT_SECRET=${NEW_JWT_SECRET}" >> .env
+        fi
+        echo "✅ Updated GATEWAY_JWT_SECRET in .env"
     fi
-
-    echo "🔥 SACRED JWT SECRET HAS BEEN BLESSED AND WRITTEN TO .ENV!"
 
 # Generate RSA keys for RS256 JWT signing and save to .env
 generate-rsa-keys:

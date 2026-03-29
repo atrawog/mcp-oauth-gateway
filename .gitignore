@@ -108,3 +108,6 @@ docker-compose.includes.yml
 
 # Generated Traefik middleware configuration
 traefik/dynamic/middlewares.yml
+
+# Repomix output files
+repomix-output.xml

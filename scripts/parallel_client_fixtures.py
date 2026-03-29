@@ -1,3 +1,13 @@
+# NOTE: These fixtures have been integrated into tests/conftest.py
+# This file is kept for reference purposes only.
+#
+# The following fixtures are now available in conftest.py:
+# - worker_id (lines 752-758)
+# - unique_test_id (lines 762-771)
+# - unique_client_name (lines 775-780)
+#
+# No need to copy these fixtures again - they are already active in the test suite.
+
 # Add these fixtures to conftest.py for parallel-safe client registration
 
 import os
