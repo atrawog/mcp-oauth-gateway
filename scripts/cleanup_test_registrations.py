@@ -15,7 +15,7 @@ from rich.table import Table
 console = Console()
 
 # Configuration from environment
-AUTH_BASE_URL = f"https://auth.{os.getenv('BASE_DOMAIN', 'atratest.org')}"
+AUTH_BASE_URL = f"https://mcp-auth.{os.getenv('BASE_DOMAIN', 'atratest.org')}"
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", "")
 GATEWAY_OAUTH_ACCESS_TOKEN = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN", "")
 
@@ -50,7 +50,9 @@ async def cleanup_test_registrations():
                         client_name = client.get("client_name", "")
 
                         # Check if it's a test client
-                        if any(test_word in client_name.lower() for test_word in ["test", "concurrent"]):
+                        if any(
+                            test_word in client_name.lower() for test_word in ["test", "concurrent"]
+                        ):
                             test_clients.append(client)
 
                             # Try to delete using RFC 7592 endpoint
@@ -60,7 +62,9 @@ async def cleanup_test_registrations():
                                 try:
                                     delete_response = await http_client.delete(
                                         f"{AUTH_BASE_URL}/register/{client['client_id']}",
-                                        headers={"Authorization": f"Bearer {client['registration_access_token']}"},
+                                        headers={
+                                            "Authorization": f"Bearer {client['registration_access_token']}"
+                                        },
                                     )
 
                                     if delete_response.status_code == 204:
@@ -70,10 +74,14 @@ async def cleanup_test_registrations():
                                         # Already deleted, just clean up Redis
                                         await r.delete(key)
                                         deleted_count += 1
-                                        console.print("  [yellow]✓ Already deleted, cleaned Redis[/yellow]")
+                                        console.print(
+                                            "  [yellow]✓ Already deleted, cleaned Redis[/yellow]"
+                                        )
                                     else:
                                         error_count += 1
-                                        console.print(f"  [red]✗ Failed: {delete_response.status_code}[/red]")
+                                        console.print(
+                                            f"  [red]✗ Failed: {delete_response.status_code}[/red]"
+                                        )
                                 except Exception as e:
                                     error_count += 1
                                     console.print(f"  [red]✗ Error: {e}[/red]")
@@ -83,7 +91,9 @@ async def cleanup_test_registrations():
                                 # No registration access token, just clean Redis
                                 await r.delete(key)
                                 deleted_count += 1
-                                console.print("  [yellow]✓ Cleaned from Redis (no access token)[/yellow]")
+                                console.print(
+                                    "  [yellow]✓ Cleaned from Redis (no access token)[/yellow]"
+                                )
                     except json.JSONDecodeError:
                         console.print(f"[red]Failed to parse client data for {key}[/red]")
 
@@ -115,9 +125,15 @@ async def cleanup_test_registrations():
                     if created_at:
                         from datetime import datetime
 
-                        created_at = datetime.fromtimestamp(created_at, tz=UTC).strftime("%Y-%m-%d %H:%M:%S")
+                        created_at = datetime.fromtimestamp(created_at, tz=UTC).strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        )
 
-                    table.add_row(client.get("client_id", "Unknown"), client.get("client_name", "Unknown"), created_at)
+                    table.add_row(
+                        client.get("client_id", "Unknown"),
+                        client.get("client_name", "Unknown"),
+                        created_at,
+                    )
                 except json.JSONDecodeError:
                     pass
 

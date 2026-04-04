@@ -24,7 +24,10 @@ def fix_test_parameters(file_path: Path, test_functions: list):
             if match:
                 current_params = match.group(1)
                 # Check if unique_client_name is already in the parameters
-                if "unique_client_name" not in current_params and "unique_test_id" not in current_params:
+                if (
+                    "unique_client_name" not in current_params
+                    and "unique_test_id" not in current_params
+                ):
                     # Add unique_client_name and unique_test_id to the parameters
                     new_params = current_params.rstrip()
                     if new_params and not new_params.endswith(","):

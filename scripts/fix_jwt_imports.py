@@ -31,7 +31,12 @@ for filepath, content in files_to_fix:
         for i, line in enumerate(lines):
             if line.startswith(("import ", "from ")):
                 import_section_end = i + 1
-            elif import_section_end > 0 and line and not line.startswith(" ") and not line.startswith("#"):
+            elif (
+                import_section_end > 0
+                and line
+                and not line.startswith(" ")
+                and not line.startswith("#")
+            ):
                 break
 
         # Add the import

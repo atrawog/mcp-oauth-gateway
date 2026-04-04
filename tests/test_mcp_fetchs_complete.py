@@ -38,7 +38,9 @@ class TestMCPFetchsComplete:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_complete_oauth_flow_integration(self, mcp_fetchs_url, gateway_token, _wait_for_services):
+    async def test_fetchs_complete_oauth_flow_integration(
+        self, mcp_fetchs_url, gateway_token, _wait_for_services
+    ):
         """Test complete OAuth flow from authentication to content fetching."""
         # Step 1: Verify authentication is required
         async with httpx.AsyncClient(verify=True) as client:
@@ -203,7 +205,9 @@ class TestMCPFetchsComplete:
     #
     # @pytest.mark.integration
     # @pytest.mark.asyncio
-    async def test_fetchs_url_parameter_validation(self, mcp_fetchs_url, gateway_token, _wait_for_services):
+    async def test_fetchs_url_parameter_validation(
+        self, mcp_fetchs_url, gateway_token, _wait_for_services
+    ):
         """Test URL parameter validation in fetchs."""
         async with httpx.AsyncClient(verify=True) as client:
             # Test missing URL
@@ -451,7 +455,9 @@ class TestMCPFetchsComplete:
     #
     # @pytest.mark.integration
     # @pytest.mark.asyncio
-    async def test_fetchs_protocol_version_negotiation(self, mcp_fetchs_url, gateway_token, _wait_for_services):
+    async def test_fetchs_protocol_version_negotiation(
+        self, mcp_fetchs_url, gateway_token, _wait_for_services
+    ):
         """Test protocol version negotiation."""
         async with httpx.AsyncClient(verify=True) as client:
             # Try with older protocol version
@@ -482,7 +488,9 @@ class TestMCPFetchsComplete:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_session_management(self, mcp_fetchs_url, gateway_token, _wait_for_services):
+    async def test_fetchs_session_management(
+        self, mcp_fetchs_url, gateway_token, _wait_for_services
+    ):
         """Test session management behavior."""
         async with httpx.AsyncClient(verify=True) as client:
             # Create two separate initialization requests

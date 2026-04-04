@@ -30,7 +30,9 @@ def base_domain():
 def echo_url():
     """Full URL for echo service."""
     if not MCP_ECHO_STATELESS_TESTS_ENABLED:
-        pytest.skip("MCP Echo stateless tests are disabled. Set MCP_ECHO_STATELESS_TESTS_ENABLED=true to enable.")
+        pytest.skip(
+            "MCP Echo stateless tests are disabled. Set MCP_ECHO_STATELESS_TESTS_ENABLED=true to enable."
+        )
     if not MCP_ECHO_STATELESS_URLS:
         pytest.skip("MCP_ECHO_STATELESS_URLS environment variable not set")
     return MCP_ECHO_STATELESS_URLS[0]
@@ -52,7 +54,9 @@ async def wait_for_services():
 class TestMCPEchoClientFull:
     """Comprehensive test of mcp-echo using mcp-streamablehttp-client."""
 
-    def run_mcp_client(self, url: str, token: str, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+    def run_mcp_client(
+        self, url: str, token: str, method: str, params: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Run mcp-streamablehttp-client and return the response."""
         # Set environment variables
         env = os.environ.copy()
@@ -71,7 +75,7 @@ class TestMCPEchoClientFull:
 
         # Build the command - subprocess handles escaping when using list format
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--server-url",
@@ -94,7 +98,9 @@ class TestMCPEchoClientFull:
             # Check if it's an expected error
             if "error" in result.stdout or "Error" in result.stdout:
                 return {"error": result.stdout, "stderr": result.stderr}
-            pytest.fail(f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}")
+            pytest.fail(
+                f"mcp-streamablehttp-client failed: {result.stderr}\nOutput: {result.stdout}"
+            )
 
         # Parse the output - find the JSON response
         try:
@@ -148,7 +154,9 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
     async def test_echo_initialize(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test initialize method to establish connection with mcp-echo."""
         response = self.run_mcp_client(
@@ -173,7 +181,9 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
     async def test_echo_list_tools(self, echo_url, client_token, wait_for_services, unique_test_id):
         """Test listing available tools from mcp-echo service."""
         # First initialize
@@ -189,7 +199,9 @@ class TestMCPEchoClientFull:
         )
 
         # List tools
-        response = self.run_mcp_client(url=echo_url, token=client_token, method="tools/list", params={})
+        response = self.run_mcp_client(
+            url=echo_url, token=client_token, method="tools/list", params={}
+        )
 
         assert "result" in response
         tools = response["result"]["tools"]
@@ -237,8 +249,12 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
-    async def test_echo_tool_functionality(self, echo_url, client_token, wait_for_services, unique_test_id):
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
+    async def test_echo_tool_functionality(
+        self, echo_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test the echo tool returns the exact message provided."""
         # Initialize first
         self.run_mcp_client(
@@ -279,8 +295,12 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
-    async def test_print_header_tool_functionality(self, echo_url, client_token, wait_for_services, unique_test_id):
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
+    async def test_print_header_tool_functionality(
+        self, echo_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test the printHeader tool shows HTTP headers including auth headers."""
         # Initialize first
         self.run_mcp_client(
@@ -330,8 +350,12 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
-    async def test_echo_tool_error_handling(self, echo_url, client_token, wait_for_services, unique_test_id):
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
+    async def test_echo_tool_error_handling(
+        self, echo_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test error handling for invalid tool usage."""
         # Initialize first
         self.run_mcp_client(
@@ -378,8 +402,12 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
-    async def test_print_header_tool_error_handling(self, echo_url, client_token, wait_for_services, unique_test_id):
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
+    async def test_print_header_tool_error_handling(
+        self, echo_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test that printHeader tool handles extra arguments gracefully."""
         # Initialize first
         self.run_mcp_client(
@@ -398,7 +426,10 @@ class TestMCPEchoClientFull:
             url=echo_url,
             token=client_token,
             method="tools/call",
-            params={"name": "printHeader", "arguments": {"extra_arg": "should_be_ignored", "another_arg": 123}},
+            params={
+                "name": "printHeader",
+                "arguments": {"extra_arg": "should_be_ignored", "another_arg": 123},
+            },
         )
 
         # Should still work - printHeader ignores extra arguments
@@ -414,8 +445,12 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
-    async def test_echo_stateless_behavior(self, echo_url, client_token, wait_for_services, unique_test_id):
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
+    async def test_echo_stateless_behavior(
+        self, echo_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test that mcp-echo service is truly stateless - each request is independent."""
         # Test multiple independent tool calls without reinitializing
         for i in range(5):
@@ -464,8 +499,12 @@ class TestMCPEchoClientFull:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
-    async def test_echo_protocol_compliance(self, echo_url, client_token, wait_for_services, unique_test_id):
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
+    async def test_echo_protocol_compliance(
+        self, echo_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test MCP protocol compliance with proper versioning."""
         # Test with different protocol versions to ensure compliance
         protocol_versions = ["2025-06-18", "2024-11-05"]

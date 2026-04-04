@@ -74,7 +74,9 @@ async def test_env_vars():
             print("   The client would perform OAuth flow on first use")
 
     print("\n" + "=" * 50)
-    print("CONCLUSION: mcp-streamablehttp-client automatically uses MCP_CLIENT_* environment variables!")
+    print(
+        "CONCLUSION: mcp-streamablehttp-client automatically uses MCP_CLIENT_* environment variables!"
+    )
     print("No credential files needed - everything flows through .env as commanded by CLAUDE.md!")
 
 

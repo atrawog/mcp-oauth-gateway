@@ -26,7 +26,10 @@ class TestMCPEchoDiagnosticTools:
     ) -> dict:
         """Call an MCP tool directly via HTTP."""
         # Prepare request
-        headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
 
         # Add bearer token if provided
         if bearer_token:
@@ -88,7 +91,10 @@ class TestMCPEchoDiagnosticTools:
         gateway_auth_headers: dict,
     ) -> list:
         """Get list of available tools."""
-        headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
         headers.update(gateway_auth_headers)
 
         payload = {"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1}
@@ -139,7 +145,9 @@ class TestMCPEchoDiagnosticTools:
         gateway_auth_headers: dict,
     ):
         """Test the printHeader tool."""
-        response = await self.call_mcp_tool(http_client, mcp_echo_stateless_url, gateway_auth_headers, "printHeader")
+        response = await self.call_mcp_tool(
+            http_client, mcp_echo_stateless_url, gateway_auth_headers, "printHeader"
+        )
         text = response["content"][0]["text"]
         assert "HTTP Headers:" in text
         assert "host:" in text.lower()
@@ -205,7 +213,9 @@ class TestMCPEchoDiagnosticTools:
         gateway_auth_headers: dict,
     ):
         """Test authContext tool."""
-        response = await self.call_mcp_tool(http_client, mcp_echo_stateless_url, gateway_auth_headers, "authContext")
+        response = await self.call_mcp_tool(
+            http_client, mcp_echo_stateless_url, gateway_auth_headers, "authContext"
+        )
         text = response["content"][0]["text"]
 
         assert "Authentication Context Analysis" in text
@@ -223,7 +233,9 @@ class TestMCPEchoDiagnosticTools:
         gateway_auth_headers: dict,
     ):
         """Test whoIStheGOAT tool."""
-        response = await self.call_mcp_tool(http_client, mcp_echo_stateless_url, gateway_auth_headers, "whoIStheGOAT")
+        response = await self.call_mcp_tool(
+            http_client, mcp_echo_stateless_url, gateway_auth_headers, "whoIStheGOAT"
+        )
         text = response["content"][0]["text"]
 
         assert "G.O.A.T. PROGRAMMER IDENTIFICATION SYSTEM" in text
@@ -241,7 +253,9 @@ class TestMCPEchoDiagnosticTools:
         gateway_auth_headers: dict,
     ):
         """Test requestTiming tool."""
-        response = await self.call_mcp_tool(http_client, mcp_echo_stateless_url, gateway_auth_headers, "requestTiming")
+        response = await self.call_mcp_tool(
+            http_client, mcp_echo_stateless_url, gateway_auth_headers, "requestTiming"
+        )
         text = response["content"][0]["text"]
 
         assert "Request Timing Analysis" in text
@@ -259,12 +273,20 @@ class TestMCPEchoDiagnosticTools:
         gateway_auth_headers: dict,
     ):
         """Test corsAnalysis tool."""
-        response = await self.call_mcp_tool(http_client, mcp_echo_stateless_url, gateway_auth_headers, "corsAnalysis")
+        response = await self.call_mcp_tool(
+            http_client, mcp_echo_stateless_url, gateway_auth_headers, "corsAnalysis"
+        )
         text = response["content"][0]["text"]
 
         assert "CORS Configuration Analysis" in text
         assert "Request Headers:" in text
-        assert "Response CORS Headers (set by Traefik):" in text
+        # The label may say "set by Traefik" (old) or "set by SWAG" (new) depending on
+        # which version of mcp-echo-streamablehttp-server-stateless is deployed.
+        assert (
+            "Response CORS Headers (set by Traefik):" in text
+            or "Response CORS Headers (set by SWAG):" in text
+            or "Response CORS Headers" in text
+        ), "corsAnalysis tool must include a 'Response CORS Headers' section"
         assert "CORS Requirements:" in text
         assert "Common CORS Issues:" in text
 
@@ -319,7 +341,9 @@ class TestMCPEchoDiagnosticTools:
         gateway_auth_headers: dict,
     ):
         """Test healthProbe tool."""
-        response = await self.call_mcp_tool(http_client, mcp_echo_stateless_url, gateway_auth_headers, "healthProbe")
+        response = await self.call_mcp_tool(
+            http_client, mcp_echo_stateless_url, gateway_auth_headers, "healthProbe"
+        )
         text = response["content"][0]["text"]
 
         assert "Service Health Check" in text

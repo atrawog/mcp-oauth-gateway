@@ -5,6 +5,8 @@ Tests the complete flow as Claude.ai would experience it.
 import base64
 import hashlib
 import os
+
+from scripts.env_compat import get_env_value
 import secrets
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
@@ -24,10 +26,14 @@ class TestClaudeIntegration:
     """Test the complete Claude.ai integration flow."""
 
     @pytest.mark.asyncio
-    async def test_claude_nine_sacred_steps(self, http_client, _wait_for_services, unique_client_name):
+    async def test_claude_nine_sacred_steps(
+        self, http_client, _wait_for_services, unique_client_name
+    ):
         """Test the Nine Sacred Steps of Claude.ai Connection."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         # Use RegisteredClientContext for proper cleanup
         from .conftest import RegisteredClientContext
@@ -54,7 +60,9 @@ class TestClaudeIntegration:
             assert response.headers["WWW-Authenticate"] == "Bearer"
 
             # Step 3: Metadata Quest - Seeks .well-known
-            metadata_response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+            metadata_response = await http_client.get(
+                f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+            )
 
             assert metadata_response.status_code == HTTP_OK
             metadata = metadata_response.json()
@@ -80,7 +88,7 @@ class TestClaudeIntegration:
             assert "client_id" in client_creds
             assert "client_secret" in client_creds
             # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
-            client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
+            client_lifetime = int(get_env_value("CLIENT_LIFETIME", "7776000"))
             if client_lifetime == 0:
                 assert client_creds["client_secret_expires_at"] == 0  # Never expires
             else:
@@ -90,9 +98,13 @@ class TestClaudeIntegration:
                 assert abs(client_creds["client_secret_expires_at"] - expected_expiry) <= 5
 
             # Step 6: PKCE Summoning - S256 challenge generated
-            code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("utf-8").rstrip("=")
+            code_verifier = (
+                base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("utf-8").rstrip("=")
+            )
             code_challenge = (
-                base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest()).decode("utf-8").rstrip("=")
+                base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest())
+                .decode("utf-8")
+                .rstrip("=")
             )
 
             # Step 7: GitHub Pilgrimage - User authenticates
@@ -142,7 +154,9 @@ class TestClaudeIntegration:
         assert www_auth.startswith("Bearer")
 
         # Claude.ai checks for OAuth metadata
-        metadata_response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+        metadata_response = await http_client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+        )
 
         assert metadata_response.status_code == HTTP_OK
         metadata = metadata_response.json()

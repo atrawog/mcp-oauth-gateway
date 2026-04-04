@@ -6,6 +6,8 @@ Runs comprehensive diagnostics to find root causes of test failures.
 
 import asyncio
 import os
+
+from env_compat import get_env_value
 import time
 from datetime import UTC
 from datetime import datetime
@@ -23,7 +25,7 @@ async def check_service_health():
     if not base_domain:
         raise Exception("BASE_DOMAIN must be set in .env")
     services = {
-        "Auth Service": f"https://auth.{base_domain}/health",
+        "Auth Service": f"https://mcp-auth.{base_domain}/health",
         "MCP Fetch": f"https://mcp-fetch.{base_domain}/health",
     }
 
@@ -72,7 +74,7 @@ async def test_authentication_flow():
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(
-                f"https://auth.{base_domain}/verify",
+                f"https://mcp-auth.{base_domain}/verify",
                 headers={"Authorization": f"Bearer {oauth_token}"},
             )
 
@@ -313,7 +315,7 @@ def check_environment():
     print("✅ All required environment variables present")
 
     # Check MCP protocol versions
-    mcp_version = os.getenv("MCP_PROTOCOL_VERSION")
+    mcp_version = get_env_value("MCP_PROTOCOL_VERSION")
     mcp_supported = os.getenv("MCP_PROTOCOL_VERSIONS_SUPPORTED", "").split(",")
 
     print(f"   MCP Protocol Version: {mcp_version}")

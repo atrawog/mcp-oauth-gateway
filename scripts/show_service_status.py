@@ -9,7 +9,9 @@ def get_container_status():
     """Get status of all containers."""
     try:
         # Get all running containers
-        result = subprocess.run(["docker", "ps", "--format", "json"], capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            ["docker", "ps", "--format", "json"], capture_output=True, text=True, check=True
+        )
 
         containers = []
         for line in result.stdout.strip().split("\n"):
@@ -17,7 +19,7 @@ def get_container_status():
                 container = json.loads(line)
                 name = container.get("Names", "")
                 # Filter for our services
-                if any(svc in name for svc in ["traefik", "auth", "redis", "mcp-"]):
+                if any(svc in name for svc in ["swag", "auth", "redis", "mcp-"]):
                     containers.append(container)
 
         return containers

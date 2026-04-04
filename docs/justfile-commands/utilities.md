@@ -366,7 +366,7 @@ curl https://auth.${BASE_DOMAIN}/health
 ls scripts/
 
 # Run with Python directly
-pixi run python scripts/check_services_ready.py
+uv run python scripts/check_services_ready.py
 ```
 
 ### Network Problems

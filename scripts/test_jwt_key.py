@@ -4,12 +4,13 @@
 import base64
 import os
 
+from env_compat import get_env_value
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
 
 try:
-    key_b64 = os.getenv("JWT_PRIVATE_KEY_B64")
+    key_b64 = get_env_value("JWT_PRIVATE_KEY_B64")
     if not key_b64:
         print("JWT_PRIVATE_KEY_B64 not found in environment")
     else:

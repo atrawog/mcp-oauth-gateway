@@ -17,7 +17,9 @@ class TestRegisterEndpointSecurity:
     """Test OAuth client registration endpoint security."""
 
     @pytest.mark.asyncio
-    async def test_register_is_public_endpoint(self, http_client, _wait_for_services, unique_client_name):
+    async def test_register_is_public_endpoint(
+        self, http_client, _wait_for_services, unique_client_name
+    ):
         """Test that /register endpoint is public per RFC 7591."""
         async with RegisteredClientContext(http_client) as ctx:
             registration_data = {
@@ -38,7 +40,9 @@ class TestRegisterEndpointSecurity:
             # Cleanup happens automatically when context manager exits
 
     @pytest.mark.asyncio
-    async def test_register_ignores_authorization_headers(self, http_client, _wait_for_services, unique_client_name):
+    async def test_register_ignores_authorization_headers(
+        self, http_client, _wait_for_services, unique_client_name
+    ):
         """Test that /register endpoint ignores auth headers per RFC 7591."""
         registration_data = {
             "redirect_uris": ["https://example.com/callback"],
@@ -74,7 +78,9 @@ class TestRegisterEndpointSecurity:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_security_enforced_at_authorization_stage(self, http_client, _wait_for_services, unique_client_name):
+    async def test_security_enforced_at_authorization_stage(
+        self, http_client, _wait_for_services, unique_client_name
+    ):
         """Test that security is enforced at authorization, not registration."""
         # First, register a client publicly (no auth required)
         registration_data = {
@@ -120,7 +126,9 @@ class TestRegisterEndpointSecurity:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_register_with_valid_token_still_succeeds(self, http_client, _wait_for_services, unique_client_name):
+    async def test_register_with_valid_token_still_succeeds(
+        self, http_client, _wait_for_services, unique_client_name
+    ):
         """Test that /register endpoint succeeds even with valid token (public endpoint)."""
         # Even if we have a valid token, registration should still work
         # because it's a public endpoint per RFC 7591
@@ -135,7 +143,9 @@ class TestRegisterEndpointSecurity:
         if GATEWAY_OAUTH_ACCESS_TOKEN:
             headers["Authorization"] = f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"
 
-        response = await http_client.post(f"{AUTH_BASE_URL}/register", json=registration_data, headers=headers)
+        response = await http_client.post(
+            f"{AUTH_BASE_URL}/register", json=registration_data, headers=headers
+        )
 
         # Should succeed regardless of token presence
         assert response.status_code == HTTP_CREATED
@@ -158,7 +168,9 @@ class TestRegisterEndpointSecurity:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_token_endpoint_requires_authentication(self, http_client, _wait_for_services, unique_client_name):
+    async def test_token_endpoint_requires_authentication(
+        self, http_client, _wait_for_services, unique_client_name
+    ):
         """Test that token endpoint requires proper client authentication."""
         # First register a client (public, no auth)
         reg_response = await http_client.post(
@@ -201,7 +213,9 @@ class TestRegisterEndpointSecurity:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_multiple_clients_can_register_publicly(self, http_client, _wait_for_services, unique_test_id):
+    async def test_multiple_clients_can_register_publicly(
+        self, http_client, _wait_for_services, unique_test_id
+    ):
         """Test that multiple clients can register without authentication."""
         # Register multiple clients to verify public registration works
         clients = []

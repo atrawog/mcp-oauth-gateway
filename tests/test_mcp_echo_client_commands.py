@@ -78,7 +78,9 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
     async def test_echo_list_tools_command(self, temp_env_file, mcp_client_env, _wait_for_services):
         """Test listing tools using --list-tools command."""
         # Set up environment with MCP_CLIENT_* variables
@@ -87,7 +89,7 @@ class TestMCPEchoClientCommands:
 
         # Run the list-tools command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -123,8 +125,12 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
-    async def test_echo_tool_command_simple(self, temp_env_file, mcp_client_env, _wait_for_services):
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
+    async def test_echo_tool_command_simple(
+        self, temp_env_file, mcp_client_env, _wait_for_services
+    ):
         """Test echo tool using --command interface with simple message."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -134,7 +140,7 @@ class TestMCPEchoClientCommands:
 
         # Run the echo command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -164,8 +170,12 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
-    async def test_echo_tool_command_json_args(self, temp_env_file, mcp_client_env, _wait_for_services):
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
+    async def test_echo_tool_command_json_args(
+        self, temp_env_file, mcp_client_env, _wait_for_services
+    ):
         """Test echo tool using --command interface with JSON arguments."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -175,7 +185,7 @@ class TestMCPEchoClientCommands:
 
         # Run the echo command with JSON arguments
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -205,8 +215,12 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
-    async def test_echo_tool_command_multiline(self, temp_env_file, mcp_client_env, _wait_for_services):
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
+    async def test_echo_tool_command_multiline(
+        self, temp_env_file, mcp_client_env, _wait_for_services
+    ):
         """Test echo tool with multiline message via command interface."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -216,7 +230,7 @@ class TestMCPEchoClientCommands:
 
         # Run the echo command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -246,8 +260,12 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
-    async def test_print_header_tool_command(self, temp_env_file, mcp_client_env, _wait_for_services):
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
+    async def test_print_header_tool_command(
+        self, temp_env_file, mcp_client_env, _wait_for_services
+    ):
         """Test printHeader tool using --command interface."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -255,7 +273,7 @@ class TestMCPEchoClientCommands:
 
         # Run the printHeader command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -282,16 +300,20 @@ class TestMCPEchoClientCommands:
 
         # Should show some expected headers
         assert "authorization:" in output.lower() or "bearer" in output.lower()
-        # The printHeader tool returns specific headers (Traefik forwarded and auth headers)
+        # The printHeader tool returns specific headers (SWAG forwarded and auth headers)
         # It doesn't return all request headers like accept, content-type, etc.
-        assert any(header in output.lower() for header in ["x-forwarded-", "x-real-ip", "authorization"])
+        assert any(
+            header in output.lower() for header in ["x-forwarded-", "x-real-ip", "authorization"]
+        )
 
         print("✅ Successfully executed printHeader via command interface")
         print("   Found HTTP headers including auth information")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
     async def test_command_with_invalid_token(self, temp_env_file, _wait_for_services):
         """Test that command fails properly with invalid token."""
         env = os.environ.copy()
@@ -308,7 +330,7 @@ class TestMCPEchoClientCommands:
 
         # Run the command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -332,14 +354,17 @@ class TestMCPEchoClientCommands:
         # Check for authentication error indicators
         error_output = result.stderr + result.stdout
         assert any(
-            indicator in error_output.lower() for indicator in ["401", "unauthorized", "invalid", "token", "auth"]
+            indicator in error_output.lower()
+            for indicator in ["401", "unauthorized", "invalid", "token", "auth"]
         ), f"Expected auth error not found in: {error_output}"
 
         print("✅ Command properly failed with invalid token")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
     async def test_invalid_tool_command(self, temp_env_file, mcp_client_env, _wait_for_services):
         """Test that invalid tool commands fail properly."""
         # Set up environment with MCP_CLIENT_* variables
@@ -348,7 +373,7 @@ class TestMCPEchoClientCommands:
 
         # Run command with invalid tool name
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -372,15 +397,20 @@ class TestMCPEchoClientCommands:
         # Check for tool error indicators
         error_output = result.stderr + result.stdout
         assert any(
-            indicator in error_output.lower() for indicator in ["unknown tool", "invalid", "not found", "error"]
+            indicator in error_output.lower()
+            for indicator in ["unknown tool", "invalid", "not found", "error"]
         ), f"Expected tool error not found in: {error_output}"
 
         print("✅ Command properly failed with invalid tool name")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
-    async def test_echo_stress_test_commands(self, temp_env_file, mcp_client_env, _wait_for_services):
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
+    async def test_echo_stress_test_commands(
+        self, temp_env_file, mcp_client_env, _wait_for_services
+    ):
         """Stress test echo tool with multiple rapid commands."""
         # Set up environment with MCP_CLIENT_* variables
         env = os.environ.copy()
@@ -391,7 +421,7 @@ class TestMCPEchoClientCommands:
             test_message = f"Stress test message {i + 1}/5"
 
             cmd = [
-                "pixi",
+                "uv",
                 "run",
                 "mcp-streamablehttp-client",
                 "--env-file",
@@ -417,7 +447,9 @@ class TestMCPEchoClientCommands:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skipif(not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled")
+    @pytest.mark.skipif(
+        not MCP_ECHO_STATELESS_TESTS_ENABLED, reason="MCP Echo stateless tests disabled"
+    )
     async def test_echo_multiple_urls(self, mcp_client_env, _wait_for_services):
         """Test echo command on multiple configured URLs."""
         if not MCP_ECHO_STATELESS_URLS:
@@ -455,7 +487,7 @@ LOG_LEVEL=INFO
                 # Test echo command on this URL
                 test_message = f"Testing {url.split('//')[1].split('/')[0]}"
                 cmd = [
-                    "pixi",
+                    "uv",
                     "run",
                     "mcp-streamablehttp-client",
                     "--env-file",

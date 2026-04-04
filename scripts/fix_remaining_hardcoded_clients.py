@@ -35,13 +35,21 @@ def find_and_fix_client_names(file_path: Path) -> list[tuple[int, str, str]]:
             '"clientInfo": {"name": f"persistent-{unique_test_id}"',
             "persistent-client",
         ),
-        (r'"clientInfo":\s*{\s*"name":\s*"flow-test"', '"clientInfo": {"name": f"flow-{unique_test_id}"', "flow-test"),
+        (
+            r'"clientInfo":\s*{\s*"name":\s*"flow-test"',
+            '"clientInfo": {"name": f"flow-{unique_test_id}"',
+            "flow-test",
+        ),
         (
             r'"clientInfo":\s*{\s*"name":\s*"helper-test"',
             '"clientInfo": {"name": f"helper-{unique_test_id}"',
             "helper-test",
         ),
-        (r'"clientInfo":\s*{\s*"name":\s*"auth-test"', '"clientInfo": {"name": f"auth-{unique_test_id}"', "auth-test"),
+        (
+            r'"clientInfo":\s*{\s*"name":\s*"auth-test"',
+            '"clientInfo": {"name": f"auth-{unique_test_id}"',
+            "auth-test",
+        ),
         (
             r'"clientInfo":\s*{\s*"name":\s*"version-test"',
             '"clientInfo": {"name": f"version-{unique_test_id}"',
@@ -52,7 +60,11 @@ def find_and_fix_client_names(file_path: Path) -> list[tuple[int, str, str]]:
             '"clientInfo": {"name": f"large-{unique_test_id}"',
             "large-request-test",
         ),
-        (r'"clientInfo":\s*{\s*"name":\s*"perf-test"', '"clientInfo": {"name": f"perf-{unique_test_id}"', "perf-test"),
+        (
+            r'"clientInfo":\s*{\s*"name":\s*"perf-test"',
+            '"clientInfo": {"name": f"perf-{unique_test_id}"',
+            "perf-test",
+        ),
         # Client names with numbers
         (
             r'"clientInfo":\s*{\s*"name":\s*"client-1"',
@@ -77,8 +89,16 @@ def find_and_fix_client_names(file_path: Path) -> list[tuple[int, str, str]]:
             "concurrent-client pattern",
         ),
         # Initialize method parameter patterns
-        (r'\.initialize\("helper-test"\)', '.initialize(f"helper-{unique_test_id}")', "initialize helper-test"),
-        (r'client_name: str = "test-client"', "client_name: str = None", "default client_name parameter"),
+        (
+            r'\.initialize\("helper-test"\)',
+            '.initialize(f"helper-{unique_test_id}")',
+            "initialize helper-test",
+        ),
+        (
+            r'client_name: str = "test-client"',
+            "client_name: str = None",
+            "default client_name parameter",
+        ),
         # Health check special case - don't modify as it's a standard health check
         # (r'"clientInfo":\s*{\s*"name":\s*"healthcheck"', '"clientInfo": {"name": "healthcheck"', "healthcheck - skipped"),
     ]
@@ -118,7 +138,13 @@ def find_and_fix_client_names(file_path: Path) -> list[tuple[int, str, str]]:
                                 break
                         if insert_at:
                             lines.insert(insert_at, new_line.rstrip())
-                            changes.append((insert_at + 1, "Added default client_name handling", new_line.strip()))
+                            changes.append(
+                                (
+                                    insert_at + 1,
+                                    "Added default client_name handling",
+                                    new_line.strip(),
+                                )
+                            )
                             content = "\n".join(lines)
                             break
                 break

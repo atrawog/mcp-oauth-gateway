@@ -28,7 +28,9 @@ async def wait_for_services():
 class TestMCPSequentialThinkingIntegration:
     """Integration tests for mcp-sequentialthinking service using mcp-streamablehttp-client."""
 
-    def run_mcp_client(self, url: str, token: str, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+    def run_mcp_client(
+        self, url: str, token: str, method: str, params: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Run mcp-streamablehttp-client and return the response."""
         # Set environment variables
         env = os.environ.copy()
@@ -47,7 +49,7 @@ class TestMCPSequentialThinkingIntegration:
 
         # Build the command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--server-url",
@@ -57,7 +59,9 @@ class TestMCPSequentialThinkingIntegration:
         ]
 
         # Run the command
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=30, env=env)
+        result = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, timeout=30, env=env
+        )
 
         if result.returncode != 0:
             # Check if it's an expected error
@@ -139,7 +143,9 @@ class TestMCPSequentialThinkingIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_initialize(self, mcp_sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_initialize(
+        self, mcp_sequentialthinking_url, client_token, wait_for_services
+    ):
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
             url=mcp_sequentialthinking_url,
@@ -177,7 +183,9 @@ class TestMCPSequentialThinkingIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_list_tools(self, mcp_sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_list_tools(
+        self, mcp_sequentialthinking_url, client_token, wait_for_services
+    ):
         """Test listing available tools."""
         sequentialthinking_url = f"{mcp_sequentialthinking_url}"
         # First initialize
@@ -210,13 +218,18 @@ class TestMCPSequentialThinkingIntegration:
         thinking_tools = [
             name
             for name in tool_names
-            if any(keyword in name.lower() for keyword in ["think", "sequential", "step", "analyze", "reason"])
+            if any(
+                keyword in name.lower()
+                for keyword in ["think", "sequential", "step", "analyze", "reason"]
+            )
         ]
         assert len(thinking_tools) > 0, f"No thinking tools found in: {tool_names}"
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_list_resources(self, mcp_sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_list_resources(
+        self, mcp_sequentialthinking_url, client_token, wait_for_services
+    ):
         """Test listing available resources."""
         sequentialthinking_url = f"{mcp_sequentialthinking_url}"
         # Initialize first
@@ -285,7 +298,11 @@ class TestMCPSequentialThinkingIntegration:
                 # Add some basic arguments for thinking operations
                 for prop, schema in first_tool["inputSchema"]["properties"].items():
                     if schema.get("type") == "string":
-                        if "problem" in prop.lower() or "query" in prop.lower() or "question" in prop.lower():
+                        if (
+                            "problem" in prop.lower()
+                            or "query" in prop.lower()
+                            or "question" in prop.lower()
+                        ):
                             tool_args[prop] = "How can I optimize software performance?"
                         elif "topic" in prop.lower() or "subject" in prop.lower():
                             tool_args[prop] = "software optimization"
@@ -322,7 +339,9 @@ class TestMCPSequentialThinkingIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_health_check(self, mcp_sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_health_check(
+        self, mcp_sequentialthinking_url, client_token, wait_for_services
+    ):
         """Test that the sequential thinking service health endpoint is accessible."""
         # This test verifies the service is running and accessible
         # The actual health check is done via the docker health check

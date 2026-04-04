@@ -10,7 +10,7 @@ import httpx
 async def test_oauth_registration():
     """Test OAuth client registration with proper redirect URIs."""
     base_domain = os.getenv("BASE_DOMAIN", "atratest.org")
-    auth_base_url = f"https://auth.{base_domain}"
+    auth_base_url = f"https://mcp-auth.{base_domain}"
 
     # Get redirect URIs from environment
     test_callback_url = os.getenv("TEST_OAUTH_CALLBACK_URL")

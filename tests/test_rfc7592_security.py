@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 base_domain = os.environ.get("BASE_DOMAIN")
 if not base_domain:
     raise Exception("BASE_DOMAIN must be set in environment")
-AUTH_BASE_URL = f"https://auth.{base_domain}"
+AUTH_BASE_URL = f"https://mcp-auth.{base_domain}"
 
 
 def create_bearer_auth_header(token: str) -> str:
@@ -435,9 +435,13 @@ async def test_rfc7592_sql_injection_attempts(http_client, unique_client_name, u
         assert response.status_code in [403, 404]  # Wrong token = 403
 
     # Verify original client still exists and works
-    response = await http_client.get(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
+    response = await http_client.get(
+        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
+    )
     assert response.status_code == HTTP_OK
     assert response.json()["client_name"] == unique_client_name
 
     # Clean up
-    await http_client.delete(f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header})
+    await http_client.delete(
+        f"{AUTH_BASE_URL}/register/{client_id}", headers={"Authorization": auth_header}
+    )

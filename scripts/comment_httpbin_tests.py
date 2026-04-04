@@ -8,7 +8,9 @@ from pathlib import Path
 def comment_out_test_method(content, test_name):
     """Comment out a specific test method."""
     # Find the test method start
-    pattern = rf"(\n?)([ \t]*@pytest\.mark\.[^\n]*\n)*([ \t]*async def {test_name}\([^)]*\):[^\n]*\n)"
+    pattern = (
+        rf"(\n?)([ \t]*@pytest\.mark\.[^\n]*\n)*([ \t]*async def {test_name}\([^)]*\):[^\n]*\n)"
+    )
 
     match = re.search(pattern, content, re.MULTILINE)
     if not match:
@@ -43,7 +45,9 @@ def comment_out_test_method(content, test_name):
     # Comment out each line
     for line in lines:
         if line.strip():
-            commented_lines.append(f"{' ' * indent}# {line[indent:] if len(line) > indent else line}")
+            commented_lines.append(
+                f"{' ' * indent}# {line[indent:] if len(line) > indent else line}"
+            )
         else:
             commented_lines.append(f"{' ' * indent}#")
 

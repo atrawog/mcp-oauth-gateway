@@ -4,6 +4,8 @@ This ensures 100% compliance with all divine requirements!
 
 import logging
 import os
+
+from scripts.env_compat import get_env_value
 from pathlib import Path
 
 import pytest
@@ -24,10 +26,14 @@ class TestSacredSealsCompliance:
     """Test all 25 Sacred Seals for 100% divine compliance."""
 
     @pytest.mark.asyncio
-    async def test_redis_key_patterns_and_ttls(self, http_client, _wait_for_services, unique_client_name):
+    async def test_redis_key_patterns_and_ttls(
+        self, http_client, _wait_for_services, unique_client_name
+    ):
         """Test SEAL OF REDIS PATTERNS - Sacred key hierarchies preserve all state."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         # Connect to Redis
         redis_client = await redis.from_url(REDIS_URL)
@@ -54,7 +60,7 @@ class TestSacredSealsCompliance:
             assert client_exists == 1
 
             # Client keys TTL depends on CLIENT_LIFETIME setting
-            client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
+            client_lifetime = int(get_env_value("CLIENT_LIFETIME", "7776000"))
             client_ttl = await redis_client.ttl(client_key)
             if client_lifetime == 0:
                 assert client_ttl == -1  # -1 means no expiration
@@ -131,7 +137,8 @@ class TestSacredSealsCompliance:
                 if pattern in ["oauth:client:", "oauth:state:"]:
                     # Redis returns bytes, need to decode
                     assert any(
-                        (key.decode() if isinstance(key, bytes) else key).startswith(pattern) for key in all_keys
+                        (key.decode() if isinstance(key, bytes) else key).startswith(pattern)
+                        for key in all_keys
                     ), f"Pattern {pattern} not found in Redis keys!"
 
         finally:
@@ -151,10 +158,14 @@ class TestSacredSealsCompliance:
                 logger.warning(f"Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_dual_realms_architecture(self, http_client, _wait_for_services, unique_client_name):
+    async def test_dual_realms_architecture(
+        self, http_client, _wait_for_services, unique_client_name
+    ):
         """Test SEAL OF DUAL REALMS - Client auth and user auth never intermingle."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         # Test 1: MCP Gateway Client Realm - External systems authenticate
         client_register = await http_client.post(
@@ -174,7 +185,7 @@ class TestSacredSealsCompliance:
         assert "client_id" in client_data
         assert "client_secret" in client_data
         # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
-        client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
+        client_lifetime = int(get_env_value("CLIENT_LIFETIME", "7776000"))
         if client_lifetime == 0:
             assert client_data["client_secret_expires_at"] == 0  # Never expires
         else:
@@ -192,7 +203,9 @@ class TestSacredSealsCompliance:
             "state": "test-dual-realms",
         }
 
-        auth_response = await http_client.get(f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False)
+        auth_response = await http_client.get(
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
+        )
 
         # Should redirect to GitHub for USER authentication
         assert auth_response.status_code == 307
@@ -251,7 +264,7 @@ class TestSacredSealsCompliance:
             "./htmlcov/": "Coverage reports (git-ignored)!",
             "./auth/": "Auth service sanctuary!",
             "./mcp-fetch/": "MCP service sanctuary!",
-            "./traefik/": "Traefik configuration sanctuary!",
+            "./swag/": "SWAG reverse proxy configuration sanctuary!",
             "./coverage-spy/": "Sidecar coverage sanctuary!",
         }
 
@@ -260,7 +273,8 @@ class TestSacredSealsCompliance:
             "docker-compose.yml": "Root orchestration only!",
             "docker-compose.coverage.yml": "Coverage overlay!",
             "justfile": "The book of commands - REQUIRED!",
-            "pixi.toml": "Package management - REQUIRED!",
+            "pyproject.toml": "Python project configuration - REQUIRED!",
+            "uv.lock": "Locked uv dependency graph - REQUIRED!",
             ".env": "Configuration - REQUIRED!",
             ".coveragerc": "Coverage config - REQUIRED!",
             ".gitignore": "Must ignore reports/, htmlcov/, .env!",
@@ -280,11 +294,13 @@ class TestSacredSealsCompliance:
         service_compose_files = [
             "./auth/docker-compose.yml",
             "./mcp-fetch/docker-compose.yml",
-            "./traefik/docker-compose.yml",
+            "./swag/docker-compose.yaml",
         ]
 
         for compose_file in service_compose_files:
-            assert Path(compose_file).exists(), f"Service isolation violated! {compose_file} missing!"
+            assert Path(compose_file).exists(), (
+                f"Service isolation violated! {compose_file} missing!"
+            )
 
         # Check .gitignore properly ignores sacred directories
         gitignore_content = Path(".gitignore").read_text()
@@ -297,11 +313,58 @@ class TestSacredSealsCompliance:
             # Skip non-test files (scripts that happen to start with test_)
             if "scripts" in str(py_file.parent):
                 continue  # These are simulation/debug scripts, not pytest tests
-            # Skip pixi environment files
+            # Skip legacy pixi environment files
             if ".pixi" in str(py_file):
                 continue  # These are installed packages, not our tests
             assert py_file.parent.name == "tests" or "tests" in str(py_file.parent), (
                 f"Test file {py_file} violates sacred structure - must be in ./tests/!"
+            )
+
+    @pytest.mark.asyncio
+    async def test_swag_routing_seal(self):
+        """Test SEAL OF SWAG ROUTING - nginx proxy-confs with auth_request enforcement."""
+        # swag/docker-compose.yaml must exist — the SWAG service definition
+        swag_compose = Path("./swag/docker-compose.yaml")
+        assert swag_compose.exists(), (
+            "swag/docker-compose.yaml missing! SWAG is the divine gateway guardian!"
+        )
+        assert swag_compose.is_file(), "swag/docker-compose.yaml must be a file!"
+
+        # swag/proxy-confs/ directory must exist — the nginx conf sanctuary
+        proxy_confs_dir = Path("./swag/proxy-confs")
+        assert proxy_confs_dir.exists(), (
+            "swag/proxy-confs/ missing! nginx proxy configurations required!"
+        )
+        assert proxy_confs_dir.is_dir(), "swag/proxy-confs/ must be a directory!"
+
+        # mcp-template.subdomain.conf must exist at the project root
+        template_conf = Path("./mcp-template.subdomain.conf")
+        assert template_conf.exists(), (
+            "mcp-template.subdomain.conf missing! Service template required!"
+        )
+        assert template_conf.is_file(), "mcp-template.subdomain.conf must be a file!"
+
+        # The template must use auth_request /_oauth_verify; for OAuth enforcement
+        template_content = template_conf.read_text()
+        assert "auth_request /_oauth_verify;" in template_content, (
+            "mcp-template.subdomain.conf must contain 'auth_request /_oauth_verify;' "
+            "to enforce OAuth token validation on MCP endpoints!"
+        )
+
+        # No traefik.http labels must exist in any compose files — migration complete
+        import glob
+
+        compose_files = glob.glob("./**/*.yml", recursive=True) + glob.glob(
+            "./**/*.yaml", recursive=True
+        )
+        for compose_path in compose_files:
+            # Skip legacy pixi/virtual env files
+            if ".pixi" in compose_path or ".git" in compose_path:
+                continue
+            content = Path(compose_path).read_text()
+            assert "traefik.http" not in content, (
+                f"{compose_path} still contains 'traefik.http' labels! "
+                "Migration to SWAG is complete — remove all Traefik labels!"
             )
 
     @pytest.mark.asyncio
@@ -327,7 +390,9 @@ class TestSacredSealsCompliance:
         coverage_compose = Path("./docker-compose.coverage.yml").read_text()
 
         # Verify PYTHONPATH injection
-        assert "PYTHONPATH=/coverage-spy" in coverage_compose, "Coverage must be injected via PYTHONPATH!"
+        assert "PYTHONPATH=/coverage-spy" in coverage_compose, (
+            "Coverage must be injected via PYTHONPATH!"
+        )
 
         # Verify COVERAGE_PROCESS_START
         assert "COVERAGE_PROCESS_START=" in coverage_compose, (
@@ -348,7 +413,9 @@ class TestSacredSealsCompliance:
 
         for setting in required_settings:
             # Check case-insensitive since parallel = True vs parallel = true
-            assert setting.lower() in coveragerc_content.lower(), f"Coverage config missing required setting: {setting}"
+            assert setting.lower() in coveragerc_content.lower(), (
+                f"Coverage config missing required setting: {setting}"
+            )
 
         # Verify path mapping for coverage
         assert "[paths]" in coveragerc_content, "Coverage must have path mapping!"
@@ -375,7 +442,9 @@ class TestSacredSealsCompliance:
 
         # Verify _toc.yml has proper structure
         toc_content = Path("./docs/_toc.yml").read_text()
-        assert "root:" in toc_content or "format:" in toc_content, "Table of contents must define root or format!"
+        assert "root:" in toc_content or "format:" in toc_content, (
+            "Table of contents must define root or format!"
+        )
 
         # Check that just command exists for building docs
         justfile_content = Path("./justfile").read_text()
@@ -384,7 +453,9 @@ class TestSacredSealsCompliance:
         # Verify the docs use MyST markdown
         index_content = Path("./docs/index.md").read_text()
         # MyST uses standard markdown, check for markdown syntax
-        assert "#" in index_content or "```" in index_content, "Documentation must use MyST markdown format!"
+        assert "#" in index_content or "```" in index_content, (
+            "Documentation must use MyST markdown format!"
+        )
 
     async def _get_all_keys(self, redis_client):
         """Helper to get all Redis keys."""

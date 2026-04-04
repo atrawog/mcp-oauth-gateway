@@ -86,7 +86,9 @@ def map_and_analyze_coverage():
 
         results.append(
             {
-                "file": local_path.replace("mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/", ""),
+                "file": local_path.replace(
+                    "mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient/", ""
+                ),
                 "lines_covered": data["lines_covered"],
                 "total_lines": total_lines,
                 "coverage_pct": coverage_pct,

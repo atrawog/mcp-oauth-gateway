@@ -52,10 +52,14 @@ class TestMCPProtocolVersionStrict:
     """Strict MCP Protocol Version validation - MUST match .env exactly!"""
 
     @pytest.mark.asyncio
-    async def test_mcp_protocol_version_must_match_env_exactly(self, http_client, _wait_for_services):
+    async def test_mcp_protocol_version_must_match_env_exactly(
+        self, http_client, _wait_for_services
+    ):
         """Test that MCP ONLY accepts the exact protocol version from .env."""
         # MUST have MCP client access token - test FAILS if not available
-        assert MCP_CLIENT_ACCESS_TOKEN, "MCP_CLIENT_ACCESS_TOKEN not available - run: just mcp-client-token"
+        assert MCP_CLIENT_ACCESS_TOKEN, (
+            "MCP_CLIENT_ACCESS_TOKEN not available - run: just mcp-client-token"
+        )
 
         # Test 1: Correct version from .env MUST work
         correct_response = await http_client.post(
@@ -94,7 +98,9 @@ class TestMCPProtocolVersionStrict:
         )
 
     @pytest.mark.asyncio
-    async def test_mcp_version_header_must_match_env(self, http_client, _wait_for_services, registered_client):
+    async def test_mcp_version_header_must_match_env(
+        self, http_client, _wait_for_services, registered_client
+    ):
         """Test that MCP-Protocol-Version header MUST match .env version."""
         # Connect to Redis
         redis_client = await redis.from_url(REDIS_URL, decode_responses=True)
@@ -114,7 +120,7 @@ class TestMCPProtocolVersionStrict:
                 "jti": jti,
                 "iat": now,
                 "exp": now + ACCESS_TOKEN_LIFETIME,
-                "iss": f"https://auth.{BASE_DOMAIN}",
+                "iss": f"https://mcp-auth.{BASE_DOMAIN}",
             }
 
             # Create JWT

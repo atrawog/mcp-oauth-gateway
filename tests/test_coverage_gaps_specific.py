@@ -69,10 +69,14 @@ class TestClientRegistrationErrors:
     """Test client registration error scenarios - Line 327."""
 
     @pytest.mark.asyncio
-    async def test_registration_with_invalid_data(self, http_client, _wait_for_services, unique_client_name):
+    async def test_registration_with_invalid_data(
+        self, http_client, _wait_for_services, unique_client_name
+    ):
         """Test various registration error conditions."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         # The auth service may be more permissive than expected
         # Let's test with actually invalid data that would cause errors
@@ -130,7 +134,9 @@ class TestAuthorizationErrors:
             assert "invalid_client" in content or "Client authentication failed" in content
 
     @pytest.mark.asyncio
-    async def test_authorize_with_mismatched_redirect_uri(self, http_client, _wait_for_services, registered_client):
+    async def test_authorize_with_mismatched_redirect_uri(
+        self, http_client, _wait_for_services, registered_client
+    ):
         """Test authorization with non-matching redirect URI."""
         response = await http_client.get(
             f"{AUTH_BASE_URL}/authorize",
@@ -154,7 +160,9 @@ class TestTokenEndpointErrors:
     """Test token endpoint error scenarios - Lines 447-506."""
 
     @pytest.mark.asyncio
-    async def test_token_endpoint_comprehensive_errors(self, http_client, _wait_for_services, registered_client):
+    async def test_token_endpoint_comprehensive_errors(
+        self, http_client, _wait_for_services, registered_client
+    ):
         """Test various token endpoint error conditions."""
         # Test with non-existent authorization code
         response = await http_client.post(
@@ -219,7 +227,10 @@ class TestVerifyEndpointErrors:
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
         # Check for any token format error message
-        assert "token" in error["error_description"].lower() or "invalid" in error["error_description"].lower()
+        assert (
+            "token" in error["error_description"].lower()
+            or "invalid" in error["error_description"].lower()
+        )
 
         # Test with JWT signed with wrong key
         wrong_token = jwt_encode(
@@ -262,7 +273,9 @@ class TestRevokeEndpointEdgeCases:
     """Test revoke endpoint scenarios - Lines 634-665."""
 
     @pytest.mark.asyncio
-    async def test_revoke_comprehensive_scenarios(self, http_client, _wait_for_services, registered_client):
+    async def test_revoke_comprehensive_scenarios(
+        self, http_client, _wait_for_services, registered_client
+    ):
         """Test various revocation scenarios."""
         # Test revoking non-existent token (should still return 200 per RFC)
         response = await http_client.post(
@@ -308,7 +321,9 @@ class TestIntrospectEdgeCases:
     """Test introspect endpoint edge cases - Lines 686, 698-711, 703-711."""
 
     @pytest.mark.asyncio
-    async def test_introspect_comprehensive_scenarios(self, http_client, _wait_for_services, registered_client):
+    async def test_introspect_comprehensive_scenarios(
+        self, http_client, _wait_for_services, registered_client
+    ):
         """Test various introspection scenarios."""
         # Test with malformed JWT
         response = await http_client.post(
@@ -330,7 +345,7 @@ class TestIntrospectEdgeCases:
                 "sub": "test_user",
                 "jti": "not_in_redis",
                 "exp": int(time.time()) + 3600,
-                "iss": f"https://auth.{BASE_DOMAIN}",
+                "iss": f"https://mcp-auth.{BASE_DOMAIN}",
             },
             GATEWAY_JWT_SECRET,
             algorithm="HS256",
@@ -419,7 +434,9 @@ class TestComplexTokenScenarios:
     """Test complex token scenarios to cover remaining edge cases."""
 
     @pytest.mark.asyncio
-    async def test_token_with_redis_operations(self, http_client, _wait_for_services, registered_client):
+    async def test_token_with_redis_operations(
+        self, http_client, _wait_for_services, registered_client
+    ):
         """Test token operations that interact with Redis using a real valid token."""
         # Use the actual gateway token that we know is valid and in Redis
         test_token = GATEWAY_OAUTH_ACCESS_TOKEN

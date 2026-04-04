@@ -85,7 +85,9 @@ def main():
 
     # Combine coverage data
     print("\n🔄 Combining coverage data...")
-    result = subprocess.run(["coverage", "combine", "--keep"], check=False, capture_output=True, text=True)
+    result = subprocess.run(
+        ["coverage", "combine", "--keep"], check=False, capture_output=True, text=True
+    )
 
     if result.returncode != 0 and "No data to combine" not in result.stderr:
         print(f"❌ Error combining coverage data: {result.stderr}")

@@ -67,7 +67,11 @@ def add_fixture_to_test(test_file: Path, function_name: str):
     if match:
         old_def = match.group(1)
         # Add registered_client to parameters
-        new_def = f"{old_def}registered_client)" if old_def.endswith("(") else f"{old_def}, registered_client"
+        new_def = (
+            f"{old_def}registered_client)"
+            if old_def.endswith("(")
+            else f"{old_def}, registered_client"
+        )
 
         content = content.replace(old_def, new_def)
         test_file.write_text(content)
@@ -145,7 +149,9 @@ def main():
 
         for function_name, issue in issues:
             if function_name == "ALL":
-                print("  ⚠️  All functions in this file need try/finally blocks - manual review required")
+                print(
+                    "  ⚠️  All functions in this file need try/finally blocks - manual review required"
+                )
                 manual_count += 1
                 continue
 

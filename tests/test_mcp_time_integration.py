@@ -28,7 +28,9 @@ async def wait_for_services():
 class TestMCPTimeIntegration:
     """Integration tests for mcp-time service using mcp-streamablehttp-client."""
 
-    def run_mcp_client(self, url: str, token: str, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+    def run_mcp_client(
+        self, url: str, token: str, method: str, params: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Run mcp-streamablehttp-client and return the response."""
         # Set environment variables
         env = os.environ.copy()
@@ -47,7 +49,7 @@ class TestMCPTimeIntegration:
 
         # Build the command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--server-url",
@@ -57,7 +59,9 @@ class TestMCPTimeIntegration:
         ]
 
         # Run the command
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=30, env=env)
+        result = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, timeout=30, env=env
+        )
 
         if result.returncode != 0:
             # Check if it's an expected error
@@ -164,7 +168,9 @@ class TestMCPTimeIntegration:
         assert "serverInfo" in result
         # Server name should indicate time functionality
         server_name = result["serverInfo"]["name"]
-        assert "time" in server_name.lower(), f"Server name '{server_name}' doesn't indicate time functionality"
+        assert "time" in server_name.lower(), (
+            f"Server name '{server_name}' doesn't indicate time functionality"
+        )
         assert "capabilities" in result
 
     @pytest.mark.integration
@@ -176,7 +182,9 @@ class TestMCPTimeIntegration:
         self.initialize_session(time_url, client_token)
 
         # List tools
-        response = self.run_mcp_client(url=time_url, token=client_token, method="tools/list", params={})
+        response = self.run_mcp_client(
+            url=time_url, token=client_token, method="tools/list", params={}
+        )
 
         assert "result" in response
         tools = response["result"]["tools"]
@@ -207,7 +215,9 @@ class TestMCPTimeIntegration:
         self.initialize_session(time_url, client_token)
 
         # List resources
-        response = self.run_mcp_client(url=time_url, token=client_token, method="resources/list", params={})
+        response = self.run_mcp_client(
+            url=time_url, token=client_token, method="resources/list", params={}
+        )
 
         # Time server may not support resources/list - check for error
         if "error" in response:

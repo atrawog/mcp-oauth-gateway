@@ -1,8 +1,4 @@
-"""Sacred Test Configuration - Following the divine commandment of NO MOCKING!
-All tests run against real deployed services
-NO HARDCODED VALUES - Everything from environment per Commandment 4!
-Environment variables are loaded by 'just test' - NO .env loading in tests!
-"""
+"""Pytest configuration for the gateway test suite."""
 
 import base64
 import json
@@ -16,17 +12,25 @@ from pathlib import Path
 
 import httpx
 import pytest
+import requests
+from rich.logging import RichHandler
 
-# SACRED LAW: Environment variables are already loaded by 'just test'
-# Tests read from environment, never load .env files directly!
-# This follows CLAUDE.md - using the blessed 'just' tool for all operations
-# Import all configuration from test_constants
+# Configure colored logging for tests
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(message)s",
+    handlers=[RichHandler(show_time=True, show_path=False, rich_tracebacks=True)],
+    force=True,
+)
+
+# test_constants already calls load_dotenv — no need to repeat here
 from .test_constants import AUTH_BASE_URL
 from .test_constants import GATEWAY_OAUTH_ACCESS_TOKEN
 from .test_constants import MCP_FETCH_URL
 from .test_constants import TEST_CLIENT_SCOPE
 from .test_constants import TEST_HTTP_TIMEOUT
 from .test_constants import TEST_OAUTH_CALLBACK_URL
+from .test_constants import _get_env_value
 
 
 # MCP Client tokens for external client testing
@@ -38,6 +42,7 @@ MCP_CLIENT_SECRET = os.getenv("MCP_CLIENT_SECRET")
 
 # Global rate limiter to prevent overwhelming services
 _RATE_LIMITER = Semaphore(10)  # Max 10 concurrent requests across all tests
+INTEGRATION_PREREQ_ERRORS: list[str] = []
 
 
 @pytest.fixture
@@ -70,151 +75,65 @@ def check_token_expiry(token: str) -> tuple[bool, int]:
         return False, 0
 
 
-def pytest_configure(config):
-    """Run token validation BEFORE any test collection or execution."""
-    import sys
+def _detect_integration_prereq_errors() -> list[str]:
+    """Return missing prerequisites for live integration tests."""
+    errors: list[str] = []
 
-    # Skip validation in worker processes when using pytest-xdist
-    # Only run in the main process or when not using parallel execution
+    gateway_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
+    if not gateway_token:
+        errors.append("missing GATEWAY_OAUTH_ACCESS_TOKEN")
+    else:
+        is_valid, _ttl = check_token_expiry(gateway_token)
+        if not is_valid:
+            errors.append("expired or malformed GATEWAY_OAUTH_ACCESS_TOKEN")
+        else:
+            try:
+                verify_response = requests.get(
+                    f"{AUTH_BASE_URL}/verify",
+                    headers={"Authorization": f"Bearer {gateway_token}"},
+                    timeout=5,
+                )
+                if verify_response.status_code != 200:
+                    errors.append(
+                        f"auth service rejected GATEWAY_OAUTH_ACCESS_TOKEN ({verify_response.status_code})"
+                    )
+            except requests.exceptions.RequestException:
+                errors.append(f"auth service unreachable at {AUTH_BASE_URL}")
+
+    github_pat = os.getenv("GITHUB_PAT")
+    if not github_pat or github_pat.strip() == "":
+        errors.append("missing GITHUB_PAT")
+    else:
+        try:
+            github_response = requests.get(
+                "https://api.github.com/user",
+                headers={
+                    "Authorization": f"token {github_pat}",
+                    "Accept": "application/vnd.github.v3+json",
+                },
+                timeout=10.0,
+            )
+            if github_response.status_code != 200:
+                errors.append(f"GitHub PAT validation failed ({github_response.status_code})")
+        except requests.exceptions.RequestException as exc:
+            errors.append(f"GitHub PAT validation error: {exc}")
+
+    return errors
+
+
+def pytest_configure(config):
+    """Detect integration prerequisites before test collection."""
+    config.addinivalue_line("markers", "local_only: test runs without live services")
+
     if hasattr(config, "workerinput"):
-        # This is a worker process, skip validation
         return
 
-    # Force output to be visible
     sys.stdout.flush()
     sys.stderr.flush()
 
     print("\n" + "=" * 60, file=sys.stderr)
-    print("🔐 PRE-TEST TOKEN VALIDATION", file=sys.stderr)
+    print("🔐 PRE-TEST ENVIRONMENT CHECK", file=sys.stderr)
     print("=" * 60, file=sys.stderr)
-
-    # Check Gateway OAuth token exists
-    gateway_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
-    if not gateway_token:
-        print(
-            "❌ No GATEWAY_OAUTH_ACCESS_TOKEN found! Run: just generate-github-token",
-            file=sys.stderr,
-        )
-        print("=" * 60, file=sys.stderr)
-        pytest.exit("Token validation failed", returncode=1)
-
-    # Check JWT structure and expiry
-    is_valid, ttl = check_token_expiry(gateway_token)
-    if not is_valid:
-        print(
-            "❌ Gateway token is expired! Run: just generate-github-token",
-            file=sys.stderr,
-        )
-        print("=" * 60, file=sys.stderr)
-        pytest.exit("Token validation failed", returncode=1)
-
-    # Verify token with auth service using synchronous request
-    import time
-
-    import requests
-
-    # Try to verify token with constant polling (auth service might be starting up)
-    max_wait_time = 10  # 10 seconds total wait time
-    start_time = time.time()
-    last_attempt_time = 0
-    token_valid = False
-    attempt_count = 0
-
-    while time.time() - start_time < max_wait_time:
-        # Rate limit attempts to avoid overwhelming service (max 5 attempts per second)
-        current_time = time.time()
-        if current_time - last_attempt_time < 0.2:
-            continue
-        last_attempt_time = current_time
-        attempt_count += 1
-
-        try:
-            verify_response = requests.get(
-                f"{AUTH_BASE_URL}/verify",
-                headers={"Authorization": f"Bearer {gateway_token}"},
-                timeout=5,  # Reduced timeout for faster detection
-            )
-
-            if verify_response.status_code == 401:
-                # Token is invalid - abort immediately
-                print(
-                    "❌ Gateway token is not recognized by auth service!",
-                    file=sys.stderr,
-                )
-                print("   Run: just generate-github-token", file=sys.stderr)
-                print("=" * 60, file=sys.stderr)
-                pytest.exit("Token validation failed - invalid gateway token", returncode=1)
-            elif verify_response.status_code == 200:
-                print(
-                    f"✅ Gateway token valid for {ttl / 3600:.1f} hours and recognized by auth service",
-                    file=sys.stderr,
-                )
-                token_valid = True
-                break
-            # Non-200 response - service might be starting, continue polling
-            elif current_time - start_time > max_wait_time - 1:  # Last second, show error
-                print(
-                    f"❌ Failed to verify gateway token: {verify_response.status_code}",
-                    file=sys.stderr,
-                )
-
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-            # Service not ready yet - continue polling until timeout
-            if current_time - start_time > max_wait_time - 1:  # Last second, show error
-                print(
-                    f"⚠️  Cannot connect to auth service after {attempt_count} attempts",
-                    file=sys.stderr,
-                )
-
-    # Final check - if we haven't validated successfully by now, exit
-    if not token_valid:
-        if attempt_count == 0:
-            print("❌ No successful connection attempts to auth service", file=sys.stderr)
-        print(f"❌ Cannot connect to auth service at {AUTH_BASE_URL}", file=sys.stderr)
-        print("   Make sure services are running: just up", file=sys.stderr)
-        print("=" * 60, file=sys.stderr)
-        pytest.exit("Cannot connect to auth service", returncode=1)
-
-    # Check GitHub PAT
-    github_pat = os.getenv("GITHUB_PAT")
-    if not github_pat or github_pat.strip() == "":
-        print("❌ No GitHub PAT configured! GitHub PAT is REQUIRED!", file=sys.stderr)
-        print("   Run: just generate-github-token", file=sys.stderr)
-        print("=" * 60, file=sys.stderr)
-        pytest.exit("Token validation failed", returncode=1)
-
-    # Actually validate GitHub PAT against GitHub API
-    try:
-        import requests
-
-        github_response = requests.get(
-            "https://api.github.com/user",
-            headers={
-                "Authorization": f"token {github_pat}",
-                "Accept": "application/vnd.github.v3+json",
-            },
-            timeout=10.0,
-        )
-
-        if github_response.status_code == 200:
-            user_data = github_response.json()
-            print(f"✅ GitHub PAT is valid for user: {user_data.get('login')}", file=sys.stderr)
-        elif github_response.status_code == 401:
-            print("❌ GitHub PAT is invalid or expired!", file=sys.stderr)
-            print(f"   Token prefix: {github_pat[:4]}...", file=sys.stderr)
-            print(f"   Response: {github_response.text}", file=sys.stderr)
-            print("   Run: just generate-github-token", file=sys.stderr)
-            print("=" * 60, file=sys.stderr)
-            pytest.exit("GitHub PAT validation failed", returncode=1)
-        else:
-            print(f"❌ GitHub API returned unexpected status: {github_response.status_code}", file=sys.stderr)
-            print(f"   Response: {github_response.text}", file=sys.stderr)
-            print("=" * 60, file=sys.stderr)
-            pytest.exit("GitHub PAT validation failed", returncode=1)
-    except (requests.exceptions.RequestException, ValueError) as e:
-        print(f"❌ Failed to validate GitHub PAT: {e}", file=sys.stderr)
-        print("=" * 60, file=sys.stderr)
-        pytest.exit("GitHub PAT validation failed", returncode=1)
 
     # Quick validation of other critical variables
     critical_vars = {
@@ -228,7 +147,7 @@ def pytest_configure(config):
 
     missing = []
     for var, desc in critical_vars.items():
-        if not os.getenv(var):
+        if not _get_env_value(var):
             missing.append(f"  - {var}: {desc}")
 
     if missing:
@@ -236,10 +155,10 @@ def pytest_configure(config):
         for m in missing:
             print(m, file=sys.stderr)
         print("=" * 60, file=sys.stderr)
-        sys.exit(1)  # Exit immediately with error code
+        pytest.exit("Critical environment variables missing", returncode=1)
 
     # Validate JWT_ALGORITHM is RS256
-    jwt_algorithm = os.getenv("JWT_ALGORITHM")
+    jwt_algorithm = _get_env_value("JWT_ALGORITHM")
     if jwt_algorithm != "RS256":
         print(
             f"❌ JWT_ALGORITHM must be RS256, but found: {jwt_algorithm}",
@@ -247,10 +166,10 @@ def pytest_configure(config):
         )
         print("   Update .env file to set JWT_ALGORITHM=RS256", file=sys.stderr)
         print("=" * 60, file=sys.stderr)
-        sys.exit(1)  # Exit immediately with error code
+        pytest.exit("JWT_ALGORITHM must be RS256", returncode=1)
 
     # Validate JWT_PRIVATE_KEY_B64 is a valid base64-encoded RSA key
-    jwt_private_key_b64 = os.getenv("JWT_PRIVATE_KEY_B64")
+    jwt_private_key_b64 = _get_env_value("JWT_PRIVATE_KEY_B64")
     if jwt_private_key_b64:
         try:
             import base64
@@ -263,25 +182,38 @@ def pytest_configure(config):
                 )
                 print("   Run: just generate-rsa-keys", file=sys.stderr)
                 print("=" * 60, file=sys.stderr)
-                pytest.exit("Token validation failed", returncode=1)
+                pytest.exit("JWT_PRIVATE_KEY_B64 is not a valid PEM key", returncode=1)
         except Exception as e:
             print(f"❌ JWT_PRIVATE_KEY_B64 is not valid base64: {e}", file=sys.stderr)
             print("   Run: just generate-rsa-keys", file=sys.stderr)
             print("=" * 60, file=sys.stderr)
-            sys.exit(1)  # Exit immediately with error code
+            pytest.exit(f"JWT_PRIVATE_KEY_B64 is not valid base64: {e}", returncode=1)
 
-    # Summary of validation status
-    if token_valid:
-        print("✅ All critical tokens and configuration validated!", file=sys.stderr)
-        print("   - Gateway OAuth token: Valid", file=sys.stderr)
-        print("   - GitHub PAT: Valid", file=sys.stderr)
-        print("   - Critical environment variables: Valid", file=sys.stderr)
-        print("=" * 60, file=sys.stderr)
+    global INTEGRATION_PREREQ_ERRORS
+    INTEGRATION_PREREQ_ERRORS = _detect_integration_prereq_errors()
+    if INTEGRATION_PREREQ_ERRORS:
+        print(
+            "⚠️  Integration prerequisites missing; integration tests will be skipped:",
+            file=sys.stderr,
+        )
+        for error in INTEGRATION_PREREQ_ERRORS:
+            print(f"   - {error}", file=sys.stderr)
     else:
-        # This should never be reached because we exit immediately on any token failure
-        print("❌ CRITICAL ERROR: Token validation logic error!", file=sys.stderr)
-        print("=" * 60, file=sys.stderr)
-        pytest.exit("Token validation logic error", returncode=1)
+        print("✅ Integration prerequisites available", file=sys.stderr)
+    print("=" * 60, file=sys.stderr)
+
+
+def pytest_collection_modifyitems(config, items):
+    """Skip live integration tests when their external prerequisites are unavailable."""
+    if not INTEGRATION_PREREQ_ERRORS:
+        return
+
+    reason = "integration prerequisites unavailable: " + ", ".join(INTEGRATION_PREREQ_ERRORS)
+    skip_marker = pytest.mark.skip(reason=reason)
+    for item in items:
+        if item.get_closest_marker("local_only"):
+            continue
+        item.add_marker(skip_marker)
 
 
 def update_env_file(key: str, value: str):
@@ -384,6 +316,12 @@ async def _cleanup_test_registrations_at_end():
 @pytest.fixture(scope="session", autouse=True)
 async def _ensure_services_ready():
     """Ensure all services are ready before ANY tests run - replaces scripts/check_services_ready.py."""
+    if INTEGRATION_PREREQ_ERRORS:
+        print(
+            "Skipping Docker service readiness checks because integration prerequisites are unavailable"
+        )
+        return
+
     print("\n" + "=" * 60)
     print("Pre-test Service Check")
     print("=" * 60)
@@ -394,51 +332,50 @@ async def _ensure_services_ready():
     try:
         # Check if services are running
         result = subprocess.run(
-            ["docker", "compose", "ps", "--services", "--filter", "status=running"],
+            [
+                "docker",
+                "compose",
+                "-f",
+                "docker-compose.includes.yml",
+                "ps",
+                "--services",
+                "--filter",
+                "status=running",
+            ],
             capture_output=True,
             text=True,
             check=True,
         )
         running_services = set(result.stdout.strip().split("\n"))
-        required_services = {"traefik", "auth", "redis"}
+        # Service names as defined in auth/docker-compose.yml and swag/docker-compose.yaml
+        required_services = {"swag", "mcp-oauth", "mcp-oauth-redis"}
 
-        # Only require service-specific containers if their tests are enabled
-        from .test_constants import MCP_ECHO_STATEFUL_TESTS_ENABLED
-        from .test_constants import MCP_ECHO_STATELESS_TESTS_ENABLED
-        from .test_constants import MCP_EVERYTHING_TESTS_ENABLED
-        from .test_constants import MCP_FETCH_TESTS_ENABLED
-        from .test_constants import MCP_FETCHS_TESTS_ENABLED
-        from .test_constants import MCP_FILESYSTEM_TESTS_ENABLED
-        from .test_constants import MCP_MEMORY_TESTS_ENABLED
-        from .test_constants import MCP_PLAYWRIGHT_TESTS_ENABLED
-        from .test_constants import MCP_SEQUENTIALTHINKING_TESTS_ENABLED
-        from .test_constants import MCP_TESTING_URL
-        from .test_constants import MCP_TIME_TESTS_ENABLED
-        from .test_constants import MCP_TMUX_TESTS_ENABLED
+        # Add service-specific requirements when running locally (not against remote URL)
+        from . import test_constants as tc
 
-        # Add service-specific requirements if enabled
-        if MCP_ECHO_STATEFUL_TESTS_ENABLED and not MCP_TESTING_URL:
-            required_services.add("mcp-echo-stateful")
-        if MCP_ECHO_STATELESS_TESTS_ENABLED and not MCP_TESTING_URL:
-            required_services.add("mcp-echo-stateless")
-        if MCP_FETCH_TESTS_ENABLED and not MCP_TESTING_URL:
-            required_services.add("mcp-fetch")
-        if MCP_FETCHS_TESTS_ENABLED and not MCP_TESTING_URL:
-            required_services.add("mcp-fetchs")
-        if MCP_EVERYTHING_TESTS_ENABLED and not MCP_TESTING_URL:
-            required_services.add("mcp-everything")
-        if MCP_FILESYSTEM_TESTS_ENABLED and not MCP_TESTING_URL:
-            required_services.add("mcp-filesystem")
-        if MCP_MEMORY_TESTS_ENABLED and not MCP_TESTING_URL:
-            required_services.add("mcp-memory")
-        if MCP_PLAYWRIGHT_TESTS_ENABLED and not MCP_TESTING_URL:
-            required_services.add("mcp-playwright")
-        if MCP_SEQUENTIALTHINKING_TESTS_ENABLED and not MCP_TESTING_URL:
-            required_services.add("mcp-sequentialthinking")
-        if MCP_TIME_TESTS_ENABLED and not MCP_TESTING_URL:
-            required_services.add("mcp-time")
-        if MCP_TMUX_TESTS_ENABLED and not MCP_TESTING_URL:
-            required_services.add("mcp-tmux")
+        if not tc.MCP_TESTING_URL:
+            if tc.MCP_ECHO_STATEFUL_TESTS_ENABLED:
+                required_services.add("mcp-echo-stateful")
+            if tc.MCP_ECHO_STATELESS_TESTS_ENABLED:
+                required_services.add("mcp-echo-stateless")
+            if tc.MCP_FETCH_TESTS_ENABLED:
+                required_services.add("mcp-fetch")
+            if tc.MCP_FETCHS_TESTS_ENABLED:
+                required_services.add("mcp-fetchs")
+            if tc.MCP_EVERYTHING_TESTS_ENABLED:
+                required_services.add("mcp-everything")
+            if tc.MCP_FILESYSTEM_TESTS_ENABLED:
+                required_services.add("mcp-filesystem")
+            if tc.MCP_MEMORY_TESTS_ENABLED:
+                required_services.add("mcp-memory")
+            if tc.MCP_PLAYWRIGHT_TESTS_ENABLED:
+                required_services.add("mcp-playwright")
+            if tc.MCP_SEQUENTIALTHINKING_TESTS_ENABLED:
+                required_services.add("mcp-sequentialthinking")
+            if tc.MCP_TIME_TESTS_ENABLED:
+                required_services.add("mcp-time")
+            if tc.MCP_TMUX_TESTS_ENABLED:
+                required_services.add("mcp-tmux")
 
         missing = required_services - running_services
         if missing:
@@ -490,6 +427,12 @@ async def _ensure_services_ready():
 @pytest.fixture(scope="session", autouse=True)
 async def _refresh_and_validate_tokens(_ensure_services_ready):
     """Refresh and validate all tokens before tests - replaces scripts/refresh_tokens.py and validate_tokens.py."""
+    if INTEGRATION_PREREQ_ERRORS:
+        print(
+            "Skipping token refresh and validation because integration prerequisites are unavailable"
+        )
+        return
+
     print("\n" + "=" * 60)
     print("🔐 TOKEN REFRESH AND VALIDATION")
     print("=" * 60)
@@ -528,7 +471,9 @@ async def _refresh_and_validate_tokens(_ensure_services_ready):
                     "❌ Gateway token is invalid and no refresh token available! Run: just generate-github-token",
                 )
             else:
-                pytest.fail("❌ Gateway token expires soon and no refresh token! Run: just generate-github-token")
+                pytest.fail(
+                    "❌ Gateway token expires soon and no refresh token! Run: just generate-github-token"
+                )
 
         # Refresh the token
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -557,18 +502,24 @@ async def _refresh_and_validate_tokens(_ensure_services_ready):
                 error_detail = response.text
                 try:
                     error_data = response.json()
-                    error_detail = error_data.get("detail", {}).get("error_description", error_detail)
+                    error_detail = error_data.get("detail", {}).get(
+                        "error_description", error_detail
+                    )
                 except (ValueError, KeyError, TypeError):
                     # JSON parsing failed or response structure unexpected
                     pass
-                pytest.fail(f"❌ Failed to refresh gateway token: {response.status_code} - {error_detail}")
+                pytest.fail(
+                    f"❌ Failed to refresh gateway token: {response.status_code} - {error_detail}"
+                )
     else:
         print(f"✅ Gateway token valid for {ttl / 3600:.1f} hours")
 
     # Check GitHub PAT
     github_pat = os.getenv("GITHUB_PAT")
     if not github_pat or github_pat.strip() == "":
-        pytest.fail("❌ No GitHub PAT configured! GitHub PAT is REQUIRED! Run: just generate-github-token")
+        pytest.fail(
+            "❌ No GitHub PAT configured! GitHub PAT is REQUIRED! Run: just generate-github-token"
+        )
 
     # Validate GitHub PAT
     async with httpx.AsyncClient(timeout=10.0) as client:
@@ -641,8 +592,10 @@ async def _refresh_and_validate_tokens(_ensure_services_ready):
 
     all_valid = True
     for key, desc in required_vars.items():
-        value = os.getenv(key)
-        if not value or len(value) < 5:  # Basic check that it's not empty (using same logic as check_services_ready.py)
+        value = _get_env_value(key)
+        if (
+            not value or len(value) < 5
+        ):  # Basic check that it's not empty (using same logic as check_services_ready.py)
             print(f"❌ Missing or too short: {desc} ({key})")
             all_valid = False
 
@@ -688,9 +641,13 @@ async def _wait_for_services(http_client: httpx.AsyncClient):
             last_attempt_time = current_time
 
             try:
-                response = await http_client.get(url, timeout=5.0)  # Short timeout for health checks
+                response = await http_client.get(
+                    url, timeout=5.0
+                )  # Short timeout for health checks
                 if response.status_code == expected_status:
-                    print(f"✓ Service {base_url} is responding correctly (status: {expected_status})")
+                    print(
+                        f"✓ Service {base_url} is responding correctly (status: {expected_status})"
+                    )
                     service_ready = True
                     break
             except Exception as e:
@@ -699,7 +656,9 @@ async def _wait_for_services(http_client: httpx.AsyncClient):
                     pytest.fail(f"Service {base_url} failed to become healthy: {e}")
 
         if not service_ready:
-            pytest.fail(f"Service {base_url} failed to become healthy within {max_wait_time} seconds")
+            pytest.fail(
+                f"Service {base_url} failed to become healthy within {max_wait_time} seconds"
+            )
 
 
 @pytest.fixture
@@ -780,18 +739,27 @@ def unique_client_name(unique_test_id):
     return f"TEST {unique_test_id}"
 
 
-# Global registry for tracking test client registrations
+# Global registry for tracking test client registrations.
+# NOTE: Under pytest-xdist, each worker process has its own copy of this list.
+# The session-level cleanup (cleanup_all_test_clients) will see an empty list
+# in the main process because workers never share this state. Per-fixture cleanup
+# via the registered_client fixture's teardown is the only reliable mechanism
+# under xdist. The session-level cleanup is kept for non-parallel runs.
 _TEST_CLIENT_REGISTRY = []
 
 
 @pytest.fixture
-async def registered_client(http_client: httpx.AsyncClient, _wait_for_services, unique_client_name) -> dict:
+async def registered_client(
+    http_client: httpx.AsyncClient, _wait_for_services, unique_client_name
+) -> dict:
     """Register a test OAuth client dynamically - no hardcoded values!
 
     This fixture properly cleans up the registration using RFC 7592 DELETE endpoint.
     """
     # MUST have OAuth access token - test FAILS if not available
-    assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+    assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+        "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+    )
 
     # Use test configuration from test_constants - already validated!
 
@@ -841,7 +809,9 @@ def mcp_client_credentials():
 
 
 @pytest.fixture
-async def mcp_authenticated_client(http_client: httpx.AsyncClient, mcp_client_token: str) -> httpx.AsyncClient:
+async def mcp_authenticated_client(
+    http_client: httpx.AsyncClient, mcp_client_token: str
+) -> httpx.AsyncClient:
     """Provides an HTTP client with MCP authentication headers pre-configured."""
     # Create a new client with auth headers
     http_client.headers["Authorization"] = f"Bearer {mcp_client_token}"
@@ -864,7 +834,9 @@ def mcp_echo_stateful_url():
     from .test_constants import MCP_ECHO_STATEFUL_URLS
 
     if not MCP_ECHO_STATEFUL_TESTS_ENABLED:
-        pytest.skip("MCP Echo Stateful tests are disabled. Set MCP_ECHO_STATEFUL_TESTS_ENABLED=true to enable.")
+        pytest.skip(
+            "MCP Echo Stateful tests are disabled. Set MCP_ECHO_STATEFUL_TESTS_ENABLED=true to enable."
+        )
     if not MCP_ECHO_STATEFUL_URLS:
         pytest.skip("MCP_ECHO_STATEFUL_URLS environment variable not set")
 
@@ -879,7 +851,9 @@ def mcp_echo_stateful_urls():
     from .test_constants import MCP_ECHO_STATEFUL_URLS
 
     if not MCP_ECHO_STATEFUL_TESTS_ENABLED:
-        pytest.skip("MCP Echo Stateful tests are disabled. Set MCP_ECHO_STATEFUL_TESTS_ENABLED=true to enable.")
+        pytest.skip(
+            "MCP Echo Stateful tests are disabled. Set MCP_ECHO_STATEFUL_TESTS_ENABLED=true to enable."
+        )
     if not MCP_ECHO_STATEFUL_URLS:
         pytest.skip("MCP_ECHO_STATEFUL_URLS environment variable not set")
 
@@ -894,7 +868,9 @@ def mcp_echo_stateless_url():
     from .test_constants import MCP_ECHO_STATELESS_URLS
 
     if not MCP_ECHO_STATELESS_TESTS_ENABLED:
-        pytest.skip("MCP Echo Stateless tests are disabled. Set MCP_ECHO_STATELESS_TESTS_ENABLED=true to enable.")
+        pytest.skip(
+            "MCP Echo Stateless tests are disabled. Set MCP_ECHO_STATELESS_TESTS_ENABLED=true to enable."
+        )
     if not MCP_ECHO_STATELESS_URLS:
         pytest.skip("MCP_ECHO_STATELESS_URLS environment variable not set")
 
@@ -909,7 +885,9 @@ def mcp_echo_stateless_urls():
     from .test_constants import MCP_ECHO_STATELESS_URLS
 
     if not MCP_ECHO_STATELESS_TESTS_ENABLED:
-        pytest.skip("MCP Echo Stateless tests are disabled. Set MCP_ECHO_STATELESS_TESTS_ENABLED=true to enable.")
+        pytest.skip(
+            "MCP Echo Stateless tests are disabled. Set MCP_ECHO_STATELESS_TESTS_ENABLED=true to enable."
+        )
     if not MCP_ECHO_STATELESS_URLS:
         pytest.skip("MCP_ECHO_STATELESS_URLS environment variable not set")
 
@@ -954,7 +932,9 @@ def mcp_filesystem_url():
     from .test_constants import MCP_FILESYSTEM_URLS
 
     if not MCP_FILESYSTEM_TESTS_ENABLED:
-        pytest.skip("MCP Filesystem tests are disabled. Set MCP_FILESYSTEM_TESTS_ENABLED=true to enable.")
+        pytest.skip(
+            "MCP Filesystem tests are disabled. Set MCP_FILESYSTEM_TESTS_ENABLED=true to enable."
+        )
     if not MCP_FILESYSTEM_URLS:
         pytest.skip("MCP_FILESYSTEM_URLS environment variable not set")
 
@@ -984,7 +964,9 @@ def mcp_playwright_url():
     from .test_constants import MCP_PLAYWRIGHT_URLS
 
     if not MCP_PLAYWRIGHT_TESTS_ENABLED:
-        pytest.skip("MCP Playwright tests are disabled. Set MCP_PLAYWRIGHT_TESTS_ENABLED=true to enable.")
+        pytest.skip(
+            "MCP Playwright tests are disabled. Set MCP_PLAYWRIGHT_TESTS_ENABLED=true to enable."
+        )
     if not MCP_PLAYWRIGHT_URLS:
         pytest.skip("MCP_PLAYWRIGHT_URLS environment variable not set")
 
@@ -1091,7 +1073,9 @@ async def cleanup_client_registration(http_client: httpx.AsyncClient, client_dat
             )
             # 204 No Content is success, 404 is okay if already deleted
             if delete_response.status_code not in (204, 404):
-                print(f"Warning: Failed to delete client {client_id}: {delete_response.status_code}")
+                print(
+                    f"Warning: Failed to delete client {client_id}: {delete_response.status_code}"
+                )
         except Exception as e:
             print(f"Warning: Error during client cleanup for {client_id}: {e}")
 

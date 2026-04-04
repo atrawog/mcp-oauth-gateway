@@ -54,7 +54,9 @@ def fix_rfc7592_tests():
 
     # Fix the client isolation test - assertion expects "TEST Client 2"
     old_isolation_assertion = 'assert response.json()["client_name"] == "TEST Client 2"'
-    new_isolation_assertion = 'assert "Client 2" in response.json()["client_name"]  # Should contain Client 2'
+    new_isolation_assertion = (
+        'assert "Client 2" in response.json()["client_name"]  # Should contain Client 2'
+    )
     if old_isolation_assertion in content:
         content = content.replace(old_isolation_assertion, new_isolation_assertion)
         changes_made += 1

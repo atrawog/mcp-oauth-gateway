@@ -57,8 +57,12 @@ def fix_test_pattern_in_function(content: str, func_name: str) -> str:
 def fix_test_client_literals(content: str) -> str:
     """Fix test-client literals based on context."""
     # For clientInfo in MCP protocols - use f-string with unique_test_id
-    content = re.sub(r'("clientInfo":\s*\{[^}]*"name":\s*)"test-client"', r'\1f"test-{unique_test_id}"', content)
-    content = re.sub(r"('clientInfo':\s*\{[^}]*'name':\s*)'test-client'", r"\1f'test-{unique_test_id}'", content)
+    content = re.sub(
+        r'("clientInfo":\s*\{[^}]*"name":\s*)"test-client"', r'\1f"test-{unique_test_id}"', content
+    )
+    content = re.sub(
+        r"('clientInfo':\s*\{[^}]*'name':\s*)'test-client'", r"\1f'test-{unique_test_id}'", content
+    )
 
     # Check if we need unique_test_id parameter
     if 'f"test-{unique_test_id}"' in content or "f'test-{unique_test_id}'" in content:
@@ -71,7 +75,9 @@ def fix_test_client_literals(content: str) -> str:
                 params = func_match.group(2)
                 if "unique_test_id" not in params:
                     new_params = params + ", unique_test_id" if params.strip() else "unique_test_id"
-                    content = content.replace(func_match.group(0), f"{func_match.group(1)}{new_params}):")
+                    content = content.replace(
+                        func_match.group(0), f"{func_match.group(1)}{new_params}):"
+                    )
 
     return content
 
@@ -90,7 +96,9 @@ def fix_file(filepath: Path, issues: list) -> bool:
             content = fix_test_pattern_in_function(content, func_name)
 
         # Fix JSON client_name patterns
-        content = re.sub(r'"client_name":\s*"TEST ([^"]*)"', '"client_name": unique_client_name', content)
+        content = re.sub(
+            r'"client_name":\s*"TEST ([^"]*)"', '"client_name": unique_client_name', content
+        )
 
     if "test-client" in issues:
         content = fix_test_client_literals(content)

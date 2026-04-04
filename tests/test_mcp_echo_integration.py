@@ -88,7 +88,9 @@ class TestMCPEchoIntegration:
     ):
         """Test listing available tools from Echo service."""
         # Initialize first
-        await self._initialize_session(http_client, mcp_echo_stateless_url, gateway_auth_headers, unique_test_id)
+        await self._initialize_session(
+            http_client, mcp_echo_stateless_url, gateway_auth_headers, unique_test_id
+        )
 
         # List tools
         response = await http_client.post(
@@ -146,7 +148,9 @@ class TestMCPEchoIntegration:
     ):
         """Test the echo tool returns the exact message."""
         # Initialize first
-        await self._initialize_session(http_client, mcp_echo_stateless_url, gateway_auth_headers, unique_test_id)
+        await self._initialize_session(
+            http_client, mcp_echo_stateless_url, gateway_auth_headers, unique_test_id
+        )
 
         test_message = "Hello from MCP Echo Test! 🚀"
 
@@ -186,7 +190,9 @@ class TestMCPEchoIntegration:
     ):
         """Test the printHeader tool shows HTTP headers including auth headers."""
         # Initialize first
-        await self._initialize_session(http_client, mcp_echo_stateless_url, gateway_auth_headers, unique_test_id)
+        await self._initialize_session(
+            http_client, mcp_echo_stateless_url, gateway_auth_headers, unique_test_id
+        )
 
         # Add custom headers for testing
         custom_headers = {
@@ -232,7 +238,9 @@ class TestMCPEchoIntegration:
     ):
         """Test error handling for invalid tool name."""
         # Initialize first
-        await self._initialize_session(http_client, mcp_echo_stateless_url, gateway_auth_headers, unique_test_id)
+        await self._initialize_session(
+            http_client, mcp_echo_stateless_url, gateway_auth_headers, unique_test_id
+        )
 
         response = await http_client.post(
             mcp_echo_stateless_url,
@@ -268,7 +276,9 @@ class TestMCPEchoIntegration:
     ):
         """Test error handling for invalid tool arguments."""
         # Initialize first
-        await self._initialize_session(http_client, mcp_echo_stateless_url, gateway_auth_headers, unique_test_id)
+        await self._initialize_session(
+            http_client, mcp_echo_stateless_url, gateway_auth_headers, unique_test_id
+        )
 
         # Call echo without required message argument
         response = await http_client.post(
@@ -299,7 +309,9 @@ class TestMCPEchoIntegration:
         assert "message must be a string" in str(data["error"])
 
     @pytest.mark.asyncio
-    async def test_echo_cors_headers(self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, unique_test_id):
+    async def test_echo_cors_headers(
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str, unique_test_id
+    ):
         """Test CORS preflight handling for Echo service."""
         response = await http_client.options(
             mcp_echo_stateless_url,
@@ -326,7 +338,9 @@ class TestMCPEchoIntegration:
     ):
         """Test that ForwardAuth headers are visible in printHeader output."""
         # Initialize first
-        await self._initialize_session(http_client, mcp_echo_stateless_url, gateway_auth_headers, unique_test_id)
+        await self._initialize_session(
+            http_client, mcp_echo_stateless_url, gateway_auth_headers, unique_test_id
+        )
 
         response = await http_client.post(
             mcp_echo_stateless_url,
@@ -349,7 +363,7 @@ class TestMCPEchoIntegration:
         data = self._parse_sse_response(response.text)
         headers_text = data["result"]["content"][0]["text"]
 
-        # Check for ForwardAuth headers that Traefik adds
+        # Check for auth_request headers that SWAG nginx adds
         # These might include X-User-Id, X-User-Name, etc.
         assert "authorization: Bearer" in headers_text
 

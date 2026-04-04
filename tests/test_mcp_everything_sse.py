@@ -19,7 +19,9 @@ from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
 def base_url():
     """Base URL for tests."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
-        pytest.skip("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
+        pytest.skip(
+            "MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable."
+        )
     # Use HTTPS for all tests
     return f"https://everything.{BASE_DOMAIN}/"
 
@@ -61,8 +63,12 @@ class TestMCPEverythingSSE:
         assert init_response.headers.get("X-Accel-Buffering") == "no", (
             "X-Accel-Buffering header should be 'no' for SSE support"
         )
-        assert init_response.headers.get("Cache-Control") == "no-cache", "Cache-Control should be 'no-cache' for SSE"
-        assert init_response.headers.get("Connection") == "keep-alive", "Connection should be 'keep-alive' for SSE"
+        assert init_response.headers.get("Cache-Control") == "no-cache", (
+            "Cache-Control should be 'no-cache' for SSE"
+        )
+        assert init_response.headers.get("Connection") == "keep-alive", (
+            "Connection should be 'keep-alive' for SSE"
+        )
 
     def test_initialize_returns_sse_format(self, base_url, auth_headers):
         """Test that initialize returns proper SSE format response."""
@@ -397,7 +403,9 @@ class TestMCPEverythingSSE:
 
         content = response.text
         # Should be in SSE format even for errors
-        assert "event: message" in content or "data: " in content, "Error response should be in SSE format"
+        assert "event: message" in content or "data: " in content, (
+            "Error response should be in SSE format"
+        )
 
         # Parse the error
         data_match = re.search(r"data: (.+)", content)

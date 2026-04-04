@@ -1,4 +1,5 @@
 set dotenv-load := true          # FIRST LINE - ALWAYS! Load .env automatically!
+set dotenv-required := true      # Fail if .env is missing — no silent misconfigurations!
 set positional-arguments := true # Enable blessed argument passing!
 set allow-duplicate-recipes      # Allow recipe overloading with different arity!
 set export := true               # Export all variables as environment variables!
@@ -18,11 +19,11 @@ export COMPOSE_BAKE := "true"
 
 # Ensure all services are ready before tests
 ensure-services-ready:
-    pixi run python scripts/check_services_ready.py || (echo "❌ Services not ready! See above for details." && exit 1)
+    uv run python scripts/check_services_ready.py || (echo "❌ Services not ready! See above for details." && exit 1)
 
 # Universal test runner with flexible arguments (replaces test, test-all, test-file, test-verbose)
 test *args:
-    pixi run pytest {{args}}
+    uv run pytest {{args}}
     echo "\n🧹 Cleaning up test registrations..."
 
 # Alias for backwards compatibility
@@ -30,39 +31,39 @@ alias t := test
 
 # Run tests in parallel using all CPU cores
 test-parallel *args:
-    pixi run pytest -n auto {{args}}
+    uv run pytest -n auto {{args}}
 
 # Run tests in parallel with specific worker count
 test-n count *args:
-    pixi run pytest -n {{count}} {{args}}
+    uv run pytest -n {{count}} {{args}}
 
 # Run tests in parallel with optimal distribution strategy
 test-fast *args:
-    pixi run pytest -n auto --dist worksteal {{args}}
+    uv run pytest -n auto --dist worksteal {{args}}
 
 # Run tests by module (keeps tests in same file together)
 test-by-module *args:
-    pixi run pytest -n auto --dist loadfile {{args}}
+    uv run pytest -n auto --dist loadfile {{args}}
 
 # Run tests by class (keeps tests in same class together)
 test-by-class *args:
-    pixi run pytest -n auto --dist loadscope {{args}}
+    uv run pytest -n auto --dist loadscope {{args}}
 
 # Run only serial tests (those marked with @pytest.mark.serial)
 test-serial:
-    pixi run pytest -m serial
+    uv run pytest -m serial
 
 # Run parallel tests excluding serial ones
 test-parallel-safe:
-    pixi run pytest -n auto -m "not serial" --dist worksteal
+    uv run pytest -n auto -m "not serial" --dist worksteal
 
 # Run tests with sidecar coverage pattern
 test-sidecar-coverage:
     docker compose down --remove-orphans
     docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d
     echo "Waiting for services to be ready..."
-    pixi run python scripts/check_services_ready.py || (echo "❌ Services not ready!" && exit 1)
-    pixi run pytest tests/ -v
+    uv run python scripts/check_services_ready.py || (echo "❌ Services not ready!" && exit 1)
+    uv run pytest tests/ -v
     echo "Triggering graceful shutdown to collect coverage data..."
     docker compose -f docker-compose.yml -f docker-compose.coverage.yml stop auth
     echo "Waiting for coverage harvester to complete..."
@@ -76,14 +77,14 @@ test-sidecar-coverage:
     docker cp coverage-harvester:/coverage-data/.coverage . 2>/dev/null || echo "No coverage file to copy"
     docker compose -f docker-compose.includes.yml -f docker-compose.coverage.yml down
     echo "Attempting local report generation..."
-    pixi run python scripts/generate_coverage_report.py || echo "Local report generation had issues"
+    uv run python scripts/generate_coverage_report.py || echo "Local report generation had issues"
 
 # Debug coverage setup
 debug-coverage: ensure-services-ready
     docker compose down --remove-orphans
     docker compose -f docker-compose.yml -f docker-compose.coverage.yml up -d
     echo "Waiting for services..."
-    pixi run python scripts/check_services_ready.py || (echo "❌ Services not ready!" && exit 1)
+    uv run python scripts/check_services_ready.py || (echo "❌ Services not ready!" && exit 1)
     echo "=== Debugging coverage setup in auth container ==="
     docker compose -f docker-compose.yml -f docker-compose.coverage.yml exec auth python /scripts/debug_coverage.py || echo "Debug script failed"
     echo "=== Auth container environment ==="
@@ -92,7 +93,7 @@ debug-coverage: ensure-services-ready
 
 # Build documentation with Jupyter Book
 docs-build:
-    pixi run jupyter-book build docs/
+    uv run jupyter-book build docs/
 
 # Lint and format code - The Divine Code Quality Commandments!
 # This runs ALL quality checks: linting, formatting, pre-commit hooks, and deprecation hunting
@@ -101,54 +102,57 @@ lint:
     @echo "========================================"
     @echo ""
     @echo "1️⃣ First Pass: Checking for ALL issues (including those that need manual fixes)..."
-    -pixi run ruff check . --exit-non-zero-on-fix
+    -uv run ruff check . --exit-non-zero-on-fix
     @echo ""
     @echo "2️⃣ Second Pass: Applying automatic fixes..."
-    pixi run ruff check . --fix
+    uv run ruff check . --fix
     @echo ""
     @echo "3️⃣ Third Pass: Checking for remaining issues that need MANUAL fixes..."
-    pixi run ruff check . --no-fix || (echo "" && echo "⚠️  ⚠️  ⚠️  ATTENTION REQUIRED ⚠️  ⚠️  ⚠️" && echo "🔴 There are linting errors that need MANUAL fixes!" && echo "🔴 Please fix the errors shown above before proceeding." && echo "" && exit 1)
+    uv run ruff check . --no-fix || (echo "" && echo "⚠️  ⚠️  ⚠️  ATTENTION REQUIRED ⚠️  ⚠️  ⚠️" && echo "🔴 There are linting errors that need MANUAL fixes!" && echo "🔴 Please fix the errors shown above before proceeding." && echo "" && exit 1)
     @echo ""
     @echo "4️⃣ Running code formatter..."
-    pixi run ruff format .
+    uv run ruff format .
     @echo ""
     @echo "5️⃣ Running ALL other pre-commit hooks..."
-    pixi run pre-commit run --all-files
+    uv run pre-commit run --all-files
     @echo ""
     @echo "6️⃣ Checking STAGED files (as git commit would)..."
     @if git diff --cached --quiet; then \
         echo "✅ No staged files to check"; \
     else \
         echo "🔍 Checking staged files for commit readiness..."; \
-        pixi run pre-commit run || (echo "" && echo "⚠️  STAGED FILES HAVE ISSUES! ⚠️" && echo "🔴 Fix the issues above and re-stage the files!" && echo "" && exit 1); \
+        uv run pre-commit run || (echo "" && echo "⚠️  STAGED FILES HAVE ISSUES! ⚠️" && echo "🔴 Fix the issues above and re-stage the files!" && echo "" && exit 1); \
     fi
     @echo ""
     @echo "🏆 ALL QUALITY CHECKS COMPLETED! Divine compliance achieved! ⚡"
 
 # Quick lint - just run ruff check (for fast feedback)
 lint-quick:
-    pixi run ruff check . --no-fix
+    uv run ruff check . --no-fix
 
 # Show only issues that need MANUAL fixes (cannot be auto-fixed)
 lint-manual:
     @echo "🔍 Checking for issues that need MANUAL fixes..."
     @echo "=================================================="
-    @pixi run ruff check . --fix --diff > /tmp/ruff-fixes.diff 2>&1 || true
-    @pixi run ruff check . --no-fix 2>&1 | grep -E "^[^:]+:[0-9]+:[0-9]+:" || (echo "✅ No manual fixes needed!" && exit 0)
-    @echo ""
-    @echo "⚠️  The above errors need MANUAL fixes!"
-    @echo "💡 Tip: Read the error messages carefully and fix them in your editor."
+    @uv run ruff check . --fix --diff > /tmp/ruff-fixes.diff 2>&1 || true
+    @if uv run ruff check . --no-fix 2>&1 | grep -E "^[^:]+:[0-9]+:[0-9]+:"; then \
+        echo ""; \
+        echo "⚠️  The above errors need MANUAL fixes!"; \
+        echo "💡 Tip: Read the error messages carefully and fix them in your editor."; \
+    else \
+        echo "✅ No manual fixes needed!"; \
+    fi
 
 # Fix linting issues automatically (only auto-fixable ones)
 lint-fix:
     @echo "🔧 Applying automatic fixes..."
-    pixi run ruff check . --fix
-    pixi run ruff format .
+    uv run ruff check . --fix
+    uv run ruff format .
     @echo "✅ Auto-fixes applied! Run 'just lint' to check for remaining issues."
 
 # Format code with divine standards
 format:
-    pixi run pre-commit run ruff-format --all-files
+    uv run pre-commit run ruff-format --all-files
 
 # Show help for linting commands
 lint-help:
@@ -172,31 +176,31 @@ lint-help:
 
 # Check code formatting without making changes
 format-check:
-    pixi run pre-commit run ruff-format --all-files
+    uv run ruff format . --check
 
 # Hunt for Pydantic deprecations
 lint-pydantic:
-    pixi run python scripts/lint_pydantic_compliance.py
+    uv run python scripts/lint_pydantic_compliance.py
 
 # Complete linting with deprecation hunting
 lint-all:
-    pixi run pre-commit run ruff --all-files
-    pixi run python scripts/lint_pydantic_compliance.py
+    uv run pre-commit run ruff --all-files
+    uv run python scripts/lint_pydantic_compliance.py
 
 # Comprehensive linting: fix, format, and hunt deprecations
 lint-comprehensive:
-    pixi run pre-commit run ruff --all-files
-    pixi run pre-commit run ruff-format --all-files
-    pixi run python scripts/lint_pydantic_compliance.py
+    uv run pre-commit run ruff --all-files
+    uv run pre-commit run ruff-format --all-files
+    uv run python scripts/lint_pydantic_compliance.py
 
 # Security scan with bandit
 security-scan:
     @echo "🔥 Running Security Scan with Bandit ⚡"
-    pixi run python -m bandit -r . -x tests/ -f txt
+    uv run python -m bandit -r . -x tests/ -f txt
 
 # Security scan with JSON output
 security-scan-json:
-    pixi run python -m bandit -r . -x tests/ -f json -o bandit-report.json
+    uv run python -m bandit -r . -x tests/ -f json -o bandit-report.json
 
 
 # Docker operations
@@ -207,7 +211,6 @@ network-create:
 
 # Create required volumes
 volumes-create:
-    docker volume create traefik-certificates || true
     docker volume create redis-data || true
     docker volume create coverage-data || true
     docker volume create auth-keys || true
@@ -215,11 +218,11 @@ volumes-create:
 
 # Generate docker-compose includes based on enabled services
 generate-includes:
-    pixi run python scripts/generate_compose_includes.py
+    uv run python scripts/generate_compose_includes.py
 
-# Generate Traefik middlewares from template with environment variables
+# Generate SWAG middlewares from template with environment variables
 generate-middlewares:
-    pixi run python scripts/generate_middlewares.py
+    uv run python scripts/generate_middlewares.py
 
 # Flexible build command with optional services
 build *services: network-create volumes-create generate-includes generate-middlewares
@@ -237,14 +240,14 @@ build *services: network-create volumes-create generate-includes generate-middle
 up *args: network-create volumes-create generate-includes generate-middlewares
     docker compose -f docker-compose.includes.yml up -d {{args}}
     echo "Waiting for services to be healthy..."
-    pixi run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
+    uv run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
 
 # Start all services with fresh build
 up-fresh: network-create volumes-create generate-includes generate-middlewares
     just build
     docker compose -f docker-compose.includes.yml up -d --force-recreate
     echo "Waiting for services to be healthy..."
-    pixi run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
+    uv run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
 
 # Stop all services (with optional remove volumes/orphans)
 down *args:
@@ -276,7 +279,7 @@ rebuild *services: network-create volumes-create generate-includes generate-midd
         docker compose -f docker-compose.includes.yml up -d {{services}}
     fi
     echo "✅ Rebuild completed"
-    pixi run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
+    uv run python scripts/check_services_ready.py || echo "⚠️  Some services may not be ready yet"
 
 # Alias for common operations
 alias b := build
@@ -374,10 +377,6 @@ logs-clean days="0":
         echo "📭 No log files remaining"
     fi
 
-# Test logging configuration
-logs-test:
-    pixi run python scripts/test_logging_configuration.py
-
 # Force clean all logs without confirmation
 logs-clean-force:
     FORCE_CLEAN=1 just logs-clean
@@ -387,24 +386,27 @@ logs-clean-force:
 # Generate JWT secret and save to .env
 generate-jwt-secret:
     #!/usr/bin/env bash
-    NEW_JWT_SECRET=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
+    NEW_JWT_SECRET=$(uv run python -c "import secrets; print(secrets.token_urlsafe(32))")
     echo "🔐 Generated new JWT secret: ${NEW_JWT_SECRET}"
 
     # Check if .env exists
     if [ ! -f .env ]; then
         echo "❌ .env file not found! Creating one..."
-        echo "GATEWAY_JWT_SECRET=${NEW_JWT_SECRET}" > .env
-        echo "✅ Created .env with GATEWAY_JWT_SECRET"
+        printf "OAUTH_JWT_SECRET=%s\nGATEWAY_JWT_SECRET=%s\n" "${NEW_JWT_SECRET}" "${NEW_JWT_SECRET}" > .env
+        echo "✅ Created .env with OAUTH_JWT_SECRET and GATEWAY_JWT_SECRET"
     else
-        # Check if GATEWAY_JWT_SECRET already exists in .env
-        if grep -q "^GATEWAY_JWT_SECRET=" .env; then
-            # Update existing GATEWAY_JWT_SECRET
-            sed -i.bak "s/^GATEWAY_JWT_SECRET=.*/GATEWAY_JWT_SECRET=${NEW_JWT_SECRET}/" .env
-            echo "✅ Updated GATEWAY_JWT_SECRET in .env file"
+        if grep -q "^OAUTH_JWT_SECRET=" .env; then
+            sed -i.bak "s/^OAUTH_JWT_SECRET=.*/OAUTH_JWT_SECRET=${NEW_JWT_SECRET}/" .env
         else
-            # Add GATEWAY_JWT_SECRET to .env
+            echo "OAUTH_JWT_SECRET=${NEW_JWT_SECRET}" >> .env
+        fi
+
+        if grep -q "^GATEWAY_JWT_SECRET=" .env; then
+            sed -i.bak "s/^GATEWAY_JWT_SECRET=.*/GATEWAY_JWT_SECRET=${NEW_JWT_SECRET}/" .env
+            echo "✅ Updated JWT secret aliases in .env file"
+        else
             echo "GATEWAY_JWT_SECRET=${NEW_JWT_SECRET}" >> .env
-            echo "✅ Added GATEWAY_JWT_SECRET to .env file"
+            echo "✅ Added JWT secret aliases to .env file"
         fi
     fi
 
@@ -499,7 +501,7 @@ exec service *args:
 
 # Universal script runner
 run script *args:
-    pixi run python scripts/{{script}}.py {{args}}
+    uv run python scripts/{{script}}.py {{args}}
 
 # These specific test commands are kept for documentation/convenience
 # But you should use: just test tests/test_oauth_flow.py -v -s
@@ -519,14 +521,14 @@ test-mcp-hostnames: ensure-services-ready
 
 # Quick hostname connectivity check
 check-mcp-hostnames:
-    pixi run python scripts/test_mcp_hostnames.py
+    uv run python scripts/test_mcp_hostnames.py
 
 # Service-specific rebuilds are now: just rebuild auth, just rebuild mcp-fetch, etc.
 
 # Analysis commands
 analyze-oauth-logs:
     mkdir -p reports
-    pixi run python scripts/analyze_oauth_logs.py > reports/oauth-analysis-$(date +%Y%m%d-%H%M%S).md
+    uv run python scripts/analyze_oauth_logs.py > reports/oauth-analysis-$(date +%Y%m%d-%H%M%S).md
 
 # Health check commands - checks both environment tokens and services
 check-health:
@@ -536,11 +538,11 @@ check-health:
     @echo ""
     @echo "Step 1/3: Checking environment tokens..."
     @echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    pixi run python scripts/check_env_tokens.py
+    uv run python scripts/check_env_tokens.py
     @echo ""
     @echo "Step 2/3: Checking Docker services..."
     @echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    pixi run python scripts/check_services_ready.py
+    uv run python scripts/check_services_ready.py
     @echo ""
     @echo "Step 3/3: Checking service endpoints..."
     @echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -552,21 +554,31 @@ check-health:
 
 # Check only environment tokens
 check-tokens:
-    pixi run python scripts/check_env_tokens.py
+    uv run python scripts/check_env_tokens.py
 
 # Check only services
 check-services:
-    pixi run python scripts/check_services_ready.py
+    uv run python scripts/check_services_ready.py --check-only
 
 # Quick health check (simple version)
 @health-quick:
+    #!/usr/bin/env bash
+    set -uo pipefail
+    failed=0
     echo "Checking service health..."
-    curl -f https://auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server || echo "Auth service not healthy"
-    curl -f https://mcp-fetch.${BASE_DOMAIN}/.well-known/oauth-authorization-server || echo "MCP-fetch OAuth discovery not accessible"
+    if ! curl -fsS https://mcp-auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server >/dev/null; then
+        echo "Auth service not healthy"
+        failed=1
+    fi
+    if ! curl -fsS https://mcp-fetch.${BASE_DOMAIN}/.well-known/oauth-authorization-server >/dev/null; then
+        echo "MCP-fetch OAuth discovery not accessible"
+        failed=1
+    fi
+    exit "$failed"
 
 # Show service status with health information
 status:
-    @pixi run python scripts/show_service_status.py
+    @uv run python scripts/show_service_status.py
 
 # Check SSL certificates
 check-ssl:
@@ -576,79 +588,79 @@ check-ssl:
 	echo "Checking SSL certificates..."
 	echo ""
 	echo "=== Auth Service ==="
-	curl -I https://auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server 2>&1 | grep -E "HTTP|SSL|certificate" || echo "Auth SSL check failed"
+	curl -I https://mcp-auth.${BASE_DOMAIN}/.well-known/oauth-authorization-server 2>&1 | grep -E "HTTP|SSL|certificate" || echo "Auth SSL check failed"
 	echo ""
 	echo "=== MCP Services (checking enabled services only) ==="
 	echo ""
 
 	# Check each MCP service if enabled
-	if [ "${MCP_EVERYTHING_ENABLED}" = "true" ]; then
-		echo "MCP Everything (${MCP_EVERYTHING_URLS}):"
-		for url in $(echo ${MCP_EVERYTHING_URLS} | tr ',' ' '); do
+	if [ "${MCP_EVERYTHING_ENABLED:-false}" = "true" ]; then
+		echo "MCP Everything (${MCP_EVERYTHING_URLS:-}):"
+		for url in $(echo ${MCP_EVERYTHING_URLS:-} | tr ',' ' '); do
 			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
 		done
 		echo ""
 	fi
 
-	if [ "${MCP_FETCH_ENABLED}" = "true" ]; then
-		echo "MCP Fetch (${MCP_FETCH_URLS}):"
-		for url in $(echo ${MCP_FETCH_URLS} | tr ',' ' '); do
+	if [ "${MCP_FETCH_ENABLED:-false}" = "true" ]; then
+		echo "MCP Fetch (${MCP_FETCH_URLS:-}):"
+		for url in $(echo ${MCP_FETCH_URLS:-} | tr ',' ' '); do
 			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
 		done
 		echo ""
 	fi
 
-	if [ "${MCP_FETCHS_ENABLED}" = "true" ]; then
-		echo "MCP Fetchs (${MCP_FETCHS_URLS}):"
-		for url in $(echo ${MCP_FETCHS_URLS} | tr ',' ' '); do
+	if [ "${MCP_FETCHS_ENABLED:-false}" = "true" ]; then
+		echo "MCP Fetchs (${MCP_FETCHS_URLS:-}):"
+		for url in $(echo ${MCP_FETCHS_URLS:-} | tr ',' ' '); do
 			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
 		done
 		echo ""
 	fi
 
-	if [ "${MCP_FILESYSTEM_ENABLED}" = "true" ]; then
-		echo "MCP Filesystem (${MCP_FILESYSTEM_URLS}):"
-		for url in $(echo ${MCP_FILESYSTEM_URLS} | tr ',' ' '); do
+	if [ "${MCP_FILESYSTEM_ENABLED:-false}" = "true" ]; then
+		echo "MCP Filesystem (${MCP_FILESYSTEM_URLS:-}):"
+		for url in $(echo ${MCP_FILESYSTEM_URLS:-} | tr ',' ' '); do
 			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
 		done
 		echo ""
 	fi
 
-	if [ "${MCP_MEMORY_ENABLED}" = "true" ]; then
-		echo "MCP Memory (${MCP_MEMORY_URLS}):"
-		for url in $(echo ${MCP_MEMORY_URLS} | tr ',' ' '); do
+	if [ "${MCP_MEMORY_ENABLED:-false}" = "true" ]; then
+		echo "MCP Memory (${MCP_MEMORY_URLS:-}):"
+		for url in $(echo ${MCP_MEMORY_URLS:-} | tr ',' ' '); do
 			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
 		done
 		echo ""
 	fi
 
-	if [ "${MCP_PLAYWRIGHT_ENABLED}" = "true" ]; then
-		echo "MCP Playwright (${MCP_PLAYWRIGHT_URLS}):"
-		for url in $(echo ${MCP_PLAYWRIGHT_URLS} | tr ',' ' '); do
+	if [ "${MCP_PLAYWRIGHT_ENABLED:-false}" = "true" ]; then
+		echo "MCP Playwright (${MCP_PLAYWRIGHT_URLS:-}):"
+		for url in $(echo ${MCP_PLAYWRIGHT_URLS:-} | tr ',' ' '); do
 			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
 		done
 		echo ""
 	fi
 
-	if [ "${MCP_SEQUENTIALTHINKING_ENABLED}" = "true" ]; then
-		echo "MCP Sequential Thinking (${MCP_SEQUENTIALTHINKING_URLS}):"
-		for url in $(echo ${MCP_SEQUENTIALTHINKING_URLS} | tr ',' ' '); do
+	if [ "${MCP_SEQUENTIALTHINKING_ENABLED:-false}" = "true" ]; then
+		echo "MCP Sequential Thinking (${MCP_SEQUENTIALTHINKING_URLS:-}):"
+		for url in $(echo ${MCP_SEQUENTIALTHINKING_URLS:-} | tr ',' ' '); do
 			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
 		done
 		echo ""
 	fi
 
-	if [ "${MCP_TIME_ENABLED}" = "true" ]; then
-		echo "MCP Time (${MCP_TIME_URLS}):"
-		for url in $(echo ${MCP_TIME_URLS} | tr ',' ' '); do
+	if [ "${MCP_TIME_ENABLED:-false}" = "true" ]; then
+		echo "MCP Time (${MCP_TIME_URLS:-}):"
+		for url in $(echo ${MCP_TIME_URLS:-} | tr ',' ' '); do
 			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
 		done
 		echo ""
 	fi
 
-	if [ "${MCP_TMUX_ENABLED}" = "true" ]; then
-		echo "MCP Tmux (${MCP_TMUX_URLS}):"
-		for url in $(echo ${MCP_TMUX_URLS} | tr ',' ' '); do
+	if [ "${MCP_TMUX_ENABLED:-false}" = "true" ]; then
+		echo "MCP Tmux (${MCP_TMUX_URLS:-}):"
+		for url in $(echo ${MCP_TMUX_URLS:-} | tr ',' ' '); do
 			curl -I "$url" 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: $url"
 		done
 		echo ""
@@ -663,27 +675,49 @@ check-ssl:
 
 	if [ "${MCP_ECHO_STATELESS_ENABLED:-false}" = "true" ]; then
 		echo "MCP Echo Stateless:"
-		curl -I https://echo-stateless-.${BASE_DOMAIN}/mcp 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: echo-stateless service"
+		curl -I https://echo-stateless.${BASE_DOMAIN}/mcp 2>&1 | grep -E "HTTP|SSL|certificate" || echo "  Failed: echo-stateless service"
 		echo ""
 	fi
 
 	echo ""
 	echo "=== Certificates in ACME storage ==="
-	docker exec traefik cat /certificates/acme.json 2>/dev/null | jq -r '.letsencrypt.Certificates[].domain' || echo "No certificates found or Traefik not running"
+	docker exec swag cat /config/etc/letsencrypt/live/${SWAG_URL:-$BASE_DOMAIN}/cert.pem 2>/dev/null || echo "No certificates found or SWAG not running"
 
 # Generate MCP client token using mcp-streamablehttp-client
 mcp-client-token:
     echo "🔐 Generating MCP client token using mcp-streamablehttp-client..."
-    pixi run install-mcp-client || true
-    export MCP_SERVER_URL="https://mcp-fetch.${BASE_DOMAIN}/mcp" && \
-    pixi run python -m mcp_streamablehttp_client.cli --token --server-url "$MCP_SERVER_URL"
+    uv pip install -e mcp-streamablehttp-client 2>/dev/null || true
+    export MCP_SERVER_URL="https://mcp-auth.${BASE_DOMAIN}" && \
+    uv run python -m mcp_streamablehttp_client.cli --token --server-url "$MCP_SERVER_URL"
 
 # Complete MCP client token flow with auth code
 mcp-client-token-complete auth_code:
     echo "🔐 Completing MCP client token flow with authorization code..."
-    export MCP_SERVER_URL="https://mcp-fetch.${BASE_DOMAIN}/mcp" && \
+    export MCP_SERVER_URL="https://mcp-auth.${BASE_DOMAIN}" && \
     export MCP_AUTH_CODE="{{ auth_code }}" && \
-    pixi run python scripts/complete_mcp_oauth.py
+    uv run python scripts/complete_mcp_oauth.py
+
+# Inject existing MCP client OAuth credentials into Codex's file-backed store
+codex-inject-mcp-credentials server_name:
+    echo "🔐 Injecting MCP client OAuth credentials into Codex for {{ server_name }}..."
+    uv run python @oauth-helpers/scripts/inject_codex_mcp_credentials.py "{{ server_name }}"
+
+# Run the callback relay server for headless Codex OAuth flows
+callback-relay:
+    echo "🔁 Starting callback relay server..."
+    uv run python @oauth-helpers/scripts/callback_relay_server.py
+
+# Onboard the current machine into the callback relay using loopback target
+relay-onboard-current-machine machine_id:
+    uv run python @oauth-helpers/scripts/relay_onboard_machine.py current "{{ machine_id }}"
+
+# Onboard a remote machine into the callback relay over SSH
+relay-onboard-ssh-machine host machine_id="":
+    if [ -n "{{ machine_id }}" ]; then \
+        uv run python @oauth-helpers/scripts/relay_onboard_machine.py ssh "{{ host }}" --machine-id "{{ machine_id }}"; \
+    else \
+        uv run python @oauth-helpers/scripts/relay_onboard_machine.py ssh "{{ host }}"; \
+    fi
 
 
 # OAuth Management Commands - Using flexible script runner
@@ -761,7 +795,7 @@ test-cleanup:
 # Setup commands
 setup: network-create volumes-create
     echo "Setting up MCP OAuth Gateway..."
-    pixi install
+    uv sync
     echo "Setup complete! Run 'just up' to start services."
 
 # OAuth Backup and Restore Commands
@@ -799,7 +833,7 @@ oauth-restore-dry:
 # View contents of latest backup
 oauth-backup-view:
     echo "📋 Viewing latest backup contents..."
-    ls -t backups/oauth-backup-*.json 2>/dev/null | head -1 | xargs pixi run python scripts/view_oauth_backup.py || echo "No backups found"
+    ls -t backups/oauth-backup-*.json 2>/dev/null | head -1 | xargs uv run python scripts/view_oauth_backup.py || echo "No backups found"
 
 # View contents of specific backup file
 oauth-backup-view-file filename:
@@ -819,7 +853,7 @@ pypi-build package="all":
     #!/usr/bin/env bash
     # Ensure submodules are initialized
     submodule_missing=false
-    for pkg in mcp-streamablehttp-client mcp-echo-streamablehttp-server-stateful mcp-echo-streamablehttp-server-stateless mcp-fetch-streamablehttp-server mcp-oauth-dynamicclient mcp-streamablehttp-proxy; do
+    for pkg in mcp-streamablehttp-client mcp-oauth-dynamicclient mcp-streamablehttp-proxy; do
         if [ ! -f "$pkg/pyproject.toml" ]; then
             submodule_missing=true
             break
@@ -831,7 +865,7 @@ pypi-build package="all":
         git submodule update --init --recursive
     fi
     
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless mcp-echo-streamablehttp-server-stateful)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client)
 
     if [ "{{package}}" = "all" ]; then
         echo "🏗️  Building all Python packages..."
@@ -839,7 +873,7 @@ pypi-build package="all":
             echo "Building $pkg..."
             cd "$pkg"
             rm -rf dist/ build/ *.egg-info/
-            pixi run python -m build
+            uv run python -m build
             echo "✅ Built $pkg"
             cd ..
         done
@@ -847,7 +881,7 @@ pypi-build package="all":
         echo "🏗️  Building {{package}}..."
         cd "{{package}}"
         rm -rf dist/ build/ *.egg-info/
-        pixi run python -m build
+        uv run python -m build
         echo "✅ Built {{package}}"
         cd ..
     fi
@@ -857,7 +891,7 @@ pypi-test package="all":
     #!/usr/bin/env bash
     # Ensure submodules are initialized
     submodule_missing=false
-    for pkg in mcp-streamablehttp-client mcp-echo-streamablehttp-server-stateful mcp-echo-streamablehttp-server-stateless mcp-fetch-streamablehttp-server mcp-oauth-dynamicclient mcp-streamablehttp-proxy; do
+    for pkg in mcp-streamablehttp-client mcp-oauth-dynamicclient mcp-streamablehttp-proxy; do
         if [ ! -f "$pkg/pyproject.toml" ]; then
             submodule_missing=true
             break
@@ -869,7 +903,7 @@ pypi-test package="all":
         git submodule update --init --recursive
     fi
     
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless mcp-echo-streamablehttp-server-stateful)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client)
 
     if [ "{{package}}" = "all" ]; then
         echo "🧪 Testing all Python packages..."
@@ -877,7 +911,7 @@ pypi-test package="all":
             echo "Testing $pkg..."
             cd "$pkg"
             if [ -f "pyproject.toml" ] && [ -d "tests" ]; then
-                pixi run pytest tests/ -v || echo "⚠️  Tests failed for $pkg"
+                uv run pytest tests/ -v || echo "⚠️  Tests failed for $pkg"
             else
                 echo "⚠️  No tests found for $pkg"
             fi
@@ -888,7 +922,7 @@ pypi-test package="all":
         echo "🧪 Testing {{package}}..."
         cd "{{package}}"
         if [ -f "pyproject.toml" ] && [ -d "tests" ]; then
-            pixi run pytest tests/ -v
+            uv run pytest tests/ -v
         else
             echo "⚠️  No tests found for {{package}}"
         fi
@@ -899,7 +933,7 @@ pypi-test package="all":
 # Check package distribution (validate built packages)
 pypi-check package="all":
     #!/usr/bin/env bash
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless mcp-echo-streamablehttp-server-stateful)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client)
 
     if [ "{{package}}" = "all" ]; then
         echo "🔍 Checking all Python packages..."
@@ -907,7 +941,7 @@ pypi-check package="all":
             echo "Checking $pkg..."
             cd "$pkg"
             if [ -d "dist" ]; then
-                pixi run twine check dist/*
+                uv run twine check dist/*
                 echo "✅ Checked $pkg"
             else
                 echo "⚠️  No dist/ directory found for $pkg - run 'just pypi-build $pkg' first"
@@ -918,7 +952,7 @@ pypi-check package="all":
         echo "🔍 Checking {{package}}..."
         cd "{{package}}"
         if [ -d "dist" ]; then
-            pixi run twine check dist/*
+            uv run twine check dist/*
             echo "✅ Checked {{package}}"
         else
             echo "⚠️  No dist/ directory found for {{package}} - run 'just pypi-build {{package}}' first"
@@ -929,7 +963,7 @@ pypi-check package="all":
 # Upload to TestPyPI (for testing)
 pypi-upload-test package="all":
     #!/usr/bin/env bash
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless mcp-echo-streamablehttp-server-stateful)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client)
 
     echo "⚠️  WARNING: This will upload to TestPyPI!"
 
@@ -952,7 +986,7 @@ pypi-upload-test package="all":
             echo "Uploading $pkg to TestPyPI..."
             cd "$pkg"
             if [ -d "dist" ]; then
-                if pixi run twine upload --repository testpypi dist/* --skip-existing; then
+                if uv run twine upload --repository testpypi dist/* --skip-existing; then
                     echo "✅ Uploaded $pkg to TestPyPI"
                 else
                     echo "❌ Upload failed for $pkg"
@@ -970,7 +1004,7 @@ pypi-upload-test package="all":
         echo "📤 Uploading {{package}} to TestPyPI..."
         cd "{{package}}"
         if [ -d "dist" ]; then
-            if pixi run twine upload --repository testpypi dist/* --skip-existing; then
+            if uv run twine upload --repository testpypi dist/* --skip-existing; then
                 echo "✅ Uploaded {{package}} to TestPyPI"
             else
                 echo "❌ Upload failed for {{package}}"
@@ -988,7 +1022,7 @@ pypi-upload-test package="all":
 # Upload to PyPI (PRODUCTION - BE CAREFUL!)
 pypi-upload package="all":
     #!/usr/bin/env bash
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless mcp-echo-streamablehttp-server-stateful)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client)
 
     echo "🚨 WARNING: This will upload to PRODUCTION PyPI!"
 
@@ -1012,7 +1046,7 @@ pypi-upload package="all":
             echo "Uploading $pkg to PyPI..."
             cd "$pkg"
             if [ -d "dist" ]; then
-                pixi run twine upload dist/*
+                uv run twine upload dist/*
                 echo "✅ Uploaded $pkg to PyPI"
             else
                 echo "⚠️  No dist/ directory found for $pkg - run 'just pypi-build $pkg' first"
@@ -1023,7 +1057,7 @@ pypi-upload package="all":
         echo "📤 Uploading {{package}} to PyPI..."
         cd "{{package}}"
         if [ -d "dist" ]; then
-            pixi run twine upload dist/*
+            uv run twine upload dist/*
             echo "✅ Uploaded {{package}} to PyPI"
         else
             echo "⚠️  No dist/ directory found for {{package}} - run 'just pypi-build {{package}}' first"
@@ -1052,7 +1086,7 @@ pypi-publish package="all":
 # Clean all package build artifacts
 pypi-clean package="all":
     #!/usr/bin/env bash
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless mcp-echo-streamablehttp-server-stateful)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client)
 
     if [ "{{package}}" = "all" ]; then
         echo "🧹 Cleaning all Python package build artifacts..."
@@ -1078,7 +1112,7 @@ pypi-clean package="all":
 # Show package information and versions
 pypi-info package="all":
     #!/usr/bin/env bash
-    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client mcp-fetch-streamablehttp-server mcp-echo-streamablehttp-server-stateless mcp-echo-streamablehttp-server-stateful)
+    packages=(mcp-streamablehttp-proxy mcp-oauth-dynamicclient mcp-streamablehttp-client)
 
     if [ "{{package}}" = "all" ]; then
         echo "📋 Package Information for all packages:"

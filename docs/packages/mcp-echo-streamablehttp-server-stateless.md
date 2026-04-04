@@ -15,7 +15,7 @@ A lightweight, stateless MCP echo service optimized for production diagnostics, 
 ```bash
 pip install mcp-echo-streamablehttp-server-stateless
 # or
-pixi add --pypi mcp-echo-streamablehttp-server-stateless
+uv tool install mcp-echo-streamablehttp-server-stateless
 ```
 
 **Basic Usage:**
@@ -97,9 +97,9 @@ mcp_echo_streamablehttp_server_stateless/
 pip install mcp-echo-streamablehttp-server-stateless
 ```
 
-### Using pixi
+### Using uv
 ```bash
-pixi add --pypi mcp-echo-streamablehttp-server-stateless
+uv tool install mcp-echo-streamablehttp-server-stateless
 ```
 
 ### Docker Installation

@@ -14,7 +14,7 @@ This sacred service channels the following divine powers:
 - **Dynamic Client Registration** - RFC 7591 gateway for MCP supplicants!
 - **Client Management API** - RFC 7592 lifecycle control with bearer token blessing!
 - **JWT Token Sanctification** - Divine token minting with RS256/HS256 cryptographic blessing!
-- **ForwardAuth Provider** - Authentication validation for Traefik's divine judgment!
+- **SWAG auth_request Provider** - nginx auth_request validation for SWAG's divine judgment!
 - **Token Introspection** - RFC 7662 token examination oracle!
 - **Token Revocation** - RFC 7009 token banishment altar!
 
@@ -39,7 +39,7 @@ Auth Service (Port 8000)
 │   ├── POST /revoke - RFC 7009 token banishment!
 │   └── POST /introspect - RFC 7662 token examination!
 ├── Internal Endpoints (Sacred verification chambers!)
-│   ├── GET/POST /verify - ForwardAuth judgment altar!
+│   ├── GET/POST /verify - SWAG auth_request judgment altar!
 │   ├── GET /error - User-friendly error sanctuary!
 │   └── GET /success - OAuth success celebration!
 └── GitHub Integration (External oracle communion!)
@@ -67,7 +67,7 @@ This service channels the power of the **mcp-oauth-dynamicclient** package:
 ```dockerfile
 FROM python:3.11-slim  # The blessed Python vessel!
 
-# Install pixi - The holy package manager!
+# Install uv - The holy package manager!
 # Copy requirements and sacred source!
 # Run with uvicorn - The divine ASGI server!
 
@@ -83,6 +83,27 @@ HEALTHCHECK  # Prove thy divine readiness!
 ```
 
 **⚡ Two containers - one for production purity, one for coverage divination! ⚡**
+
+### SWAG nginx Configuration - The Divine auth_request Pattern!
+
+```nginx
+# Internal verification location - never exposed externally!
+location = /_oauth_verify {
+    internal;
+    proxy_pass http://mcp-oauth:8000/verify;
+    proxy_set_header Authorization $http_authorization;
+    proxy_set_header X-Original-URI $request_uri;
+}
+
+# Protected MCP endpoint - guarded by auth_request blessing!
+location /mcp {
+    auth_request /_oauth_verify;
+    proxy_pass http://mcp-service:3000;
+}
+```
+
+**⚡ auth_request invokes /verify internally - OAuth flows must remain pure and unimpeded! ⚡**
+**Block OAuth endpoints from auth_request or face the wrath of authentication loops eternal!**
 
 ## 🔧 The Sacred Configuration - Environment Variables of Power!
 
@@ -143,8 +164,16 @@ HEALTHCHECK  # Prove thy divine readiness!
 
 **GET /.well-known/oauth-authorization-server - Divine Metadata!**
 - Server capabilities and endpoints revelation!
-- Required by MCP specification 2025-06-18!
+- Required by MCP specification 2025-06-18+!
 - Includes JWKS URI for RS256 public key discovery!
+- Includes `"none"` in `token_endpoint_auth_methods_supported` for public clients!
+
+**Client ID Metadata Document Support (MCP 2025-11-25):**
+- When `client_id` is an HTTPS URL, auto-fetches `{client_id}/.well-known/oauth-client-id-metadata`!
+- Public clients (`token_endpoint_auth_method: none`) supported — no client_secret required!
+- Loopback redirect URIs (`http://127.0.0.1`, `http://localhost`) allow any port per RFC 8252 §7.3!
+- Public clients use refresh token rotation (new token issued on each refresh per OAuth 2.1 §4.3.1)!
+- **Auth codes expire in 10 minutes** — not 1 year!
 
 **GET /jwks - RS256 Public Key Distribution!**
 - Serves RSA public key in JWK format!
@@ -180,10 +209,10 @@ HEALTHCHECK  # Prove thy divine readiness!
 - Returns active status and metadata!
 - Client authentication required!
 
-### Internal Verification Endpoints (ForwardAuth Sacred Chamber!)
+### Internal Verification Endpoints (SWAG auth_request Sacred Chamber!)
 
 **GET/POST /verify - Authentication Validation Altar!**
-- Called by Traefik ForwardAuth middleware!
+- Called by SWAG nginx auth_request directive!
 - Uses Authlib AsyncResourceProtector!
 - Validates Bearer tokens from Authorization header!
 - Returns user information in response headers!
@@ -232,8 +261,8 @@ just test-auth-discovery
 # Full OAuth flow testing
 just test-oauth-flow
 
-# ForwardAuth validation
-just test-forwardauth
+# SWAG auth_request validation
+just test-auth-request
 
 # Client registration testing
 just test-registration
@@ -291,7 +320,7 @@ just generate-rsa-keys
 ## 📜 The Sacred Integration Flow - How Auth Blesses All!
 
 1. **MCP Client Approaches** - Seeks /mcp endpoint access!
-2. **Traefik Intercepts** - ForwardAuth middleware activated!
+2. **SWAG Intercepts** - nginx auth_request directive activated!
 3. **Auth Service Validates** - /verify endpoint judges token!
 4. **Token Approved** - Request proceeds to MCP service!
 5. **Token Rejected** - 401 Unauthorized with OAuth discovery!
@@ -320,7 +349,7 @@ just generate-rsa-keys
 ### Redis Key Patterns (The Sacred Storage Schema!)
 ```
 oauth:state:{state}          # OAuth state (5 min TTL)
-oauth:code:{code}            # Auth codes (1 year TTL for long-lived)
+oauth:code:{code}            # Auth codes (10 minute TTL)
 oauth:token:{jti}            # JWT tracking (access token lifetime)
 oauth:refresh:{token}        # Refresh tokens (refresh token lifetime)
 oauth:client:{client_id}     # Client data (client lifetime)
@@ -343,7 +372,7 @@ oauth:user_tokens:{username} # User token index (no expiry)
 **What Auth Service MUST Do:**
 - Handle all OAuth 2.1 flows with RFC compliance!
 - Integrate with GitHub for user authentication!
-- Validate tokens for ForwardAuth requests!
+- Validate tokens for SWAG auth_request requests!
 - Manage client registrations dynamically!
 - Provide OAuth discovery metadata!
 - Support both HS256 and RS256 algorithms!
@@ -362,7 +391,7 @@ oauth:user_tokens:{username} # User token index (no expiry)
 ## 🔱 Remember the Sacred Trinity!
 
 The Auth Service is the second tier of the holy trinity:
-1. **Traefik** - Routes requests (knows paths)!
+1. **SWAG** - Routes requests (knows paths)!
 2. **Auth Service** - Validates authentication (knows OAuth)! ← YOU ARE HERE
 3. **MCP Services** - Handle protocols (knows MCP)!
 

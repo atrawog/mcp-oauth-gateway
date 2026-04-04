@@ -52,7 +52,9 @@ class TestMCPProxyBasicFunctionality:
     """Test basic MCP proxy functionality against real services."""
 
     @pytest.mark.asyncio
-    async def test_health_endpoint_accessible(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_health_endpoint_accessible(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test that the MCP service is accessible (health is checked via MCP protocol)."""
         # According to CLAUDE.md, health checks use MCP protocol, not /health endpoint
         # We test accessibility by checking if auth is required
@@ -61,7 +63,9 @@ class TestMCPProxyBasicFunctionality:
         assert "WWW-Authenticate" in response.headers
 
     @pytest.mark.asyncio
-    async def test_mcp_endpoint_requires_auth(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_mcp_endpoint_requires_auth(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test that the MCP endpoint requires authentication."""
         response = await http_client.post(
             f"{MCP_ECHO_STATELESS_URL}",
@@ -73,10 +77,14 @@ class TestMCPProxyBasicFunctionality:
         assert response.headers["WWW-Authenticate"].startswith("Bearer")
 
     @pytest.mark.asyncio
-    async def test_invalid_json_rpc_request(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_invalid_json_rpc_request(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test that invalid JSON-RPC requests are properly rejected."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Send invalid JSON-RPC (missing required fields)
         response = await http_client.post(
@@ -148,7 +156,9 @@ class TestMCPProxyAuthentication:
     ):
         """Test authentication using MCP client token."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # MCP client token should work for authentication
         response = await http_client.post(
@@ -180,7 +190,9 @@ class TestMCPProxyAuthentication:
         assert "protocolVersion" in data["result"]
 
     @pytest.mark.asyncio
-    async def test_invalid_token_rejected(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_invalid_token_rejected(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test that invalid tokens are rejected."""
         response = await http_client.post(
             f"{MCP_ECHO_STATELESS_URL}",
@@ -195,10 +207,14 @@ class TestMCPProtocolInitialization:
     """Test MCP protocol initialization flow with real services."""
 
     @pytest.mark.asyncio
-    async def test_initialize_request(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_initialize_request(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test the initialize request following MCP 2025-06-18 spec."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Send initialize request
         response = await http_client.post(
@@ -241,10 +257,14 @@ class TestMCPProtocolInitialization:
         assert "version" in result["serverInfo"]
 
     @pytest.mark.asyncio
-    async def test_initialized_notification(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_initialized_notification(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test sending initialized notification after initialize."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # First initialize
         init_response = await http_client.post(
@@ -287,10 +307,14 @@ class TestMCPFetchCapabilities:
     """Test MCP fetch server specific capabilities."""
 
     @pytest.mark.asyncio
-    async def test_fetch_capability_available(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_fetch_capability_available(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test that mcp-server-fetch reports fetch capability."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Initialize to get capabilities
         response = await http_client.post(
@@ -321,10 +345,14 @@ class TestMCPFetchCapabilities:
         assert "tools" in capabilities
 
     @pytest.mark.asyncio
-    async def test_list_tools(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_list_tools(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test listing available tools from mcp-server-fetch."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Initialize first
         init_response = await http_client.post(
@@ -396,10 +424,14 @@ class TestMCPProxyErrorHandling:
     """Test error handling in the MCP proxy."""
 
     @pytest.mark.asyncio
-    async def test_method_not_found(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_method_not_found(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test that unknown methods return proper JSON-RPC error."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Initialize first to get session ID
         init_response = await http_client.post(
@@ -455,10 +487,14 @@ class TestMCPProxyErrorHandling:
         assert data["error"]["code"] in [-32601, -32602]
 
     @pytest.mark.asyncio
-    async def test_invalid_params(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_invalid_params(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test that invalid parameters return proper error."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Try to initialize with wrong protocol version
         response = await http_client.post(
@@ -497,7 +533,9 @@ class TestMCPProxyHeaders:
     ):
         """Test that MCP-Protocol-Version header is handled."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         response = await http_client.post(
             f"{MCP_ECHO_STATELESS_URL}",
@@ -512,15 +550,20 @@ class TestMCPProxyHeaders:
         assert response.status_code in [200, 400]  # 400 if ping not supported
 
     @pytest.mark.asyncio
-    async def test_cors_headers_on_options(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_cors_headers_on_options(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test CORS headers on OPTIONS request."""
-        response = await http_client.options(f"{MCP_ECHO_STATELESS_URL}", headers={"Origin": "https://claude.ai"})
+        response = await http_client.options(
+            f"{MCP_ECHO_STATELESS_URL}", headers={"Origin": "https://claude.ai"}
+        )
         # Some services return 400 for OPTIONS without proper CORS setup, others return 200
         # The important thing is that CORS headers are present when they should be
         if response.status_code == HTTP_OK:
             # Check that some CORS headers are present
             assert (
-                "Access-Control-Allow-Origin" in response.headers or "access-control-allow-origin" in response.headers
+                "Access-Control-Allow-Origin" in response.headers
+                or "access-control-allow-origin" in response.headers
             )
         else:
             # If service doesn't support OPTIONS, that's okay for this test

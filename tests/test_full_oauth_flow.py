@@ -52,7 +52,9 @@ class TestFullOAuthFlow:
             assert "WWW-Authenticate" in response.headers
 
             # Step 2: Check OAuth metadata endpoint
-            metadata_response = await client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+            metadata_response = await client.get(
+                f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server"
+            )
 
             assert metadata_response.status_code == HTTP_OK
             metadata = metadata_response.json()
@@ -72,9 +74,13 @@ class TestFullOAuthFlow:
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Test that client exists by attempting to start auth flow
             # Generate PKCE challenge
-            code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("utf-8").rstrip("=")
+            code_verifier = (
+                base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("utf-8").rstrip("=")
+            )
             code_challenge = (
-                base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest()).decode("utf-8").rstrip("=")
+                base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest())
+                .decode("utf-8")
+                .rstrip("=")
             )
 
             response = await client.get(

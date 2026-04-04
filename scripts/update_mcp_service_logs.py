@@ -30,9 +30,7 @@ def update_docker_compose(file_path):
         # Get the indentation of environment variables (should be 2 spaces more than 'environment:')
         env_var_indent = "      "  # 6 spaces for service properties
 
-        volumes_section = (
-            f"{env_section}\n{indent}volumes:\n{env_var_indent}- ../logs/{service_name}:/logs\n{indent}{next_section}"
-        )
+        volumes_section = f"{env_section}\n{indent}volumes:\n{env_var_indent}- ../logs/{service_name}:/logs\n{indent}{next_section}"
         return volumes_section
 
     # If no environment section, add volumes before labels
@@ -87,7 +85,9 @@ def main():
     # Exclude the oauth client and streamablehttp client
     print(f"Found {len(mcp_services)} total MCP services")
     mcp_services = [
-        s for s in mcp_services if "mcp-oauth-dynamicclient" not in str(s) and "mcp-streamablehttp-client" not in str(s)
+        s
+        for s in mcp_services
+        if "mcp-oauth-dynamicclient" not in str(s) and "mcp-streamablehttp-client" not in str(s)
     ]
 
     print(f"Found {len(mcp_services)} MCP service docker-compose files to update\n")

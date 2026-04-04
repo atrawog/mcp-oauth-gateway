@@ -24,7 +24,9 @@ class TestMCPFetchSimple:
     """Simple test to verify MCP fetch authentication."""
 
     @pytest.mark.asyncio
-    async def test_mcp_fetch_auth_works(self, http_client, _wait_for_services, registered_client, mcp_fetch_url):
+    async def test_mcp_fetch_auth_works(
+        self, http_client, _wait_for_services, registered_client, mcp_fetch_url
+    ):
         """Test that we can authenticate to mcp-fetch service."""
         # Connect to Redis
         redis_client = await redis.from_url(REDIS_URL, decode_responses=True)
@@ -44,7 +46,7 @@ class TestMCPFetchSimple:
                 "jti": jti,
                 "iat": now,
                 "exp": now + ACCESS_TOKEN_LIFETIME,
-                "iss": f"https://auth.{BASE_DOMAIN}",
+                "iss": f"https://mcp-auth.{BASE_DOMAIN}",
             }
 
             # Create JWT

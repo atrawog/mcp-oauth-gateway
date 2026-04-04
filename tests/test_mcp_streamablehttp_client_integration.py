@@ -76,7 +76,7 @@ class TestMCPStreamableHTTPClientCommand:
 
         # Run the command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -101,7 +101,9 @@ class TestMCPStreamableHTTPClientCommand:
         output = result.stdout
 
         # Check for "Example Domain" in the output
-        assert "Example Domain" in output, f"'Example Domain' not found in output: {output[:500]}..."
+        assert "Example Domain" in output, (
+            f"'Example Domain' not found in output: {output[:500]}..."
+        )
 
         # Also verify it fetched from the correct URL
         assert "https://example.com" in output
@@ -129,7 +131,7 @@ class TestMCPStreamableHTTPClientCommand:
 
         # Run the command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -188,7 +190,7 @@ class TestMCPStreamableHTTPClientCommand:
 
         # Run the test-auth command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -219,7 +221,7 @@ class TestMCPStreamableHTTPClientCommand:
 
         # Run the token status command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -245,14 +247,16 @@ class TestMCPStreamableHTTPClientCommand:
         print("✅ Token status check working")
 
     @pytest.mark.asyncio
-    async def test_command_with_complex_parameters(self, temp_env_file, mcp_client_env, _wait_for_services):
+    async def test_command_with_complex_parameters(
+        self, temp_env_file, mcp_client_env, _wait_for_services
+    ):
         """Test command with more complex parameters."""
         env = os.environ.copy()
         env.update(mcp_client_env)
 
         # Try a command that might list available tools
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -299,7 +303,7 @@ class TestMCPClientRealWorldUsage:
         success_count = 0
         for url in urls:
             cmd = [
-                "pixi",
+                "uv",
                 "run",
                 "mcp-streamablehttp-client",
                 "--env-file",
@@ -331,7 +335,7 @@ class TestMCPClientRealWorldUsage:
 
         # Test with invalid command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--env-file",
@@ -350,5 +354,9 @@ class TestMCPClientRealWorldUsage:
         )  # Reduced from 30s
 
         # Should handle the error gracefully
-        assert result.returncode != 0 or "error" in result.stdout.lower() or "error" in result.stderr.lower()
+        assert (
+            result.returncode != 0
+            or "error" in result.stdout.lower()
+            or "error" in result.stderr.lower()
+        )
         print("✅ Invalid command handled gracefully")

@@ -75,8 +75,10 @@ async def test_fetch_native_requires_auth(mcp_fetchs_url, _wait_for_services):
 async def test_fetch_native_cors_preflight(mcp_fetchs_url, _wait_for_services):
     """Test CORS preflight handling."""
     # Skip this test as the MCP service doesn't handle OPTIONS directly
-    # CORS is handled by Traefik at the proxy level
-    pytest.skip("MCP services don't handle OPTIONS requests directly - CORS is handled by Traefik")
+    # CORS is handled by SWAG nginx at the proxy level
+    pytest.skip(
+        "MCP services don't handle OPTIONS requests directly - CORS is handled by SWAG nginx"
+    )
 
 
 @pytest.mark.integration
@@ -149,7 +151,9 @@ async def test_fetch_native_list_tools(mcp_fetchs_url, valid_oauth_token, _wait_
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_fetch_native_call_tool_fetch(mcp_fetchs_url, base_domain, valid_oauth_token, _wait_for_services):
+async def test_fetch_native_call_tool_fetch(
+    mcp_fetchs_url, base_domain, valid_oauth_token, _wait_for_services
+):
     """Test calling the fetch tool."""
     # Fetch from our own auth service's health endpoint
     async with httpx.AsyncClient(verify=True) as client:
@@ -161,7 +165,7 @@ async def test_fetch_native_call_tool_fetch(mcp_fetchs_url, base_domain, valid_o
                 "params": {
                     "name": "fetch",
                     "arguments": {
-                        "url": f"https://auth.{base_domain}/.well-known/oauth-authorization-server",  # TODO: Break long line
+                        "url": f"https://mcp-auth.{base_domain}/.well-known/oauth-authorization-server",  # TODO: Break long line
                         "method": "GET",
                     },
                 },

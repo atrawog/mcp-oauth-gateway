@@ -1,0 +1,48 @@
+services:
+  swag:
+    image: lscr.io/linuxserver/swag
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-UTC}
+      # Required: your base domain (e.g. example.com)
+      - URL=${SWAG_URL}
+      # Required: comma-separated subdomains to cert (e.g. auth,mcp-fetch,mcp-memory)
+      - SUBDOMAINS=${SWAG_SUBDOMAINS:-www,}
+      # Required: http or dns
+      - VALIDATION=${SWAG_VALIDATION:-http}
+      # Optional: leave blank for Let's Encrypt, set to 'zerossl' for ZeroSSL
+      - CERTPROVIDER=${SWAG_CERTPROVIDER:-} #optional
+      # Optional: dns plugin name when VALIDATION=dns (e.g. cloudflare)
+      - DNSPLUGIN=${SWAG_DNSPLUGIN:-cloudflare} #optional
+      # Optional: email for Let's Encrypt account registration
+      - EMAIL=${SWAG_EMAIL:-} #optional
+      # Optional: set true to cert only SUBDOMAINS, not the base URL
+      - ONLY_SUBDOMAINS=${SWAG_ONLY_SUBDOMAINS:-false} #optional
+      # Optional: extra domains beyond URL+SUBDOMAINS (e.g. other.tld)
+      - EXTRA_DOMAINS=${SWAG_EXTRA_DOMAINS:-} #optional
+      # Optional: set true to use Let's Encrypt staging for testing
+      - STAGING=${SWAG_STAGING:-false} #optional
+    volumes:
+      - ${SWAG_CONFIG_PATH:-./config}:/config
+      # Bind-mount proxy-confs so gateway nginx configs are picked up automatically
+      - ${SWAG_PROXY_CONFS_PATH:-./proxy-confs}:/config/nginx/proxy-confs
+    ports:
+      - "443:443"
+      - "80:80" #optional
+    networks:
+      - mcp-net
+      - jakenet
+    restart: unless-stopped
+
+networks:
+  # Internal network — allows SWAG to proxy to auth:8000 and other MCP services
+  mcp-net:
+    name: ${MCP_NETWORK:-mcp-oauth}
+    external: true
+  # Broader homelab connectivity
+  jakenet:
+    external: true

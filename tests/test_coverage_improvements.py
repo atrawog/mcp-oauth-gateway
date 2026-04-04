@@ -42,13 +42,17 @@ class TestAuthAuthlibErrorHandling:
     def get_rsa_private_key(self):
         """Get RSA private key from base64 encoded string."""
         private_key_pem = base64.b64decode(JWT_PRIVATE_KEY_B64)
-        return serialization.load_pem_private_key(private_key_pem, password=None, backend=default_backend())
+        return serialization.load_pem_private_key(
+            private_key_pem, password=None, backend=default_backend()
+        )
 
     @pytest.mark.asyncio
     async def test_verify_jwt_token_invalid_signature(self, http_client, _wait_for_services):
         """Test JWT verification with invalid signature."""
         # Create a token with wrong key
-        wrong_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+        wrong_key = rsa.generate_private_key(
+            public_exponent=65537, key_size=2048, backend=default_backend()
+        )
         wrong_key_pem = wrong_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
@@ -57,7 +61,7 @@ class TestAuthAuthlibErrorHandling:
         payload = {
             "sub": "testuser",
             "exp": int((datetime.now(UTC) + timedelta(hours=1)).timestamp()),
-            "iss": f"https://auth.{BASE_DOMAIN}",
+            "iss": f"https://mcp-auth.{BASE_DOMAIN}",
         }
         wrong_token = jwt_encode(payload, wrong_key_pem, algorithm="RS256")
 
@@ -98,7 +102,9 @@ class TestResourceProtectorErrorHandling:
     def get_rsa_private_key(self):
         """Get RSA private key from base64 encoded string."""
         private_key_pem = base64.b64decode(JWT_PRIVATE_KEY_B64)
-        return serialization.load_pem_private_key(private_key_pem, password=None, backend=default_backend())
+        return serialization.load_pem_private_key(
+            private_key_pem, password=None, backend=default_backend()
+        )
 
     @pytest.mark.asyncio
     async def test_bearer_token_validator_missing_token(self, http_client, _wait_for_services):
@@ -110,7 +116,9 @@ class TestResourceProtectorErrorHandling:
     @pytest.mark.asyncio
     async def test_bearer_token_validator_invalid_format(self, http_client, _wait_for_services):
         """Test bearer token validation with invalid format."""
-        response = await http_client.get(f"{AUTH_BASE_URL}/verify", headers={"Authorization": "NotBearer token"})
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": "NotBearer token"}
+        )
         assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.asyncio
@@ -122,7 +130,7 @@ class TestResourceProtectorErrorHandling:
             "sub": "testuser",
             "exp": int((datetime.now(UTC) - timedelta(hours=1)).timestamp()),
             "jti": "expired_token_id",
-            "iss": f"https://auth.{BASE_DOMAIN}",  # Required issuer claim
+            "iss": f"https://mcp-auth.{BASE_DOMAIN}",  # Required issuer claim
         }
         private_key_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
@@ -151,7 +159,7 @@ class TestResourceProtectorErrorHandling:
             "jti": jti,
             "scope": "read write",
             "username": "test_revoke_user",
-            "iss": f"https://auth.{BASE_DOMAIN}",  # Required issuer claim
+            "iss": f"https://mcp-auth.{BASE_DOMAIN}",  # Required issuer claim
         }
         private_key_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
@@ -171,10 +179,14 @@ class TestResourceProtectorErrorHandling:
             "jti": payload["jti"],
             "username": payload["username"],
         }
-        await redis_client.setex(f"oauth:token:{jti}", int(ACCESS_TOKEN_LIFETIME), json.dumps(token_data))
+        await redis_client.setex(
+            f"oauth:token:{jti}", int(ACCESS_TOKEN_LIFETIME), json.dumps(token_data)
+        )
 
         # First verify the token works
-        response = await http_client.get(f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {test_token}"})
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {test_token}"}
+        )
         if response.status_code != 200:
             print(f"Token verification failed: {response.status_code}")
             print(f"Response: {response.text}")
@@ -186,7 +198,9 @@ class TestResourceProtectorErrorHandling:
         await redis_client.aclose()
 
         # Try to use the revoked token
-        response = await http_client.get(f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {test_token}"})
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": f"Bearer {test_token}"}
+        )
         assert response.status_code == HTTP_UNAUTHORIZED
 
 
@@ -196,7 +210,9 @@ class TestRoutesErrorHandling:
     def get_rsa_private_key(self):
         """Get RSA private key from base64 encoded string."""
         private_key_pem = base64.b64decode(JWT_PRIVATE_KEY_B64)
-        return serialization.load_pem_private_key(private_key_pem, password=None, backend=default_backend())
+        return serialization.load_pem_private_key(
+            private_key_pem, password=None, backend=default_backend()
+        )
 
     @pytest.mark.asyncio
     async def test_callback_missing_state(self, http_client, _wait_for_services):
@@ -211,7 +227,9 @@ class TestRoutesErrorHandling:
     @pytest.mark.asyncio
     async def test_callback_invalid_state(self, http_client, _wait_for_services):
         """Test callback endpoint with invalid state."""
-        response = await http_client.get(f"{AUTH_BASE_URL}/callback?code=test_code&state=invalid_state")
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/callback?code=test_code&state=invalid_state"
+        )
         # Should redirect to error page for invalid state (user-friendly)
         assert response.status_code == 302  # Redirect to error page
         assert "/error" in response.headers.get("location", "")
@@ -266,7 +284,7 @@ class TestRoutesErrorHandling:
             "sub": "testuser",
             "exp": int((datetime.now(UTC) + timedelta(hours=1)).timestamp()),
             "jti": "not_in_redis",
-            "iss": f"https://auth.{BASE_DOMAIN}",  # Required issuer claim
+            "iss": f"https://mcp-auth.{BASE_DOMAIN}",  # Required issuer claim
         }
         private_key_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
@@ -321,7 +339,9 @@ class TestKeysModuleCoverage:
             pytest.skip("mcp_oauth_dynamicclient module not available")
 
         # Generate a test RSA key
-        private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+        private_key = rsa.generate_private_key(
+            public_exponent=65537, key_size=2048, backend=default_backend()
+        )
 
         # Serialize to PEM
         private_pem = private_key.private_bytes(
@@ -367,7 +387,9 @@ class TestKeysModuleCoverage:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Generate a test RSA key
-            private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+            private_key = rsa.generate_private_key(
+                public_exponent=65537, key_size=2048, backend=default_backend()
+            )
 
             # Serialize keys to PEM
             private_pem = private_key.private_bytes(
@@ -434,7 +456,9 @@ class TestRFC7592ErrorHandling:
         assert "Client not found" in response.text
 
     @pytest.mark.asyncio
-    async def test_update_client_invalid_token(self, http_client, _wait_for_services, registered_client):
+    async def test_update_client_invalid_token(
+        self, http_client, _wait_for_services, registered_client
+    ):
         """Test updating client with invalid registration token."""
         # Use registered_client fixture which provides unique name and handles cleanup
         client_data = registered_client
@@ -461,7 +485,9 @@ class TestRFC7592ErrorHandling:
         assert "Client not found" in response.text
 
     @pytest.mark.asyncio
-    async def test_get_client_with_expired_secret(self, http_client, _wait_for_services, registered_client):
+    async def test_get_client_with_expired_secret(
+        self, http_client, _wait_for_services, registered_client
+    ):
         """Test getting client with expired secret check."""
         # Use registered_client fixture which provides unique name and handles cleanup
         client_data = registered_client
@@ -529,7 +555,9 @@ class TestEdgeCasesAndBranches:
         assert json_response["error"] == "invalid_grant"
 
     @pytest.mark.asyncio
-    async def test_authorize_with_unsupported_response_type(self, http_client, _wait_for_services, registered_client):
+    async def test_authorize_with_unsupported_response_type(
+        self, http_client, _wait_for_services, registered_client
+    ):
         """Test authorize with unsupported response type."""
         # Use registered_client fixture which provides unique name and handles cleanup
         client_data = registered_client
@@ -546,7 +574,9 @@ class TestEdgeCasesAndBranches:
         assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
 
     @pytest.mark.asyncio
-    async def test_concurrent_token_operations(self, http_client, _wait_for_services, registered_client):
+    async def test_concurrent_token_operations(
+        self, http_client, _wait_for_services, registered_client
+    ):
         """Test concurrent token operations don't cause race conditions."""
         # Use registered_client fixture which provides unique name and handles cleanup
         client_data = registered_client
@@ -556,7 +586,9 @@ class TestEdgeCasesAndBranches:
             # Generate unique PKCE values for each request
             verifier = base64.urlsafe_b64encode(os.urandom(32)).decode("utf-8").rstrip("=")
             challenge = (
-                base64.urlsafe_b64encode(hashlib.sha256(verifier.encode("utf-8")).digest()).decode("utf-8").rstrip("=")
+                base64.urlsafe_b64encode(hashlib.sha256(verifier.encode("utf-8")).digest())
+                .decode("utf-8")
+                .rstrip("=")
             )
 
             auth_response = await http_client.get(

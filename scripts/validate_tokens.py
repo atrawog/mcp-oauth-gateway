@@ -73,7 +73,7 @@ async def test_auth_service(token: str) -> bool:
     if not base_domain:
         return False
 
-    auth_url = f"https://auth.{base_domain}/verify"
+    auth_url = f"https://mcp-auth.{base_domain}/verify"
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:

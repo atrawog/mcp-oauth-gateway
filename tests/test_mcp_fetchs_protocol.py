@@ -30,7 +30,9 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_json_rpc_compliance(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_fetchs_json_rpc_compliance(
+        self, mcp_fetchs_url, valid_token, _wait_for_services
+    ):
         """Test JSON-RPC 2.0 compliance."""
         test_cases = [
             # Valid requests
@@ -228,7 +230,9 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_error_response_format(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_fetchs_error_response_format(
+        self, mcp_fetchs_url, valid_token, _wait_for_services
+    ):
         """Test error response format compliance."""
         error_scenarios = [
             # Parse error
@@ -288,7 +292,9 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_content_type_handling(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_fetchs_content_type_handling(
+        self, mcp_fetchs_url, valid_token, _wait_for_services
+    ):
         """Test Content-Type header handling."""
         # The service accepts various content types more leniently
         content_types = [
@@ -322,7 +328,9 @@ class TestMCPFetchsProtocol:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_request_id_handling(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_fetchs_request_id_handling(
+        self, mcp_fetchs_url, valid_token, _wait_for_services
+    ):
         """Test proper handling of request IDs."""
         id_values = [
             1,

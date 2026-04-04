@@ -106,7 +106,9 @@ def update_hardcoded_client_names():
             if matches:
                 # Check if it's already using a fixture
                 if "unique_client_name" not in content and "registered_client" not in content:
-                    updates_needed.append({"file": test_file.name, "matches": matches, "description": description})
+                    updates_needed.append(
+                        {"file": test_file.name, "matches": matches, "description": description}
+                    )
 
     return updates_needed
 

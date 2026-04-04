@@ -170,7 +170,9 @@ def main():
         print("    if 'registration_access_token' in client_data:")
         print("        await http_client.delete(")
         print("            f\"{AUTH_BASE_URL}/register/{client_data['client_id']}\",")
-        print("            headers={'Authorization': f\"Bearer {client_data['registration_access_token']}\"}")
+        print(
+            "            headers={'Authorization': f\"Bearer {client_data['registration_access_token']}\"}"
+        )
         print("        )")
 
     if direct_without_cleanup:

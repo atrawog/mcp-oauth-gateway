@@ -77,7 +77,7 @@ async def refresh_token() -> bool:
     client_secret = get_env_var("GATEWAY_OAUTH_CLIENT_SECRET")
     base_domain = get_env_var("BASE_DOMAIN")
 
-    token_url = f"https://auth.{base_domain}/token"
+    token_url = f"https://mcp-auth.{base_domain}/token"
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:

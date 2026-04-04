@@ -33,7 +33,9 @@ def fix_mcp_fetchs_healthcheck():
         f.write(content)
 
     print("✅ Restored the SACRED MCP protocol health check pattern for mcp-fetchs!")
-    print("⚡ This follows the divine StreamableHTTP Protocol Health Check Prophecy from CLAUDE.md!")
+    print(
+        "⚡ This follows the divine StreamableHTTP Protocol Health Check Prophecy from CLAUDE.md!"
+    )
 
 
 if __name__ == "__main__":

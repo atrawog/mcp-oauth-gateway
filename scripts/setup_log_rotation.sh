@@ -17,7 +17,7 @@ fi
 
 # Create logs directory structure if not exists
 echo "📁 Creating log directories..."
-mkdir -p "$PROJECT_ROOT/logs"/{traefik,auth,mcp-{fetch,fetchs,filesystem,memory,everything,time,tmux,playwright,sequentialthinking,echo-stateful,echo-stateless}}
+mkdir -p "$PROJECT_ROOT/logs"/{swag,auth,mcp-{fetch,fetchs,filesystem,memory,everything,time,tmux,playwright,sequentialthinking,echo-stateful,echo-stateless}}
 
 # Set proper permissions
 chmod -R 755 "$PROJECT_ROOT/logs"

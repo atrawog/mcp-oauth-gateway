@@ -38,7 +38,9 @@ async def main():
         try:
             # Initialize session
             print("\n📤 Initializing MCP session...")
-            session_id, init_result = await initialize_mcp_session(client, mcp_url, oauth_token, "2025-03-26")
+            session_id, init_result = await initialize_mcp_session(
+                client, mcp_url, oauth_token, "2025-03-26"
+            )
             print(f"✅ Session initialized: {session_id}")
             print(f"   Server info: {init_result.get('serverInfo')}")
             print(f"   Protocol version: {init_result.get('protocolVersion')}")

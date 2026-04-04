@@ -4,8 +4,10 @@
 import base64
 import os
 
+from env_compat import get_env_value
 
-key_b64 = os.getenv("JWT_PRIVATE_KEY_B64")
+
+key_b64 = get_env_value("JWT_PRIVATE_KEY_B64")
 if key_b64:
     decoded = base64.b64decode(key_b64)
     # Write to a file to inspect

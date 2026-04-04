@@ -7,6 +7,8 @@ Complete reference for OAuth 2.1 endpoints implemented by the Auth service.
 | Endpoint | Method | Purpose | Authentication |
 |----------|--------|---------|----------------|
 | `/authorize` | GET | Start authorization flow | None |
+| `/device/code` | POST | Start device authorization flow | Client authentication |
+| `/activate` | GET/POST | Browser verification step for headless auth | None |
 | `/token` | POST | Exchange code for token | Client credentials |
 | `/callback` | GET | OAuth callback handler | None (internal) |
 | `/revoke` | POST | Revoke token | Client credentials |
@@ -75,13 +77,14 @@ Exchanges authorization code for access token.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `grant_type` | string | Yes | `authorization_code` or `refresh_token` |
+| `grant_type` | string | Yes | `authorization_code`, `refresh_token`, or `urn:ietf:params:oauth:grant-type:device_code` |
 | `client_id` | string | Yes | Client identifier |
 | `client_secret` | string | No | Required for confidential clients |
 | `code` | string | Yes* | Authorization code (*for auth code grant) |
 | `redirect_uri` | string | Yes* | Must match authorize request |
 | `code_verifier` | string | Yes* | PKCE verifier |
 | `refresh_token` | string | Yes** | For refresh grant (**) |
+| `device_code` | string | Yes*** | For device grant (***) |
 
 #### Example Request (Authorization Code)
 
@@ -105,6 +108,17 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=refresh_token&
 client_id=client_7d8e9f0a&
 refresh_token=refresh_8d4b2c7e
+```
+
+#### Example Request (Device Code)
+
+```http
+POST /token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:device_code&
+client_id=client_7d8e9f0a&
+device_code=GmRhmhcxhwAzkoEqiMEg_DnyEysNkuNhszIySk9eS
 ```
 
 #### Success Response
@@ -156,6 +170,43 @@ Internal endpoint for GitHub OAuth callback processing.
 5. Redirects to client callback
 
 This endpoint is not called directly by clients.
+
+## Device Authorization Endpoint
+
+### `POST /device/code`
+
+Starts the OAuth device flow for headless clients.
+
+#### Request Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `client_id` | string | Yes | Registered client identifier |
+| `client_secret` | string | No | Required for confidential clients |
+| `scope` | string | No | Requested permissions |
+| `resource` | string | No | Optional RFC 8707 resource indicator |
+
+#### Success Response
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "device_code": "GmRhmhcxhwAzkoEqiMEg_DnyEysNkuNhszIySk9eS",
+  "user_code": "ABCD-EFGH",
+  "verification_uri": "https://auth.example.com/activate",
+  "verification_uri_complete": "https://auth.example.com/activate?user_code=ABCD-EFGH",
+  "expires_in": 600,
+  "interval": 5
+}
+```
+
+### `GET /activate` and `POST /activate`
+
+Human-facing verification page used on a secondary browser. The user enters the `user_code`,
+signs in with GitHub, and the headless client continues polling `/token` until authorization
+completes.
 
 ## Revocation Endpoint
 

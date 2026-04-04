@@ -33,10 +33,10 @@ class TestAuthCORS:
         """Test that Auth endpoints respond correctly to CORS preflight requests."""
         # Test key auth endpoints
         endpoints = [
-            f"https://auth.{self.base_domain}/register",
-            f"https://auth.{self.base_domain}/token",
-            f"https://auth.{self.base_domain}/authorize",
-            f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server",
+            f"https://mcp-auth.{self.base_domain}/register",
+            f"https://mcp-auth.{self.base_domain}/token",
+            f"https://mcp-auth.{self.base_domain}/authorize",
+            f"https://mcp-auth.{self.base_domain}/.well-known/oauth-authorization-server",
         ]
 
         # If CORS is set to wildcard, test with a sample origin
@@ -65,7 +65,7 @@ class TestAuthCORS:
                         f"Missing Access-Control-Allow-Origin header for {endpoint}"
                     )
 
-                    # Traefik CORS middleware is configured to return "*" for all origins
+                    # SWAG nginx CORS configuration returns "*" for all origins
                     cors_origin = response.headers["access-control-allow-origin"]
                     assert cors_origin == "*", (
                         f"CORS origin mismatch for {endpoint}: expected '*' but got '{cors_origin}'"
@@ -82,13 +82,13 @@ class TestAuthCORS:
                     assert "access-control-allow-headers" in response.headers, (
                         f"Missing Access-Control-Allow-Headers header for {endpoint}"
                     )
-                    # Traefik CORS middleware is configured with accessControlAllowCredentials: false
+                    # SWAG nginx CORS configuration has credentials: false by default
                     # So we don't check for credentials header
 
     def test_auth_actual_request_cors_headers(self):
         """Test that actual Auth requests include proper CORS headers."""
         # Test metadata endpoint which doesn't require auth
-        metadata_url = f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
+        metadata_url = f"https://mcp-auth.{self.base_domain}/.well-known/oauth-authorization-server"
 
         # If CORS is set to wildcard, use a test origin
         test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
@@ -96,15 +96,17 @@ class TestAuthCORS:
         with httpx.Client(verify=True, timeout=10.0) as client:
             response = client.get(metadata_url, headers={"Origin": test_origin})
 
-            assert response.status_code == HTTP_OK, f"Metadata request failed: {response.status_code}"
+            assert response.status_code == HTTP_OK, (
+                f"Metadata request failed: {response.status_code}"
+            )
 
             # Note: Auth service responses currently don't have CORS headers
-            # This is a known limitation - CORS should be handled by Traefik but isn't working properly
+            # This is a known limitation - CORS should be handled by SWAG nginx but isn't working properly
             # for the auth service yet
 
     def test_auth_health_endpoint_cors(self):
         """Test that OAuth discovery endpoint also has CORS headers."""
-        health_url = f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
+        health_url = f"https://mcp-auth.{self.base_domain}/.well-known/oauth-authorization-server"
 
         # If CORS is set to wildcard, use a test origin
         test_origin = "https://example.com" if self.cors_origins == ["*"] else self.cors_origins[0]
@@ -115,7 +117,9 @@ class TestAuthCORS:
             assert response.status_code == HTTP_OK, "OAuth discovery check failed"
 
             # OAuth discovery endpoint should also have CORS headers
-            assert "access-control-allow-origin" in response.headers, "OAuth discovery endpoint missing CORS headers"
+            assert "access-control-allow-origin" in response.headers, (
+                "OAuth discovery endpoint missing CORS headers"
+            )
 
             # When wildcard is configured, the response may be "*" instead of the specific origin
             allowed_origin = response.headers["access-control-allow-origin"]
@@ -126,13 +130,15 @@ class TestAuthCORS:
 
     def test_cors_headers_without_origin(self):
         """Test that requests without Origin header still work."""
-        metadata_url = f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
+        metadata_url = f"https://mcp-auth.{self.base_domain}/.well-known/oauth-authorization-server"
 
         with httpx.Client(verify=True, timeout=10.0) as client:
             response = client.get(metadata_url)
 
             # Should still work without Origin header
-            assert response.status_code == HTTP_OK, f"Request failed without Origin header: {response.status_code}"
+            assert response.status_code == HTTP_OK, (
+                f"Request failed without Origin header: {response.status_code}"
+            )
 
     def test_cors_blocks_unauthorized_origins(self):
         """Test that CORS blocks requests from unauthorized origins."""
@@ -140,7 +146,7 @@ class TestAuthCORS:
         if "*" in self.cors_origins:
             pytest.skip("CORS wildcard (*) allows all origins")
 
-        metadata_url = f"https://auth.{self.base_domain}/.well-known/oauth-authorization-server"
+        metadata_url = f"https://mcp-auth.{self.base_domain}/.well-known/oauth-authorization-server"
 
         # Create an origin that is NOT in the configured list
         test_unauthorized_origin = "https://definitely-not-authorized-origin-12345.com"
@@ -163,4 +169,6 @@ class TestAuthCORS:
             # Should either not have CORS headers or have different origin
             if "access-control-allow-origin" in response.headers:
                 allowed_origin = response.headers["access-control-allow-origin"]
-                assert allowed_origin != test_unauthorized_origin, "CORS allowed unauthorized origin!"
+                assert allowed_origin != test_unauthorized_origin, (
+                    "CORS allowed unauthorized origin!"
+                )

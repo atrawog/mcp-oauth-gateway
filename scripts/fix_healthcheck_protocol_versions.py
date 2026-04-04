@@ -19,7 +19,9 @@ def fix_healthcheck_protocol_version(service_dir):
 
     # Find healthcheck test pattern with hardcoded protocol version in the request
     # Match patterns like: \"protocolVersion\":\"2025-06-18\" in the request JSON
-    pattern = r"(healthcheck:.*?test:.*?\"protocolVersion\":\")(\d{4}-\d{2}-\d{2})(\".*?)(\n\s+interval:)"
+    pattern = (
+        r"(healthcheck:.*?test:.*?\"protocolVersion\":\")(\d{4}-\d{2}-\d{2})(\".*?)(\n\s+interval:)"
+    )
 
     def replace_hardcoded_version(match):
         # Replace hardcoded version with ${MCP_PROTOCOL_VERSION}

@@ -2,7 +2,11 @@
 Following CLAUDE.md - NO MOCKING, real services only!
 
 This test specifically verifies the scenario that caused the 404 error:
-When Claude.ai tries to access the MCP endpoint at /mcp
+When Claude.ai tries to access the MCP endpoint at /mcp.
+
+Routing is handled by SWAG nginx proxy-confs.  The `location /mcp` block
+with `auth_request /_oauth_verify` ensures unauthenticated requests receive
+401, never 404.
 """
 
 import httpx
@@ -47,7 +51,9 @@ class TestClaudeAIRoutingScenario:
         )
 
         # CRITICAL: Should get 401, not 404!
-        assert response.status_code == HTTP_UNAUTHORIZED, f"Expected 401, got {response.status_code}"
+        assert response.status_code == HTTP_UNAUTHORIZED, (
+            f"Expected 401, got {response.status_code}"
+        )
 
         # Should have WWW-Authenticate header for OAuth discovery
         assert "www-authenticate" in response.headers, "Missing WWW-Authenticate header"
@@ -60,7 +66,9 @@ class TestClaudeAIRoutingScenario:
         assert "Authorization header" in error["error_description"]
 
     @pytest.mark.asyncio
-    async def test_mcp_path_accessible_with_and_without_trailing_slash(self, http_client, _wait_for_services):
+    async def test_mcp_path_accessible_with_and_without_trailing_slash(
+        self, http_client, _wait_for_services
+    ):
         """Test that /mcp works with and without trailing slash."""
         paths = ["/mcp", "/mcp/"]
 
@@ -77,15 +85,19 @@ class TestClaudeAIRoutingScenario:
             )  # Allow following redirects
 
             # Should eventually get 401 (after any redirects)
-            assert response.status_code == HTTP_UNAUTHORIZED, f"Path {path} returned {response.status_code}"
+            assert response.status_code == HTTP_UNAUTHORIZED, (
+                f"Path {path} returned {response.status_code}"
+            )
 
     @pytest.mark.asyncio
-    async def test_traefik_path_routing_exists(self, http_client, _wait_for_services):
-        """Test that Traefik routing includes PathPrefix rule.
+    async def test_swag_nginx_path_routing_exists(self, http_client, _wait_for_services):
+        """Test that SWAG nginx conf routes MCP paths correctly.
 
         This is the test that would have caught our bug!
+        The nginx `location /mcp` block ensures all /mcp paths are routed and
+        auth_request triggers a 401 before reaching the backend.
         """
-        # Test different paths to ensure PathPrefix routing works
+        # Test different paths to ensure nginx location /mcp routing works
         test_cases = [
             {
                 "path": "/mcp",
@@ -104,8 +116,8 @@ class TestClaudeAIRoutingScenario:
             },
             {
                 "path": "/health",
-                "expected": 401,  # Health checks should use /mcp per divine CLAUDE.md
-                "description": "Health endpoint (requires auth like all non-OAuth paths)",
+                "expected": 200,  # /health is public (no auth_request) per nginx template
+                "description": "Health endpoint (public, no auth required)",
             },
             {
                 "path": "/nonexistent",
@@ -184,13 +196,16 @@ class TestClaudeAIRoutingScenario:
             )
 
             # The bug was: this returned 404 instead of 401
-            # With proper PathPrefix routing, should get 401
+            # With SWAG nginx `location /mcp` + auth_request, should get 401
             assert response.status_code != 404, (
-                "Got 404 - Traefik routing is not configured for /mcp path! "
-                "Make sure fetch router includes PathPrefix(`/mcp`) in the rule."
+                "Got 404 - SWAG nginx conf is missing the `location /mcp` block! "
+                "Make sure the subdomain conf includes an explicit location /mcp "
+                "with auth_request /_oauth_verify."
             )
 
-            assert response.status_code == HTTP_UNAUTHORIZED, f"Expected 401 Unauthorized, got {response.status_code}"
+            assert response.status_code == HTTP_UNAUTHORIZED, (
+                f"Expected 401 Unauthorized, got {response.status_code}"
+            )
 
             # Verify it's a proper OAuth error response
             assert "www-authenticate" in response.headers

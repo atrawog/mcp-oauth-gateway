@@ -286,7 +286,7 @@ echo $TWINE_USERNAME
 echo ${#TWINE_PASSWORD}  # Should show token length
 
 # Test authentication
-pixi run twine upload --repository testpypi --dry-run dist/*
+uv run twine upload --repository testpypi --dry-run dist/*
 ```
 
 ### Package Not Found After Upload

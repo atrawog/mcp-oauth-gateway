@@ -20,7 +20,9 @@ def fix_error_checks(content: str) -> str:
     content = re.sub(r'error\["detail"\]\["error"\]', 'error["error"]', content)
 
     # Pattern 2: error["detail"]["error_description"] -> error["error_description"]
-    content = re.sub(r'error\["detail"\]\["error_description"\]', 'error["error_description"]', content)
+    content = re.sub(
+        r'error\["detail"\]\["error_description"\]', 'error["error_description"]', content
+    )
 
     # Pattern 3: error.get("detail", {}).get("error") -> error.get("error")
     content = re.sub(r'error\.get\("detail", \{\}\)\.get\("error"\)', 'error.get("error")', content)
@@ -46,13 +48,17 @@ def fix_error_checks(content: str) -> str:
     content = re.sub(r'error_data\["detail"\]\["error"\]', 'error_data["error"]', content)
 
     # Pattern 8: error_data["detail"]["error_description"] -> error_data["error_description"]
-    content = re.sub(r'error_data\["detail"\]\["error_description"\]', 'error_data["error_description"]', content)
+    content = re.sub(
+        r'error_data\["detail"\]\["error_description"\]', 'error_data["error_description"]', content
+    )
 
     # Pattern 9: json_response["detail"]["error"] -> json_response["error"]
     content = re.sub(r'json_response\["detail"\]\["error"\]', 'json_response["error"]', content)
 
     # Pattern 10: response.json()["detail"]["error"] -> response.json()["error"]
-    content = re.sub(r'response\.json\(\)\["detail"\]\["error"\]', 'response.json()["error"]', content)
+    content = re.sub(
+        r'response\.json\(\)\["detail"\]\["error"\]', 'response.json()["error"]', content
+    )
 
     return content
 

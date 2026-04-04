@@ -10,7 +10,9 @@ def test_mcp_client():
     """Test the MCP client with the everything server."""
     # Get MCP Everything URL from environment
     mcp_everything_enabled = os.getenv("MCP_EVERYTHING_TESTS_ENABLED", "false").lower() == "true"
-    mcp_everything_urls = os.getenv("MCP_EVERYTHING_URLS", "").split(",") if os.getenv("MCP_EVERYTHING_URLS") else []
+    mcp_everything_urls = (
+        os.getenv("MCP_EVERYTHING_URLS", "").split(",") if os.getenv("MCP_EVERYTHING_URLS") else []
+    )
 
     if not mcp_everything_enabled:
         print("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
@@ -34,7 +36,7 @@ def test_mcp_client():
     # Test the authentication first
     print("\n1. Testing authentication...")
     cmd = [
-        "pixi",
+        "uv",
         "run",
         "mcp-streamablehttp-client",
         "--server-url",
@@ -55,7 +57,7 @@ def test_mcp_client():
     # Test with --token flag
     print("\n2. Testing token status...")
     cmd = [
-        "pixi",
+        "uv",
         "run",
         "mcp-streamablehttp-client",
         "--server-url",
@@ -72,7 +74,7 @@ def test_mcp_client():
     # Try a simple command
     print("\n3. Testing a command...")
     cmd = [
-        "pixi",
+        "uv",
         "run",
         "mcp-streamablehttp-client",
         "--server-url",

@@ -33,7 +33,7 @@ The **MCP OAuth Gateway** is a comprehensive OAuth 2.1 compliant gateway for Mod
 - Centralized logging in ./logs directory
 
 ### 🛠️ Developer Experience
-- Blessed trinity of tools: `just`, `pixi`, `docker-compose`
+- Blessed trinity of tools: `just`, `uv`, `docker compose`
 - Automated testing with real services (no mocks!)
 - Sidecar coverage testing for production containers
 - Comprehensive justfile with 100+ commands

@@ -35,15 +35,13 @@ jobs:
           echo "Current directory: $(pwd)"
           echo "Files in root:"
           ls -la
-          echo "Checking for pixi files:"
-          ls -la pixi* || echo "No pixi files found"
+          echo "Checking for uv lockfile:"
+          ls -la uv.lock pyproject.toml || echo "uv project files not found"
 
-      - name: "📦 Setup Pixi Environment"
-        uses: prefix-dev/setup-pixi@v0.8.10
+      - name: "📦 Setup uv"
+        uses: astral-sh/setup-uv@v7
         with:
-          pixi-version: v0.47.0
           cache: true
-          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
 
       - name: "🔧 Install just"
         uses: taiki-e/install-action@v2
@@ -56,7 +54,7 @@ jobs:
           echo "# CI environment" >> .env
 
       - name: "📦 Install Dependencies"
-        run: pixi install
+        run: uv sync
 
       - name: "🔥 Run Ruff Linting (Sacred Syntax Check)"
         run: |
@@ -107,10 +105,9 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: "📦 Setup Pixi Environment"
-        uses: prefix-dev/setup-pixi@v0.8.10
+      - name: "📦 Setup uv"
+        uses: astral-sh/setup-uv@v7
         with:
-          pixi-version: v0.47.0
           cache: true
 
       - name: "🔧 Install just"
@@ -126,7 +123,7 @@ jobs:
       - name: "⚡ Run Pre-commit Hooks"
         run: |
           echo "🔥 RUNNING PRE-COMMIT HOOKS ⚡"
-          pixi install
+          uv sync
           just lint
         continue-on-error: true  # Show results but don't fail CI yet
 

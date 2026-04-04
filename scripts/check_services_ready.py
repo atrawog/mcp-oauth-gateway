@@ -2,10 +2,12 @@
 """Check that all services are built, running, and healthy before tests."""
 
 import asyncio
+import json
 import os
 import subprocess
 import sys
 import time
+from argparse import ArgumentParser
 
 
 # Color codes for output
@@ -22,6 +24,17 @@ def run_command(cmd: list[str]) -> tuple[int, str, str]:
         return result.returncode, result.stdout, result.stderr
     except Exception as e:
         return 1, "", str(e)
+
+
+def parse_args():
+    """Parse CLI arguments."""
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check-only",
+        action="store_true",
+        help="Inspect current service state without building or starting services.",
+    )
+    return parser.parse_args()
 
 
 def is_service_disabled(service_name: str) -> tuple[bool, str]:
@@ -73,12 +86,22 @@ def check_docker_service(service_name: str) -> bool:
         return False
 
     if not stdout.strip():
+        container_cmd = [
+            "docker",
+            "ps",
+            "--filter",
+            f"name=^{service_name}$",
+            "--format",
+            "{{.Names}}",
+        ]
+        code, stdout, stderr = run_command(container_cmd)
+        if code == 0 and stdout.strip() == service_name:
+            print(f"{GREEN}✓ Service {service_name} is running{RESET}")
+            return True
         print(f"{RED}✗ Service {service_name} is not running{RESET}")
         return False
 
     # Parse and check service state
-    import json
-
     try:
         service_info = json.loads(stdout.strip())
         state = service_info.get("State", "unknown")
@@ -87,8 +110,8 @@ def check_docker_service(service_name: str) -> bool:
             return True
         print(f"{RED}✗ Service {service_name} is in state: {state}{RESET}")
         return False
-    except:
-        print(f"{YELLOW}⚠ Could not parse {service_name} status{RESET}")
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"{YELLOW}⚠ Could not parse {service_name} status: {e}{RESET}")
         return False
 
 
@@ -101,16 +124,20 @@ def check_network_exists() -> bool:
         print(f"{RED}✗ Failed to list networks: {stderr}{RESET}")
         return False
 
-    if "public" in stdout:
-        print(f"{GREEN}✓ Network 'public' exists{RESET}")
+    # Accept either the legacy 'public' network or the current 'mcp-oauth'/'jakenet' networks
+    mcp_network = os.getenv("MCP_NETWORK", "mcp-oauth")
+    if mcp_network in stdout or "jakenet" in stdout or "public" in stdout:
+        print(f"{GREEN}✓ MCP network exists{RESET}")
         return True
-    print(f"{RED}✗ Network 'public' does not exist{RESET}")
+    print(f"{RED}✗ MCP network ('{mcp_network}' or 'jakenet') does not exist{RESET}")
     return False
 
 
 def check_volumes_exist() -> bool:
     """Check if required volumes exist."""
-    required_volumes = ["traefik-certificates", "redis-data", "coverage-data"]
+    # mcp-oauth-redis-data is the volume declared in docker-compose.yml
+    # SWAG uses bind mounts (/config) so no named volume to check
+    required_volumes = ["mcp-oauth-redis-data"]
     cmd = ["docker", "volume", "ls", "--format", "{{.Name}}"]
     code, stdout, stderr = run_command(cmd)
 
@@ -122,7 +149,9 @@ def check_volumes_exist() -> bool:
     all_exist = True
 
     for volume in required_volumes:
-        if volume in existing_volumes:
+        if volume in existing_volumes or any(
+            existing.endswith(f"_{volume}") for existing in existing_volumes
+        ):
             print(f"{GREEN}✓ Volume '{volume}' exists{RESET}")
         else:
             print(f"{RED}✗ Volume '{volume}' does not exist{RESET}")
@@ -163,7 +192,8 @@ async def wait_for_services(max_wait: int = 60) -> bool:
     """Wait for all services to be healthy using Docker health checks."""
     print(f"\n{YELLOW}Waiting for Docker health checks (max {max_wait}s)...{RESET}")
 
-    services_to_check = ["traefik", "auth", "redis"]
+    # Service names as defined in auth/docker-compose.yml and swag/docker-compose.yaml
+    services_to_check = ["swag", "mcp-oauth", "mcp-oauth-redis"]
 
     # Add mcp-fetch if enabled
     if os.getenv("MCP_FETCH_ENABLED", "false").lower() == "true":
@@ -207,6 +237,14 @@ async def wait_for_services(max_wait: int = 60) -> bool:
             code, stdout, stderr = run_command(cmd)
 
             if code != 0:
+                if 'map has no entry for key "Health"' in stderr:
+                    cmd = ["docker", "inspect", service, "--format", "{{.State.Status}}"]
+                    code, stdout, stderr = run_command(cmd)
+                    if code != 0 or stdout.strip() != "running":
+                        print(f"{RED}✗ Failed to inspect {service}: {stderr}{RESET}")
+                        all_healthy = False
+                        unhealthy_services.append(f"{service} (not running)")
+                    continue
                 print(f"{RED}✗ Failed to inspect {service}: {stderr}{RESET}")
                 all_healthy = False
                 unhealthy_services.append(service)
@@ -263,19 +301,23 @@ def check_basic_config() -> bool:
             print(f"{RED}✗ {var_name} is missing or too short ({description}){RESET}")
             all_present = False
 
-    print(f"{YELLOW}Note: Full token validation happens during test setup via refresh_and_validate_tokens(){RESET}")
+    print(
+        f"{YELLOW}Note: Full token validation happens during test setup via refresh_and_validate_tokens(){RESET}"
+    )
     return all_present
 
 
 async def main():
     """Main check function."""
+    args = parse_args()
+
     print(f"{YELLOW}{'=' * 60}{RESET}")
     print(f"{YELLOW}Pre-test Service Check{RESET}")
     print(f"{YELLOW}{'=' * 60}{RESET}")
 
     # First, generate the docker-compose includes file
     print(f"\n{YELLOW}Generating docker-compose includes...{RESET}")
-    gen_cmd = ["python", "scripts/generate_compose_includes.py"]
+    gen_cmd = ["uv", "run", "python", "scripts/generate_compose_includes.py"]
     code, stdout, stderr = run_command(gen_cmd)
     if code != 0:
         print(f"{RED}✗ Failed to generate docker-compose includes: {stderr}{RESET}")
@@ -289,7 +331,8 @@ async def main():
     checks.append(("Volumes", check_volumes_exist()))
 
     # Build services if needed
-    base_services = ["traefik", "auth", "redis"]
+    # Service names as defined in auth/docker-compose.yml and swag/docker-compose.yaml
+    base_services = ["swag", "mcp-oauth", "mcp-oauth-redis"]
     if os.getenv("MCP_FETCH_ENABLED", "false").lower() == "true":
         base_services.append("mcp-fetch")
     if os.getenv("MCP_ECHO_STATEFUL_ENABLED", "false").lower() == "true":
@@ -314,9 +357,14 @@ async def main():
         if os.getenv(env_var, "false").lower() == "true":
             base_services.append(service_name)
 
-    if not all(check_docker_service(s) for s in base_services):
-        checks.append(("Build", build_services()))
-        checks.append(("Start", start_services()))
+    services_running = all(check_docker_service(s) for s in base_services)
+    if not services_running:
+        if args.check_only:
+            checks.append(("Build", False))
+            checks.append(("Start", False))
+        else:
+            checks.append(("Build", build_services()))
+            checks.append(("Start", start_services()))
 
     # Check running services
     print(f"\n{YELLOW}Checking service status...{RESET}")

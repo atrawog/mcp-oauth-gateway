@@ -14,7 +14,9 @@ MCP_CLIENT_ACCESS_TOKEN = os.getenv("MCP_CLIENT_ACCESS_TOKEN")
 
 
 @pytest.mark.asyncio
-async def test_simple_initialize(http_client: httpx.AsyncClient, _wait_for_services, capfd, mcp_fetch_url):
+async def test_simple_initialize(
+    http_client: httpx.AsyncClient, _wait_for_services, capfd, mcp_fetch_url
+):
     """Simple test to debug initialize issue."""
     if not MCP_CLIENT_ACCESS_TOKEN:
         pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")

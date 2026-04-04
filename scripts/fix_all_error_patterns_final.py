@@ -19,7 +19,9 @@ def fix_all_patterns(content: str) -> str:
     )
 
     # Pattern 2: error.get("detail", {}).get("error", ...)
-    content = re.sub(r'error\.get\("detail", \{\}\)\.get\(\s*"error"[^)]*\)', 'error.get("error", "")', content)
+    content = re.sub(
+        r'error\.get\("detail", \{\}\)\.get\(\s*"error"[^)]*\)', 'error.get("error", "")', content
+    )
 
     # Pattern 3: Multi-line patterns with assertions
     # "... in error.get("detail", {}).get("error_description", "")"
@@ -74,7 +76,11 @@ def fix_all_patterns(content: str) -> str:
     content = "\n".join(fixed_lines)
 
     # Pattern 5: json_response["detail"]["error_description"] patterns
-    content = re.sub(r'json_response\["detail"\]\["error_description"\]', 'json_response["error_description"]', content)
+    content = re.sub(
+        r'json_response\["detail"\]\["error_description"\]',
+        'json_response["error_description"]',
+        content,
+    )
 
     # Pattern 6: json_response["detail"]["error"] patterns
     content = re.sub(r'json_response\["detail"\]\["error"\]', 'json_response["error"]', content)

@@ -51,13 +51,19 @@ class RegistrationAnalyzer(ast.NodeVisitor):
             if isinstance(node.args[0], ast.JoinedStr):
                 for part in node.args[0].values:
                     if isinstance(part, ast.Constant) and "/register" in str(part.value):
-                        self.registrations.append({"function": self.current_function, "line": node.lineno})
+                        self.registrations.append(
+                            {"function": self.current_function, "line": node.lineno}
+                        )
 
             elif isinstance(node.args[0], ast.Constant) and "/register" in str(node.args[0].value):
                 self.registrations.append({"function": self.current_function, "line": node.lineno})
 
         # Check for DELETE to /register/{client_id}
-        if isinstance(node.func, ast.Attribute) and node.func.attr == "delete" and len(node.args) > 0:
+        if (
+            isinstance(node.func, ast.Attribute)
+            and node.func.attr == "delete"
+            and len(node.args) > 0
+        ):
             if isinstance(node.args[0], ast.JoinedStr | ast.Constant):
                 self.cleanups.append({"function": self.current_function, "line": node.lineno})
                 self.has_cleanup = True
@@ -177,7 +183,9 @@ def main():
                         print(f"      - Registration at line {reg['line']} in {reg['function']}()")
                 if "cleanups" in issue:
                     for cleanup in issue["cleanups"]:
-                        print(f"      - Cleanup at line {cleanup['line']} in {cleanup['function']}()")
+                        print(
+                            f"      - Cleanup at line {cleanup['line']} in {cleanup['function']}()"
+                        )
             print()
     else:
         print("✅ No obvious registration cleanup issues found!\n")

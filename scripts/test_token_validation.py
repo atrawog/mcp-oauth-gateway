@@ -21,7 +21,9 @@ def test_invalid_token_behavior():
     print(f"\n{YELLOW}Test 1: Running pytest with missing token...{RESET}")
     os.environ.pop("GATEWAY_OAUTH_ACCESS_TOKEN", None)
 
-    result = subprocess.run(["pixi", "run", "pytest", "--collect-only"], check=False, capture_output=True, text=True)
+    result = subprocess.run(
+        ["pixi", "run", "pytest", "--collect-only"], check=False, capture_output=True, text=True
+    )
 
     print(f"Exit code: {result.returncode}")
     if "Token validation failed" in result.stderr or result.returncode != 0:
@@ -33,7 +35,9 @@ def test_invalid_token_behavior():
     print(f"\n{YELLOW}Test 2: Running pytest with invalid token...{RESET}")
     os.environ["GATEWAY_OAUTH_ACCESS_TOKEN"] = "invalid.token.here"
 
-    result = subprocess.run(["pixi", "run", "pytest", "--collect-only"], check=False, capture_output=True, text=True)
+    result = subprocess.run(
+        ["pixi", "run", "pytest", "--collect-only"], check=False, capture_output=True, text=True
+    )
 
     print(f"Exit code: {result.returncode}")
     if "Token validation failed" in result.stderr or result.returncode != 0:
@@ -44,10 +48,14 @@ def test_invalid_token_behavior():
     # Test 3: Expired token
     print(f"\n{YELLOW}Test 3: Running pytest with expired token...{RESET}")
     # Create an expired JWT (exp set to past)
-    expired_token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwiZXhwIjoxMDAwMDAwMDAwfQ.invalid"
+    expired_token = (
+        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwiZXhwIjoxMDAwMDAwMDAwfQ.invalid"
+    )
     os.environ["GATEWAY_OAUTH_ACCESS_TOKEN"] = expired_token
 
-    result = subprocess.run(["pixi", "run", "pytest", "--collect-only"], check=False, capture_output=True, text=True)
+    result = subprocess.run(
+        ["pixi", "run", "pytest", "--collect-only"], check=False, capture_output=True, text=True
+    )
 
     print(f"Exit code: {result.returncode}")
     if "Token validation failed" in result.stderr or result.returncode != 0:

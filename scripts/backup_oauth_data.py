@@ -14,6 +14,7 @@ from pathlib import Path
 
 import redis.asyncio as redis
 from dotenv import load_dotenv
+from redis_runtime import resolve_runtime_redis_url
 
 
 # Load environment - SACRED LAW!
@@ -25,16 +26,8 @@ class OAuthBackup:
 
     def __init__(self):
         # Redis connection from environment - NO HARDCODING!
-        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        redis_url = resolve_runtime_redis_url(os.getenv("REDIS_URL", "redis://localhost:6379"))
         redis_password = os.getenv("REDIS_PASSWORD")
-
-        # If we're running on the host and Redis URL points to 'redis' hostname,
-        # change it to localhost (Redis is exposed on host ports)
-        if "redis://" in redis_url and "redis:" in redis_url:
-            # Check if we're in a container
-            if not os.path.exists("/.dockerenv"):
-                # We're on the host, use localhost
-                redis_url = redis_url.replace("redis:", "localhost:")
 
         # Parse Redis URL
         if redis_url.startswith("redis://"):

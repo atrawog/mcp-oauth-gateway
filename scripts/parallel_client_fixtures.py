@@ -12,7 +12,7 @@ import pytest
 # from .test_constants import AUTH_BASE_URL, TEST_OAUTH_CALLBACK_URL, TEST_CLIENT_SCOPE, TEST_HTTP_TIMEOUT
 
 # Placeholder constants - replace with actual imports when integrating into conftest.py
-AUTH_BASE_URL = "http://auth:8000"
+AUTH_BASE_URL = "http://mcp-oauth:8000"
 TEST_OAUTH_CALLBACK_URL = "https://test.example.com/callback"
 TEST_CLIENT_SCOPE = "mcp"
 TEST_HTTP_TIMEOUT = 30.0

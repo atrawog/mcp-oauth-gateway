@@ -85,7 +85,9 @@ async def check_existing_token(token: str) -> bool:
             return False
 
 
-async def register_oauth_client_with_user_token(base_url: str, user_jwt_token: str) -> dict[str, str]:
+async def register_oauth_client_with_user_token(
+    base_url: str, user_jwt_token: str
+) -> dict[str, str]:
     """Register OAuth client using a valid user JWT token."""
     # Get OAuth callback URL from environment - MUST be set properly!
     oauth_callback_url = os.getenv("TEST_OAUTH_CALLBACK_URL")
@@ -93,7 +95,7 @@ async def register_oauth_client_with_user_token(base_url: str, user_jwt_token: s
     if not oauth_callback_url:
         raise Exception(
             "TEST_OAUTH_CALLBACK_URL must be set in .env\n"
-            "Example: TEST_OAUTH_CALLBACK_URL=https://auth.yourdomain.com/success",
+            "Example: TEST_OAUTH_CALLBACK_URL=https://mcp-auth.yourdomain.com/success",
         )
 
     # Always verify SSL - no exceptions for localhost per CLAUDE.md
@@ -179,20 +181,28 @@ async def github_device_flow() -> str:
                 raise Exception(f"Device flow failed: {poll_data}")
 
 
-async def complete_real_oauth_flow(auth_base_url: str, client_id: str, client_secret: str) -> tuple[str, str]:
+async def complete_real_oauth_flow(
+    auth_base_url: str, client_id: str, client_secret: str
+) -> tuple[str, str]:
     """Complete REAL OAuth flow using the actual authorization endpoint."""
     print("\n🔐 Starting REAL OAuth Flow...")
 
     # Step 1: Generate REAL PKCE challenge
     code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=")
-    code_challenge = base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest()).decode().rstrip("=")
+    code_challenge = (
+        base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest())
+        .decode()
+        .rstrip("=")
+    )
 
     state = secrets.token_urlsafe(16)
 
     # Step 2: Construct REAL authorization URL
     callback_url = os.getenv("TEST_OAUTH_CALLBACK_URL")
     if not callback_url:
-        raise Exception("TEST_OAUTH_CALLBACK_URL must be set in .env - No defaults allowed per CLAUDE.md!")
+        raise Exception(
+            "TEST_OAUTH_CALLBACK_URL must be set in .env - No defaults allowed per CLAUDE.md!"
+        )
 
     auth_params = {
         "client_id": client_id,
@@ -253,7 +263,9 @@ async def complete_real_oauth_flow(auth_base_url: str, client_id: str, client_se
         )
 
         if token_response.status_code != 200:
-            raise Exception(f"Token exchange failed ({token_response.status_code}): {token_response.text}")
+            raise Exception(
+                f"Token exchange failed ({token_response.status_code}): {token_response.text}"
+            )
 
         tokens = token_response.json()
 
@@ -284,7 +296,7 @@ async def main():
         print("❌ Missing BASE_DOMAIN in .env")
         sys.exit(1)
 
-    auth_base_url = f"https://auth.{base_domain}"
+    auth_base_url = f"https://mcp-auth.{base_domain}"
 
     # Step 1: Check existing GitHub PAT
     existing_pat = os.getenv("GITHUB_PAT")
@@ -324,7 +336,9 @@ async def main():
                     data={
                         "grant_type": "authorization_code",
                         "code": "dummy_code",  # This will fail, but we'll get different errors
-                        "redirect_uri": os.getenv("TEST_OAUTH_CALLBACK_URL", "https://example.com/callback"),
+                        "redirect_uri": os.getenv(
+                            "TEST_OAUTH_CALLBACK_URL", "https://example.com/callback"
+                        ),
                         "client_id": client_id,
                         "client_secret": client_secret,
                         "code_verifier": "dummy_verifier",
@@ -447,7 +461,9 @@ async def main():
         print(f"🔄 Need fresh OAuth token for client: {client_id}")
 
         # Complete OAuth flow to get user JWT token
-        access_token, refresh_token = await complete_real_oauth_flow(auth_base_url, client_id, client_secret)
+        access_token, refresh_token = await complete_real_oauth_flow(
+            auth_base_url, client_id, client_secret
+        )
 
         # Save the tokens
         save_env_var("GATEWAY_OAUTH_ACCESS_TOKEN", access_token)

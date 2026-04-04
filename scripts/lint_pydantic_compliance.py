@@ -80,11 +80,16 @@ class PydanticDeprecationHunter(ast.NodeVisitor):
                     )
 
             # Check if model_config is present when Config class is absent
-            has_config_class = any(isinstance(item, ast.ClassDef) and item.name == "Config" for item in node.body)
+            has_config_class = any(
+                isinstance(item, ast.ClassDef) and item.name == "Config" for item in node.body
+            )
 
             has_model_config = any(
                 isinstance(item, ast.Assign)
-                and any(isinstance(target, ast.Name) and target.id == "model_config" for target in item.targets)
+                and any(
+                    isinstance(target, ast.Name) and target.id == "model_config"
+                    for target in item.targets
+                )
                 for item in node.body
             )
 

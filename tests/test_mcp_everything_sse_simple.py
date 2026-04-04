@@ -19,7 +19,9 @@ from tests.test_constants import MCP_EVERYTHING_TESTS_ENABLED
 def base_url():
     """Base URL for tests."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
-        pytest.skip("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
+        pytest.skip(
+            "MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable."
+        )
     return f"https://everything.{BASE_DOMAIN}/"
 
 
@@ -56,9 +58,15 @@ class TestMCPEverythingSSESimple:
         )
 
         # These headers should be added by our middleware
-        assert response.headers.get("X-Accel-Buffering") == "no", "X-Accel-Buffering header should be 'no'"
-        assert response.headers.get("Cache-Control") == "no-cache", "Cache-Control should be 'no-cache'"
-        assert response.headers.get("Connection") == "keep-alive", "Connection should be 'keep-alive'"
+        assert response.headers.get("X-Accel-Buffering") == "no", (
+            "X-Accel-Buffering header should be 'no'"
+        )
+        assert response.headers.get("Cache-Control") == "no-cache", (
+            "Cache-Control should be 'no-cache'"
+        )
+        assert response.headers.get("Connection") == "keep-alive", (
+            "Connection should be 'keep-alive'"
+        )
 
         # Response should be successful
         assert response.status_code == 200

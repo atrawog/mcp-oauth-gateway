@@ -1,64 +1,29 @@
-# The root orchestrator that unites the three divine realms
-# Each service maintains its own docker-compose.yml for sacred isolation
+# MCP OAuth Gateway - SWAG Edition
+# Auth service + MCP services, routed through SWAG reverse proxy
 
-# Extension fields for common MCP service patterns - Divine templates!
-x-mcp-common-env: &mcp-common-env
-  MCP_CORS_ORIGINS: ${MCP_CORS_ORIGINS}
-  # NOTE: MCP_PROTOCOL_VERSION must be set by each service individually!
-  # Different services may use different protocol versions
-  BASE_DOMAIN: ${BASE_DOMAIN}
-  NODE_ENV: production
-
-x-mcp-common-labels: &mcp-common-labels
-  traefik.enable: "true"
-  traefik.docker.network: "public"
+# Shared YAML anchors for all included service compose files
+x-mcp-common: &mcp-common
+  restart: unless-stopped
+  env_file: .env
+  networks:
+    - mcp-net
 
 x-mcp-healthcheck: &mcp-healthcheck
-  interval: 30s
+  interval: 10s
   timeout: 5s
-  retries: 3
-  start_period: 40s
-
-x-mcp-deploy: &mcp-deploy
-  restart_policy:
-    condition: unless-stopped
-    delay: 5s
-    max_attempts: 3
-
-x-mcp-networks: &mcp-networks
-  networks:
-    - public
+  retries: 5
 
 include:
-  - traefik/docker-compose.yml
   - auth/docker-compose.yml
-  - mcp-echo-stateful/docker-compose.yml
-  - mcp-echo-stateless/docker-compose.yml
-  - mcp-fetch/docker-compose.yml
-  - mcp-filesystem/docker-compose.yml
-  - mcp-fetchs/docker-compose.yml
-  - mcp-everything/docker-compose.yml
-  - mcp-memory/docker-compose.yml
-  - mcp-sequentialthinking/docker-compose.yml
-  - mcp-time/docker-compose.yml
-  - mcp-tmux/docker-compose.yml
-  - mcp-playwright/docker-compose.yml
-
-# Services section removed - middleware now in Traefik dynamic config
-# Extension fields above provide common patterns for all services
+#  - swag/docker-compose.yaml
 
 networks:
-  public:
+  mcp-net:
+    name: ${MCP_NETWORK:-mcp-oauth}
+    external: true
+  jakenet:
     external: true
 
 volumes:
-  traefik-certificates:
-    external: true
-  redis-data:
-    external: true
-  coverage-data:
-    external: true
-  auth-keys:
-    external: true
-  mcp-memory-data:
-    external: true
+  mcp-oauth-logs:
+  mcp-oauth-redis-data:

@@ -19,7 +19,9 @@ with open(".env") as f:
 
 # Get MCP Everything URL from environment
 mcp_everything_enabled = os.getenv("MCP_EVERYTHING_TESTS_ENABLED", "false").lower() == "true"
-mcp_everything_urls = os.getenv("MCP_EVERYTHING_URLS", "").split(",") if os.getenv("MCP_EVERYTHING_URLS") else []
+mcp_everything_urls = (
+    os.getenv("MCP_EVERYTHING_URLS", "").split(",") if os.getenv("MCP_EVERYTHING_URLS") else []
+)
 
 if not mcp_everything_enabled:
     print("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")

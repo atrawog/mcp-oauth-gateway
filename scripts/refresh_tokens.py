@@ -76,7 +76,7 @@ async def refresh_oauth_token():
         print("❌ Missing OAuth client credentials!")
         return False
 
-    token_url = f"https://auth.{base_domain}/token"
+    token_url = f"https://mcp-auth.{base_domain}/token"
 
     try:
         async with httpx.AsyncClient(timeout=30.0, verify=ssl_verify) as client:

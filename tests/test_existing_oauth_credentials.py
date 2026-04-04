@@ -194,7 +194,9 @@ class TestCompleteFlowWithExistingClient:
             "response_type": "code",
             "scope": "openid profile email",
             "state": secrets.token_urlsafe(16),
-            "code_challenge": base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("="),
+            "code_challenge": base64.urlsafe_b64encode(secrets.token_bytes(32))
+            .decode()
+            .rstrip("="),
             "code_challenge_method": "S256",
         }
 

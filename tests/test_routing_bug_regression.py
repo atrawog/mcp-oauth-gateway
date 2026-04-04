@@ -3,6 +3,8 @@ Following CLAUDE.md - NO MOCKING, real services only!
 
 This test ensures the specific bug that caused 404 errors for Claude.ai
 when accessing /mcp endpoint is fixed and stays fixed.
+
+Routing is handled by SWAG nginx proxy-confs, not Traefik labels.
 """
 
 import pytest
@@ -17,13 +19,16 @@ class TestRoutingBugRegression:
     """Regression test for the routing configuration bug."""
 
     @pytest.mark.asyncio
-    async def test_mcp_path_without_host_only_routing_returns_401_not_404(self, http_client, _wait_for_services):
+    async def test_mcp_path_without_host_only_routing_returns_401_not_404(
+        self, http_client, _wait_for_services
+    ):
         """REGRESSION TEST: Ensure /mcp path returns 401 (auth required), not 404.
 
-        Bug: When Traefik routing only had Host rule without PathPrefix,
-        requests to /mcp returned 404 because Traefik couldn't route them.
+        Bug: When the SWAG nginx conf only matched the root location without a
+        dedicated /mcp location block, requests to /mcp returned 404.
 
-        Fix: Added PathPrefix(`/mcp`) to the routing rule.
+        Fix: The nginx conf includes an explicit `location /mcp` block with
+        `auth_request /_oauth_verify` so unauthenticated requests get 401.
         """
         # This is the exact request that was failing
         response = await http_client.post(
@@ -35,7 +40,8 @@ class TestRoutingBugRegression:
 
         # CRITICAL: Must be 401 (requires auth), not 404 (not found)
         assert response.status_code == HTTP_UNAUTHORIZED, (
-            f"REGRESSION: Got {response.status_code} instead of 401. The PathPrefix routing rule may be missing!"
+            f"REGRESSION: Got {response.status_code} instead of 401. "
+            "The nginx `location /mcp` block or auth_request directive may be missing!"
         )
 
         # Verify it's an auth error, not a routing error
@@ -46,27 +52,35 @@ class TestRoutingBugRegression:
         assert "Authorization header" in error.get("error_description", "")
 
     @pytest.mark.asyncio
-    async def test_traefik_labels_include_path_routing(self, _wait_for_services):
-        """Verify the docker-compose.yml includes PathPrefix in routing rules.
+    async def test_swag_nginx_conf_includes_mcp_location(self, _wait_for_services):
+        """Verify the SWAG nginx template conf includes a /mcp location block with auth.
 
-        This test would fail with the old configuration.
+        This test would fail with the old (Traefik-based) configuration.
+        SWAG uses static nginx proxy-confs instead of docker labels.
         """
-        # Read the fetch docker-compose.yml
         import os
 
-        compose_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mcp-fetch/docker-compose.yml")
-
-        with open(compose_path) as f:
-            content = f.read()
-
-        # Check that MCP path routing is present
-        # Accept both the old PathPrefix style and new Path||PathPrefix style
-        assert "PathPrefix(`/mcp`)" in content or "(Path(`/mcp`) || PathPrefix(`/mcp/`))" in content, (
-            "REGRESSION: MCP path routing missing from routing rules!"
+        conf_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), "mcp-template.subdomain.conf"
         )
 
-        # Verify the host rule is present
-        assert "Host(`fetch.${BASE_DOMAIN}`)" in content, "REGRESSION: Host rule not found!"
+        with open(conf_path) as f:
+            content = f.read()
+
+        # Check that an explicit /mcp location block is present
+        assert "location /mcp" in content, (
+            "REGRESSION: nginx /mcp location block missing from SWAG conf!"
+        )
+
+        # Check that auth_request is used inside the MCP location
+        assert "auth_request /_oauth_verify;" in content, (
+            "REGRESSION: auth_request /_oauth_verify missing from SWAG conf!"
+        )
+
+        # Verify the internal OAuth verify location is defined
+        assert "location = /_oauth_verify" in content, (
+            "REGRESSION: /_oauth_verify internal location missing from SWAG conf!"
+        )
 
     @pytest.mark.asyncio
     async def test_all_required_routes_configured(self, http_client, _wait_for_services):
@@ -86,16 +100,16 @@ class TestRoutingBugRegression:
             )
 
     @pytest.mark.asyncio
-    async def test_routing_priorities_correct(self, http_client, _wait_for_services):
-        """Verify routing priorities are set correctly:
+    async def test_nginx_location_specificity_correct(self, http_client, _wait_for_services):
+        """Verify nginx location specificity routes /mcp correctly.
 
-        - OAuth discovery: Priority 10 (highest)
-        - CORS preflight: Priority 4
-        - MCP route: Priority 2
-        - Catch-all: Priority 1 (lowest).
+        nginx does not use numeric priorities; instead, more-specific location
+        blocks take precedence.  The explicit `location /mcp` block is matched
+        before the catch-all `location /` block, so unauthenticated requests
+        are rejected with 401 by auth_request before reaching the MCP backend.
         """
-        # The /mcp path should go to MCP route (priority 2)
-        # not the catch-all (priority 1)
+        # The /mcp path should match `location /mcp` (explicit prefix),
+        # not the catch-all `location /`
         response = await http_client.post(
             f"{MCP_FETCH_URL}",
             json={"test": "data"},

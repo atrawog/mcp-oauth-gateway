@@ -3,6 +3,8 @@ Following CLAUDE.md - NO MOCKING, real services only!
 """
 
 import os
+
+from scripts.env_compat import get_env_value
 import secrets
 import time
 
@@ -31,7 +33,9 @@ class TestAdditionalCoverage:
         assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test with empty Authorization header
-        response = await http_client.get(f"{AUTH_BASE_URL}/verify", headers={"Authorization": ""}, timeout=30.0)
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": ""}, timeout=30.0
+        )
         assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test with Authorization but no Bearer
@@ -43,14 +47,18 @@ class TestAdditionalCoverage:
         assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test with Bearer but no token
-        response = await http_client.get(f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer"}, timeout=30.0)
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/verify", headers={"Authorization": "Bearer"}, timeout=30.0
+        )
         assert response.status_code == HTTP_UNAUTHORIZED
 
         # Test with Bearer and space but no token - Skip this as httpx doesn't allow it
         # httpx validates headers and won't send "Bearer " with trailing space
 
     @pytest.mark.asyncio
-    async def test_token_endpoint_missing_client_credentials(self, http_client, _wait_for_services, registered_client):
+    async def test_token_endpoint_missing_client_credentials(
+        self, http_client, _wait_for_services, registered_client
+    ):
         """Test token endpoint with missing client credentials."""
         # Use registered_client fixture which provides unique name and handles cleanup
         client = registered_client
@@ -126,10 +134,14 @@ class TestAdditionalCoverage:
         assert result["active"] is False
 
     @pytest.mark.asyncio
-    async def test_registration_with_minimal_data(self, http_client, _wait_for_services, unique_client_name):
+    async def test_registration_with_minimal_data(
+        self, http_client, _wait_for_services, unique_client_name
+    ):
         """Test client registration with only required fields."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         client = None
         try:
@@ -153,7 +165,7 @@ class TestAdditionalCoverage:
             assert "client_id" in client
             assert "client_secret" in client
             # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
-            client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
+            client_lifetime = int(get_env_value("CLIENT_LIFETIME", "7776000"))
             if client_lifetime == 0:
                 assert client["client_secret_expires_at"] == 0  # Never expires
             else:
@@ -214,7 +226,9 @@ class TestAdditionalCoverage:
         assert response.status_code == HTTP_UNAUTHORIZED
         error = response.json()
         # Handle both OAuth 2.0 format and custom format
-        if "error_description" in error or ("detail" in error and isinstance(error["detail"], dict)):
+        if "error_description" in error or (
+            "detail" in error and isinstance(error["detail"], dict)
+        ):
             assert "The access token is invalid or expired" in error["error_description"]
         else:
             raise AssertionError(f"Unexpected error structure: {error}")

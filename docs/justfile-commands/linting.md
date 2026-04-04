@@ -272,10 +272,10 @@ just lint-manual
 
 ```bash
 # Update pre-commit hooks
-pixi run pre-commit autoupdate
+uv run pre-commit autoupdate
 
 # Run specific hook
-pixi run pre-commit run ruff --all-files
+uv run pre-commit run ruff --all-files
 ```
 
 ### Conflicting Fixes

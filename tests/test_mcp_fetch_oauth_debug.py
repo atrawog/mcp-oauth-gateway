@@ -10,7 +10,9 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_debug_mcp_fetch_with_real_oauth(http_client, _wait_for_services, mcp_fetch_url, unique_test_id):
+async def test_debug_mcp_fetch_with_real_oauth(
+    http_client, _wait_for_services, mcp_fetch_url, unique_test_id
+):
     """Debug test to see what's happening with real OAuth token."""
     oauth_token = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
     if not oauth_token:
@@ -101,7 +103,9 @@ async def test_debug_mcp_fetch_with_real_oauth(http_client, _wait_for_services, 
 
     # Check if we can access without auth
     print("\n--- Testing without auth ---")
-    response = await http_client.post(f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "test", "id": 1})
+    response = await http_client.post(
+        f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "test", "id": 1}
+    )
     print(f"No auth status: {response.status_code}")
 
     # The test always passes - it's just for debugging

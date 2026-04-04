@@ -7,6 +7,8 @@ All tests use REAL auth service, REAL OAuth flows, and REAL tokens.
 
 import json
 import os
+
+from scripts.env_compat import get_env_value
 import secrets
 import time
 
@@ -53,7 +55,9 @@ class TestMCPClientOAuthRegistration:
         }
 
         # Register without authentication (public endpoint)
-        response = await http_client.post(f"{AUTH_BASE_URL}/register", json=registration_data, timeout=30.0)
+        response = await http_client.post(
+            f"{AUTH_BASE_URL}/register", json=registration_data, timeout=30.0
+        )
 
         assert response.status_code == HTTP_CREATED
         client_data = response.json()
@@ -62,7 +66,7 @@ class TestMCPClientOAuthRegistration:
         assert "client_id" in client_data
         assert "client_secret" in client_data
         # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
-        client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
+        client_lifetime = int(get_env_value("CLIENT_LIFETIME", "7776000"))
         if client_lifetime == 0:
             assert client_data["client_secret_expires_at"] == 0  # Never expires
         else:
@@ -363,7 +367,9 @@ class TestMCPClientTokenValidation:
     """Test token validation scenarios for MCP clients."""
 
     @pytest.mark.asyncio
-    async def test_access_token_validation(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_access_token_validation(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test validating access tokens before making MCP requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
@@ -394,7 +400,9 @@ class TestMCPClientTokenValidation:
         print("✅ MCP client token is valid and working")
 
     @pytest.mark.asyncio
-    async def test_expired_token_handling(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_expired_token_handling(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test handling of expired tokens."""
         # Use an obviously invalid token
         response = await http_client.post(
@@ -558,9 +566,13 @@ class TestMCPClientErrorScenarios:
         print("✅ Network errors properly raised")
 
     @pytest.mark.asyncio
-    async def test_oauth_discovery_endpoint(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_oauth_discovery_endpoint(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test OAuth discovery endpoint that clients use to find auth URLs."""
-        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0
+        )
 
         assert response.status_code == HTTP_OK
         metadata = response.json()

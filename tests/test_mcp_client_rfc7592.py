@@ -14,8 +14,12 @@ from pathlib import Path
 import pytest
 
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "mcp-streamablehttp-client" / "src"))
+CLIENT_SRC = Path(__file__).parent.parent / "mcp-streamablehttp-client" / "src"
+if CLIENT_SRC.exists():
+    sys.path.insert(0, str(CLIENT_SRC))
+
+pytest.importorskip("mcp_streamablehttp_client.config")
+pytest.importorskip("mcp_streamablehttp_client.oauth")
 
 from mcp_streamablehttp_client.config import Settings
 from mcp_streamablehttp_client.oauth import OAuthClient
@@ -107,7 +111,9 @@ async def test_mcp_client_rfc7592_lifecycle():
         real_token = settings.registration_access_token
         settings.registration_access_token = "wrong-token-12345"
 
-        with pytest.raises(RuntimeError, match=r"(Invalid registration access token|Access forbidden)"):
+        with pytest.raises(
+            RuntimeError, match=r"(Invalid registration access token|Access forbidden)"
+        ):
             await oauth.get_client_configuration()
         print("   ✓ Correctly rejected invalid token")
 

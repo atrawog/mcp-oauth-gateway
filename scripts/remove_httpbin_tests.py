@@ -26,7 +26,9 @@ def remove_httpbin_tests(file_path: Path):
         test_block = match.group(0)
         if "httpbin.org" in test_block:
             # Comment out the entire test block
-            commented_block = "\n".join(f"# {line}" if line.strip() else "#" for line in test_block.split("\n"))
+            commented_block = "\n".join(
+                f"# {line}" if line.strip() else "#" for line in test_block.split("\n")
+            )
             # Add explanation comment
             explanation = (
                 "\n# REMOVED: This test used httpbin.org which violates our testing principles.\n"

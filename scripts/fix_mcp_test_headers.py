@@ -39,7 +39,10 @@ def fix_mcp_test_file(file_path: Path):
             if match:
                 existing_import = match.group(1)
                 if "MCP_PROTOCOL_VERSION" not in existing_import:
-                    new_import = existing_import.rstrip() + "\nfrom .test_constants import MCP_PROTOCOL_VERSION"
+                    new_import = (
+                        existing_import.rstrip()
+                        + "\nfrom .test_constants import MCP_PROTOCOL_VERSION"
+                    )
                     content = content.replace(existing_import, new_import)
                     fixes_applied.append("Added MCP_PROTOCOL_VERSION import")
             else:
@@ -88,9 +91,15 @@ def fix_mcp_test_file(file_path: Path):
             # Add Accept header after the last header
             headers_content = headers_content.rstrip()
             if headers_content.endswith(","):
-                new_headers = headers_content + '\n            "Accept": "application/json, text/event-stream",'
+                new_headers = (
+                    headers_content
+                    + '\n            "Accept": "application/json, text/event-stream",'
+                )
             else:
-                new_headers = headers_content + ',\n            "Accept": "application/json, text/event-stream",'
+                new_headers = (
+                    headers_content
+                    + ',\n            "Accept": "application/json, text/event-stream",'
+                )
 
             # Replace in the content
             new_post_call = post_call.replace(headers_content, new_headers)
@@ -119,7 +128,9 @@ def fix_mcp_test_file(file_path: Path):
             new_headers = new_headers.replace("{MCP_CLIENT_ACCESS_TOKEN}", f"{{{token_var}}}")
 
         content = content.replace(headers_dict, new_headers)
-        fixes_applied.append("Enhanced simple Authorization header to include Accept and Content-Type")
+        fixes_applied.append(
+            "Enhanced simple Authorization header to include Accept and Content-Type"
+        )
 
     # Fix 4: Ensure Content-Type is present in all MCP requests
     # This is less critical since it's usually there, but good to check

@@ -9,9 +9,9 @@ cd "$(dirname "$0")"
 
 # Check if jupyter-book is available
 if ! command -v jupyter-book &> /dev/null; then
-    echo "❌ jupyter-book not found. Installing via pixi..."
+    echo "❌ jupyter-book not found. Installing via uv..."
     cd ..
-    pixi install
+    uv sync
     cd docs
 fi
 

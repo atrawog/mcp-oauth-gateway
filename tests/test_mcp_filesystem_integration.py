@@ -13,7 +13,9 @@ class TestMCPFilesystemIntegration:
     """Divine integration tests for MCP Filesystem service."""
 
     @pytest.mark.asyncio
-    async def test_filesystem_health_check_no_auth(self, http_client, _wait_for_services, mcp_filesystem_url):
+    async def test_filesystem_health_check_no_auth(
+        self, http_client, _wait_for_services, mcp_filesystem_url
+    ):
         """Test that health check endpoint requires authentication per divine CLAUDE.md."""
         # Health check must require auth per divine CLAUDE.md
         response = await http_client.get(f"{mcp_filesystem_url}/health", timeout=TEST_HTTP_TIMEOUT)
@@ -38,7 +40,9 @@ class TestMCPFilesystemIntegration:
             timeout=TEST_HTTP_TIMEOUT,
         )
 
-        assert response.status_code == HTTP_UNAUTHORIZED, f"Expected 401 without auth, got {response.status_code}"
+        assert response.status_code == HTTP_UNAUTHORIZED, (
+            f"Expected 401 without auth, got {response.status_code}"
+        )
 
     @pytest.mark.asyncio
     async def test_filesystem_list_directory(self, http_client, mcp_filesystem_url):
@@ -63,7 +67,9 @@ class TestMCPFilesystemIntegration:
             timeout=TEST_HTTP_TIMEOUT,
         )
 
-        assert response.status_code == HTTP_OK, f"List request failed: {response.status_code} - {response.text}"
+        assert response.status_code == HTTP_OK, (
+            f"List request failed: {response.status_code} - {response.text}"
+        )
 
         result = response.json()
         assert "result" in result or "error" in result, f"Invalid response format: {result}"
@@ -154,7 +160,9 @@ class TestMCPFilesystemIntegration:
             timeout=TEST_HTTP_TIMEOUT,
         )
 
-        assert response.status_code == HTTP_OK, f"Read request failed: {response.status_code} - {response.text}"
+        assert response.status_code == HTTP_OK, (
+            f"Read request failed: {response.status_code} - {response.text}"
+        )
 
         result = response.json()
         assert "result" in result or "error" in result, f"Invalid response format: {result}"
@@ -169,7 +177,9 @@ class TestMCPFilesystemIntegration:
                     text_content = content[0].get("text", "")
                 else:
                     text_content = str(content)
-                assert "MCP Filesystem service" in text_content, f"Test file content not found: {text_content}"
+                assert "MCP Filesystem service" in text_content, (
+                    f"Test file content not found: {text_content}"
+                )
 
     @pytest.mark.asyncio
     async def test_filesystem_oauth_discovery(self, http_client):
@@ -177,13 +187,19 @@ class TestMCPFilesystemIntegration:
         from tests.test_constants import MCP_FILESYSTEM_TESTS_ENABLED
 
         if not MCP_FILESYSTEM_TESTS_ENABLED:
-            pytest.skip("MCP Filesystem tests are disabled. Set MCP_FILESYSTEM_TESTS_ENABLED=true to enable.")
+            pytest.skip(
+                "MCP Filesystem tests are disabled. Set MCP_FILESYSTEM_TESTS_ENABLED=true to enable."
+            )
 
         # Use base domain for OAuth discovery, not the /mcp endpoint
-        oauth_discovery_url = f"https://filesystem.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
+        oauth_discovery_url = (
+            f"https://filesystem.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
+        )
 
         # OAuth discovery should be publicly accessible
-        response = await http_client.get(oauth_discovery_url, timeout=TEST_HTTP_TIMEOUT, follow_redirects=False)
+        response = await http_client.get(
+            oauth_discovery_url, timeout=TEST_HTTP_TIMEOUT, follow_redirects=False
+        )
 
         # Should either return metadata directly or redirect to auth service
         assert response.status_code in [

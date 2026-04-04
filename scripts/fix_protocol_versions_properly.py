@@ -21,7 +21,9 @@ SERVICE_PROTOCOL_VERSIONS = {
 
 def fix_docker_compose(service_name, protocol_version):
     """Update docker-compose.yml to properly set and use MCP_PROTOCOL_VERSION."""
-    compose_file = Path(f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml")
+    compose_file = Path(
+        f"/home/atrawog/AI/atrawog/mcp-oauth-gateway/{service_name}/docker-compose.yml"
+    )
 
     if not compose_file.exists():
         print(f"❌ {compose_file} not found")
@@ -46,7 +48,9 @@ def fix_docker_compose(service_name, protocol_version):
             )
         else:
             # Add new line
-            env_section = env_section.rstrip("\n") + f"\n      - MCP_PROTOCOL_VERSION={protocol_version}\n"
+            env_section = (
+                env_section.rstrip("\n") + f"\n      - MCP_PROTOCOL_VERSION={protocol_version}\n"
+            )
         return env_section
 
     content = re.sub(env_pattern, update_environment, content)
@@ -56,7 +60,13 @@ def fix_docker_compose(service_name, protocol_version):
     healthcheck_pattern = r'(test: \["CMD", "sh", "-c", "curl -s -X POST http://localhost:3000/mcp[^"]*-d \'{[^}]*"protocolVersion":")([^"]+)("[^}]*}\}[^"]*grep[^"]*"protocolVersion":")([^"]+)("[^"]*"\])'
 
     def update_healthcheck(match):
-        return match.group(1) + "${MCP_PROTOCOL_VERSION}" + match.group(3) + "${MCP_PROTOCOL_VERSION}" + match.group(5)
+        return (
+            match.group(1)
+            + "${MCP_PROTOCOL_VERSION}"
+            + match.group(3)
+            + "${MCP_PROTOCOL_VERSION}"
+            + match.group(5)
+        )
 
     content = re.sub(healthcheck_pattern, update_healthcheck, content)
 

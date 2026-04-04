@@ -88,7 +88,9 @@ async def discover_oauth_metadata(mcp_url: str) -> dict[str, str]:
                     "authorization_endpoint": metadata.get("authorization_endpoint", ""),
                     "token_endpoint": metadata.get("token_endpoint", ""),
                     "registration_endpoint": metadata.get("registration_endpoint", ""),
-                    "device_authorization_endpoint": metadata.get("device_authorization_endpoint", ""),
+                    "device_authorization_endpoint": metadata.get(
+                        "device_authorization_endpoint", ""
+                    ),
                 }
             print(f"❌ Failed to fetch metadata: {response.status_code}")
             return {}
@@ -124,7 +126,9 @@ async def register_oauth_client(registration_url: str, redirect_uri: str) -> tup
     """Register a new OAuth client."""
     print("📝 Registering new OAuth client...")
 
-    verify_ssl = not registration_url.startswith("https://localhost") and "127.0.0.1" not in registration_url
+    verify_ssl = (
+        not registration_url.startswith("https://localhost") and "127.0.0.1" not in registration_url
+    )
 
     async with httpx.AsyncClient(verify=verify_ssl) as client:
         response = await client.post(
@@ -160,7 +164,9 @@ async def exchange_code_for_tokens(
     """Exchange authorization code for tokens."""
     print("🔄 Exchanging authorization code for tokens...")
 
-    verify_ssl = not token_endpoint.startswith("https://localhost") and "127.0.0.1" not in token_endpoint
+    verify_ssl = (
+        not token_endpoint.startswith("https://localhost") and "127.0.0.1" not in token_endpoint
+    )
 
     data = {
         "grant_type": "authorization_code",
@@ -204,7 +210,7 @@ async def main():
         print("❌ Missing MCP_AUTH_CODE environment variable")
         print("\nUsage:")
         print("  export MCP_AUTH_CODE='your-auth-code-here'")
-        print("  pixi run python scripts/complete_mcp_oauth.py")
+        print("  uv run python scripts/complete_mcp_oauth.py")
         sys.exit(1)
 
     # Get MCP server URL
@@ -232,7 +238,7 @@ async def main():
         if not metadata or not metadata.get("token_endpoint"):
             print("❌ Failed to discover OAuth endpoints")
             print("Falling back to default endpoints...")
-            auth_base_url = f"https://auth.{base_domain}"
+            auth_base_url = f"https://mcp-auth.{base_domain}"
             token_endpoint = f"{auth_base_url}/token"
             registration_endpoint = f"{auth_base_url}/register"
         else:
@@ -253,7 +259,9 @@ async def main():
                 print("2. Ensure the OAuth server provides a registration endpoint")
                 sys.exit(1)
 
-            client_id, client_secret = await register_oauth_client(registration_endpoint, redirect_uri)
+            client_id, client_secret = await register_oauth_client(
+                registration_endpoint, redirect_uri
+            )
 
         # Step 4: Exchange authorization code for tokens
         access_token, refresh_token = await exchange_code_for_tokens(
@@ -276,7 +284,7 @@ async def main():
         print("\n✨ OAuth flow completed successfully!")
         print("\nYou can now use the MCP client with:")
         print("  export OAUTH_ACCESS_TOKEN=$MCP_CLIENT_ACCESS_TOKEN")
-        print("  pixi run python -m mcp_streamablehttp_client.cli \\")
+        print("  uv run python -m mcp_streamablehttp_client.cli \\")
         print(f"    --server-url {mcp_url}")
 
     except Exception as e:

@@ -47,7 +47,9 @@ async def main():
             try:
                 # Initialize session
                 print(f"\n📤 Initializing MCP session with version {version}...")
-                session_id, init_result = await initialize_mcp_session(client, mcp_url, oauth_token, version)
+                session_id, init_result = await initialize_mcp_session(
+                    client, mcp_url, oauth_token, version
+                )
                 print(f"✅ Session initialized: {session_id}")
                 print(f"   Server info: {init_result.get('serverInfo')}")
                 print(f"   Protocol version: {init_result.get('protocolVersion')}")
@@ -60,7 +62,9 @@ async def main():
                     tools = tools_response["result"].get("tools", [])
                     print(f"✅ Found {len(tools)} tools:")
                     for tool in tools:
-                        print(f"   - {tool.get('name')}: {tool.get('description', 'No description')}")
+                        print(
+                            f"   - {tool.get('name')}: {tool.get('description', 'No description')}"
+                        )
                 else:
                     print(f"❌ Error listing tools: {tools_response}")
                     continue
@@ -88,7 +92,10 @@ async def main():
                             content_items = fetch_result["content"]
                             if isinstance(content_items, list) and len(content_items) > 0:
                                 first_item = content_items[0]
-                                if isinstance(first_item, dict) and first_item.get("type") == "text":
+                                if (
+                                    isinstance(first_item, dict)
+                                    and first_item.get("type") == "text"
+                                ):
                                     text = first_item.get("text", "")
                                     print(f"   Content preview: {text[:100]}...")
                     else:

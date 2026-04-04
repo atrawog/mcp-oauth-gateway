@@ -80,7 +80,7 @@ TECHNICAL ACHIEVEMENTS:
 
 🏗️ Architecture Validation:
    - ✅ mcp-streamablehttp-proxy successfully wraps stdio-based sequential thinking server
-   - ✅ OAuth 2.1 authentication via Traefik ForwardAuth working correctly
+   - ✅ OAuth 2.1 authentication via SWAG auth_request working correctly
    - ✅ HTTP transport layer functioning properly for JSON-RPC communication
    - ✅ Session management and state persistence verified
 

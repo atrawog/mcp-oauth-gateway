@@ -1,0 +1,228 @@
+"""Test SWAG Nginx Routing Configuration
+Following CLAUDE.md - NO MOCKING, real services only!
+
+This test suite verifies that SWAG nginx routing is correctly configured
+for all services, including path-based routing via explicit location blocks.
+
+SWAG uses static nginx proxy-conf files (*.subdomain.conf) instead of
+Traefik docker labels.  Authentication is enforced via
+`auth_request /_oauth_verify` in location blocks that require a valid token.
+OAuth endpoints (/register, /authorize, /token, etc.) do NOT have auth_request
+so they remain freely accessible as required by RFC 7591.
+"""
+
+import pytest
+
+from .test_constants import AUTH_BASE_URL
+from .test_constants import BASE_DOMAIN
+from .test_constants import HTTP_NOT_FOUND
+from .test_constants import HTTP_OK
+from .test_constants import HTTP_UNAUTHORIZED
+from .test_constants import HTTP_UNPROCESSABLE_ENTITY
+from .test_constants import MCP_FETCH_TESTS_ENABLED
+from .test_constants import MCP_FETCH_URL
+
+
+@pytest.mark.skipif(not MCP_FETCH_TESTS_ENABLED, reason="MCP Fetch tests disabled")
+class TestSwagNginxRouting:
+    """Test SWAG nginx routing configuration for all services."""
+
+    @pytest.mark.asyncio
+    async def test_auth_service_routing(self, http_client, _wait_for_services):
+        """Test that auth service routes are accessible."""
+        # Test well-known endpoint
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+        assert response.status_code == HTTP_OK
+        metadata = response.json()
+        assert "issuer" in metadata
+        assert metadata["issuer"] == f"https://mcp-auth.{BASE_DOMAIN}"
+
+        # OAuth discovery endpoint serves as health check
+        # Already tested above
+
+    @pytest.mark.asyncio
+    async def test_mcp_fetch_root_requires_auth(self, http_client, _wait_for_services):
+        """Test that MCP service root requires authentication."""
+        response = await http_client.get(MCP_FETCH_URL, follow_redirects=False)
+        # With catch-all route, should get 401 from auth middleware
+        assert response.status_code == HTTP_UNAUTHORIZED
+        assert "www-authenticate" in response.headers
+
+    @pytest.mark.asyncio
+    async def test_mcp_fetch_path_routing_without_auth(self, http_client, _wait_for_services):
+        """Test that /mcp path is routed correctly but requires auth."""
+        # Test /mcp without auth - should get 401
+        response = await http_client.post(
+            f"{MCP_FETCH_URL}",
+            json={"jsonrpc": "2.0", "method": "ping", "id": 1},
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json,text/event-stream",
+            },
+            follow_redirects=False,
+        )
+        assert response.status_code == HTTP_UNAUTHORIZED
+        assert "www-authenticate" in response.headers
+
+        # Response should be from auth service, not MCP service
+        error = response.json()
+        # Auth service returns OAuth 2.0 compliant errors
+        assert error["error"] == "invalid_request"
+
+    @pytest.mark.asyncio
+    async def test_mcp_fetch_trailing_slash_redirect(self, http_client, _wait_for_services):
+        """Test that /mcp redirects to /mcp/ with trailing slash."""
+        # First, let's check if we get a redirect from /mcp to /mcp/
+        response = await http_client.post(
+            f"{MCP_FETCH_URL}",
+            json={"jsonrpc": "2.0", "method": "ping", "id": 1},
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json,text/event-stream",
+            },
+            follow_redirects=False,
+        )
+
+        # Should get 401 from auth middleware before any redirect
+        assert response.status_code == HTTP_UNAUTHORIZED
+
+    # Removed test_mcp_health_endpoint_available - /health endpoints are deprecated
+    # per CLAUDE.md - use MCP protocol health checks instead
+
+    @pytest.mark.asyncio
+    async def test_all_mcp_paths_require_auth(self, http_client, _wait_for_services):
+        """Test that all MCP paths require authentication."""
+        paths_to_test = [
+            "/mcp",
+            "/mcp/",
+            "/mcp/tools/list",
+            "/mcp/prompts/list",
+            "/mcp/resources/list",
+        ]
+
+        for path in paths_to_test:
+            response = await http_client.post(
+                f"{MCP_FETCH_URL}{path}",
+                json={"jsonrpc": "2.0", "method": "ping", "id": 1},
+                headers={"Content-Type": "application/json"},
+                follow_redirects=False,
+            )
+            assert response.status_code == HTTP_UNAUTHORIZED, f"Path {path} did not require auth"
+            assert "www-authenticate" in response.headers, f"Path {path} missing WWW-Authenticate"
+
+    @pytest.mark.asyncio
+    async def test_nginx_location_specificity_order(self, http_client, _wait_for_services):
+        """Test that nginx location specificity routes requests correctly.
+
+        nginx does not use numeric priorities.  More-specific location blocks
+        (exact match `=`, then prefix `/authorize`, then catch-all `/`) are
+        matched in order.  OAuth endpoints are defined before the catch-all
+        `location /` block, ensuring they are reachable without auth_request.
+        """
+        # OAuth /authorize endpoint is defined without auth_request so it is
+        # reachable; missing query params produce 422 from FastAPI validation
+        response = await http_client.get(f"{AUTH_BASE_URL}/authorize")
+        assert response.status_code == HTTP_UNPROCESSABLE_ENTITY
+
+        # OAuth discovery (exact match location) is freely accessible
+        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server")
+        assert response.status_code == HTTP_OK
+
+    @pytest.mark.asyncio
+    async def test_cross_domain_routing(self, http_client, _wait_for_services):
+        """Test that each subdomain routes to correct service."""
+        # Auth subdomain
+        response = await http_client.get(
+            f"https://mcp-auth.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
+        )
+        assert response.status_code == HTTP_OK
+        assert "authorization_endpoint" in response.json()
+
+        # MCP subdomain - all paths require auth with catch-all route
+        response = await http_client.get(f"https://fetch.{BASE_DOMAIN}/some-path")
+        assert response.status_code == HTTP_UNAUTHORIZED
+
+        # MCP API endpoint should require auth
+        response = await http_client.post(
+            f"https://fetch.{BASE_DOMAIN}/mcp",
+            json={"test": "data"},
+            headers={"Content-Type": "application/json"},
+        )
+        assert response.status_code == HTTP_UNAUTHORIZED
+
+    @pytest.mark.asyncio
+    async def test_invalid_paths_return_404_or_401(self, http_client, _wait_for_services):
+        """Test that invalid paths return appropriate errors."""
+        # Invalid path on MCP service should get 401 (auth blocks first with catch-all route)
+        response = await http_client.get(f"{MCP_FETCH_URL}/invalid/path")
+        assert response.status_code == HTTP_UNAUTHORIZED
+
+        # Invalid path on auth service (no auth required) should get 404
+        response = await http_client.get(f"{AUTH_BASE_URL}/invalid/path")
+        assert response.status_code == HTTP_NOT_FOUND
+
+    @pytest.mark.asyncio
+    async def test_http_to_https_redirect(self, http_client):
+        """Test that HTTP requests are redirected to HTTPS."""
+        # Test HTTP to HTTPS redirect for auth service
+        http_auth_url = f"http://mcp-auth.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
+
+        response = await http_client.get(
+            http_auth_url,
+            follow_redirects=False,  # Don't follow redirects so we can check them
+        )
+
+        # Should get a redirect response (301 or 302)
+        assert response.status_code in [
+            301,
+            302,
+            307,
+            308,
+        ], (
+            f"Expected redirect status code, got {response.status_code}. Response: {response.text[:200]}"
+        )
+
+        # Check that Location header points to HTTPS
+        assert "Location" in response.headers, "Missing Location header in redirect response"
+        location = response.headers["Location"]
+        assert location.startswith("https://"), f"Redirect should point to HTTPS, got: {location}"
+        assert f"mcp-auth.{BASE_DOMAIN}" in location, (
+            f"Redirect should preserve hostname, got: {location}"
+        )
+
+        # Test HTTP to HTTPS redirect for MCP service
+        http_mcp_url = f"http://fetch.{BASE_DOMAIN}/.well-known/oauth-authorization-server"
+
+        response = await http_client.get(http_mcp_url, follow_redirects=False)
+
+        # Should get a redirect response
+        assert response.status_code in [301, 302, 307, 308], (
+            f"Expected redirect status code for MCP service, got {response.status_code}. "  # TODO: Break long line
+            f"Response: {response.text[:200]}"
+        )
+
+        # Check that Location header points to HTTPS
+        assert "Location" in response.headers, "Missing Location header in MCP redirect response"
+        location = response.headers["Location"]
+        assert location.startswith("https://"), (
+            f"MCP redirect should point to HTTPS, got: {location}"
+        )
+        assert f"fetch.{BASE_DOMAIN}" in location, (
+            f"MCP redirect should preserve hostname, got: {location}"
+        )
+
+        # Test that following the redirect works
+        https_response = await http_client.get(
+            http_auth_url,
+            follow_redirects=True,  # Follow redirects this time
+        )
+
+        # Should get successful response after redirect
+        assert https_response.status_code == HTTP_OK, (
+            f"Failed to access service after HTTP->HTTPS redirect: {https_response.status_code}"  # TODO: Break long line
+        )
+
+        # Verify we actually got the OAuth metadata response
+        metadata = https_response.json()
+        assert "issuer" in metadata, f"Invalid OAuth metadata response: {metadata}"
+        assert metadata["issuer"] == f"https://mcp-auth.{BASE_DOMAIN}", f"Incorrect issuer: {metadata}"

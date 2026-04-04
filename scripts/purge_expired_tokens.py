@@ -15,6 +15,7 @@ from datetime import datetime
 
 import redis.asyncio as redis
 from dotenv import load_dotenv
+from redis_runtime import resolve_runtime_redis_url
 
 
 # Load environment
@@ -24,28 +25,7 @@ load_dotenv()
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
-# Check if we should connect via Docker
-
-
-try:
-    result = subprocess.run(
-        ["docker", "compose", "ps", "--services", "--filter", "status=running"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    if "redis" in result.stdout:
-        port_result = subprocess.run(
-            ["docker", "compose", "port", "redis", "6379"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        if port_result.stdout.strip():
-            host, port = port_result.stdout.strip().split(":")
-            REDIS_URL = f"redis://{host}:{port}"
-except:
-    pass
+REDIS_URL = resolve_runtime_redis_url(REDIS_URL)
 
 
 async def get_redis_client():
@@ -167,10 +147,16 @@ async def purge_expired_tokens(dry_run: bool = False):
         # Print summary
         print("\n" + "=" * 60)
         print(f"{'[DRY RUN] ' if dry_run else ''}Purge Summary:")
-        print(f"  Access Tokens: {stats['access_tokens_expired']}/{stats['access_tokens_checked']} expired")
-        print(f"  Refresh Tokens: {stats['refresh_tokens_expired']}/{stats['refresh_tokens_checked']} expired")
+        print(
+            f"  Access Tokens: {stats['access_tokens_expired']}/{stats['access_tokens_checked']} expired"
+        )
+        print(
+            f"  Refresh Tokens: {stats['refresh_tokens_expired']}/{stats['refresh_tokens_checked']} expired"
+        )
         print(f"  Auth Codes: {stats['auth_codes_expired']}/{stats['auth_codes_checked']} expired")
-        print(f"  Auth States: {stats['auth_states_expired']}/{stats['auth_states_checked']} expired")
+        print(
+            f"  Auth States: {stats['auth_states_expired']}/{stats['auth_states_checked']} expired"
+        )
         print(f"\n  Total {'would be ' if dry_run else ''}deleted: {stats['total_deleted']}")
 
         # Also clean up orphaned data

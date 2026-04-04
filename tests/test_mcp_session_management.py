@@ -30,7 +30,9 @@ class TestMCPSessionCreation:
     ):
         """Test that a session is created when client initializes."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Send initialize request
         response = await http_client.post(
@@ -60,10 +62,14 @@ class TestMCPSessionCreation:
         # Session handling is internal to the proxy
 
     @pytest.mark.asyncio
-    async def test_multiple_sessions_isolated(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
+    async def test_multiple_sessions_isolated(
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+    ):
         """Test that multiple clients get isolated sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Create two separate HTTP clients to simulate different MCP clients
         async with (
@@ -132,7 +138,9 @@ class TestMCPSessionPersistence:
     ):
         """Test that session state persists between requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Initialize session
         init_response = await http_client.post(
@@ -192,7 +200,9 @@ class TestMCPSessionPersistence:
     ):
         """Test that operations fail without initialization."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Try to list tools without initializing first
         # Use a fresh client to ensure no existing session
@@ -228,7 +238,9 @@ class TestMCPSessionTimeout:
     ):
         """Test that sessions respect timeout configuration."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # This test would need to wait for actual timeout
         # Since SESSION_TIMEOUT is typically 300 seconds (5 minutes),
@@ -281,10 +293,14 @@ class TestMCPSessionTimeout:
         assert tools_response.status_code == HTTP_OK
 
     @pytest.mark.asyncio
-    async def test_session_activity_updates(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
+    async def test_session_activity_updates(
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+    ):
         """Test that session activity is updated on each request."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Initialize session
         await http_client.post(
@@ -340,7 +356,9 @@ class TestMCPSessionConcurrency:
     ):
         """Test that concurrent requests to same session are handled properly."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Initialize session
         init_response = await http_client.post(
@@ -404,10 +422,14 @@ class TestMCPSessionConcurrency:
             assert "tools" in data["result"]
 
     @pytest.mark.asyncio
-    async def test_request_id_uniqueness(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
+    async def test_request_id_uniqueness(
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+    ):
         """Test that request IDs are properly tracked per session."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Initialize session
         await http_client.post(
@@ -478,7 +500,9 @@ class TestMCPSessionCleanup:
     ):
         """Test that sessions are cleaned up when client disconnects."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Create a client that we'll close
         async with httpx.AsyncClient(timeout=TEST_HTTP_TIMEOUT) as temp_client:

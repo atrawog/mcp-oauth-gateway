@@ -37,7 +37,7 @@ class TestMCPSequentialThinkingComprehensive:
 
         # Build the command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--server-url",
@@ -103,7 +103,7 @@ class TestMCPSequentialThinkingComprehensive:
 
         # Build the command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--server-url",
@@ -113,7 +113,9 @@ class TestMCPSequentialThinkingComprehensive:
         ]
 
         # Run the command
-        result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=60, env=env)
+        result = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, timeout=60, env=env
+        )
 
         if result.returncode != 0:
             # Check if it's an expected error
@@ -194,7 +196,9 @@ class TestMCPSequentialThinkingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_tool_discovery(self, mcp_sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_tool_discovery(
+        self, mcp_sequentialthinking_url, client_token, wait_for_services
+    ):
         """Test discovering available sequential thinking tools."""
         # Initialize session
         self.initialize_session(mcp_sequentialthinking_url, client_token)
@@ -240,7 +244,9 @@ class TestMCPSequentialThinkingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_simple_problem(self, mcp_sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_simple_problem(
+        self, mcp_sequentialthinking_url, client_token, wait_for_services
+    ):
         """Test solving a simple problem with sequential thinking."""
         # Initialize session
         self.initialize_session(mcp_sequentialthinking_url, client_token)
@@ -516,7 +522,9 @@ class TestMCPSequentialThinkingComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_sequentialthinking_error_handling(self, mcp_sequentialthinking_url, client_token, wait_for_services):
+    async def test_sequentialthinking_error_handling(
+        self, mcp_sequentialthinking_url, client_token, wait_for_services
+    ):
         """Test error handling with invalid parameters."""
         # Initialize session
         self.initialize_session(mcp_sequentialthinking_url, client_token)
@@ -665,9 +673,13 @@ class TestMCPSequentialThinkingComprehensive:
         print("=== Sequential Thinking Workflow Complete ===\n")
 
         # Verify at least some steps succeeded
-        successful_steps = sum(1 for step in [step1, step2, step3, step4, step5] if "result" in step)
+        successful_steps = sum(
+            1 for step in [step1, step2, step3, step4, step5] if "result" in step
+        )
         print(f"Successfully completed {successful_steps}/5 thinking steps")
-        assert successful_steps >= 3, f"Expected at least 3 successful steps, got {successful_steps}"
+        assert successful_steps >= 3, (
+            f"Expected at least 3 successful steps, got {successful_steps}"
+        )
 
     @pytest.mark.integration
     @pytest.mark.asyncio

@@ -71,7 +71,11 @@ def view_backup(filepath: str):
                 print(f"  Client ID: {token_info.get('client_id', 'Unknown')}")
                 print(f"  Scope: {token_info.get('scope', 'Unknown')}")
                 print(f"  Issued: {token_info.get('iat', 'Unknown')}")
-                print(f"  TTL: {ttl} seconds ({ttl / 3600:.1f} hours)" if ttl > 0 else "  TTL: No expiry")
+                print(
+                    f"  TTL: {ttl} seconds ({ttl / 3600:.1f} hours)"
+                    if ttl > 0
+                    else "  TTL: No expiry"
+                )
             except:
                 print(f"\n  JTI: {jti}")
                 print(f"  Data: {value[:100]}..." if len(value) > 100 else f"  Data: {value}")

@@ -15,7 +15,7 @@ A comprehensive diagnostic MCP server that maintains session state across reques
 ```bash
 pip install mcp-echo-streamablehttp-server-stateful
 # or
-pixi add --pypi mcp-echo-streamablehttp-server-stateful
+uv tool install mcp-echo-streamablehttp-server-stateful
 ```
 
 **Basic Usage:**
@@ -106,9 +106,9 @@ mcp_echo_streamablehttp_server_stateful/
 pip install mcp-echo-streamablehttp-server-stateful
 ```
 
-### Using pixi
+### Using uv
 ```bash
-pixi add --pypi mcp-echo-streamablehttp-server-stateful
+uv tool install mcp-echo-streamablehttp-server-stateful
 ```
 
 ### Docker Installation

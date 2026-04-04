@@ -16,7 +16,9 @@ class TestMCPProtocol:
     async def test_mcp_endpoint_requires_auth(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test that MCP endpoint requires authentication."""
         # Try to access without auth
-        response = await http_client.post(f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1})
+        response = await http_client.post(
+            f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}
+        )
 
         # Should get 401 from ForwardAuth middleware
         assert response.status_code == HTTP_UNAUTHORIZED
@@ -46,7 +48,9 @@ class TestMCPProtocol:
             assert response.headers.get("WWW-Authenticate") == "Bearer"
 
     @pytest.mark.asyncio
-    async def test_mcp_streamable_http_headers(self, http_client, _wait_for_services, mcp_fetch_url):
+    async def test_mcp_streamable_http_headers(
+        self, http_client, _wait_for_services, mcp_fetch_url
+    ):
         """Test required headers for Streamable HTTP transport."""
         # Test required Accept header without auth
         response = await http_client.post(
@@ -145,9 +149,13 @@ class TestMCPProtocol:
     async def test_mcp_http_methods(self, http_client, _wait_for_services, mcp_fetch_url):
         """Test that MCP endpoint supports both POST and GET methods."""
         # Test POST method without auth
-        post_response = await http_client.post(f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1})
+        post_response = await http_client.post(
+            f"{mcp_fetch_url}", json={"jsonrpc": "2.0", "method": "ping", "id": 1}
+        )
         assert post_response.status_code == HTTP_UNAUTHORIZED  # Auth required
 
         # Test GET method without auth
-        get_response = await http_client.get(f"{mcp_fetch_url}", headers={"Mcp-Session-Id": "test-session"})
+        get_response = await http_client.get(
+            f"{mcp_fetch_url}", headers={"Mcp-Session-Id": "test-session"}
+        )
         assert get_response.status_code == HTTP_UNAUTHORIZED  # Auth required

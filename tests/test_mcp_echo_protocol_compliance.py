@@ -377,7 +377,9 @@ class TestMCPEchoProtocolCompliance:
                 json={
                     "jsonrpc": "2.0",
                     "method": method,
-                    "params": {} if method != "tools/call" else {"name": "echo", "arguments": {"message": "test"}},
+                    "params": {}
+                    if method != "tools/call"
+                    else {"name": "echo", "arguments": {"message": "test"}},
                     "id": f"method-{method}",
                 },
                 headers={

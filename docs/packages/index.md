@@ -1,6 +1,6 @@
 # Python Packages Overview
 
-The MCP OAuth Gateway consists of six Python packages, each serving a specific role in the architecture. All packages follow the sacred commandments of CLAUDE.md and are managed through the blessed pixi package manager.
+The MCP OAuth Gateway consists of six Python packages, each serving a specific role in the architecture. All packages follow the sacred commandments of CLAUDE.md and are managed through `uv`.
 
 ## Package Architecture
 
@@ -125,15 +125,15 @@ async def health():
 
 ## Installation
 
-All packages are managed through pixi:
+All packages are managed through `uv`:
 
 ```bash
-# Installed automatically via pixi.toml
-pixi install
+# Installed automatically from pyproject.toml and uv.lock
+uv sync
 
 # Or install individually for development
 cd mcp-oauth-dynamicclient
-pixi run pip install -e .
+uv pip install -e .
 ```
 
 ## Development Workflow
@@ -141,7 +141,7 @@ pixi run pip install -e .
 1. **Local Development**
    ```bash
    cd <package-name>
-   pixi run python -m <module_name>
+   uv run python -m <module_name>
    ```
 
 2. **Testing**

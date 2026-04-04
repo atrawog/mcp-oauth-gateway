@@ -63,7 +63,9 @@ class TestMCPFetchsSecurity:
                 if expected_status == 401:
                     # WWW-Authenticate header should start with "Bearer"
                     www_auth = response.headers.get("WWW-Authenticate", "")
-                    assert www_auth.startswith("Bearer"), f"WWW-Authenticate should start with Bearer, got: {www_auth}"
+                    assert www_auth.startswith("Bearer"), (
+                        f"WWW-Authenticate should start with Bearer, got: {www_auth}"
+                    )
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -90,11 +92,15 @@ class TestMCPFetchsSecurity:
                 assert response.status_code == HTTP_UNAUTHORIZED
                 # WWW-Authenticate header should start with Bearer
                 www_auth = response.headers.get("WWW-Authenticate", "")
-                assert www_auth.startswith("Bearer"), f"WWW-Authenticate should start with Bearer, got: {www_auth}"
+                assert www_auth.startswith("Bearer"), (
+                    f"WWW-Authenticate should start with Bearer, got: {www_auth}"
+                )
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_endpoint_auth_requirements(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_fetchs_endpoint_auth_requirements(
+        self, mcp_fetchs_url, valid_token, _wait_for_services
+    ):
         """Test which endpoints require authentication."""
         endpoints_auth_required = [
             ("/mcp", "POST", True),
@@ -111,11 +117,15 @@ class TestMCPFetchsSecurity:
                     method,
                     f"{mcp_fetchs_url}{path}",
                     headers={"Content-Type": "application/json"} if method == "POST" else {},
-                    json={"jsonrpc": "2.0", "method": "test", "id": 1} if method == "POST" else None,
+                    json={"jsonrpc": "2.0", "method": "test", "id": 1}
+                    if method == "POST"
+                    else None,
                 )
 
                 if auth_required:
-                    assert response.status_code in [401, 404], f"{method} {path} should require auth"
+                    assert response.status_code in [401, 404], (
+                        f"{method} {path} should require auth"
+                    )
                     if response.status_code == HTTP_UNAUTHORIZED:
                         assert response.headers.get("WWW-Authenticate") == "Bearer"
                 else:
@@ -208,7 +218,9 @@ class TestMCPFetchsSecurity:
     #
     # @pytest.mark.integration
     # @pytest.mark.asyncio
-    async def test_fetchs_rate_limiting_behavior(self, mcp_fetchs_url, valid_token, _wait_for_services):
+    async def test_fetchs_rate_limiting_behavior(
+        self, mcp_fetchs_url, valid_token, _wait_for_services
+    ):
         """Test service behavior under rapid requests."""
         async with httpx.AsyncClient(verify=True) as client:
             # Make 10 rapid requests
@@ -234,7 +246,9 @@ class TestMCPFetchsSecurity:
         from tests.test_constants import MCP_FETCHS_TESTS_ENABLED
 
         if not MCP_FETCHS_TESTS_ENABLED:
-            pytest.skip("MCP Fetchs tests are disabled. Set MCP_FETCHS_TESTS_ENABLED=true to enable.")
+            pytest.skip(
+                "MCP Fetchs tests are disabled. Set MCP_FETCHS_TESTS_ENABLED=true to enable."
+            )
 
         # Use base domain for OAuth discovery, not the /mcp endpoint
         oauth_discovery_url = f"https://fetchs.{base_domain}/.well-known/oauth-authorization-server"

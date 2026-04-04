@@ -63,7 +63,7 @@ class MCPMemoryFunctionalitySummary:
 
     - MCP Protocol Version: 2024-11-05 (official memory server version)
     - Transport: Streamable HTTP via mcp-streamablehttp-proxy
-    - Authentication: OAuth 2.1 Bearer tokens via Traefik
+    - Authentication: OAuth 2.1 Bearer tokens via SWAG auth_request
     - Session Management: Proper Mcp-Session-Id handling
     - Error Handling: Proper JSON-RPC error responses
 
@@ -101,7 +101,7 @@ class MCPMemoryFunctionalitySummary:
     🚀 INTEGRATION QUALITY:
 
     - Full OAuth 2.1 authentication integration
-    - Seamless Traefik routing with ForwardAuth
+    - Seamless SWAG nginx routing with auth_request
     - Health monitoring and Docker orchestration
     - Production-ready deployment pattern
     - Comprehensive error handling

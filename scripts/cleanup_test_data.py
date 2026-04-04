@@ -8,7 +8,7 @@ Example: "TEST test_oauth_flow", "TEST test_registration", etc.
 
 Following the sacred commandments:
 - NO MOCKING - works with real Redis
-- Uses blessed tools (pixi run)
+- Uses blessed tools (uv run)
 - Respects the sacred key patterns
 """
 
@@ -240,7 +240,9 @@ def main():
     """Divine entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Sacred test data cleanup utility - CLAUDE.md compliant!")
+    parser = argparse.ArgumentParser(
+        description="Sacred test data cleanup utility - CLAUDE.md compliant!"
+    )
     parser.add_argument("--show", action="store_true", help="Show test data without deleting")
     parser.add_argument(
         "--execute",

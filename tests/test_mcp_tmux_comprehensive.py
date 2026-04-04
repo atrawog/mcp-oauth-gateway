@@ -24,7 +24,7 @@ class TestMCPTmuxComprehensive:
 
         # Run mcp-streamablehttp-client
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "python",
             "-m",
@@ -217,7 +217,9 @@ class TestMCPTmuxComprehensive:
 
         assert "result" in response or "error" in response
 
-    def test_command_execution_with_output(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
+    def test_command_execution_with_output(
+        self, mcp_tmux_url, mcp_client_token, _wait_for_services
+    ):
         """Test command execution and output capture."""
         # Execute a command that produces output
         response = self.run_mcp_client_raw(
@@ -461,7 +463,9 @@ class TestMCPTmuxComprehensive:
 
         assert "result" in response or "error" in response
 
-    def test_unicode_and_special_characters(self, mcp_tmux_url, mcp_client_token, _wait_for_services):
+    def test_unicode_and_special_characters(
+        self, mcp_tmux_url, mcp_client_token, _wait_for_services
+    ):
         """Test handling of unicode and special characters."""
         # Test with unicode characters
         response = self.run_mcp_client_raw(

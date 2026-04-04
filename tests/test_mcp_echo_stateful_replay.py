@@ -32,7 +32,9 @@ class TestMCPEchoStatefulReplay:
         }
 
         # Initialize
-        response = await http_client.post(mcp_echo_stateful_url, json=init_request, headers=gateway_auth_headers)
+        response = await http_client.post(
+            mcp_echo_stateful_url, json=init_request, headers=gateway_auth_headers
+        )
         assert response.status_code == 200
         session_id = response.headers.get("mcp-session-id")
         assert session_id is not None
@@ -48,7 +50,9 @@ class TestMCPEchoStatefulReplay:
             "id": 2,
         }
 
-        response = await http_client.post(mcp_echo_stateful_url, json=echo_request, headers=headers_with_session)
+        response = await http_client.post(
+            mcp_echo_stateful_url, json=echo_request, headers=headers_with_session
+        )
         assert response.status_code == 200
         echo_result = response.json()
         assert "result" in echo_result
@@ -62,7 +66,9 @@ class TestMCPEchoStatefulReplay:
             "id": 3,
         }
 
-        response = await http_client.post(mcp_echo_stateful_url, json=replay_request, headers=headers_with_session)
+        response = await http_client.post(
+            mcp_echo_stateful_url, json=replay_request, headers=headers_with_session
+        )
         assert response.status_code == 200
         replay_result = response.json()
         assert "result" in replay_result
@@ -91,7 +97,9 @@ class TestMCPEchoStatefulReplay:
         }
 
         # Initialize
-        response = await http_client.post(mcp_echo_stateful_url, json=init_request, headers=gateway_auth_headers)
+        response = await http_client.post(
+            mcp_echo_stateful_url, json=init_request, headers=gateway_auth_headers
+        )
         assert response.status_code == 200
         session_id = response.headers.get("mcp-session-id")
         assert session_id is not None
@@ -107,7 +115,9 @@ class TestMCPEchoStatefulReplay:
             "id": 2,
         }
 
-        response = await http_client.post(mcp_echo_stateful_url, json=replay_request, headers=headers_with_session)
+        response = await http_client.post(
+            mcp_echo_stateful_url, json=replay_request, headers=headers_with_session
+        )
         assert response.status_code == 200
         replay_result = response.json()
         assert "result" in replay_result
@@ -130,7 +140,9 @@ class TestMCPEchoStatefulReplay:
             "id": 1,
         }
 
-        response = await http_client.post(mcp_echo_stateful_url, json=replay_request, headers=gateway_auth_headers)
+        response = await http_client.post(
+            mcp_echo_stateful_url, json=replay_request, headers=gateway_auth_headers
+        )
         assert response.status_code == 200
         result = response.json()
         # Since no session was provided, replayLastEcho returns an error
@@ -160,7 +172,9 @@ class TestMCPEchoStatefulReplay:
         }
 
         # Initialize
-        response = await http_client.post(mcp_echo_stateful_url, json=init_request, headers=gateway_auth_headers)
+        response = await http_client.post(
+            mcp_echo_stateful_url, json=init_request, headers=gateway_auth_headers
+        )
         assert response.status_code == 200
         session_id = response.headers.get("mcp-session-id")
         assert session_id is not None
@@ -177,7 +191,9 @@ class TestMCPEchoStatefulReplay:
                 "id": i + 2,
             }
 
-            response = await http_client.post(mcp_echo_stateful_url, json=echo_request, headers=headers_with_session)
+            response = await http_client.post(
+                mcp_echo_stateful_url, json=echo_request, headers=headers_with_session
+            )
             assert response.status_code == 200
 
         # Replay should return the last message
@@ -188,7 +204,9 @@ class TestMCPEchoStatefulReplay:
             "id": len(messages) + 2,
         }
 
-        response = await http_client.post(mcp_echo_stateful_url, json=replay_request, headers=headers_with_session)
+        response = await http_client.post(
+            mcp_echo_stateful_url, json=replay_request, headers=headers_with_session
+        )
         assert response.status_code == 200
         replay_result = response.json()
         assert "result" in replay_result
@@ -223,7 +241,9 @@ class TestMCPEchoStatefulReplay:
         }
 
         # Initialize
-        response = await http_client.post(mcp_echo_stateful_url, json=init_request, headers=gateway_auth_headers)
+        response = await http_client.post(
+            mcp_echo_stateful_url, json=init_request, headers=gateway_auth_headers
+        )
         assert response.status_code == 200
         session_id = response.headers.get("mcp-session-id")
         assert session_id is not None
@@ -239,7 +259,9 @@ class TestMCPEchoStatefulReplay:
             "id": 2,
         }
 
-        response = await http_client.post(mcp_echo_stateful_url, json=echo_request, headers=headers_with_session)
+        response = await http_client.post(
+            mcp_echo_stateful_url, json=echo_request, headers=headers_with_session
+        )
         assert response.status_code == 200
 
         # Test replay
@@ -250,7 +272,9 @@ class TestMCPEchoStatefulReplay:
             "id": 3,
         }
 
-        response = await http_client.post(mcp_echo_stateful_url, json=replay_request, headers=headers_with_session)
+        response = await http_client.post(
+            mcp_echo_stateful_url, json=replay_request, headers=headers_with_session
+        )
         assert response.status_code == 200
         replay_result = response.json()
         assert "result" in replay_result

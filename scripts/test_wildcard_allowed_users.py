@@ -7,6 +7,8 @@ Run this after setting ALLOWED_GITHUB_USERS=* in your .env file and restarting t
 
 import asyncio
 import os
+
+from env_compat import get_env_value
 import sys
 
 import httpx
@@ -19,7 +21,7 @@ async def test_wildcard_functionality():
         print("❌ BASE_DOMAIN not set in environment")
         return False
 
-    auth_url = f"https://auth.{base_domain}"
+    auth_url = f"https://mcp-auth.{base_domain}"
     # Only disable SSL verification in development environments
     ssl_verify = os.getenv("SSL_VERIFY", "true").lower() == "true"
 
@@ -53,7 +55,9 @@ async def test_wildcard_functionality():
             "code_challenge_method": "S256",
         }
 
-        auth_response = await client.get(f"{auth_url}/authorize", params=auth_params, follow_redirects=False)
+        auth_response = await client.get(
+            f"{auth_url}/authorize", params=auth_params, follow_redirects=False
+        )
 
         if auth_response.status_code != 302:
             print(f"❌ Authorization failed: {auth_response.status_code}")
@@ -69,7 +73,7 @@ async def test_wildcard_functionality():
         print(f"   GitHub URL: {github_url[:100]}...")
 
         print("\n3. Check current ALLOWED_GITHUB_USERS setting...")
-        allowed_users = os.getenv("ALLOWED_GITHUB_USERS", "")
+        allowed_users = get_env_value("ALLOWED_GITHUB_USERS", "") or ""
         if not allowed_users:
             print("   ALLOWED_GITHUB_USERS is empty (allows all users)")
         elif "*" in allowed_users:

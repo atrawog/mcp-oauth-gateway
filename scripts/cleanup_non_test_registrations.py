@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-AUTH_BASE_URL = f"https://auth.{os.getenv('BASE_DOMAIN')}"
+AUTH_BASE_URL = f"https://mcp-auth.{os.getenv('BASE_DOMAIN')}"
 ADMIN_TOKEN = os.getenv("GATEWAY_OAUTH_ACCESS_TOKEN")
 # Only disable SSL verification in development environments
 SSL_VERIFY = os.getenv("SSL_VERIFY", "true").lower() == "true"

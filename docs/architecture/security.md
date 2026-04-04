@@ -27,7 +27,7 @@ graph TB
         end
 
         subgraph "Layer 3: Authorization"
-            FORWARD[ForwardAuth]
+            FORWARD[auth_request]
             SCOPE[Scope Validation]
             ALLOW[User Allowlist]
         end
@@ -49,52 +49,60 @@ graph TB
 
 ### HTTPS Enforcement
 
-All external traffic must use HTTPS:
+All external traffic must use HTTPS. SWAG handles HTTP→HTTPS redirection automatically — no manual configuration required. Any request arriving on port 80 is permanently redirected to port 443 by SWAG's built-in nginx configuration.
 
-```yaml
-# Traefik configuration
-entrypoints:
-  web:
-    address: ":80"
-    http:
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
-          permanent: true
-  websecure:
-    address: ":443"
+```nginx
+# SWAG automatically includes this redirect in its default nginx config
+server {
+    listen 80;
+    server_name _;
+    return 301 https://$host$request_uri;
+}
 ```
 
 ### SSL/TLS Configuration
 
+SWAG uses certbot to obtain and renew Let's Encrypt certificates automatically. Certificate management is driven entirely by environment variables in the SWAG container:
+
 ```yaml
-# Let's Encrypt automatic certificates
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      email: ${ACME_EMAIL}
-      storage: /certificates/acme.json
-      httpChallenge:
-        entryPoint: web
-      # Production CA
-      caServer: https://acme-v02.api.letsencrypt.org/directory
+# SWAG container environment variables (docker-compose.yml)
+environment:
+  - URL=${DOMAIN}
+  - SUBDOMAINS=wildcard   # or comma-separated list
+  - EMAIL=${ACME_EMAIL}
+  - VALIDATION=dns        # or http
+  - CERTPROVIDER=letsencrypt
+  - DNSPLUGIN=cloudflare  # depends on DNS provider
 ```
+
+SWAG stores certificates at `/config/etc/letsencrypt/live/${DOMAIN}/` inside the container and handles renewal automatically before expiry.
 
 ### Security Headers
 
-```yaml
-# Traefik security headers middleware
-headers:
-  stsSeconds: 31536000
-  stsIncludeSubdomains: true
-  stsPreload: true
-  forceSTSHeader: true
-  contentTypeNosniff: true
-  browserXssFilter: true
-  referrerPolicy: "same-origin"
-  contentSecurityPolicy: "default-src 'self'"
-  customFrameOptionsValue: "DENY"
+Security headers are added via `add_header` directives in nginx configuration snippets. SWAG provides a pre-built `ssl.conf` snippet that can be included in site configs:
+
+```nginx
+# /config/nginx/ssl.conf (SWAG managed) or custom snippet
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-XSS-Protection "1; mode=block" always;
+add_header Referrer-Policy "same-origin" always;
+add_header Content-Security-Policy "default-src 'self'" always;
+add_header X-Frame-Options "DENY" always;
+```
+
+Include the snippet in each site's server block:
+
+```nginx
+# /config/nginx/site-confs/mcp-gateway.conf
+server {
+    listen 443 ssl;
+    server_name ${DOMAIN};
+
+    include /config/nginx/ssl.conf;
+
+    # ... location blocks
+}
 ```
 
 ## Authentication Security
@@ -163,7 +171,88 @@ if github_username not in ALLOWED_GITHUB_USERS:
 
 ## Authorization Security
 
-### ForwardAuth Middleware
+### auth_request Flow
+
+SWAG uses nginx's `auth_request` directive to validate every MCP request against the Auth Service `/verify` endpoint before proxying it upstream. The flow is:
+
+```{mermaid}
+sequenceDiagram
+    participant C as Client
+    participant N as SWAG nginx
+    participant A as Auth Service (/verify)
+    participant M as MCP Service
+
+    C->>N: POST /mcp (Bearer token)
+    N->>A: auth_request → GET /verify (same headers)
+    A-->>N: 200 OK + X-User-Id, X-User-Name, X-Auth-Token
+    N->>M: Proxied request + injected headers
+    M-->>N: MCP response
+    N-->>C: MCP response
+
+    note over N,A: On 401/403 from /verify,<br/>nginx returns error to client
+```
+
+nginx `auth_request` configuration:
+
+```nginx
+# /config/nginx/site-confs/mcp-service.conf
+location /mcp {
+    # Delegate authentication to Auth Service
+    auth_request /auth-verify;
+
+    # Inject headers returned by /verify into the upstream request
+    auth_request_set $user_id    $upstream_http_x_user_id;
+    auth_request_set $user_name  $upstream_http_x_user_name;
+    auth_request_set $auth_token $upstream_http_x_auth_token;
+
+    proxy_set_header X-User-Id    $user_id;
+    proxy_set_header X-User-Name  $user_name;
+    proxy_set_header X-Auth-Token $auth_token;
+
+    proxy_pass http://mcp-service:3000;
+}
+
+# Internal subrequest location — not accessible externally
+location = /auth-verify {
+    internal;
+    proxy_pass              http://auth:8000/verify;
+    proxy_pass_request_body off;
+    proxy_set_header        Content-Length "";
+    proxy_set_header        X-Original-URI $request_uri;
+    # Forward Authorization header so /verify can inspect the Bearer token
+    proxy_set_header        Authorization $http_authorization;
+}
+```
+
+### IP Whitelisting
+
+IP-based access restrictions use nginx `allow`/`deny` directives:
+
+```nginx
+# Allow specific IPs or ranges; deny everyone else
+location /mcp {
+    allow 10.0.0.0/8;
+    allow 192.168.1.100;
+    deny  all;
+
+    auth_request /auth-verify;
+    # ... rest of location block
+}
+```
+
+For gateway management endpoints (e.g. `/register`, `/revoke`), restrict to trusted networks:
+
+```nginx
+location /admin {
+    allow 127.0.0.1;
+    allow 10.0.0.0/8;
+    deny  all;
+
+    proxy_pass http://auth:8000;
+}
+```
+
+### /verify Endpoint
 
 Every MCP request validated:
 

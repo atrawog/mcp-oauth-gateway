@@ -57,7 +57,9 @@ async def initialize_mcp_session(
     )
 
     if init_response.status_code != 200:
-        raise RuntimeError(f"Failed to initialize MCP session: {init_response.status_code} - {init_response.text}")
+        raise RuntimeError(
+            f"Failed to initialize MCP session: {init_response.status_code} - {init_response.text}"
+        )
 
     # Get session ID from response headers (optional for stateless servers)
     session_id = init_response.headers.get("Mcp-Session-Id")

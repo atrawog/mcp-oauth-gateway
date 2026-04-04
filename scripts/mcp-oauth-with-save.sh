@@ -9,7 +9,7 @@ export MCP_SERVER_URL="https://mcp-fetch.${BASE_DOMAIN}/mcp"
 
 # Run the OAuth flow and capture output
 echo "Running OAuth flow..."
-OUTPUT=$(script -q -c ".pixi/envs/default/bin/python -m mcp_streamablehttp_client.cli --token --server-url \"$MCP_SERVER_URL\"" /dev/null)
+OUTPUT=$(script -q -c "uv run python -m mcp_streamablehttp_client.cli --token --server-url \"$MCP_SERVER_URL\"" /dev/null)
 
 # Display the output
 echo "$OUTPUT"

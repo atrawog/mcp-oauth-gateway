@@ -82,7 +82,9 @@ def redis_db_number(worker_id):
     # Check if redis_client exists
     if re.search(redis_pattern, content, re.DOTALL):
         # Replace existing redis_client
-        content = re.sub(redis_pattern, f"@pytest.fixture\n{redis_update}", content, flags=re.DOTALL)
+        content = re.sub(
+            redis_pattern, f"@pytest.fixture\n{redis_update}", content, flags=re.DOTALL
+        )
     else:
         print("Warning: Could not find redis_client fixture to update")
 

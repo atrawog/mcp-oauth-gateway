@@ -23,7 +23,7 @@ def test_echo_tool():
 
     # Test echo command
     cmd = [
-        "pixi",
+        "uv",
         "run",
         "mcp-streamablehttp-client",
         "--server-url",

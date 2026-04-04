@@ -52,7 +52,9 @@ class TestMCPClientProxyBasics:
     """Test basic proxy functionality against real MCP services."""
 
     @pytest.mark.asyncio
-    async def test_proxy_health_check(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_proxy_health_check(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test that the MCP proxy service is healthy using MCP protocol per divine CLAUDE.md."""
         # Health checks should use MCP protocol initialization
         request_data = {
@@ -73,7 +75,9 @@ class TestMCPClientProxyBasics:
             headers={"Content-Type": "application/json"},
             timeout=30.0,
         )
-        assert response.status_code == HTTP_UNAUTHORIZED, "MCP endpoint should require authentication"
+        assert response.status_code == HTTP_UNAUTHORIZED, (
+            "MCP endpoint should require authentication"
+        )
 
         # If we have a token, test with auth
         if MCP_CLIENT_ACCESS_TOKEN:
@@ -88,7 +92,9 @@ class TestMCPClientProxyBasics:
                 },
                 timeout=30.0,
             )
-            assert response.status_code == HTTP_OK, "MCP health check should succeed with valid token"
+            assert response.status_code == HTTP_OK, (
+                "MCP health check should succeed with valid token"
+            )
 
             result = parse_mcp_response(response)
             assert "result" in result or "error" in result
@@ -120,7 +126,11 @@ class TestMCPClientProxyBasics:
 
         # Check OAuth discovery is available
         # Remove /mcp suffix from URL to get base domain
-        base_url = MCP_ECHO_STATELESS_URL[:-4] if MCP_ECHO_STATELESS_URL.endswith("/mcp") else MCP_ECHO_STATELESS_URL
+        base_url = (
+            MCP_ECHO_STATELESS_URL[:-4]
+            if MCP_ECHO_STATELESS_URL.endswith("/mcp")
+            else MCP_ECHO_STATELESS_URL
+        )
         discovery_url = f"{base_url}/.well-known/oauth-authorization-server"
         discovery_response = await http_client.get(discovery_url, timeout=30.0)
 
@@ -136,7 +146,9 @@ class TestMCPProtocolHandling:
     """Test MCP protocol handling through the proxy."""
 
     @pytest.mark.asyncio
-    async def test_initialize_request(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_initialize_request(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test MCP initialize request through proxy."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
@@ -189,7 +201,9 @@ class TestMCPProtocolHandling:
             print(f"⚠️  Initialize returned error: {result['error']}")
 
     @pytest.mark.asyncio
-    async def test_session_management(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_session_management(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test session management through proxy."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
@@ -291,7 +305,9 @@ class TestProxyErrorHandling:
     """Test error handling in the proxy."""
 
     @pytest.mark.asyncio
-    async def test_invalid_json_rpc_request(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_invalid_json_rpc_request(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test handling of invalid JSON-RPC requests."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
@@ -329,7 +345,9 @@ class TestProxyErrorHandling:
                         result = json.loads(json_data)
                         break
                 else:
-                    pytest.fail(f"No data line found in SSE response. Content: {response.text[:200]}")
+                    pytest.fail(
+                        f"No data line found in SSE response. Content: {response.text[:200]}"
+                    )
             else:
                 result = response.json()
             assert "error" in result
@@ -338,7 +356,9 @@ class TestProxyErrorHandling:
         print("✅ Invalid JSON-RPC requests handled correctly")
 
     @pytest.mark.asyncio
-    async def test_method_not_found(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_method_not_found(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test handling of unknown methods."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
@@ -369,7 +389,9 @@ class TestProxyErrorHandling:
         print("✅ Unknown methods properly rejected")
 
     @pytest.mark.asyncio
-    async def test_expired_token_handling(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_expired_token_handling(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test proxy behavior with expired tokens."""
         # Use an obviously expired token
         response = await http_client.post(
@@ -389,7 +411,9 @@ class TestProxyRealWorldScenarios:
     """Test real-world proxy usage scenarios."""
 
     @pytest.mark.asyncio
-    async def test_tools_listing(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_tools_listing(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test listing available tools through proxy."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
@@ -423,7 +447,9 @@ class TestProxyRealWorldScenarios:
                 print(f"⚠️  Tools listing failed: {result.get('error')}")
 
     @pytest.mark.asyncio
-    async def test_concurrent_sessions(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_concurrent_sessions(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test handling multiple concurrent sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
@@ -469,7 +495,9 @@ class TestProxyRealWorldScenarios:
             assert len(set(valid_sessions)) == len(valid_sessions), "Sessions should be unique"
 
     @pytest.mark.asyncio
-    async def test_large_request_handling(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_large_request_handling(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test handling of large requests through proxy."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
@@ -504,7 +532,9 @@ class TestProxyRealWorldScenarios:
         assert response.status_code == HTTP_OK
         print("✅ Large requests handled successfully")
 
-    async def _create_session(self, http_client: httpx.AsyncClient, unique_test_id: str) -> str | None:
+    async def _create_session(
+        self, http_client: httpx.AsyncClient, unique_test_id: str
+    ) -> str | None:
         """Helper to create a session."""
         response = await http_client.post(
             f"{MCP_ECHO_STATELESS_URL}",
@@ -579,21 +609,29 @@ class TestProxyAuthenticationFlows:
         """Test OAuth discovery endpoint through proxy domain."""
         # This should be publicly accessible
         # Remove /mcp suffix from URL to get base domain
-        base_url = MCP_ECHO_STATELESS_URL[:-4] if MCP_ECHO_STATELESS_URL.endswith("/mcp") else MCP_ECHO_STATELESS_URL
-        response = await http_client.get(f"{base_url}/.well-known/oauth-authorization-server", timeout=30.0)
+        base_url = (
+            MCP_ECHO_STATELESS_URL[:-4]
+            if MCP_ECHO_STATELESS_URL.endswith("/mcp")
+            else MCP_ECHO_STATELESS_URL
+        )
+        response = await http_client.get(
+            f"{base_url}/.well-known/oauth-authorization-server", timeout=30.0
+        )
 
         assert response.status_code == HTTP_OK
         metadata = response.json()
 
         # Should point to auth service endpoints
-        assert f"auth.{BASE_DOMAIN}" in metadata["issuer"]
-        assert f"auth.{BASE_DOMAIN}" in metadata["authorization_endpoint"]
+        assert f"mcp-auth.{BASE_DOMAIN}" in metadata["issuer"]
+        assert f"mcp-auth.{BASE_DOMAIN}" in metadata["authorization_endpoint"]
 
         print("✅ OAuth discovery accessible through proxy domain")
         print(f"   Auth server: {metadata['issuer']}")
 
     @pytest.mark.asyncio
-    async def test_auth_error_details(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_auth_error_details(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test auth error response details."""
         # Test various invalid auth scenarios
         test_cases = [
@@ -625,7 +663,9 @@ class TestProxyPerformance:
     """Test proxy performance characteristics."""
 
     @pytest.mark.asyncio
-    async def test_response_times(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_response_times(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test typical response times through proxy."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")
@@ -671,7 +711,9 @@ class TestProxyPerformance:
         print(f"   MCP request: {mcp_time * 1000:.0f}ms")
 
     @pytest.mark.asyncio
-    async def test_connection_reuse(self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id):
+    async def test_connection_reuse(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_test_id
+    ):
         """Test that connections are reused efficiently."""
         if not MCP_CLIENT_ACCESS_TOKEN:
             pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - TESTS MUST NOT BE SKIPPED!")

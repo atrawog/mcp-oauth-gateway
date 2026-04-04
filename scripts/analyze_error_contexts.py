@@ -48,7 +48,9 @@ def find_error_contexts():
 
     # Print most common variable names
     print("Common variable names for response.json():")
-    for var_name, occurrences in sorted(var_patterns.items(), key=lambda x: len(x[1]), reverse=True):
+    for var_name, occurrences in sorted(
+        var_patterns.items(), key=lambda x: len(x[1]), reverse=True
+    ):
         print(f"\n{var_name}: {len(occurrences)} occurrences")
         # Show a few examples
         for file_name, ctx in occurrences[:3]:
@@ -80,7 +82,9 @@ def find_error_contexts():
 
         if files_with_pattern:
             print(f"\n{pattern_name}:")
-            for file_name, count in sorted(files_with_pattern, key=lambda x: x[1], reverse=True)[:5]:
+            for file_name, count in sorted(files_with_pattern, key=lambda x: x[1], reverse=True)[
+                :5
+            ]:
                 print(f"  - {file_name}: {count} times")
 
 

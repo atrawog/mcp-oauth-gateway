@@ -15,7 +15,7 @@ A native StreamableHTTP implementation providing secure web content fetching wit
 ```bash
 pip install mcp-fetch-streamablehttp-server
 # or
-pixi add --pypi mcp-fetch-streamablehttp-server
+uv tool install mcp-fetch-streamablehttp-server
 ```
 
 **Basic Usage:**
@@ -95,9 +95,9 @@ mcp_fetch_streamablehttp_server/
 pip install mcp-fetch-streamablehttp-server
 ```
 
-### Using pixi
+### Using uv
 ```bash
-pixi add --pypi mcp-fetch-streamablehttp-server
+uv tool install mcp-fetch-streamablehttp-server
 ```
 
 ### Docker Installation

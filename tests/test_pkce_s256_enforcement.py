@@ -18,10 +18,14 @@ class TestPKCES256Enforcement:
     """Test PKCE S256 enforcement per CLAUDE.md sacred commandments."""
 
     @pytest.mark.asyncio
-    async def test_pkce_plain_method_rejected(self, http_client, _wait_for_services, unique_client_name):
+    async def test_pkce_plain_method_rejected(
+        self, http_client, _wait_for_services, unique_client_name
+    ):
         """Verify that plain PKCE method is rejected per CLAUDE.md commandments."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         # Register a client
         register_response = await http_client.post(
@@ -48,7 +52,9 @@ class TestPKCES256Enforcement:
             "state": "test-state",
         }
 
-        auth_response = await http_client.get(f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False)
+        auth_response = await http_client.get(
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
+        )
 
         # Should reject plain method
         assert auth_response.status_code == HTTP_BAD_REQUEST
@@ -78,10 +84,14 @@ class TestPKCES256Enforcement:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_pkce_s256_proper_validation(self, http_client, _wait_for_services, unique_client_name):
+    async def test_pkce_s256_proper_validation(
+        self, http_client, _wait_for_services, unique_client_name
+    ):
         """Verify S256 PKCE validation actually works correctly."""
         # MUST have OAuth access token - test FAILS if not available
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         # Register a client
         register_response = await http_client.post(
@@ -112,7 +122,9 @@ class TestPKCES256Enforcement:
             "state": "test-state",
         }
 
-        auth_response = await http_client.get(f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False)
+        auth_response = await http_client.get(
+            f"{AUTH_BASE_URL}/authorize", params=auth_params, follow_redirects=False
+        )
 
         # For now, we expect 307 redirect to GitHub (no user session)
         # The important part is it doesn't reject S256

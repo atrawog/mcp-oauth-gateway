@@ -160,7 +160,7 @@ ALLOWED_GITHUB_USERS=user1,user2
 
 The blessed trinity of tools:
 1. **just** - All commands flow through justfile
-2. **pixi** - Python package management
+2. **uv** - Python package management
 3. **docker-compose** - Service orchestration
 
 ```bash

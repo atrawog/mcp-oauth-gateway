@@ -33,7 +33,8 @@ def update_fetch_test_file(file_path: Path) -> bool:
                         # Find the last test_constants import
                         j = i
                         while j < len(lines) - 1 and (
-                            lines[j + 1].startswith("from .test_constants import") or lines[j + 1].strip() == ""
+                            lines[j + 1].startswith("from .test_constants import")
+                            or lines[j + 1].strip() == ""
                         ):
                             j += 1
                         # Insert after the last one
@@ -51,7 +52,8 @@ def update_fetch_test_file(file_path: Path) -> bool:
                         # Find end of import block
                         j = i
                         while j < len(lines) - 1 and (
-                            lines[j + 1].strip() == "" or lines[j + 1].startswith(("import ", "from "))
+                            lines[j + 1].strip() == ""
+                            or lines[j + 1].startswith(("import ", "from "))
                         ):
                             j += 1
                         lines.insert(

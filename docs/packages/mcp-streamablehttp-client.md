@@ -13,8 +13,8 @@ The divine bridge that enables stdio-based MCP clients to communicate with Strea
 
 **Installation:**
 ```bash
-# Via pixi (recommended)
-pixi add mcp-streamablehttp-client
+# Via uv (recommended)
+uv tool install mcp-streamablehttp-client
 
 # Via pip
 pip install mcp-streamablehttp-client
@@ -110,8 +110,8 @@ StreamParser              # SSE stream parsing
 ### Installation Options
 
 ```bash
-# Using pixi (recommended)
-pixi add mcp-streamablehttp-client
+# Using uv (recommended)
+uv tool install mcp-streamablehttp-client
 
 # Using pip
 pip install mcp-streamablehttp-client

@@ -23,7 +23,9 @@ def base_domain():
 def everything_url():
     """Full URL for everything service."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
-        pytest.skip("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
+        pytest.skip(
+            "MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable."
+        )
     if not MCP_EVERYTHING_URLS:
         pytest.skip("MCP_EVERYTHING_URLS environment variable not set")
     return MCP_EVERYTHING_URLS[0]
@@ -71,7 +73,7 @@ class TestMCPEverythingClientFull:
 
         # Build the command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--server-url",
@@ -151,7 +153,9 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_initialize(self, everything_url, client_token, wait_for_services, unique_test_id):
+    async def test_everything_initialize(
+        self, everything_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test initialize method to establish connection."""
         response = self.run_mcp_client(
             url=everything_url,
@@ -180,7 +184,9 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_list_tools(self, everything_url, client_token, wait_for_services, unique_test_id):
+    async def test_everything_list_tools(
+        self, everything_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test listing available tools."""
         # First initialize
         self.run_mcp_client(
@@ -195,7 +201,9 @@ class TestMCPEverythingClientFull:
         )
 
         # List tools
-        response = self.run_mcp_client(url=everything_url, token=client_token, method="tools/list", params={})
+        response = self.run_mcp_client(
+            url=everything_url, token=client_token, method="tools/list", params={}
+        )
 
         assert "result" in response
         tools = response["result"]["tools"]
@@ -215,7 +223,9 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_list_resources(self, everything_url, client_token, wait_for_services, unique_test_id):
+    async def test_everything_list_resources(
+        self, everything_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test listing available resources."""
         # Initialize first
         self.run_mcp_client(
@@ -230,7 +240,9 @@ class TestMCPEverythingClientFull:
         )
 
         # List resources
-        response = self.run_mcp_client(url=everything_url, token=client_token, method="resources/list", params={})
+        response = self.run_mcp_client(
+            url=everything_url, token=client_token, method="resources/list", params={}
+        )
 
         assert "result" in response
         resources = response["result"]["resources"]
@@ -247,7 +259,9 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_list_prompts(self, everything_url, client_token, wait_for_services, unique_test_id):
+    async def test_everything_list_prompts(
+        self, everything_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test listing available prompts."""
         # Initialize first
         self.run_mcp_client(
@@ -285,7 +299,9 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_call_tool(self, everything_url, client_token, wait_for_services, unique_test_id):
+    async def test_everything_call_tool(
+        self, everything_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test calling a tool if available."""
         # Initialize
         self.run_mcp_client(
@@ -300,7 +316,9 @@ class TestMCPEverythingClientFull:
         )
 
         # List tools first to see what's available
-        list_response = self.run_mcp_client(url=everything_url, token=client_token, method="tools/list", params={})
+        list_response = self.run_mcp_client(
+            url=everything_url, token=client_token, method="tools/list", params={}
+        )
 
         tools = list_response["result"]["tools"]
         if len(tools) > 0:
@@ -335,7 +353,9 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_read_resource(self, everything_url, client_token, wait_for_services, unique_test_id):
+    async def test_everything_read_resource(
+        self, everything_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test reading a resource if available."""
         # Initialize
         self.run_mcp_client(
@@ -350,7 +370,9 @@ class TestMCPEverythingClientFull:
         )
 
         # List resources
-        list_response = self.run_mcp_client(url=everything_url, token=client_token, method="resources/list", params={})
+        list_response = self.run_mcp_client(
+            url=everything_url, token=client_token, method="resources/list", params={}
+        )
 
         resources = list_response["result"]["resources"]
         if len(resources) > 0:
@@ -373,7 +395,9 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_get_prompt(self, everything_url, client_token, wait_for_services, unique_test_id):
+    async def test_everything_get_prompt(
+        self, everything_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test getting a prompt if available."""
         # Initialize
         self.run_mcp_client(
@@ -424,7 +448,9 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_logging(self, everything_url, client_token, wait_for_services, unique_test_id):
+    async def test_everything_logging(
+        self, everything_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test logging functionality."""
         # Initialize with logging capability
         self.run_mcp_client(
@@ -462,7 +488,9 @@ class TestMCPEverythingClientFull:
         )
 
         # Should get an error
-        assert "error" in response or ("raw_output" in response and "error" in response["raw_output"])
+        assert "error" in response or (
+            "raw_output" in response and "error" in response["raw_output"]
+        )
 
         # Test with wrong protocol version
         response = self.run_mcp_client(
@@ -487,7 +515,9 @@ class TestMCPEverythingClientFull:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_full_workflow(self, everything_url, client_token, wait_for_services, unique_test_id):
+    async def test_everything_full_workflow(
+        self, everything_url, client_token, wait_for_services, unique_test_id
+    ):
         """Test a complete workflow using multiple capabilities."""
         print("\n=== Starting full workflow test ===")
 
@@ -518,7 +548,9 @@ class TestMCPEverythingClientFull:
         print("\n2. Discovering available features...")
 
         # List tools
-        tools_response = self.run_mcp_client(url=everything_url, token=client_token, method="tools/list", params={})
+        tools_response = self.run_mcp_client(
+            url=everything_url, token=client_token, method="tools/list", params={}
+        )
         tools = tools_response["result"]["tools"]
         print(f"Found {len(tools)} tools")
 

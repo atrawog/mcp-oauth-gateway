@@ -16,7 +16,7 @@ The divine OAuth 2.1 server implementation with full RFC 7591/7592 compliance fo
 ```bash
 pip install mcp-oauth-dynamicclient
 # or
-pixi add --pypi mcp-oauth-dynamicclient
+uv tool install mcp-oauth-dynamicclient
 ```
 
 **Basic Usage:**
@@ -625,7 +625,7 @@ logger.warning("auth_failed",
 ```bash
 pip install mcp-oauth-dynamicclient[all]
 # or
-pixi add --pypi mcp-oauth-dynamicclient
+uv tool install mcp-oauth-dynamicclient
 ```
 
 #### JWT signature verification failed

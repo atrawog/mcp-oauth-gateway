@@ -30,7 +30,9 @@ class TestMCPProxyWithSessionHandling:
     ):
         """Test that initialize returns a session ID in headers."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         response = await http_client.post(
             f"{mcp_fetch_url}",
@@ -73,7 +75,9 @@ class TestMCPProxyWithSessionHandling:
     ):
         """Test that session persists when using Mcp-Session-Id header."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
         # Initialize and get session ID
         init_response = await http_client.post(
             f"{mcp_fetch_url}",
@@ -135,7 +139,9 @@ class TestMCPProxyWithSessionHandling:
     ):
         """Test that non-initialize requests without session ID fail appropriately."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Try to list tools without session ID
         response = await http_client.post(
@@ -164,7 +170,9 @@ class TestMCPProxyWithSessionHandling:
     ):
         """Test that invalid session IDs are rejected."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         response = await http_client.post(
             f"{mcp_fetch_url}",
@@ -195,7 +203,9 @@ class TestMCPProtocolFlowWithSessions:
     ):
         """Test complete MCP flow: initialize -> initialized -> tools/list -> tool/call."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Step 1: Initialize
         init_response = await http_client.post(
@@ -289,7 +299,9 @@ class TestMCPSessionIsolation:
     async def test_sessions_are_isolated(self, _wait_for_services, mcp_fetch_url, unique_test_id):
         """Test that different clients get different isolated sessions."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Create two separate clients
         async with (
@@ -396,7 +408,9 @@ class MCPClientHelper:
         self.session_id = response.headers.get("Mcp-Session-Id")
         return response.json()
 
-    async def send_request(self, method: str, params: dict | None = None, request_id: int | None = None) -> dict:
+    async def send_request(
+        self, method: str, params: dict | None = None, request_id: int | None = None
+    ) -> dict:
         """Send MCP request with stored session ID."""
         if not self.session_id and method != "initialize":
             raise RuntimeError("Not initialized. Call initialize() first.")
@@ -434,7 +448,9 @@ class TestMCPWithHelper:
     ):
         """Test complete MCP flow using helper class."""
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         mcp = MCPClientHelper(http_client, MCP_CLIENT_ACCESS_TOKEN, mcp_fetch_url)
 

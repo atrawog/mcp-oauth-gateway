@@ -1,99 +1,77 @@
+x-mcp-common: &mcp-common
+  restart: unless-stopped
+  env_file: ../.env
+  networks:
+    - mcp-net
+
+x-mcp-healthcheck: &mcp-healthcheck
+  interval: 10s
+  timeout: 5s
+  retries: 5
+
 services:
-  auth:
+  mcp-oauth:
+    <<: *mcp-common
     build:
       context: ..
       dockerfile: auth/Dockerfile
-    container_name: auth
-    restart: unless-stopped
-    networks:
-      - public
+    container_name: mcp-oauth
     volumes:
       - ../logs/auth:/logs
-    environment:
-      - LOG_FILE=/logs/auth.log
-      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
-      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
-      - JWT_SECRET=${GATEWAY_JWT_SECRET}
-      - JWT_ALGORITHM=${JWT_ALGORITHM}
-      - JWT_PRIVATE_KEY_B64=${JWT_PRIVATE_KEY_B64}
-      - BASE_DOMAIN=${BASE_DOMAIN}
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - ACCESS_TOKEN_LIFETIME=${ACCESS_TOKEN_LIFETIME}
-      - REFRESH_TOKEN_LIFETIME=${REFRESH_TOKEN_LIFETIME}
-      - SESSION_TIMEOUT=${SESSION_TIMEOUT}
-      - CLIENT_LIFETIME=${CLIENT_LIFETIME}
-      - ALLOWED_GITHUB_USERS=${ALLOWED_GITHUB_USERS}
-      - MCP_PROTOCOL_VERSION=${MCP_PROTOCOL_VERSION}
-      - MCP_CORS_ORIGINS=${MCP_CORS_ORIGINS}
     depends_on:
-      redis:
+      mcp-oauth-redis:
         condition: service_healthy
-    labels:
-      - "traefik.enable=true"
-      # OAuth routes - Priority 4 (HIGHEST)
-      - "traefik.http.routers.auth-oauth.rule=Host(`auth.${BASE_DOMAIN}`) && (PathPrefix(`/register`) || PathPrefix(`/authorize`) || PathPrefix(`/token`) || PathPrefix(`/callback`) || PathPrefix(`/.well-known`) || PathPrefix(`/revoke`) || PathPrefix(`/introspect`) || PathPrefix(`/success`) || PathPrefix(`/jwks`))"
-      - "traefik.http.routers.auth-oauth.priority=4"
-      - "traefik.http.routers.auth-oauth.entrypoints=websecure"
-      - "traefik.http.routers.auth-oauth.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.auth-oauth.middlewares=mcp-cors@file"
-      - "traefik.http.routers.auth-oauth.service=auth"
-      - "traefik.http.services.auth.loadbalancer.server.port=8000"
-
-      # CORS preflight route (OPTIONS) - Priority 5 (HIGHEST for OPTIONS)
-      - "traefik.http.routers.auth-cors.rule=Host(`auth.${BASE_DOMAIN}`) && Method(`OPTIONS`)"
-      - "traefik.http.routers.auth-cors.priority=5"
-      - "traefik.http.routers.auth-cors.entrypoints=websecure"
-      - "traefik.http.routers.auth-cors.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.auth-cors.middlewares=mcp-cors@file"
-      - "traefik.http.routers.auth-cors.service=auth"
-
-      # Verify endpoint for ForwardAuth - Priority 3
-      - "traefik.http.routers.auth-verify.rule=Host(`auth.${BASE_DOMAIN}`) && Path(`/verify`)"
-      - "traefik.http.routers.auth-verify.priority=3"
-      - "traefik.http.routers.auth-verify.entrypoints=websecure"
-      - "traefik.http.routers.auth-verify.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.auth-verify.middlewares=mcp-cors@file"
-      - "traefik.http.routers.auth-verify.service=auth"
-
-
-      # HTTP to HTTPS redirect for auth service - Priority 1 (lowest)
-      - "traefik.http.routers.auth-redirect.rule=Host(`auth.${BASE_DOMAIN}`)"
-      - "traefik.http.routers.auth-redirect.entrypoints=web"
-      - "traefik.http.routers.auth-redirect.middlewares=redirect-to-https@file"
-      - "traefik.http.routers.auth-redirect.priority=1"
-      - "traefik.http.routers.auth-redirect.service=auth"
-
-      # Middleware definitions moved to Traefik dynamic config (/traefik/dynamic/middlewares.yml)
-      # This reduces coupling and allows middleware updates without restarting auth service
     healthcheck:
+      <<: *mcp-healthcheck
       test: ["CMD", "curl", "-f", "-s", "http://localhost:8000/.well-known/oauth-authorization-server"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
       start_period: 30s
 
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    restart: unless-stopped
-    networks:
-      - public
-    ports:
-      - "127.0.0.1:6379:6379"  # Only expose on localhost for testing
-    command: redis-server --requirepass ${REDIS_PASSWORD} --save 60 1 --save 300 10 --save 900 100 --appendonly yes
+  callback-relay:
+    <<: *mcp-common
+    build:
+      context: ..
+      dockerfile: auth/Dockerfile
+    container_name: callback-relay
+    command: ["python", "/app/scripts/callback_relay_server.py"]
+    environment:
+      CALLBACK_RELAY_HOST: ${CALLBACK_RELAY_HOST:-0.0.0.0}
+      CALLBACK_RELAY_PORT: ${CALLBACK_RELAY_PORT:-39001}
+      CALLBACK_RELAY_ADMIN_TOKEN: ${CALLBACK_RELAY_ADMIN_TOKEN}
+      CALLBACK_RELAY_REGISTRY: ${CALLBACK_RELAY_REGISTRY:-/app/.cache/callback-relay/registry.json}
+      LOG_LEVEL: ${CALLBACK_RELAY_LOG_LEVEL:-info}
     volumes:
-      - redis-data:/data
+      - ../.cache/callback-relay:/app/.cache/callback-relay
     healthcheck:
+      <<: *mcp-healthcheck
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f -s http://localhost:${CALLBACK_RELAY_PORT:-39001}/healthz",
+        ]
+      start_period: 10s
+
+  mcp-oauth-redis:
+    <<: *mcp-common
+    image: redis:7-alpine
+    container_name: mcp-oauth-redis
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --save 60 1
+      --save 300 10
+      --save 900 100
+      --appendonly yes
+    volumes:
+      - ${MCP_OAUTH_REDIS_DATA:-mcp-oauth-redis-data}:/data
+    healthcheck:
+      <<: *mcp-healthcheck
       test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 networks:
-  public:
+  mcp-net:
+    name: ${MCP_NETWORK:-mcp-oauth}
     external: true
 
 volumes:
-  redis-data:
-    external: true
+  mcp-oauth-logs:
+  mcp-oauth-redis-data:

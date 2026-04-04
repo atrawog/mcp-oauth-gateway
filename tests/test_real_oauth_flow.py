@@ -204,7 +204,11 @@ class TestRealPKCEFlow:
 
         # Create REAL PKCE challenge
         code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=")
-        code_challenge = base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest()).decode().rstrip("=")
+        code_challenge = (
+            base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode()).digest())
+            .decode()
+            .rstrip("=")
+        )
 
         # Start REAL auth flow with PKCE
         auth_params = {
@@ -273,7 +277,7 @@ class TestRealJWTTokens:
             "jti": jti,
             "iat": now,
             "exp": now + 3600,
-            "iss": f"https://auth.{BASE_DOMAIN}",
+            "iss": f"https://mcp-auth.{BASE_DOMAIN}",
         }
 
         # Sign with REAL JWT secret from .env

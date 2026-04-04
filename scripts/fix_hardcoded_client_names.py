@@ -60,7 +60,11 @@ def fix_test_file(filepath: Path, issue_types: list[str]) -> bool:
                 next_async_def = content.find("\nasync def ", func_start)
                 next_class = content.find("\nclass ", func_start)
 
-                ends = [pos for pos in [next_def, next_async_def, next_class, len(content)] if pos > func_start]
+                ends = [
+                    pos
+                    for pos in [next_def, next_async_def, next_class, len(content)]
+                    if pos > func_start
+                ]
                 func_end = min(ends)
 
                 func_body = content[func_start:func_end]
@@ -70,15 +74,23 @@ def fix_test_file(filepath: Path, issue_types: list[str]) -> bool:
                     # Add unique_client_name parameter if not present
                     params = func_match.group(2)
                     if "unique_client_name" not in params:
-                        new_params = params + ", unique_client_name" if params.strip() else "unique_client_name"
-                        content = content.replace(func_match.group(0), f"{func_match.group(1)}{new_params}):")
+                        new_params = (
+                            params + ", unique_client_name"
+                            if params.strip()
+                            else "unique_client_name"
+                        )
+                        content = content.replace(
+                            func_match.group(0), f"{func_match.group(1)}{new_params}):"
+                        )
 
                     # Replace the hardcoded name with fixture
                     content = content.replace(f'"TEST {func_name}"', "unique_client_name")
                     content = content.replace(f"'TEST {func_name}'", "unique_client_name")
 
         # Fix client_name in JSON objects
-        content = re.sub(r'"client_name":\s*"TEST [^"]*"', '"client_name": unique_client_name', content)
+        content = re.sub(
+            r'"client_name":\s*"TEST [^"]*"', '"client_name": unique_client_name', content
+        )
 
     if "test_client_literal" in issue_types:
         # For test-client literals, we need different approaches based on context
@@ -106,8 +118,12 @@ def fix_test_file(filepath: Path, issue_types: list[str]) -> bool:
                 if func_match:
                     params = func_match.group(2)
                     if "unique_test_id" not in params and 'f"test-{unique_test_id}"' in content:
-                        new_params = params + ", unique_test_id" if params.strip() else "unique_test_id"
-                        content = content.replace(func_match.group(0), f"{func_match.group(1)}{new_params}):")
+                        new_params = (
+                            params + ", unique_test_id" if params.strip() else "unique_test_id"
+                        )
+                        content = content.replace(
+                            func_match.group(0), f"{func_match.group(1)}{new_params}):"
+                        )
 
         # For other test-client usages, replace with TEST_CLIENT_NAME from constants
         # But only if it's not in clientInfo context

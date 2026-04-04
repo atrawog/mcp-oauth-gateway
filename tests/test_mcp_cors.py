@@ -55,7 +55,9 @@ class TestMCPCORS:
                 )
 
                 # CORS preflight should return 200 OK
-                assert response.status_code == HTTP_OK, f"CORS preflight failed for origin {test_origin}"
+                assert response.status_code == HTTP_OK, (
+                    f"CORS preflight failed for origin {test_origin}"
+                )
 
                 # Check CORS headers
                 assert "access-control-allow-origin" in response.headers, (
@@ -72,20 +74,28 @@ class TestMCPCORS:
                         f"CORS origin mismatch for {test_origin}"
                     )
 
-                assert "access-control-allow-methods" in response.headers, "Missing Access-Control-Allow-Methods header"
+                assert "access-control-allow-methods" in response.headers, (
+                    "Missing Access-Control-Allow-Methods header"
+                )
                 allowed_methods = response.headers["access-control-allow-methods"].upper()
                 assert "POST" in allowed_methods, "POST method not allowed in CORS"
                 assert "OPTIONS" in allowed_methods, "OPTIONS method not allowed in CORS"
 
-                assert "access-control-allow-headers" in response.headers, "Missing Access-Control-Allow-Headers header"
+                assert "access-control-allow-headers" in response.headers, (
+                    "Missing Access-Control-Allow-Headers header"
+                )
                 # When wildcard origin (*) is used, credentials are typically not allowed for security
                 if self.cors_origins == ["*"]:
                     # With wildcard origin, credentials header may be omitted or false
-                    credentials_header = response.headers.get("access-control-allow-credentials", "false").lower()
+                    credentials_header = response.headers.get(
+                        "access-control-allow-credentials", "false"
+                    ).lower()
                     assert credentials_header in [
                         "false",
                         "",
-                    ], f"With wildcard CORS origin, credentials should be false or omitted, got: {credentials_header}"
+                    ], (
+                        f"With wildcard CORS origin, credentials should be false or omitted, got: {credentials_header}"
+                    )
                 else:
                     # With specific origins, credentials should be allowed
                     assert "access-control-allow-credentials" in response.headers, (
@@ -133,7 +143,9 @@ class TestMCPCORS:
                 )
 
                 # Should get a successful response
-                assert init_response.status_code == HTTP_OK, f"Request failed: {init_response.status_code}"
+                assert init_response.status_code == HTTP_OK, (
+                    f"Request failed: {init_response.status_code}"
+                )
 
                 # Check CORS headers in response
                 assert "access-control-allow-origin" in init_response.headers, (
@@ -160,7 +172,9 @@ class TestMCPCORS:
                 # If proper initialization fails, try fallback version
                 if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
                     alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
-                    session_id, init_result = await initialize_mcp_session(client, mcp_url, oauth_token, alt_version)
+                    session_id, init_result = await initialize_mcp_session(
+                        client, mcp_url, oauth_token, alt_version
+                    )
                     # Test with alternative version passed
                 else:
                     raise e
@@ -186,7 +200,7 @@ class TestMCPCORS:
                 "Health endpoint must require authentication per divine CLAUDE.md"
             )
 
-            # Note: ForwardAuth 401 responses bypass CORS middleware in Traefik
+            # Note: auth_request 401 responses from SWAG nginx bypass CORS headers
             # This is a known limitation - CORS headers are only added to successful responses
             # or when the request reaches the service
 
@@ -221,13 +235,17 @@ class TestMCPCORS:
                 )
 
                 # Should still work without Origin header
-                assert response.status_code == HTTP_OK, f"Request failed without Origin header: {response.status_code}"
+                assert response.status_code == HTTP_OK, (
+                    f"Request failed without Origin header: {response.status_code}"
+                )
 
             except Exception as e:
                 # If proper initialization fails, try fallback version
                 if len(MCP_PROTOCOL_VERSIONS_SUPPORTED) > 1:
                     alt_version = MCP_PROTOCOL_VERSIONS_SUPPORTED[1]
-                    session_id, init_result = await initialize_mcp_session(client, mcp_url, oauth_token, alt_version)
+                    session_id, init_result = await initialize_mcp_session(
+                        client, mcp_url, oauth_token, alt_version
+                    )
                     # Test with alternative version passed
                 else:
                     raise e
@@ -263,7 +281,9 @@ class TestMCPCORS:
             if "access-control-allow-origin" in response.headers:
                 # When wildcard is used, the header will be the actual origin or "*"
                 allowed_origin = response.headers["access-control-allow-origin"]
-                assert allowed_origin != test_unauthorized_origin, "CORS allowed unauthorized origin!"
+                assert allowed_origin != test_unauthorized_origin, (
+                    "CORS allowed unauthorized origin!"
+                )
 
     def test_all_mcp_services_have_cors(self):
         """Test that all MCP services have CORS configured."""
@@ -322,7 +342,9 @@ class TestMCPCORS:
                     },
                 )
 
-                assert preflight_response.status_code == HTTP_OK, f"Service {service} CORS preflight failed"
+                assert preflight_response.status_code == HTTP_OK, (
+                    f"Service {service} CORS preflight failed"
+                )
 
                 assert "access-control-allow-origin" in preflight_response.headers, (
                     f"Service {service} missing CORS headers on preflight response"

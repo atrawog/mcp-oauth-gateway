@@ -24,8 +24,8 @@ def validate_existing_jwt_key(env_content):
         tuple: (is_valid: bool, key_value: str|None, reason: str)
 
     """
-    # Extract JWT_PRIVATE_KEY_B64 value
-    jwt_key_pattern = r"^JWT_PRIVATE_KEY_B64=(.*)$"
+    # Extract canonical or compatibility JWT key value
+    jwt_key_pattern = r"^(?:OAUTH_)?JWT_PRIVATE_KEY_B64=(.*)$"
     existing_match = re.search(jwt_key_pattern, env_content, re.MULTILINE)
 
     if not existing_match:
@@ -53,7 +53,9 @@ def validate_existing_jwt_key(env_content):
 
     # Validate RSA private key format
     try:
-        private_key = serialization.load_pem_private_key(decoded_key, password=None, backend=default_backend())
+        private_key = serialization.load_pem_private_key(
+            decoded_key, password=None, backend=default_backend()
+        )
 
         # Verify it's actually an RSA key
         if not isinstance(private_key, rsa.RSAPrivateKey):
@@ -85,7 +87,9 @@ def generate_rsa_key_to_env(force=False):
     # Validate existing JWT_PRIVATE_KEY_B64
     is_valid, key_value, reason = validate_existing_jwt_key(env_content)
     jwt_key_pattern = r"^JWT_PRIVATE_KEY_B64=.*$"
+    oauth_jwt_key_pattern = r"^OAUTH_JWT_PRIVATE_KEY_B64=.*$"
     existing_match = re.search(jwt_key_pattern, env_content, re.MULTILINE)
+    existing_oauth_match = re.search(oauth_jwt_key_pattern, env_content, re.MULTILINE)
 
     if is_valid and not force:
         # Key exists and is valid - do nothing
@@ -105,7 +109,9 @@ def generate_rsa_key_to_env(force=False):
 
     # Generate new RSA key
     print("\n🔑 Generating new RSA key for RS256 JWT signing...")
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+    private_key = rsa.generate_private_key(
+        public_exponent=65537, key_size=2048, backend=default_backend()
+    )
 
     # Serialize private key
     private_key_pem = private_key.private_bytes(
@@ -117,8 +123,21 @@ def generate_rsa_key_to_env(force=False):
     # Base64 encode for .env storage (single line)
     private_key_b64 = base64.b64encode(private_key_pem).decode("utf-8")
 
+    if existing_oauth_match:
+        print("🔄 Updating existing OAUTH_JWT_PRIVATE_KEY_B64 in .env...")
+        env_content = re.sub(
+            oauth_jwt_key_pattern,
+            f"OAUTH_JWT_PRIVATE_KEY_B64={private_key_b64}",
+            env_content,
+            flags=re.MULTILINE,
+        )
+    else:
+        print("➕ Adding OAUTH_JWT_PRIVATE_KEY_B64 to .env...")
+        if not env_content.endswith("\n"):
+            env_content += "\n"
+        env_content += f"OAUTH_JWT_PRIVATE_KEY_B64={private_key_b64}\n"
+
     if existing_match:
-        # Update existing key
         print("🔄 Updating existing JWT_PRIVATE_KEY_B64 in .env...")
         env_content = re.sub(
             jwt_key_pattern,
@@ -127,7 +146,6 @@ def generate_rsa_key_to_env(force=False):
             flags=re.MULTILINE,
         )
     else:
-        # Add new key at the end
         print("➕ Adding JWT_PRIVATE_KEY_B64 to .env...")
         if not env_content.endswith("\n"):
             env_content += "\n"

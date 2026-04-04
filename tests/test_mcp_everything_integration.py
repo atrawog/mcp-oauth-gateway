@@ -26,7 +26,9 @@ def base_domain():
 def everything_base_url():
     """Base URL for everything service."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
-        pytest.skip("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
+        pytest.skip(
+            "MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable."
+        )
     if not MCP_EVERYTHING_URLS:
         pytest.skip("MCP_EVERYTHING_URLS environment variable not set")
     # Use the full MCP URL including /mcp path
@@ -64,9 +66,13 @@ class TestMCPEverythingIntegration:
         """Test that service is reachable (root requires auth)."""
         async with httpx.AsyncClient(verify=True) as client:
             # Get base URL without /mcp for root test
-            base_url = everything_base_url[:-4] if everything_base_url.endswith("/mcp") else everything_base_url
+            base_url = (
+                everything_base_url[:-4]
+                if everything_base_url.endswith("/mcp")
+                else everything_base_url
+            )
             response = await client.get(f"{base_url}/")
-            # The root requires auth through Traefik
+            # The root requires auth through SWAG nginx auth_request
             assert response.status_code == HTTP_UNAUTHORIZED
 
     @pytest.mark.integration
@@ -98,7 +104,9 @@ class TestMCPEverythingIntegration:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_initialize(self, everything_base_url, gateway_token, wait_for_services):
+    async def test_everything_initialize(
+        self, everything_base_url, gateway_token, wait_for_services
+    ):
         """Test MCP initialize method."""
         async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
@@ -131,7 +139,9 @@ class TestMCPEverythingIntegration:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_list_tools(self, everything_base_url, gateway_token, wait_for_services):
+    async def test_everything_list_tools(
+        self, everything_base_url, gateway_token, wait_for_services
+    ):
         """Test listing available tools in the everything server."""
         async with httpx.AsyncClient(verify=True) as client:
             # First initialize
@@ -197,7 +207,9 @@ class TestMCPEverythingIntegration:
     @pytest.mark.integration
     @pytest.mark.asyncio
     @pytest.mark.skipif(not MCP_EVERYTHING_TESTS_ENABLED, reason="MCP Everything tests disabled")
-    async def test_everything_echo_tool(self, everything_base_url, gateway_token, wait_for_services):
+    async def test_everything_echo_tool(
+        self, everything_base_url, gateway_token, wait_for_services
+    ):
         """Test calling the echo tool if available."""
         async with httpx.AsyncClient(verify=True) as client:
             # Initialize first
@@ -267,7 +279,11 @@ class TestMCPEverythingIntegration:
         """Test OAuth discovery endpoint is accessible."""
         async with httpx.AsyncClient(verify=True) as client:
             # Get base URL without /mcp for OAuth discovery
-            base_url = everything_base_url[:-4] if everything_base_url.endswith("/mcp") else everything_base_url
+            base_url = (
+                everything_base_url[:-4]
+                if everything_base_url.endswith("/mcp")
+                else everything_base_url
+            )
             response = await client.get(f"{base_url}/.well-known/oauth-authorization-server")
             assert response.status_code == HTTP_OK
             data = response.json()

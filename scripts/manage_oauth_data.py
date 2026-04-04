@@ -12,6 +12,10 @@ import subprocess
 import sys
 from datetime import UTC
 from datetime import datetime
+try:
+    from redis_runtime import resolve_runtime_redis_url
+except ModuleNotFoundError:  # pragma: no cover - import path differs under pytest module loading
+    from scripts.redis_runtime import resolve_runtime_redis_url
 
 import redis.asyncio as redis
 from dotenv import load_dotenv
@@ -25,30 +29,7 @@ load_dotenv()
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
-# Check if we should connect via Docker
-
-
-try:
-    # Check if Redis is running in Docker
-    result = subprocess.run(
-        ["docker", "compose", "ps", "--services", "--filter", "status=running"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    if "redis" in result.stdout:
-        # Get Redis container port mapping
-        port_result = subprocess.run(
-            ["docker", "compose", "port", "redis", "6379"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        if port_result.stdout.strip():
-            host, port = port_result.stdout.strip().split(":")
-            REDIS_URL = f"redis://{host}:{port}"
-except:
-    pass
+REDIS_URL = resolve_runtime_redis_url(REDIS_URL)
 
 
 async def get_redis_client():
@@ -110,14 +91,18 @@ async def list_registrations():
                         redirect_uris = [redirect_uris]
 
                 # Handle timestamp - could be client_id_issued_at or created_at
-                created_at = client_data.get("client_id_issued_at", client_data.get("created_at", 0))
+                created_at = client_data.get(
+                    "client_id_issued_at", client_data.get("created_at", 0)
+                )
 
                 registrations.append(
                     [
                         client_id,
                         client_data.get("client_name", "N/A"),
                         client_data.get("scope", "N/A"),
-                        ", ".join(redirect_uris) if isinstance(redirect_uris, list) else str(redirect_uris),
+                        ", ".join(redirect_uris)
+                        if isinstance(redirect_uris, list)
+                        else str(redirect_uris),
                         format_timestamp(created_at),
                     ],
                 )
@@ -459,7 +444,13 @@ async def delete_all_tokens():
         code_keys = await client.keys("oauth:code:*")
         user_token_keys = await client.keys("oauth:user_tokens:*")
 
-        total_keys = len(access_keys) + len(refresh_keys) + len(state_keys) + len(code_keys) + len(user_token_keys)
+        total_keys = (
+            len(access_keys)
+            + len(refresh_keys)
+            + len(state_keys)
+            + len(code_keys)
+            + len(user_token_keys)
+        )
 
         if total_keys == 0:
             print("No OAuth data to delete.")

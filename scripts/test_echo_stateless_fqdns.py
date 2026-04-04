@@ -3,6 +3,8 @@
 
 import asyncio
 import os
+
+from env_compat import get_env_value
 import sys
 
 import httpx
@@ -24,7 +26,7 @@ async def test_fqdn(url: str, token: str) -> tuple[str, bool, str]:
                     "jsonrpc": "2.0",
                     "method": "initialize",
                     "params": {
-                        "protocolVersion": os.getenv("MCP_PROTOCOL_VERSION", "2025-06-18"),
+                        "protocolVersion": get_env_value("MCP_PROTOCOL_VERSION", "2025-06-18"),
                         "capabilities": {},
                         "clientInfo": {"name": "fqdn-test", "version": "1.0"},
                     },

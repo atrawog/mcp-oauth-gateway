@@ -12,7 +12,7 @@ def find_register_posts(content):
     """Find all POST requests to /register endpoint."""
     # Look for patterns like:
     # - .post(f"{AUTH_BASE_URL}/register"
-    # - .post("https://auth.domain/register"
+    # - .post("https://mcp-auth.domain/register"
     # - response = await http_client.post(...register...)
     pattern = r'\.post\s*\(\s*[^)]*["\'].*?/register["\']'
     matches = list(re.finditer(pattern, content, re.MULTILINE | re.DOTALL))

@@ -13,7 +13,9 @@ class TestMCPAuthWorking:
     """Verify MCP OAuth authentication is properly enforced."""
 
     @pytest.mark.asyncio
-    async def test_mcp_requires_authentication(self, http_client, _wait_for_services, mcp_fetch_url):
+    async def test_mcp_requires_authentication(
+        self, http_client, _wait_for_services, mcp_fetch_url
+    ):
         """Test that MCP endpoints properly require authentication."""
         # Test 1: Request without auth should fail
         response = await http_client.post(
@@ -111,7 +113,9 @@ class TestMCPAuthWorking:
             f"❌ CORS origin mismatch! Expected {test_origin}"
         )
         assert "access-control-allow-methods" in response.headers, "❌ Missing allowed methods!"
-        assert "access-control-allow-credentials" in response.headers, "❌ Missing credentials header!"
+        assert "access-control-allow-credentials" in response.headers, (
+            "❌ Missing credentials header!"
+        )
 
         print(f"✅ MCP CORS is properly configured for {test_origin}")
 

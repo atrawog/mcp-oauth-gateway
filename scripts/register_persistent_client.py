@@ -89,7 +89,9 @@ async def verify_persistence():
 
         if test_client_id:
             # Check Redis directly
-            redis_client = await redis.from_url(f"redis://:{REDIS_PASSWORD}@localhost:6379/0", decode_responses=True)
+            redis_client = await redis.from_url(
+                f"redis://:{REDIS_PASSWORD}@localhost:6379/0", decode_responses=True
+            )
 
             try:
                 client_key = f"oauth:client:{test_client_id}"

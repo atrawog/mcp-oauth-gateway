@@ -101,7 +101,9 @@ class TestMCPEchoAllUrls:
             print(f"{hostname}: {status}")
         print(f"{'=' * 60}")
         print(f"Total URLs tested: {len(results)}")
-        print(f"All URLs working: {'✅ Yes' if all('✅' in s for s in results.values()) else '❌ No'}")
+        print(
+            f"All URLs working: {'✅ Yes' if all('✅' in s for s in results.values()) else '❌ No'}"
+        )
 
         # Verify we tested all expected URLs
         assert len(results) == len(mcp_echo_stateless_urls), (

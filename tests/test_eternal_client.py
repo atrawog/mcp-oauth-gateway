@@ -5,14 +5,16 @@ from .test_constants import HTTP_OK
 
 import os
 
+from scripts.env_compat import get_env_value
+
 import pytest
 
 
 base_domain = os.environ.get("BASE_DOMAIN")
 if not base_domain:
     raise Exception("BASE_DOMAIN must be set in environment")
-AUTH_BASE_URL = f"https://auth.{base_domain}"
-CLIENT_LIFETIME = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
+AUTH_BASE_URL = f"https://mcp-auth.{base_domain}"
+CLIENT_LIFETIME = int(get_env_value("CLIENT_LIFETIME", "7776000"))
 
 
 @pytest.mark.asyncio
@@ -32,7 +34,9 @@ async def test_client_lifetime_from_env(http_client, registered_client):
         # Expiring client
         expected_expiry = created_at + CLIENT_LIFETIME
         # Allow 5 second tolerance for processing time
-        assert abs(expires_at - expected_expiry) <= 5, f"Expected expiry around {expected_expiry} but got {expires_at}"
+        assert abs(expires_at - expected_expiry) <= 5, (
+            f"Expected expiry around {expected_expiry} but got {expires_at}"
+        )
 
     # Test RFC 7592 GET endpoint
     client_id = data["client_id"]

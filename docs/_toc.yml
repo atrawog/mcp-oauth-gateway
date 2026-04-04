@@ -49,7 +49,7 @@ parts:
       - file: services/infrastructure
         sections:
           - file: services/auth
-          - file: services/traefik
+          - file: services/swag
           - file: services/redis
       - file: services/mcp-services
         sections:

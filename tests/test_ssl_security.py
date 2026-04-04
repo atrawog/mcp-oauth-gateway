@@ -21,7 +21,9 @@ class TestSSLSecurity:
         """Test that SSL verification is enabled by default."""
         # Test requests session default
         session = requests.Session()
-        assert session.verify is not False, "requests session must have SSL verification enabled by default!"
+        assert session.verify is not False, (
+            "requests session must have SSL verification enabled by default!"
+        )
 
         # Test httpx default
         client = httpx.Client()
@@ -57,7 +59,11 @@ class TestSSLSecurity:
 
     @pytest.mark.parametrize(
         "url",
-        [f"https://auth.{BASE_DOMAIN}", f"https://echo-stateless.{BASE_DOMAIN}", f"https://everything.{BASE_DOMAIN}"],
+        [
+            f"https://mcp-auth.{BASE_DOMAIN}",
+            f"https://echo-stateless.{BASE_DOMAIN}",
+            f"https://everything.{BASE_DOMAIN}",
+        ],
     )
     def test_services_have_valid_certificates(self, url):
         """Test that all services have valid SSL certificates."""
@@ -65,7 +71,9 @@ class TestSSLSecurity:
             # Make a simple HEAD request to verify certificate
             response = requests.head(url, timeout=5, verify=True)
             # Any response code is fine - we're just checking SSL
-            assert response.status_code in range(100, 600), f"Service {url} should respond with valid SSL"
+            assert response.status_code in range(100, 600), (
+                f"Service {url} should respond with valid SSL"
+            )
         except requests.exceptions.SSLError as e:
             pytest.fail(f"SSL verification failed for {url}: {e}")
         except requests.exceptions.ConnectionError:
@@ -95,7 +103,9 @@ class TestSSLSecurity:
                 if "verify=False" in content or "verify = False" in content:
                     issues.append(test_file.name)
 
-        assert not issues, f"Found verify=False in test files: {issues}. SSL verification must always be enabled!"
+        assert not issues, (
+            f"Found verify=False in test files: {issues}. SSL verification must always be enabled!"
+        )
 
 
 class TestSSLBestPractices:

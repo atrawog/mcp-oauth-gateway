@@ -40,8 +40,16 @@ class TestMCPEchoSecurity:
         for method, params in methods:
             response = await http_client.post(
                 mcp_echo_stateless_url,
-                json={"jsonrpc": "2.0", "method": method, "params": params, "id": f"unauth-{method}"},
-                headers={"Accept": "application/json, text/event-stream", "Content-Type": "application/json"},
+                json={
+                    "jsonrpc": "2.0",
+                    "method": method,
+                    "params": params,
+                    "id": f"unauth-{method}",
+                },
+                headers={
+                    "Accept": "application/json, text/event-stream",
+                    "Content-Type": "application/json",
+                },
             )
 
             assert response.status_code == 401, f"Method {method} must require authentication"
@@ -68,7 +76,12 @@ class TestMCPEchoSecurity:
 
             response = await http_client.post(
                 mcp_echo_stateless_url,
-                json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "invalid-token-test"},
+                json={
+                    "jsonrpc": "2.0",
+                    "method": "tools/list",
+                    "params": {},
+                    "id": "invalid-token-test",
+                },
                 headers={
                     "Authorization": auth_header,
                     "Accept": "application/json, text/event-stream",
@@ -79,7 +92,9 @@ class TestMCPEchoSecurity:
             assert response.status_code == 401, f"Should reject invalid token: {token[:20]}..."
 
     @pytest.mark.asyncio
-    async def test_echo_rejects_expired_tokens(self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str):
+    async def test_echo_rejects_expired_tokens(
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str
+    ):
         """Test that Echo service rejects expired JWT tokens."""
         # Create an expired JWT (this is just for testing rejection)
         expired_payload = {
@@ -93,7 +108,12 @@ class TestMCPEchoSecurity:
 
         response = await http_client.post(
             mcp_echo_stateless_url,
-            json={"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": "expired-token-test"},
+            json={
+                "jsonrpc": "2.0",
+                "method": "tools/list",
+                "params": {},
+                "id": "expired-token-test",
+            },
             headers={
                 "Authorization": f"Bearer {expired_token}",
                 "Accept": "application/json, text/event-stream",
@@ -127,7 +147,9 @@ class TestMCPEchoSecurity:
         assert response.status_code == 200
 
     @pytest.mark.asyncio
-    async def test_echo_cors_security(self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str):
+    async def test_echo_cors_security(
+        self, http_client: httpx.AsyncClient, mcp_echo_stateless_url: str
+    ):
         """Test CORS security - preflight should work but actual requests need auth."""
         origin = "https://malicious-site.com"
 

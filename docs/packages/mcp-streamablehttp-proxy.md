@@ -16,8 +16,8 @@ The divine bridge that wraps stdio-based MCP servers with StreamableHTTP endpoin
 # Via pip
 pip install mcp-streamablehttp-proxy
 
-# Via pixi
-pixi add --pypi mcp-streamablehttp-proxy
+# Via uv
+uv tool install mcp-streamablehttp-proxy
 ```
 
 **Basic Usage:**
@@ -108,9 +108,9 @@ MessageRouter          # Request/response routing
 pip install mcp-streamablehttp-proxy
 ```
 
-### Via pixi
+### Via uv
 ```bash
-pixi add --pypi mcp-streamablehttp-proxy
+uv tool install mcp-streamablehttp-proxy
 ```
 
 ### Docker

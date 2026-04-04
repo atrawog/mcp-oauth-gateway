@@ -43,17 +43,23 @@ def fix_headers_in_file(file_path: Path):
             old_headers_block = match.group(0)
             new_headers_block = f"headers = {{{new_headers_content}}}"
             content = content.replace(old_headers_block, new_headers_block)
-            fixes_applied.append("Added Accept header to headers with Content-Type and MCP-Protocol-Version")
+            fixes_applied.append(
+                "Added Accept header to headers with Content-Type and MCP-Protocol-Version"
+            )
 
     # Pattern 2: Headers with only Authorization, Content-Type but no Accept
-    pattern2 = r'headers\s*=\s*\{([^}]*"Authorization"[^}]*"Content-Type"[^}]*)(?!"Accept")([^}]*)\}'
+    pattern2 = (
+        r'headers\s*=\s*\{([^}]*"Authorization"[^}]*"Content-Type"[^}]*)(?!"Accept")([^}]*)\}'
+    )
     matches = list(re.finditer(pattern2, content, re.DOTALL))
 
     for match in reversed(matches):
         full_headers = match.group(0)
         if '"Accept"' not in full_headers and "'Accept'" not in full_headers:
             # Extract the headers content
-            headers_content = re.search(r"headers\s*=\s*\{([^}]*)\}", full_headers, re.DOTALL).group(1)
+            headers_content = re.search(
+                r"headers\s*=\s*\{([^}]*)\}", full_headers, re.DOTALL
+            ).group(1)
 
             # Add Accept header
             lines = headers_content.strip().split("\n")
@@ -70,7 +76,9 @@ def fix_headers_in_file(file_path: Path):
 
             new_headers_block = f"headers = {{{new_headers_content}}}"
             content = content.replace(full_headers, new_headers_block)
-            fixes_applied.append("Added Accept header to headers with Authorization and Content-Type")
+            fixes_applied.append(
+                "Added Accept header to headers with Authorization and Content-Type"
+            )
 
     # Save if changes were made
     if content != original_content:

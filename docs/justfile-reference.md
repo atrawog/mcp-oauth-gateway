@@ -217,7 +217,7 @@ The justfile requires:
 1. `.env` file present (enforced by `set dotenv-required`)
 2. Pixi installed and configured
 3. Docker and docker-compose available
-4. Python environment via pixi
+4. Python environment via uv
 
 ## The Divine Flow
 

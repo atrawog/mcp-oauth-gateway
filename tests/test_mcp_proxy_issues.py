@@ -35,7 +35,9 @@ class TestMCPProxySessionIssues:
         Actual behavior: Each request creates a new session, causing "not initialized" errors.
         """
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Initialize session
         init_response = await http_client.post(
@@ -81,14 +83,18 @@ class TestMCPProxySessionIssues:
         assert "Session ID required" in data["error"]["message"]
 
     @pytest.mark.asyncio
-    async def test_session_id_header_missing(self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url):
+    async def test_session_id_header_missing(
+        self, http_client: httpx.AsyncClient, _wait_for_services, mcp_fetch_url
+    ):
         """ISSUE: The proxy doesn't return Mcp-Session-Id header as expected by MCP spec.
 
         Per MCP 2025-06-18 spec, servers MAY assign session IDs during initialization
         and clients MUST include them in subsequent requests.
         """
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         response = await http_client.post(
             f"{mcp_fetch_url}",
@@ -128,7 +134,9 @@ class TestMCPProxyWorkarounds:
         This is not ideal but works with current proxy implementation.
         """
         if not MCP_CLIENT_ACCESS_TOKEN:
-            pytest.fail("No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!")
+            pytest.fail(
+                "No MCP_CLIENT_ACCESS_TOKEN available - token refresh should have set this!"
+            )
 
         # Create new client for each operation (forces new session)
         async with httpx.AsyncClient(timeout=30.0) as client1:

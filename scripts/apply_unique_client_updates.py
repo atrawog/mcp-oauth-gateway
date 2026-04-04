@@ -22,7 +22,9 @@ def update_test_file(filepath, test_name_in_string=None):
 
             # Add unique_client_name if not present
             if "unique_client_name" not in params:
-                new_params = params + ", unique_client_name" if params.strip() else "unique_client_name"
+                new_params = (
+                    params + ", unique_client_name" if params.strip() else "unique_client_name"
+                )
                 content = content.replace(match.group(0), f"{match.group(1)}{new_params}):")
 
             # Replace hardcoded client names with fixture
@@ -40,7 +42,10 @@ def update_test_file(filepath, test_name_in_string=None):
 updates = [
     {
         "file": "test_auth_error_paths.py",
-        "matches": ['"TEST test_registration_empty_redirect_uris"', '"TEST test_create_token_with_user_tracking"'],
+        "matches": [
+            '"TEST test_registration_empty_redirect_uris"',
+            '"TEST test_create_token_with_user_tracking"',
+        ],
         "description": "Uses hardcoded client name",
     },
     {
@@ -53,7 +58,10 @@ updates = [
     },
     {
         "file": "test_mcp_ai_hostnames.py",
-        "matches": ['"TEST test_hostname_connectivity_{hostname}"', '"TEST test_fetch_through_ai_hostname"'],
+        "matches": [
+            '"TEST test_hostname_connectivity_{hostname}"',
+            '"TEST test_fetch_through_ai_hostname"',
+        ],
         "description": "Uses hardcoded client name",
     },
     {
@@ -80,8 +88,16 @@ updates = [
         ],
         "description": "Hardcoded client_name in JSON",
     },
-    {"file": "test_mcp_client_oauth.py", "matches": ['"test-client"'], "description": "Uses fixed test-client name"},
-    {"file": "test_mcp_client_proxy.py", "matches": ['"test-client"'], "description": "Uses fixed test-client name"},
+    {
+        "file": "test_mcp_client_oauth.py",
+        "matches": ['"test-client"'],
+        "description": "Uses fixed test-client name",
+    },
+    {
+        "file": "test_mcp_client_proxy.py",
+        "matches": ['"test-client"'],
+        "description": "Uses fixed test-client name",
+    },
     {
         "file": "test_mcp_echo_client_full.py",
         "matches": [
@@ -148,7 +164,13 @@ updates = [
     },
     {
         "file": "test_mcp_proxy.py",
-        "matches": ['"test-client"', '"test-client"', '"test-client"', '"test-client"', '"test-client"'],
+        "matches": [
+            '"test-client"',
+            '"test-client"',
+            '"test-client"',
+            '"test-client"',
+            '"test-client"',
+        ],
         "description": "Uses fixed test-client name",
     },
     {
@@ -163,7 +185,10 @@ updates = [
     },
     {
         "file": "test_pkce_s256_enforcement.py",
-        "matches": ['"TEST test_pkce_plain_method_rejected"', '"TEST test_pkce_s256_proper_validation"'],
+        "matches": [
+            '"TEST test_pkce_plain_method_rejected"',
+            '"TEST test_pkce_s256_proper_validation"',
+        ],
         "description": "Uses hardcoded client name",
     },
     {

@@ -44,7 +44,9 @@ async def create_client_alias():
             redis_port = 6379
 
     # Connect to Redis
-    redis_client = await redis.Redis(host=redis_host, port=redis_port, password=redis_password, decode_responses=True)
+    redis_client = await redis.Redis(
+        host=redis_host, port=redis_port, password=redis_password, decode_responses=True
+    )
 
     try:
         # Test connection

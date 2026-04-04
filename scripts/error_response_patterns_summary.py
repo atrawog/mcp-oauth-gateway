@@ -33,37 +33,54 @@ def analyze_error_patterns():
         for i, line in enumerate(lines):
             # Direct detail access: error["detail"]
             if re.search(r'error\["detail"\]', line) and 'error["detail"]["error"]' not in line:
-                patterns["direct_detail_access"].append({"file": test_file.name, "line": i + 1, "code": line.strip()})
+                patterns["direct_detail_access"].append(
+                    {"file": test_file.name, "line": i + 1, "code": line.strip()}
+                )
                 stats["direct_detail_access"] += 1
 
             # Safe detail access: error.get("detail")
             if re.search(r'error\.get\(["\'"]detail["\'"]', line):
-                patterns["safe_detail_access"].append({"file": test_file.name, "line": i + 1, "code": line.strip()})
+                patterns["safe_detail_access"].append(
+                    {"file": test_file.name, "line": i + 1, "code": line.strip()}
+                )
                 stats["safe_detail_access"] += 1
 
             # Nested error access: error["detail"]["error"] or error["detail"]["error_description"]
             if re.search(r'error\["detail"\]\["error', line):
-                patterns["nested_error_access"].append({"file": test_file.name, "line": i + 1, "code": line.strip()})
+                patterns["nested_error_access"].append(
+                    {"file": test_file.name, "line": i + 1, "code": line.strip()}
+                )
                 stats["nested_error_access"] += 1
 
             # Direct error field: error["error"] or error["error_description"]
-            if re.search(r'error\["(error|error_description)"\]', line) and 'error["detail"]' not in line:
-                patterns["error_field_only"].append({"file": test_file.name, "line": i + 1, "code": line.strip()})
+            if (
+                re.search(r'error\["(error|error_description)"\]', line)
+                and 'error["detail"]' not in line
+            ):
+                patterns["error_field_only"].append(
+                    {"file": test_file.name, "line": i + 1, "code": line.strip()}
+                )
                 stats["error_field_only"] += 1
 
             # JSON response patterns
             if re.search(r'json_response\["detail"\]', line):
-                patterns["json_response_detail"].append({"file": test_file.name, "line": i + 1, "code": line.strip()})
+                patterns["json_response_detail"].append(
+                    {"file": test_file.name, "line": i + 1, "code": line.strip()}
+                )
                 stats["json_response_detail"] += 1
 
             # Error data patterns
             if re.search(r'error_data\["detail"\]', line):
-                patterns["error_data_detail"].append({"file": test_file.name, "line": i + 1, "code": line.strip()})
+                patterns["error_data_detail"].append(
+                    {"file": test_file.name, "line": i + 1, "code": line.strip()}
+                )
                 stats["error_data_detail"] += 1
 
             # "in" checks
             if re.search(r'["\'](detail|error|error_description)["\'] in error', line):
-                patterns["in_checks"].append({"file": test_file.name, "line": i + 1, "code": line.strip()})
+                patterns["in_checks"].append(
+                    {"file": test_file.name, "line": i + 1, "code": line.strip()}
+                )
                 stats["in_checks"] += 1
 
     # Print summary
@@ -72,7 +89,9 @@ def analyze_error_patterns():
     print("\nBased on the auth service implementation (mcp_oauth_dynamicclient):")
     print("- HTTPException is raised with detail={'error': '...', 'error_description': '...'}")
     print("- The exception handler returns this detail as JSON")
-    print("- So error responses have structure: {'detail': {'error': '...', 'error_description': '...'}}")
+    print(
+        "- So error responses have structure: {'detail': {'error': '...', 'error_description': '...'}}"
+    )
     print("\nPATTERN STATISTICS:")
     print("-" * 80)
 
@@ -123,7 +142,9 @@ def analyze_error_patterns():
 
     # Direct error field access (non-standard)
     if patterns["error_field_only"]:
-        print(f"\nFiles using non-standard error['error'] pattern ({len(patterns['error_field_only'])} occurrences):")
+        print(
+            f"\nFiles using non-standard error['error'] pattern ({len(patterns['error_field_only'])} occurrences):"
+        )
         files = {ex["file"] for ex in patterns["error_field_only"]}
         for f in sorted(files)[:10]:
             print(f"  - {f}")

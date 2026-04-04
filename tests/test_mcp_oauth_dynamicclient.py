@@ -7,6 +7,8 @@ All tests use REAL Redis, REAL services, and REAL OAuth tokens.
 
 import json
 import os
+
+from scripts.env_compat import get_env_value
 import secrets
 from typing import Any
 
@@ -35,9 +37,13 @@ class TestMCPOAuthDynamicClientPackage:
     """Test the mcp-oauth-dynamicclient package functionality against real services."""
 
     @pytest.mark.asyncio
-    async def test_auth_service_is_running(self, http_client: httpx.AsyncClient, _wait_for_services):
+    async def test_auth_service_is_running(
+        self, http_client: httpx.AsyncClient, _wait_for_services
+    ):
         """Verify the auth service (using mcp-oauth-dynamicclient) is deployed and healthy."""
-        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0
+        )
 
         assert response.status_code == HTTP_OK
         oauth_data = response.json()
@@ -50,15 +56,19 @@ class TestMCPOAuthDynamicClientPackage:
         print("✅ Auth service is running and healthy")
 
     @pytest.mark.asyncio
-    async def test_oauth_metadata_endpoint(self, http_client: httpx.AsyncClient, _wait_for_services):
+    async def test_oauth_metadata_endpoint(
+        self, http_client: httpx.AsyncClient, _wait_for_services
+    ):
         """Test the OAuth 2.0 authorization server metadata endpoint (RFC 8414)."""
-        response = await http_client.get(f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0)
+        response = await http_client.get(
+            f"{AUTH_BASE_URL}/.well-known/oauth-authorization-server", timeout=30.0
+        )
 
         assert response.status_code == HTTP_OK
         metadata = response.json()
 
         # Verify required RFC 8414 fields provided by mcp-oauth-dynamicclient
-        assert metadata["issuer"] == f"https://auth.{BASE_DOMAIN}"
+        assert metadata["issuer"] == f"https://mcp-auth.{BASE_DOMAIN}"
         assert metadata["authorization_endpoint"] == f"{AUTH_BASE_URL}/authorize"
         assert metadata["token_endpoint"] == f"{AUTH_BASE_URL}/token"
         assert metadata["registration_endpoint"] == f"{AUTH_BASE_URL}/register"
@@ -71,6 +81,8 @@ class TestMCPOAuthDynamicClientPackage:
         # Grant types
         assert "authorization_code" in metadata["grant_types_supported"]
         assert "refresh_token" in metadata["grant_types_supported"]
+        assert "urn:ietf:params:oauth:grant-type:device_code" in metadata["grant_types_supported"]
+        assert metadata["device_authorization_endpoint"] == f"{AUTH_BASE_URL}/device/code"
 
         print("✅ OAuth metadata endpoint working correctly")
 
@@ -80,7 +92,9 @@ class TestMCPOAuthDynamicClientPackage:
     ):
         """Test RFC 7591 dynamic client registration functionality."""
         # MUST have OAuth access token for registration
-        assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        assert GATEWAY_OAUTH_ACCESS_TOKEN, (
+            "GATEWAY_OAUTH_ACCESS_TOKEN not available - run: just generate-github-token"
+        )
 
         registration_data = {
             "redirect_uris": [TEST_OAUTH_CALLBACK_URL, "https://example.com/callback2"],
@@ -109,7 +123,7 @@ class TestMCPOAuthDynamicClientPackage:
         assert "client_id" in client_data
         assert "client_secret" in client_data
         # Check client_secret_expires_at matches CLIENT_LIFETIME from .env
-        client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
+        client_lifetime = int(get_env_value("CLIENT_LIFETIME", "7776000"))
         if client_lifetime == 0:
             assert client_data["client_secret_expires_at"] == 0  # Never expires
         else:
@@ -122,7 +136,9 @@ class TestMCPOAuthDynamicClientPackage:
         assert client_data["scope"] == "openid profile email"
 
         # Verify the client is stored in Redis
-        redis_client = await redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
+        redis_client = await redis.from_url(
+            REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
+        )
 
         try:
             stored_client = await redis_client.get(f"oauth:client:{client_data['client_id']}")
@@ -286,7 +302,9 @@ class TestMCPOAuthDynamicClientPackage:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_token_endpoint_error_handling(self, http_client: httpx.AsyncClient, _wait_for_services):
+    async def test_token_endpoint_error_handling(
+        self, http_client: httpx.AsyncClient, _wait_for_services
+    ):
         """Test token endpoint error handling per OAuth 2.0 spec."""
         # Test with invalid client credentials
         response = await http_client.post(
@@ -312,7 +330,9 @@ class TestMCPOAuthDynamicClientPackage:
         print("✅ Token endpoint error handling working correctly")
 
     @pytest.mark.asyncio
-    async def test_redis_integration(self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name):
+    async def test_redis_integration(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name
+    ):
         """Test that mcp-oauth-dynamicclient correctly integrates with Redis."""
         registration_response = await http_client.post(
             f"{AUTH_BASE_URL}/register",
@@ -329,7 +349,9 @@ class TestMCPOAuthDynamicClientPackage:
         client = registration_response.json()
 
         # Connect to Redis directly
-        redis_client = await redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
+        redis_client = await redis.from_url(
+            REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
+        )
 
         try:
             # Check client is stored
@@ -343,12 +365,14 @@ class TestMCPOAuthDynamicClientPackage:
 
             # Check TTL based on CLIENT_LIFETIME setting
             ttl = await redis_client.ttl(client_key)
-            client_lifetime = int(os.environ.get("CLIENT_LIFETIME", "7776000"))
+            client_lifetime = int(get_env_value("CLIENT_LIFETIME", "7776000"))
             if client_lifetime == 0:
                 assert ttl == -1  # No expiration for eternal clients
             else:
                 # Should have TTL around CLIENT_LIFETIME (allow for test execution time)
-                assert 7770000 <= ttl <= 7776000, f"Expected TTL around {client_lifetime}, got {ttl}"
+                assert 7770000 <= ttl <= 7776000, (
+                    f"Expected TTL around {client_lifetime}, got {ttl}"
+                )
 
             print("✅ Redis integration working correctly")
 
@@ -372,7 +396,9 @@ class TestMCPOAuthDynamicClientPackage:
                 print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_pkce_support(self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name):
+    async def test_pkce_support(
+        self, http_client: httpx.AsyncClient, _wait_for_services, unique_client_name
+    ):
         """Test PKCE (RFC 7636) support in the auth service."""
         # Register a client
         registration_response = await http_client.post(
@@ -417,7 +443,9 @@ class TestMCPOAuthDynamicClientPackage:
         assert response.status_code == 307
 
         # The PKCE parameters should be stored in Redis with the state
-        redis_client = await redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
+        redis_client = await redis.from_url(
+            REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
+        )
 
         try:
             state_key = f"oauth:state:{auth_params['state']}"
@@ -486,7 +514,9 @@ class TestMCPOAuthDynamicClientPackage:
         assert len(client_ids) == len(set(client_ids))  # All unique
 
         # Verify all are stored in Redis
-        redis_client = await redis.from_url(REDIS_URL, password=REDIS_PASSWORD, decode_responses=True)
+        redis_client = await redis.from_url(
+            REDIS_URL, password=REDIS_PASSWORD, decode_responses=True
+        )
 
         try:
             for client in clients:
@@ -515,7 +545,9 @@ class TestMCPOAuthDynamicClientPackage:
                     print(f"Warning: Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_invalid_grant_types(self, http_client: httpx.AsyncClient, _wait_for_services, registered_client):
+    async def test_invalid_grant_types(
+        self, http_client: httpx.AsyncClient, _wait_for_services, registered_client
+    ):
         """Test handling of unsupported grant types."""
         # Use registered_client fixture which provides unique name and handles cleanup
         client = registered_client
@@ -641,7 +673,11 @@ class TestMCPOAuthDynamicClientIntegration:
             print("✅ Auth service properly validates tokens")
 
         # Cleanup: Delete the client registration using RFC 7592 if it was created
-        if client_data and "registration_access_token" in client_data and "client_id" in client_data:
+        if (
+            client_data
+            and "registration_access_token" in client_data
+            and "client_id" in client_data
+        ):
             try:
                 delete_response = await http_client.delete(
                     f"{AUTH_BASE_URL}/register/{client_data['client_id']}",

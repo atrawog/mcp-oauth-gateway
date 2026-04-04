@@ -1,0 +1,133 @@
+[project]
+name = "mcp-oauth-gateway"
+version = "0.1.0"
+description = "MCP OAuth 2.1 Gateway for securing MCP services"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.25.0",
+    "httpx>=0.25.0",
+    "redis>=5.0.0",
+    "authlib>=1.3.0",
+    "cryptography>=41.0.0",
+    "python-multipart>=0.0.6",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "pyyaml>=6.0",
+    "aiohttp>=3.9.0",
+    "aiofiles>=24.0.0",
+    "click>=8.0.0",
+    "rich>=13.0.0",
+    "tabulate>=0.9.0",
+    "mcp>=1.0.0",
+    "mcp-streamablehttp-client",
+    "python-dotenv>=1.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = false
+dev-dependencies = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "pytest-timeout>=2.4.0",
+    "pytest-xdist>=3.7.0",
+    "ruff>=0.8.0",
+    "ty>=0.0.24",
+    "pre-commit>=3.5.0",
+    "pip-audit>=2.6.0",
+    "bandit>=1.7.0",
+]
+
+[tool.uv.sources]
+mcp-streamablehttp-client = { path = "mcp-streamablehttp-client", editable = true }
+mcp-oauth-dynamicclient = { path = "mcp-oauth-dynamicclient", editable = true }
+
+# ========================================
+# Pytest
+# ========================================
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests", "@oauth-helpers/tests"]
+cache_dir = ".cache/pytest"
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (potentially network-dependent)",
+]
+
+# ========================================
+# Ruff
+# ========================================
+[tool.ruff]
+cache-dir = ".cache/ruff"
+line-length = 100
+target-version = "py311"
+src = ["mcp-oauth-dynamicclient/src"]
+exclude = [
+    ".git",
+    ".cache",
+    ".venv",
+    ".pixi",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+    "D",   # pydocstyle
+    "S",   # flake8-bandit
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "D"]
+
+# ========================================
+# Ty (type checker)
+# ========================================
+[tool.ty]
+cache-dir = ".cache/ty"
+
+# ========================================
+# Coverage
+# ========================================
+[tool.coverage.run]
+source = ["mcp-oauth-dynamicclient/src/mcp_oauth_dynamicclient"]
+omit = ["*/tests/*", "*/cli.py"]
+data_file = ".cache/coverage/.coverage"
+
+[tool.coverage.report]
+skip_covered = true
+skip_empty = true
+
+[tool.coverage.html]
+directory = ".cache/coverage/htmlcov"
+
+# ========================================
+# Bandit
+# ========================================
+[tool.bandit]
+exclude_dirs = [".cache", "tests", ".venv", ".pixi"]
+
+
+[tool.hatch.build.targets.wheel]
+packages = []

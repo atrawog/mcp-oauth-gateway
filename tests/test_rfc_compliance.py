@@ -83,7 +83,9 @@ class TestRFCCompliance:
         assert "op_tos_uri" in metadata
 
     @pytest.mark.asyncio
-    async def test_registration_invalid_redirect_uri_rfc7591(self, http_client, unique_client_name, unique_test_id):
+    async def test_registration_invalid_redirect_uri_rfc7591(
+        self, http_client, unique_client_name, unique_test_id
+    ):
         """Test RFC 7591 compliance for invalid redirect URI."""
         # Test HTTP URI for non-localhost
         response = await http_client.post(
@@ -100,7 +102,9 @@ class TestRFCCompliance:
         assert "localhost" in error["error_description"]
 
     @pytest.mark.asyncio
-    async def test_registration_valid_redirect_uris_rfc7591(self, http_client, unique_client_name, unique_test_id):
+    async def test_registration_valid_redirect_uris_rfc7591(
+        self, http_client, unique_client_name, unique_test_id
+    ):
         """Test RFC 7591 compliance for valid redirect URIs."""
         # Test various valid redirect URIs
         response = await http_client.post(
@@ -131,14 +135,20 @@ class TestRFCCompliance:
                 )
                 # 204 No Content is success, 404 is okay if already deleted
                 if delete_response.status_code not in (204, 404):
-                    logger.warning(f"Failed to delete client {client['client_id']}: {delete_response.status_code}")
+                    logger.warning(
+                        f"Failed to delete client {client['client_id']}: {delete_response.status_code}"
+                    )
             except Exception as e:
                 logger.warning(f"Error during client cleanup: {e}")
 
     @pytest.mark.asyncio
-    async def test_registration_missing_redirect_uris_rfc7591(self, http_client, unique_client_name, unique_test_id):
+    async def test_registration_missing_redirect_uris_rfc7591(
+        self, http_client, unique_client_name, unique_test_id
+    ):
         """Test RFC 7591 compliance for missing redirect_uris."""
-        response = await http_client.post(f"{AUTH_BASE_URL}/register", json={"client_name": unique_client_name})
+        response = await http_client.post(
+            f"{AUTH_BASE_URL}/register", json={"client_name": unique_client_name}
+        )
 
         # RFC 7591 - Returns 400 with proper error format
         assert response.status_code == HTTP_BAD_REQUEST

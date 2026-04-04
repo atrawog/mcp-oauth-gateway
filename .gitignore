@@ -4,6 +4,33 @@
 .env
 .env.*
 !.env.example
+.beads/
+.lavra/
+.superpowers/
+.omc/
+docs/plans/
+docs/superpowers/
+docs/reports/
+docs/sessions/
+.cache/
+.1code/
+.cursor/
+.windsurf/
+.gemini/
+target/
+release/
+storage/
+data/
+.worktrees/
+.claude/worktrees/
+.next/
+.turbo/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+node_modules/
+.docs/
+plans/
 
 # Analysis outputs stay local - Sacred reports directory
 /reports/
@@ -38,7 +65,7 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual environments (though we use pixi)
+# Virtual environments (though we use uv)
 venv/
 ENV/
 env/
@@ -60,7 +87,7 @@ volumes/
 *.temp
 .cache/
 
-# Pixi environments
+# Pixi (deprecated - migrated to uv)
 .pixi/
 
 # Jupyter Notebook checkpoints
@@ -108,3 +135,24 @@ docker-compose.includes.yml
 
 # Generated Traefik middleware configuration
 traefik/dynamic/middlewares.yml
+
+# Local MCP proxy services (user-specific, not part of gateway)
+mcp-synapse/
+mcp-axon/
+
+# pytest-benchmark storage
+.benchmarks/
+
+# Generated plans, reports, and superpowers docs
+docs/plans/
+docs/reports/
+docs/superpowers/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+.mcp.json
+.credentials.json
+auth.json
+logs/

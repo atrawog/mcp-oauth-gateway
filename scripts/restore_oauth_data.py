@@ -14,6 +14,7 @@ from pathlib import Path
 
 import redis.asyncio as redis
 from dotenv import load_dotenv
+from redis_runtime import resolve_runtime_redis_url
 
 
 # Load environment - SACRED LAW!
@@ -25,16 +26,8 @@ class OAuthRestore:
 
     def __init__(self):
         # Redis connection from environment - NO HARDCODING!
-        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        redis_url = resolve_runtime_redis_url(os.getenv("REDIS_URL", "redis://localhost:6379"))
         redis_password = os.getenv("REDIS_PASSWORD")
-
-        # If we're running on the host and Redis URL points to 'redis' hostname,
-        # change it to localhost (Redis is exposed on host ports)
-        if "redis://" in redis_url and "redis:" in redis_url:
-            # Check if we're in a container
-            if not os.path.exists("/.dockerenv"):
-                # We're on the host, use localhost
-                redis_url = redis_url.replace("redis:", "localhost:")
 
         # Parse Redis URL
         if redis_url.startswith("redis://"):
@@ -90,7 +83,9 @@ class OAuthRestore:
             return []
 
         backups = []
-        for i, filepath in enumerate(sorted(self.backup_dir.glob("oauth-backup-*.json"), reverse=True)):
+        for i, filepath in enumerate(
+            sorted(self.backup_dir.glob("oauth-backup-*.json"), reverse=True)
+        ):
             stat = filepath.stat()
 
             # Load metadata
@@ -104,7 +99,9 @@ class OAuthRestore:
                         "filename": filepath.name,
                         "path": str(filepath),
                         "size_mb": stat.st_size / (1024 * 1024),
-                        "created": datetime.fromtimestamp(stat.st_mtime, tz=UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                        "created": datetime.fromtimestamp(stat.st_mtime, tz=UTC).strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        ),
                         "timestamp": data.get("timestamp", "Unknown"),
                         "registrations": data["metadata"]["total_registrations"],
                         "tokens": data["metadata"]["total_tokens"],
@@ -144,7 +141,9 @@ class OAuthRestore:
 
         return counts
 
-    async def restore_from_backup(self, backup_path: str, dry_run: bool = False, clear_existing: bool = False):
+    async def restore_from_backup(
+        self, backup_path: str, dry_run: bool = False, clear_existing: bool = False
+    ):
         """Restore OAuth data from backup file."""
         # Load backup
         print(f"\n📂 Loading backup from: {backup_path}")
@@ -347,7 +346,9 @@ async def main():
 
             print("\n📋 Available Backups:")
             print("-" * 80)
-            print(f"{'#':>3} {'Filename':<35} {'Created':<20} {'Regs':<6} {'Tokens':<8} {'Size':<8}")
+            print(
+                f"{'#':>3} {'Filename':<35} {'Created':<20} {'Regs':<6} {'Tokens':<8} {'Size':<8}"
+            )
             print("-" * 80)
 
             for backup in backups:
@@ -376,7 +377,9 @@ async def main():
                 return
 
         # Perform restore
-        await restore.restore_from_backup(str(backup_path), dry_run=args.dry_run, clear_existing=args.clear)
+        await restore.restore_from_backup(
+            str(backup_path), dry_run=args.dry_run, clear_existing=args.clear
+        )
 
     finally:
         await restore.cleanup()

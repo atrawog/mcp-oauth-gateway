@@ -135,8 +135,8 @@ def verify_mcp_gateway_response(response_text: str) -> bool:
         "authorization_endpoint",  # OAuth metadata
         "token_endpoint",  # OAuth metadata
         "registration_endpoint",  # OAuth metadata
-        "traefik",  # Our reverse proxy
-        "forwardauth",  # Our auth middleware
+        "swag",  # Our reverse proxy
+        "auth_request",  # Our auth middleware
         "invalid_request",  # OAuth error from our services
         "Missing Authorization header",  # Error from our auth middleware
         "robots.txt",  # Fetch service checking robots.txt on our domain

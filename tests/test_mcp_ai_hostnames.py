@@ -59,7 +59,9 @@ class TestMCPAIHostnames:
             try:
                 # First test without auth - should get 401
                 response = await http_client.post(url, timeout=10.0)  # Reduced from 30s
-                assert response.status_code == HTTP_UNAUTHORIZED, f"{name} should require authentication"
+                assert response.status_code == HTTP_UNAUTHORIZED, (
+                    f"{name} should require authentication"
+                )
 
                 # Test with auth - initialize request
                 assert GATEWAY_OAUTH_ACCESS_TOKEN, "GATEWAY_OAUTH_ACCESS_TOKEN not available"
@@ -85,7 +87,9 @@ class TestMCPAIHostnames:
                     timeout=30.0,
                 )
 
-                assert response.status_code == HTTP_OK, f"{name} failed to initialize: {response.text}"
+                assert response.status_code == HTTP_OK, (
+                    f"{name} failed to initialize: {response.text}"
+                )
 
                 # Verify response structure
                 result = response.json()
@@ -127,7 +131,9 @@ class TestMCPAIHostnames:
                 # Per CLAUDE.md, health is checked via MCP protocol, not /health endpoint
                 # Test that endpoint requires auth (returns 401)
                 response = await http_client.get(url, timeout=30.0)
-                assert response.status_code == HTTP_UNAUTHORIZED, f"{name} should require authentication"
+                assert response.status_code == HTTP_UNAUTHORIZED, (
+                    f"{name} should require authentication"
+                )
                 assert "WWW-Authenticate" in response.headers
 
                 print(f"✅ {name} MCP endpoint properly secured")
@@ -162,7 +168,9 @@ class TestMCPAIHostnames:
                 continue
 
     @pytest.mark.asyncio
-    async def test_fetch_through_ai_hostname(self, http_client: httpx.AsyncClient, unique_client_name):
+    async def test_fetch_through_ai_hostname(
+        self, http_client: httpx.AsyncClient, unique_client_name
+    ):
         """Test actual fetch capability through one of the AI hostnames."""
         # Use the first available hostname for this test
         if not self.HOSTNAMES:
@@ -187,7 +195,9 @@ class TestMCPAIHostnames:
 
         headers = {"Authorization": f"Bearer {GATEWAY_OAUTH_ACCESS_TOKEN}"}
 
-        init_response = await http_client.post(url, json=init_request, headers=headers, timeout=30.0)
+        init_response = await http_client.post(
+            url, json=init_request, headers=headers, timeout=30.0
+        )
         assert init_response.status_code == HTTP_OK
 
         # Get session ID
@@ -203,7 +213,9 @@ class TestMCPAIHostnames:
             "id": 2,
         }
 
-        tools_response = await http_client.post(url, json=list_tools_request, headers=headers, timeout=30.0)
+        tools_response = await http_client.post(
+            url, json=list_tools_request, headers=headers, timeout=30.0
+        )
         assert tools_response.status_code == HTTP_OK
 
         tools_result = tools_response.json()
@@ -270,4 +282,6 @@ class TestMCPAIHostnames:
             print(
                 "\n⚠️  No AI hostnames are accessible yet. This is expected if Let's Encrypt hasn't issued certificates.",
             )
-            print("   The hostnames are properly configured in Traefik and will work once certificates are issued.")
+            print(
+                "   The hostnames are properly configured in SWAG and will work once certificates are issued."
+            )

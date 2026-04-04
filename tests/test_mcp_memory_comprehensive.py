@@ -37,7 +37,9 @@ async def wait_for_services():
 class TestMCPMemoryComprehensive:
     """Comprehensive tests for all mcp-memory service functionalities."""
 
-    def run_mcp_client(self, url: str, token: str, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+    def run_mcp_client(
+        self, url: str, token: str, method: str, params: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Run mcp-streamablehttp-client and return the response."""
         # Set environment variables
         env = os.environ.copy()
@@ -56,7 +58,7 @@ class TestMCPMemoryComprehensive:
 
         # Build the command
         cmd = [
-            "pixi",
+            "uv",
             "run",
             "mcp-streamablehttp-client",
             "--server-url",
@@ -208,7 +210,9 @@ class TestMCPMemoryComprehensive:
             assert isinstance(content, list)
             assert len(content) > 0
             # Memory server returns entity data or empty array - both are valid
-            text_content = "".join([item.get("text", "") for item in content if item.get("type") == "text"])
+            text_content = "".join(
+                [item.get("text", "") for item in content if item.get("type") == "text"]
+            )
             # If entities were created, they should be in the response
             if text_content and text_content != "[]":
                 assert "test_user" in text_content
@@ -337,7 +341,9 @@ class TestMCPMemoryComprehensive:
             content = response["result"]["content"]
             assert isinstance(content, list)
             # Should return the current state of the memory graph
-            text_content = "".join([item.get("text", "") for item in content if item.get("type") == "text"])
+            text_content = "".join(
+                [item.get("text", "") for item in content if item.get("type") == "text"]
+            )
             assert len(text_content) > 0  # Should have some content about the graph
         else:
             assert "error" in response
@@ -436,7 +442,9 @@ class TestMCPMemoryComprehensive:
             method="tools/call",
             params={
                 "name": "create_entities",
-                "arguments": {"entities": [{"name": "deletable_entity", "entityType": "temporary"}]},
+                "arguments": {
+                    "entities": [{"name": "deletable_entity", "entityType": "temporary"}]
+                },
             },
         )
 
@@ -509,7 +517,9 @@ class TestMCPMemoryComprehensive:
             params={
                 "name": "delete_relations",
                 "arguments": {
-                    "relationIds": ["entity_a->entity_b"],  # This might need adjustment based on actual ID format
+                    "relationIds": [
+                        "entity_a->entity_b"
+                    ],  # This might need adjustment based on actual ID format
                 },
             },
         )
@@ -524,7 +534,9 @@ class TestMCPMemoryComprehensive:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_memory_delete_observations(self, mcp_memory_url, client_token, wait_for_services):
+    async def test_memory_delete_observations(
+        self, mcp_memory_url, client_token, wait_for_services
+    ):
         """Test deleting observations from memory."""
         tool_schema = self.get_tool_schema(f"{mcp_memory_url}", client_token, "delete_observations")
         print(f"\\nTesting delete_observations tool: {tool_schema['description']}")
@@ -557,7 +569,9 @@ class TestMCPMemoryComprehensive:
             params={
                 "name": "delete_observations",
                 "arguments": {
-                    "observationIds": ["observed_entity_0"],  # This might need adjustment based on actual ID format
+                    "observationIds": [
+                        "observed_entity_0"
+                    ],  # This might need adjustment based on actual ID format
                 },
             },
         )
@@ -757,6 +771,8 @@ class TestMCPMemoryComprehensive:
             search_missing_response,
             open_missing_response,
         ]:
-            assert "result" in response or "error" in response, f"Response missing result or error: {response}"
+            assert "result" in response or "error" in response, (
+                f"Response missing result or error: {response}"
+            )
 
         print("✅ Error handling verification completed!")

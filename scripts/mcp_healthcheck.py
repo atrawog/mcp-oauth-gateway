@@ -5,6 +5,8 @@ Performs a divine MCP protocol health check for any MCP service
 """
 
 import os
+
+from env_compat import get_env_value
 import sys
 
 import requests
@@ -57,7 +59,9 @@ def perform_mcp_healthcheck(
             f'"protocolVersion":"{protocol_version}"' in response_text
             or f'"protocolVersion": "{protocol_version}"' in response_text
         ):
-            print(f"Health check passed: MCP service is responding with protocol version {protocol_version}")
+            print(
+                f"Health check passed: MCP service is responding with protocol version {protocol_version}"
+            )
             return True
         print("Health check failed: MCP service did not respond with expected protocol version")
         print(f"Response: {response_text[:500]}...")  # First 500 chars
@@ -76,7 +80,7 @@ def main():
     # Get configuration from environment variables
     host = os.environ.get("MCP_HOST", "localhost")
     port = int(os.environ.get("MCP_PORT", "3000"))
-    protocol_version = os.environ.get("MCP_PROTOCOL_VERSION")
+    protocol_version = get_env_value("MCP_PROTOCOL_VERSION")
 
     # Check if protocol version is set
     if not protocol_version:

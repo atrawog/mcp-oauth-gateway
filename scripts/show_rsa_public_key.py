@@ -6,6 +6,7 @@ import os
 import re
 import sys
 
+from env_compat import get_env_value
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
@@ -22,18 +23,20 @@ def show_rsa_public_key():
     with open(env_file_path) as f:
         env_content = f.read()
 
-    # Check if JWT_PRIVATE_KEY_B64 exists
-    jwt_key_pattern = r"^JWT_PRIVATE_KEY_B64=.*$"
-    existing_match = re.search(jwt_key_pattern, env_content, re.MULTILINE)
+    current_key_b64 = get_env_value("JWT_PRIVATE_KEY_B64")
+    if not current_key_b64:
+        oauth_match = re.search(r"^OAUTH_JWT_PRIVATE_KEY_B64=(.*)$", env_content, re.MULTILINE)
+        compat_match = re.search(r"^JWT_PRIVATE_KEY_B64=(.*)$", env_content, re.MULTILINE)
+        match = compat_match or oauth_match
+        current_key_b64 = match.group(1).strip() if match else None
 
-    if not existing_match:
+    if not current_key_b64:
         print("❌ JWT_PRIVATE_KEY_B64 not found in .env file!")
         print("Run 'just generate-rsa-keys' to create one.")
         sys.exit(1)
 
     # Extract and decode the key
     try:
-        current_key_b64 = existing_match.group(0).split("=", 1)[1].strip()
         if not current_key_b64:
             print("❌ JWT_PRIVATE_KEY_B64 is empty!")
             sys.exit(1)

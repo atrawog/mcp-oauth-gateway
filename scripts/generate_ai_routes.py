@@ -1,5 +1,52 @@
 #!/usr/bin/env python3
-"""Generate Traefik routing labels for AI model hostnames."""
+"""Generate SWAG nginx proxy-conf files for AI model hostnames.
+
+Each AI model hostname (e.g. aria.$BASE_DOMAIN) gets its own
+``swag/proxy-confs/mcp-fetch-{model}.subdomain.conf`` file that:
+
+* Routes ``/mcp`` through OAuth token verification (auth_request /_oauth_verify)
+* Proxies ``/.well-known/*``, ``/register``, ``/authorize``, ``/token``,
+  ``/revoke``, ``/callback``, and ``/success`` directly to ``mcp-oauth:8000``
+  (no auth_request — OAuth flows must remain public)
+* Proxies ``/health`` directly to the upstream MCP service (no auth_request)
+* Returns JSON error responses on 400/401/403
+
+All models proxy to the same ``mcp-fetch`` container on port 3000.
+
+Usage:
+    python scripts/generate_ai_routes.py [--output-dir PATH] [--dry-run]
+
+Environment variables:
+    BASE_DOMAIN      - Base domain, e.g. tootie.tv  (default: localhost)
+    AUTH_DOMAIN      - Auth subdomain FQDN, e.g. mcp-auth.tootie.tv
+                       (default: mcp-auth.$BASE_DOMAIN)
+    AUTH_SERVICE_HOST - Docker service name for the OAuth service
+                       (default: mcp-oauth)
+    MCP_UPSTREAM_HOST - Docker service name for the MCP fetch container
+                       (default: mcp-fetch)
+    MCP_UPSTREAM_PORT - Port the MCP container listens on (default: 3000)
+"""
+
+import argparse
+import os
+import re
+import sys
+from pathlib import Path
+
+_HOSTNAME_RE = re.compile(r"^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?$")
+
+
+def validate_hostname(name: str, var: str) -> str:
+    """Validate a hostname value from an environment variable.
+
+    Prevents nginx config injection via newline or special characters.
+    """
+    if not _HOSTNAME_RE.match(name):
+        raise ValueError(
+            f"Invalid hostname in {var}={name!r}. Must match [a-z0-9][a-z0-9-]*[a-z0-9]"
+        )
+    return name
+
 
 AI_MODELS = [
     "aria",
@@ -15,52 +62,375 @@ AI_MODELS = [
 ]
 
 
-def generate_routes_for_model(model: str) -> str:
-    """Generate all required routes for a single AI model hostname."""
-    return f"""      # {model.capitalize()}
-      # Health check route - Priority 5 (high priority for specific path)
-      - "traefik.http.routers.mcp-fetch-{model}-health.rule=Host(`mcp-fetch-{model}.${{BASE_DOMAIN}}`) && Path(`/health`)"
-      - "traefik.http.routers.mcp-fetch-{model}-health.priority=5"
-      - "traefik.http.routers.mcp-fetch-{model}-health.entrypoints=websecure"
-      - "traefik.http.routers.mcp-fetch-{model}-health.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-{model}-health.service=mcp-fetch"
-      # No auth middleware - health check must be public!
+def generate_conf_for_model(
+    model: str,
+    base_domain: str,
+    auth_domain: str,
+    auth_service_host: str,
+    mcp_upstream_host: str,
+    mcp_upstream_port: int,
+) -> str:
+    """Generate a complete SWAG nginx proxy-conf for a single AI model hostname.
 
-      # OAuth discovery route - Priority 10 (highest priority)
-      - "traefik.http.routers.mcp-fetch-{model}-oauth-discovery.rule=Host(`mcp-fetch-{model}.${{BASE_DOMAIN}}`) && PathPrefix(`/.well-known/oauth-authorization-server`)"
-      - "traefik.http.routers.mcp-fetch-{model}-oauth-discovery.priority=10"
-      - "traefik.http.routers.mcp-fetch-{model}-oauth-discovery.entrypoints=websecure"
-      - "traefik.http.routers.mcp-fetch-{model}-oauth-discovery.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-{model}-oauth-discovery.middlewares=oauth-discovery-rewrite@docker"
-      - "traefik.http.routers.mcp-fetch-{model}-oauth-discovery.service=auth@docker"
-      # No auth middleware - OAuth discovery must be public!
+    Args:
+        model: Short model name, e.g. ``aria``.
+        base_domain: Base domain, e.g. ``tootie.tv``.
+        auth_domain: Fully-qualified auth service domain for the
+            ``/.well-known/oauth-protected-resource`` JSON response.
+        auth_service_host: Docker service name for the OAuth service.
+        mcp_upstream_host: Docker service name for the MCP upstream container.
+        mcp_upstream_port: Port the MCP container listens on.
 
-      # MCP route with auth - Priority 2
-      - "traefik.http.routers.mcp-fetch-{model}.rule=Host(`mcp-fetch-{model}.${{BASE_DOMAIN}}`) && PathPrefix(`/mcp`)"
-      - "traefik.http.routers.mcp-fetch-{model}.priority=2"
-      - "traefik.http.routers.mcp-fetch-{model}.entrypoints=websecure"
-      - "traefik.http.routers.mcp-fetch-{model}.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-{model}.middlewares=mcp-auth@docker"
-      - "traefik.http.routers.mcp-fetch-{model}.service=mcp-fetch"
+    Returns:
+        Complete nginx ``server {}`` block as a string.
 
-      # Catch-all route with auth - Priority 1 (lowest)
-      - "traefik.http.routers.mcp-fetch-{model}-catchall.rule=Host(`mcp-fetch-{model}.${{BASE_DOMAIN}}`)"
-      - "traefik.http.routers.mcp-fetch-{model}-catchall.priority=1"
-      - "traefik.http.routers.mcp-fetch-{model}-catchall.entrypoints=websecure"
-      - "traefik.http.routers.mcp-fetch-{model}-catchall.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.mcp-fetch-{model}-catchall.middlewares=mcp-auth@docker"
-      - "traefik.http.routers.mcp-fetch-{model}-catchall.service=mcp-fetch"
+    """
+    service_fqdn = f"mcp-fetch-{model}.{base_domain}"
+
+    return f"""\
+## MCP OAuth Gateway — AI model hostname: {model}
+## Generated by scripts/generate_ai_routes.py
+## Proxies {service_fqdn} → {mcp_upstream_host}:{mcp_upstream_port}
+##
+## OAuth endpoints are forwarded to {auth_service_host}:8000 WITHOUT auth.
+## MCP endpoint requires a valid Bearer token (auth_request /_oauth_verify).
+
+server {{
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    server_name mcp-fetch-{model}.*;
+
+    include /config/nginx/ssl.conf;
+
+    client_max_body_size 0;
+
+    set $upstream_app {mcp_upstream_host};
+    set $upstream_port {mcp_upstream_port};
+    set $upstream_proto http;
+
+    set $mcp_upstream_app {mcp_upstream_host};
+    set $mcp_upstream_port {mcp_upstream_port};
+    set $mcp_upstream_proto http;
+
+    # DNS Rebinding Protection
+    set $origin_valid 0;
+    if ($http_origin = "") {{
+        set $origin_valid 1;
+    }}
+    if ($http_origin = "https://$server_name") {{
+        set $origin_valid 1;
+    }}
+    if ($http_origin ~ "^https://(localhost|127\\.0\\.0\\.1)(:[0-9]+)?$") {{
+        set $origin_valid 1;
+    }}
+    # Allow Anthropic MCP proxy and Claude.ai
+    if ($http_origin ~ "^https://(.*\\.)?anthropic\\.com$") {{
+        set $origin_valid 1;
+    }}
+    if ($http_origin ~ "^https://(.*\\.)?claude\\.ai$") {{
+        set $origin_valid 1;
+    }}
+
+    add_header X-MCP-Version "2025-06-18" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # OAuth 2.1 token verification via mcp-oauth (shared snippet)
+    include /config/nginx/proxy-confs/_oauth_verify.conf;
+
+    # ──────────────────────────────────────────────
+    # MCP endpoint (authenticated via {auth_service_host})
+    # ──────────────────────────────────────────────
+    location /mcp {{
+        if ($origin_valid = 0) {{
+            add_header Content-Type "application/json" always;
+            return 403 '{{"error": "origin_not_allowed", "message": "Origin header validation failed"}}';
+        }}
+
+        auth_request /_oauth_verify;
+        auth_request_set $auth_status    $upstream_status;
+        auth_request_set $auth_user_id   $upstream_http_x_user_id;
+        auth_request_set $auth_user      $upstream_http_x_user_name;
+        auth_request_set $auth_token     $upstream_http_x_auth_token;
+
+        include /config/nginx/resolver.conf;
+        proxy_buffering off;
+        include /config/nginx/mcp.conf;
+
+        proxy_max_temp_file_size 0;
+        chunked_transfer_encoding on;
+        proxy_set_header Connection '';
+
+        proxy_set_header MCP-Protocol-Version $http_mcp_protocol_version;
+        proxy_set_header Mcp-Session-Id $http_mcp_session_id;
+        proxy_set_header Accept $http_accept;
+        proxy_set_header X-User-Id    $auth_user_id;
+        proxy_set_header X-User-Name  $auth_user;
+        proxy_set_header X-Auth-Token $auth_token;
+
+        proxy_connect_timeout 240s;
+        proxy_send_timeout 86400s;
+        proxy_read_timeout 86400s;
+
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        add_header Pragma "no-cache" always;
+        add_header Expires "0" always;
+
+        add_header Access-Control-Allow-Origin $http_origin always;
+        add_header Access-Control-Allow-Methods "GET, POST, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Authorization, Content-Type, Accept, MCP-Protocol-Version, Mcp-Session-Id, Last-Event-ID" always;
+        add_header Access-Control-Allow-Credentials "true" always;
+        add_header Access-Control-Max-Age "3600" always;
+
+        if ($request_method = 'OPTIONS') {{
+            add_header Content-Type "text/plain charset=UTF-8";
+            add_header Content-Length 0;
+            return 204;
+        }}
+
+        proxy_pass $mcp_upstream_proto://$mcp_upstream_app:$mcp_upstream_port;
+    }}
+
+    # ──────────────────────────────────────────────
+    # OAuth metadata (static + proxied to {auth_service_host})
+    # ──────────────────────────────────────────────
+    location = /.well-known/oauth-protected-resource {{
+        default_type application/json;
+        add_header Cache-Control "public, max-age=3600" always;
+        add_header Access-Control-Allow-Origin $http_origin always;
+        add_header Access-Control-Allow-Methods "GET, OPTIONS" always;
+        return 200 '{{"resource":"https://{service_fqdn}","authorization_servers":["https://{auth_domain}"],"scopes_supported":["mcp:read","mcp:write"],"bearer_methods_supported":["header"]}}';
+    }}
+
+    location = /.well-known/oauth-authorization-server {{
+        include /config/nginx/resolver.conf;
+        include /config/nginx/proxy.conf;
+        add_header Cache-Control "public, max-age=3600" always;
+        proxy_pass http://{auth_service_host}:8000;
+    }}
+
+    location = /.well-known/oauth-client-id-metadata {{
+        # Public endpoint — no auth_request (used by MCP clients to bootstrap OAuth 2025-11-25)
+        include /config/nginx/resolver.conf;
+        include /config/nginx/proxy.conf;
+        add_header Cache-Control "public, max-age=3600" always;
+        proxy_pass http://{auth_service_host}:8000;
+    }}
+
+    location = /.well-known/openid-configuration {{
+        include /config/nginx/resolver.conf;
+        include /config/nginx/proxy.conf;
+        add_header Cache-Control "public, max-age=3600" always;
+        proxy_pass http://{auth_service_host}:8000;
+    }}
+
+    location = /jwks {{
+        include /config/nginx/resolver.conf;
+        include /config/nginx/proxy.conf;
+        add_header Cache-Control "public, max-age=3600" always;
+        proxy_pass http://{auth_service_host}:8000;
+    }}
+
+    # ──────────────────────────────────────────────
+    # OAuth endpoints (proxied to {auth_service_host} — NO auth_request)
+    # ──────────────────────────────────────────────
+    location = /register {{
+        include /config/nginx/resolver.conf;
+        include /config/nginx/proxy.conf;
+        add_header Cache-Control "no-store" always;
+        proxy_pass http://{auth_service_host}:8000;
+    }}
+
+    location = /authorize {{
+        include /config/nginx/resolver.conf;
+        include /config/nginx/proxy.conf;
+        proxy_pass http://{auth_service_host}:8000;
+    }}
+
+    location = /token {{
+        include /config/nginx/resolver.conf;
+        include /config/nginx/proxy.conf;
+        add_header Cache-Control "no-store" always;
+        proxy_pass http://{auth_service_host}:8000;
+    }}
+
+    location = /revoke {{
+        include /config/nginx/resolver.conf;
+        include /config/nginx/proxy.conf;
+        add_header Cache-Control "no-store" always;
+        proxy_pass http://{auth_service_host}:8000;
+    }}
+
+    location = /callback {{
+        include /config/nginx/resolver.conf;
+        include /config/nginx/proxy.conf;
+        proxy_pass http://{auth_service_host}:8000;
+    }}
+
+    location = /success {{
+        include /config/nginx/resolver.conf;
+        include /config/nginx/proxy.conf;
+        proxy_pass http://{auth_service_host}:8000;
+    }}
+
+    # ──────────────────────────────────────────────
+    # Health check (public — no auth_request)
+    # ──────────────────────────────────────────────
+    location /health {{
+        include /config/nginx/resolver.conf;
+        include /config/nginx/mcp.conf;
+
+        proxy_set_header Accept "application/json";
+        proxy_set_header X-Health-Check "nginx-mcp-proxy";
+        proxy_set_header MCP-Protocol-Version $http_mcp_protocol_version;
+
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 10s;
+        proxy_read_timeout 10s;
+
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        add_header Pragma "no-cache" always;
+
+        proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+    }}
+
+    # ──────────────────────────────────────────────
+    # Session + default (authenticated)
+    # ──────────────────────────────────────────────
+    location ~* ^/(session|sessions) {{
+        auth_request /_oauth_verify;
+        auth_request_set $auth_status $upstream_status;
+        include /config/nginx/resolver.conf;
+        include /config/nginx/proxy.conf;
+
+        proxy_set_header MCP-Protocol-Version $http_mcp_protocol_version;
+        proxy_set_header Mcp-Session-Id $http_mcp_session_id;
+
+        add_header Cache-Control "no-store" always;
+        add_header Pragma "no-cache" always;
+
+        proxy_pass $mcp_upstream_proto://$mcp_upstream_app:$mcp_upstream_port;
+    }}
+
+    location / {{
+        auth_request /_oauth_verify;
+        auth_request_set $auth_status $upstream_status;
+        include /config/nginx/resolver.conf;
+        include /config/nginx/proxy.conf;
+
+        proxy_pass $upstream_proto://$upstream_app:$upstream_port;
+    }}
+
+    # ──────────────────────────────────────────────
+    # Error pages (JSON)
+    # ──────────────────────────────────────────────
+    error_page 400 @error_400;
+    error_page 401 @error_401;
+    error_page 403 @error_403;
+
+    location @error_400 {{
+        internal;
+        add_header Content-Type "application/json" always;
+        return 400 '{{"error": "bad_request", "message": "Invalid request format or missing required headers"}}';
+    }}
+
+    location @error_401 {{
+        internal;
+        add_header Content-Type "application/json" always;
+        add_header WWW-Authenticate 'Bearer resource_metadata="https://$server_name/.well-known/oauth-protected-resource", scope="mcp:read mcp:write"' always;
+        return 401 '{{"error": "unauthorized", "message": "Valid authorization token required", "authorization_server": "https://$server_name/.well-known/oauth-authorization-server"}}';
+    }}
+
+    location @error_403 {{
+        internal;
+        add_header Content-Type "application/json" always;
+        return 403 '{{"error": "forbidden", "message": "Insufficient permissions or origin not allowed"}}';
+    }}
+}}
 """
 
 
-def main():
-    print("# Additional AI model hostnames routing configuration")
-    print("# Add these labels to the mcp-fetch service in docker-compose.yml")
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parse command-line arguments.
+
+    Args:
+        argv: Argument list (defaults to sys.argv[1:]).
+
+    Returns:
+        Parsed namespace with ``output_dir`` and ``dry_run`` attributes.
+
+    """
+    repo_root = Path(__file__).parent.parent
+    default_output = str(repo_root / "swag" / "proxy-confs")
+
+    parser = argparse.ArgumentParser(
+        description="Generate SWAG nginx proxy-conf files for AI model hostnames."
+    )
+    parser.add_argument(
+        "--output-dir",
+        default=default_output,
+        help=f"Directory to write .conf files into (default: {default_output})",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print generated configs to stdout instead of writing files.",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Generate one proxy-conf file per AI model hostname.
+
+    Args:
+        argv: Optional argument list for testing.
+
+    Returns:
+        Exit code (0 on success).
+
+    """
+    args = parse_args(argv)
+
+    base_domain = os.getenv("BASE_DOMAIN", "localhost")
+    auth_service_host = os.getenv("AUTH_SERVICE_HOST", "mcp-oauth")
+    auth_domain = os.getenv("AUTH_DOMAIN", f"mcp-auth.{base_domain}")
+    mcp_upstream_host = os.getenv("MCP_UPSTREAM_HOST", "mcp-fetch")
+    mcp_upstream_port = int(os.getenv("MCP_UPSTREAM_PORT", "3000"))
+
+    output_dir = Path(args.output_dir)
+
+    if not args.dry_run:
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"BASE_DOMAIN        : {base_domain}")
+    print(f"AUTH_DOMAIN        : {auth_domain}")
+    print(f"AUTH_SERVICE_HOST  : {auth_service_host}")
+    print(f"MCP_UPSTREAM_HOST  : {mcp_upstream_host}:{mcp_upstream_port}")
+    print(f"Output directory   : {output_dir}")
+    print(f"Dry run            : {args.dry_run}")
     print()
 
     for model in AI_MODELS:
-        print(generate_routes_for_model(model))
+        conf_content = generate_conf_for_model(
+            model=model,
+            base_domain=base_domain,
+            auth_domain=auth_domain,
+            auth_service_host=auth_service_host,
+            mcp_upstream_host=mcp_upstream_host,
+            mcp_upstream_port=mcp_upstream_port,
+        )
+        filename = f"mcp-fetch-{model}.subdomain.conf"
+
+        if args.dry_run:
+            print(f"# ===== {filename} =====")
+            print(conf_content)
+        else:
+            conf_path = output_dir / filename
+            conf_path.write_text(conf_content)
+            print(f"Generated {conf_path}")
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

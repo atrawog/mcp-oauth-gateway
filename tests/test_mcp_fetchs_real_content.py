@@ -36,7 +36,9 @@ class TestMCPFetchsRealContent:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_example_com_content(self, mcp_fetchs_url, gateway_token, _wait_for_services):
+    async def test_fetchs_example_com_content(
+        self, mcp_fetchs_url, gateway_token, _wait_for_services
+    ):
         """Test fetch local test URL and verifying content."""
         async with httpx.AsyncClient(verify=True) as client:
             # Initialize session
@@ -162,7 +164,9 @@ class TestMCPFetchsRealContent:
     #    #
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_fetchs_auth_service_health(self, mcp_fetchs_url, base_domain, gateway_token, _wait_for_services):
+    async def test_fetchs_auth_service_health(
+        self, mcp_fetchs_url, base_domain, gateway_token, _wait_for_services
+    ):
         """Test fetching from our own auth service."""
         async with httpx.AsyncClient(verify=True) as client:
             response = await client.post(
@@ -173,7 +177,7 @@ class TestMCPFetchsRealContent:
                     "params": {
                         "name": "fetch",
                         "arguments": {
-                            "url": f"https://auth.{base_domain}/.well-known/oauth-authorization-server",  # TODO: Break long line
+                            "url": f"https://mcp-auth.{base_domain}/.well-known/oauth-authorization-server",  # TODO: Break long line
                             "method": "GET",
                         },
                     },

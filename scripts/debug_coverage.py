@@ -17,7 +17,9 @@ try:
     import sitecustomize
 
     print("✓ sitecustomize module found and imported")
-    print(f"  Module path: {sitecustomize.__file__ if hasattr(sitecustomize, '__file__') else 'No __file__ attribute'}")
+    print(
+        f"  Module path: {sitecustomize.__file__ if hasattr(sitecustomize, '__file__') else 'No __file__ attribute'}"
+    )
 except ImportError as e:
     print(f"✗ Failed to import sitecustomize: {e}")
 

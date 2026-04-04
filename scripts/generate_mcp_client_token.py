@@ -63,7 +63,11 @@ def extract_oauth_vars_from_output(output: str) -> dict[str, str]:
             key = match.group(1)
             value = match.group(2).strip()
             oauth_vars[key] = value
-            print(f"   Found: {key}={value[:20]}..." if len(value) > 20 else f"   Found: {key}={value}")
+            print(
+                f"   Found: {key}={value[:20]}..."
+                if len(value) > 20
+                else f"   Found: {key}={value}"
+            )
 
     return oauth_vars
 
@@ -74,7 +78,9 @@ def ensure_mcp_client_installed() -> bool:
 
     # Check if module is available
     check_cmd = ["pixi", "run", "python", "-c", "import mcp_streamablehttp_client"]
-    check_result = subprocess.run(check_cmd, check=False, capture_output=True, cwd=Path(__file__).parent.parent)
+    check_result = subprocess.run(
+        check_cmd, check=False, capture_output=True, cwd=Path(__file__).parent.parent
+    )
 
     if check_result.returncode != 0:
         print("📦 Installing mcp-streamablehttp-client...")

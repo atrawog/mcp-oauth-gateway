@@ -5,6 +5,8 @@ import os
 import sys
 from pathlib import Path
 
+from env_compat import get_env_value
+
 
 # Color codes for output
 GREEN = "\033[92m"
@@ -68,7 +70,7 @@ def load_env() -> dict[str, str]:
 
 def check_token(env_vars: dict[str, str], token: str, _description: str) -> tuple[bool, str]:
     """Check if a token exists and return status."""
-    value = env_vars.get(token, "")
+    value = get_env_value(token, "", env_vars) or ""
 
     if not value:
         return False, f"{RED}✗ Missing{RESET}"
@@ -137,11 +139,17 @@ def main():
         print(f"{BLUE}Testing tokens are only needed if you plan to run the test suite.{RESET}")
 
         # Check if any testing tokens are configured
-        test_tokens_configured = sum(1 for token in TESTING_TOKENS if check_token(env_vars, token, "")[0])
+        test_tokens_configured = sum(
+            1 for token in TESTING_TOKENS if check_token(env_vars, token, "")[0]
+        )
         if test_tokens_configured > 0:
-            print(f"\n{GREEN}ⓘ  {test_tokens_configured} testing tokens are also configured.{RESET}")
+            print(
+                f"\n{GREEN}ⓘ  {test_tokens_configured} testing tokens are also configured.{RESET}"
+            )
         else:
-            print(f"\n{YELLOW}ⓘ  No testing tokens configured (this is fine for production).{RESET}")
+            print(
+                f"\n{YELLOW}ⓘ  No testing tokens configured (this is fine for production).{RESET}"
+            )
             print("  To run tests, generate test tokens with:")
             print(f"  - {BLUE}just generate-github-token{RESET} (for GitHub PAT)")
             print(f"  - {BLUE}just mcp-client-token{RESET} (for MCP client testing)")

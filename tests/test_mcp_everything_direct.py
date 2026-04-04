@@ -22,7 +22,9 @@ def base_domain():
 def everything_url():
     """Full URL for everything service."""
     if not MCP_EVERYTHING_TESTS_ENABLED:
-        pytest.skip("MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable.")
+        pytest.skip(
+            "MCP Everything tests are disabled. Set MCP_EVERYTHING_TESTS_ENABLED=true to enable."
+        )
     if not MCP_EVERYTHING_URLS:
         pytest.skip("MCP_EVERYTHING_URLS environment variable not set")
     return MCP_EVERYTHING_URLS[0]
@@ -72,7 +74,9 @@ class TestMCPEverythingDirect:
             "MCP-Protocol-Version": "2025-06-18",
         }
 
-        async with httpx.AsyncClient(base_url=everything_url, headers=headers, timeout=30.0) as client:
+        async with httpx.AsyncClient(
+            base_url=everything_url, headers=headers, timeout=30.0
+        ) as client:
             # 1. Initialize connection
             print("\n=== Testing mcp-everything server ===")
             print("1. Initializing connection...")
@@ -146,7 +150,9 @@ class TestMCPEverythingDirect:
 
             # 4. List available resources
             print("\n3. Listing available resources...")
-            resources_data, _ = await self.send_mcp_request(client, "resources/list", {}, request_id=3)
+            resources_data, _ = await self.send_mcp_request(
+                client, "resources/list", {}, request_id=3
+            )
 
             if "result" in resources_data:
                 resources = resources_data["result"]["resources"]

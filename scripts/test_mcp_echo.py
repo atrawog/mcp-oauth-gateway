@@ -49,7 +49,9 @@ def test_mcp_echo():
     print("\n" + "=" * 50 + "\n")
     print("Testing GET request...")
 
-    get_response = requests.get(url, headers={"Accept": "text/event-stream"}, stream=True, timeout=30.0)
+    get_response = requests.get(
+        url, headers={"Accept": "text/event-stream"}, stream=True, timeout=30.0
+    )
     print(f"GET Response status: {get_response.status_code}")
     print(f"GET Response headers: {dict(get_response.headers)}")
     print()

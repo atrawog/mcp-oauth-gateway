@@ -43,7 +43,9 @@ def fix_httpx_timeout_placement(content: str) -> str:
         line = lines[i]
 
         # Check if this line ends with a method call and next line has timeout
-        if i + 1 < len(lines) and re.search(r"http_client\.(get|post|put|delete|patch)\([^)]*$", line):
+        if i + 1 < len(lines) and re.search(
+            r"http_client\.(get|post|put|delete|patch)\([^)]*$", line
+        ):
             next_line = lines[i + 1]
             # If next line starts with timeout parameter
             if re.match(r"\s*,?\s*timeout=", next_line):

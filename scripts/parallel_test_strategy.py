@@ -138,45 +138,45 @@ def create_justfile_commands():
     return """
 # Test in parallel with automatic CPU detection
 test-parallel *args:
-    pixi run pytest -n auto {{args}}
+    uv run pytest -n auto {{args}}
 
 # Test in parallel with specific worker count
 test-parallel-n count *args:
-    pixi run pytest -n {{count}} {{args}}
+    uv run pytest -n {{count}} {{args}}
 
 # Test by category with optimal distribution
 test-parallel-stateless:
-    pixi run pytest -n auto -m "parallel_safe" --dist worksteal
+    uv run pytest -n auto -m "parallel_safe" --dist worksteal
 
 test-parallel-oauth:
-    pixi run pytest -n 4 -m "oauth_flow" --dist loadscope
+    uv run pytest -n 4 -m "oauth_flow" --dist loadscope
 
 test-parallel-mcp:
-    pixi run pytest -n auto -m "mcp_service" --dist loadfile
+    uv run pytest -n auto -m "mcp_service" --dist loadfile
 
 test-parallel-integration:
-    pixi run pytest -n 2 -m "integration_heavy"
+    uv run pytest -n 2 -m "integration_heavy"
 
 # Run serial tests separately
 test-serial:
-    pixi run pytest -m "serial"
+    uv run pytest -m "serial"
 
 # Full parallel test suite with categories
 test-all-parallel:
     @echo "Running parallel-safe tests..."
-    pixi run pytest -n auto -m "parallel_safe" --dist worksteal -q
+    uv run pytest -n auto -m "parallel_safe" --dist worksteal -q
     @echo "Running OAuth flow tests..."
-    pixi run pytest -n 4 -m "oauth_flow" --dist loadscope -q
+    uv run pytest -n 4 -m "oauth_flow" --dist loadscope -q
     @echo "Running MCP service tests..."
-    pixi run pytest -n auto -m "mcp_service" --dist loadfile -q
+    uv run pytest -n auto -m "mcp_service" --dist loadfile -q
     @echo "Running integration tests..."
-    pixi run pytest -n 2 -m "integration_heavy" -q
+    uv run pytest -n 2 -m "integration_heavy" -q
     @echo "Running serial tests..."
-    pixi run pytest -m "serial" -q
+    uv run pytest -m "serial" -q
 
 # Parallel test with statistics
 test-parallel-stats:
-    pixi run pytest -n auto --dist worksteal --durations=20
+    uv run pytest -n auto --dist worksteal --durations=20
 """
 
 
